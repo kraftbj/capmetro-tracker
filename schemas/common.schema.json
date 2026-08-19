@@ -1,0 +1,805 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capmetro-tracker.local/schemas/common.schema.json",
+  "title": "Shared definitions",
+  "$defs": {
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unix epoch seconds"
+    },
+    "epochOrNull": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "serviceClock": {
+      "type": "string",
+      "pattern": "^[0-9]{1,2}:[0-5][0-9]:[0-5][0-9]$",
+      "description": "GTFS service-day clock; hours MAY exceed 23 (e.g. 25:10:00)"
+    },
+    "feeds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "positions_at",
+        "trip_updates_at",
+        "alerts_at",
+        "gtfs_feed_version",
+        "gtfs_built_at"
+      ],
+      "properties": {
+        "positions_at": {
+          "$ref": "#/$defs/epoch"
+        },
+        "trip_updates_at": {
+          "$ref": "#/$defs/epoch"
+        },
+        "alerts_at": {
+          "$ref": "#/$defs/epoch"
+        },
+        "gtfs_feed_version": {
+          "type": "string"
+        },
+        "gtfs_built_at": {
+          "$ref": "#/$defs/epoch"
+        }
+      }
+    },
+    "staleness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "oldest_feed_age_s",
+        "schedule_age_days",
+        "suppress_adherence",
+        "reason"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "fresh",
+            "aging",
+            "stale",
+            "dead"
+          ]
+        },
+        "oldest_feed_age_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "schedule_age_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "suppress_adherence": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "serviceDay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date",
+        "service_ids",
+        "is_exception_day"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{8}$"
+        },
+        "service_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "is_exception_day": {
+          "type": "boolean"
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lat",
+        "lon",
+        "bearing",
+        "speed_mps"
+      ],
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "bearing": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "exclusiveMaximum": 360
+        },
+        "speed_mps": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "stopRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stop_id",
+        "stop_name"
+      ],
+      "properties": {
+        "stop_id": {
+          "type": "string"
+        },
+        "stop_name": {
+          "type": "string",
+          "maxLength": 25
+        }
+      }
+    },
+    "serviceStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "served",
+        "source",
+        "detail"
+      ],
+      "properties": {
+        "served": {
+          "type": "boolean"
+        },
+        "source": {
+          "enum": [
+            "realtime_skipped",
+            "alert_no_service",
+            "pattern_skip",
+            null
+          ]
+        },
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "served": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "not": {
+                  "const": null
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "adherence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "seconds",
+        "glyph",
+        "against",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "early",
+            "ontime",
+            "late",
+            "very_late",
+            "unknown",
+            "deadhead"
+          ]
+        },
+        "seconds": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "glyph": {
+          "enum": [
+            "left-triangle",
+            "circle",
+            "up-triangle",
+            "square",
+            "question",
+            "ring"
+          ]
+        },
+        "against": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stop_id",
+                "stop_name",
+                "stop_sequence",
+                "scheduled_at",
+                "predicted_at"
+              ],
+              "properties": {
+                "stop_id": {
+                  "type": "string"
+                },
+                "stop_name": {
+                  "type": "string"
+                },
+                "stop_sequence": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "scheduled_at": {
+                  "$ref": "#/$defs/epoch"
+                },
+                "predicted_at": {
+                  "$ref": "#/$defs/epoch"
+                }
+              }
+            }
+          ]
+        },
+        "reason": {
+          "enum": [
+            "trip_canceled",
+            "no_trip_update",
+            "no_stop_predictions",
+            "trip_not_in_schedule",
+            "stale_data",
+            "no_progress",
+            null
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "unknown",
+                  "deadhead"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "seconds": {
+                "const": null
+              },
+              "against": {
+                "const": null
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "early",
+                  "ontime",
+                  "late",
+                  "very_late"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "seconds"
+            ],
+            "properties": {
+              "seconds": {
+                "type": "integer"
+              },
+              "against": {
+                "type": "object"
+              },
+              "reason": {
+                "const": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    "vehicle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vehicle_id",
+        "label",
+        "route_id",
+        "route_short_name",
+        "position",
+        "position_at",
+        "in_service",
+        "adherence"
+      ],
+      "properties": {
+        "vehicle_id": {
+          "type": "string"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        },
+        "position_at": {
+          "$ref": "#/$defs/epoch"
+        },
+        "in_service": {
+          "type": "boolean"
+        },
+        "adherence": {
+          "$ref": "#/$defs/adherence"
+        },
+        "trip": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "trip_id",
+            "start_time",
+            "start_epoch",
+            "direction_id",
+            "headsign",
+            "schedule_relationship"
+          ],
+          "properties": {
+            "trip_id": {
+              "type": "string"
+            },
+            "start_time": {
+              "$ref": "#/$defs/serviceClock"
+            },
+            "start_epoch": {
+              "$ref": "#/$defs/epoch"
+            },
+            "direction_id": {
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "headsign": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "schedule_relationship": {
+              "enum": [
+                "SCHEDULED",
+                "CANCELED",
+                "ADDED",
+                "UNSCHEDULED"
+              ]
+            }
+          }
+        },
+        "progress": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "current_stop_sequence",
+            "current_stop_id",
+            "current_status"
+          ],
+          "properties": {
+            "current_stop_sequence": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "current_stop_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "current_status": {
+              "enum": [
+                "IN_TRANSIT_TO",
+                "STOPPED_AT",
+                "INCOMING_AT",
+                null
+              ]
+            }
+          }
+        },
+        "pattern": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "is_baseline",
+            "is_special",
+            "trips_in_pattern",
+            "adds",
+            "skips"
+          ],
+          "properties": {
+            "is_baseline": {
+              "type": "boolean"
+            },
+            "is_special": {
+              "type": "boolean"
+            },
+            "trips_in_pattern": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "adds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/stopRef"
+              }
+            },
+            "skips": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/stopRef"
+              }
+            }
+          }
+        },
+        "block": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "block_id",
+            "confidence",
+            "next_trip"
+          ],
+          "properties": {
+            "block_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "confidence": {
+              "enum": [
+                "high",
+                "low"
+              ]
+            },
+            "next_trip": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "trip_id",
+                    "direction_id",
+                    "start_time",
+                    "start_epoch",
+                    "start_stop_id",
+                    "start_stop_name",
+                    "is_direction_flip"
+                  ],
+                  "properties": {
+                    "trip_id": {
+                      "type": "string"
+                    },
+                    "direction_id": {
+                      "enum": [
+                        0,
+                        1
+                      ]
+                    },
+                    "start_time": {
+                      "$ref": "#/$defs/serviceClock"
+                    },
+                    "start_epoch": {
+                      "$ref": "#/$defs/epoch"
+                    },
+                    "start_stop_id": {
+                      "type": "string"
+                    },
+                    "start_stop_name": {
+                      "type": "string"
+                    },
+                    "is_direction_flip": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "route_id": {
+          "type": "string"
+        },
+        "route_short_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "in_service": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "trip",
+              "progress",
+              "pattern",
+              "block"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "in_service": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "trip"
+                  ]
+                },
+                {
+                  "required": [
+                    "progress"
+                  ]
+                },
+                {
+                  "required": [
+                    "pattern"
+                  ]
+                },
+                {
+                  "required": [
+                    "block"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "adherence": {
+                "properties": {
+                  "state": {
+                    "const": "deadhead"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "alert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "effect",
+        "cause",
+        "header",
+        "description",
+        "url",
+        "active_from",
+        "active_until",
+        "stop_ids",
+        "severity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "effect": {
+          "enum": [
+            "NO_SERVICE",
+            "DETOUR",
+            "REDUCED_SERVICE",
+            "MODIFIED_SERVICE",
+            "OTHER"
+          ]
+        },
+        "cause": {
+          "type": "string"
+        },
+        "header": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "active_from": {
+          "$ref": "#/$defs/epoch"
+        },
+        "active_until": {
+          "$ref": "#/$defs/epochOrNull"
+        },
+        "stop_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "severity": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "userEmail"
+            ]
+          },
+          {
+            "required": [
+              "userFullname"
+            ]
+          }
+        ]
+      }
+    },
+    "timepoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stop_id",
+        "stop_name",
+        "stop_name_full",
+        "stop_sequence",
+        "direction_id",
+        "lat",
+        "lon",
+        "service_status",
+        "minor_stops"
+      ],
+      "properties": {
+        "stop_id": {
+          "type": "string"
+        },
+        "stop_name": {
+          "type": "string",
+          "maxLength": 25
+        },
+        "stop_name_full": {
+          "type": "string"
+        },
+        "stop_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "direction_id": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lon": {
+          "type": "number"
+        },
+        "service_status": {
+          "$ref": "#/$defs/serviceStatus"
+        },
+        "minor_stops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "stop_id",
+              "stop_name",
+              "stop_sequence",
+              "lat",
+              "lon",
+              "service_status"
+            ],
+            "properties": {
+              "stop_id": {
+                "type": "string"
+              },
+              "stop_name": {
+                "type": "string",
+                "maxLength": 25
+              },
+              "stop_sequence": {
+                "type": "integer"
+              },
+              "lat": {
+                "type": "number"
+              },
+              "lon": {
+                "type": "number"
+              },
+              "service_status": {
+                "$ref": "#/$defs/serviceStatus"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

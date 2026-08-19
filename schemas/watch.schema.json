@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capmetro-tracker.local/schemas/watch.schema.json",
+  "title": "GET /api/watch/{watch_id}.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "watch",
+    "resolution",
+    "status",
+    "vehicle"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/epoch"
+    },
+    "watch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route_id",
+        "direction_id",
+        "stop_id",
+        "stop_name",
+        "scheduled_time",
+        "day_type"
+      ],
+      "properties": {
+        "route_id": {
+          "type": "string"
+        },
+        "direction_id": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "stop_id": {
+          "type": "string"
+        },
+        "stop_name": {
+          "type": "string"
+        },
+        "scheduled_time": {
+          "$ref": "common.schema.json#/$defs/serviceClock"
+        },
+        "day_type": {
+          "enum": [
+            "weekday",
+            "saturday",
+            "sunday",
+            "exception"
+          ]
+        }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolved",
+        "trip_id",
+        "service_id",
+        "service_date",
+        "scheduled_at",
+        "ambiguous_candidates"
+      ],
+      "properties": {
+        "resolved": {
+          "type": "boolean"
+        },
+        "trip_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "service_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "service_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]{8}$"
+        },
+        "scheduled_at": {
+          "$ref": "common.schema.json#/$defs/epochOrNull"
+        },
+        "ambiguous_candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "trip_id",
+              "service_id"
+            ],
+            "properties": {
+              "trip_id": {
+                "type": "string"
+              },
+              "service_id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "not_yet_running",
+        "running",
+        "passed",
+        "canceled",
+        "unresolvable"
+      ]
+    },
+    "vehicle": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.schema.json#/$defs/vehicle"
+        }
+      ]
+    }
+  }
+}

@@ -797,7 +797,7 @@ Synthesized from this review's findings. Each task derives from a specific findi
   - Surfaced by: Outside voice — "degrade, do not die" permits confidently stale data with no enforcement rule
   - Files: `runtime/health.php`, `client/staleness.js`
   - Verify: with `generated_at` forced 30 min old, UI shows degraded state and suppresses lateness numbers
-- [ ] **T6 (P1, human: ~4h / CC: ~30min)** — docs — Write the route-state API contract
+- [x] **T6 (P1, human: ~4h / CC: ~30min)** — docs — Write the route-state API contract  ✅ `docs/api-contract.md` + `schemas/`
   - Surfaced by: Outside voice / parallelization — hardest logic leaks into the client without it
   - Files: `docs/api-contract.md`
   - Verify: contract covers block continuation, unknown lateness, deadheads, stale feeds, and A/B/BOTH direction semantics

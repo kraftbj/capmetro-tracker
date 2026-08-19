@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capmetro-tracker.local/schemas/all.schema.json",
+  "title": "GET /api/all.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "feeds",
+    "staleness",
+    "service_day",
+    "counts",
+    "vehicles"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/epoch"
+    },
+    "feeds": {
+      "$ref": "common.schema.json#/$defs/feeds"
+    },
+    "staleness": {
+      "$ref": "common.schema.json#/$defs/staleness"
+    },
+    "service_day": {
+      "$ref": "common.schema.json#/$defs/serviceDay"
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "in_service",
+        "deadhead",
+        "routes_active"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "in_service": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deadhead": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routes_active": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "vehicles": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/vehicle"
+      }
+    }
+  }
+}

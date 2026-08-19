@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capmetro-tracker.local/schemas/health.schema.json",
+  "title": "GET /api/health.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "ok",
+    "cron_last_success_at",
+    "feeds",
+    "gtfs",
+    "counts",
+    "errors"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/epoch"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "cron_last_success_at": {
+      "$ref": "common.schema.json#/$defs/epoch"
+    },
+    "feeds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "positions_at",
+        "trip_updates_at",
+        "alerts_at"
+      ],
+      "properties": {
+        "positions_at": {
+          "$ref": "common.schema.json#/$defs/epoch"
+        },
+        "trip_updates_at": {
+          "$ref": "common.schema.json#/$defs/epoch"
+        },
+        "alerts_at": {
+          "$ref": "common.schema.json#/$defs/epoch"
+        }
+      }
+    },
+    "gtfs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feed_version",
+        "built_at",
+        "valid_until"
+      ],
+      "properties": {
+        "feed_version": {
+          "type": "string"
+        },
+        "built_at": {
+          "$ref": "common.schema.json#/$defs/epoch"
+        },
+        "valid_until": {
+          "type": "string",
+          "pattern": "^[0-9]{8}$"
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vehicles",
+        "routes_written"
+      ],
+      "properties": {
+        "vehicles": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routes_written": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "errors": {
+            "minItems": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}
