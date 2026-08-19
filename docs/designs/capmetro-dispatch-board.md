@@ -529,7 +529,7 @@ Every state describes what the **user sees**, not backend behavior.
 | Ladder | Axis + stop labels render first, lines fade in | Scheduled lines drawn, no dots, caption "no buses in service" | Ladder hidden, rows still shown, one-line reason | Dots for buses with known position, unknown-lateness dots hollow | Dashed NOW line greys out, timestamp shown |
 | Map | Basemap + route line first, chips after | Route line drawn, caption "no buses in service" | Basemap only, chips omitted, banner above | Chips shown without lateness colour, neutral fill | Chips desaturate, age banner |
 | Watchlist | Saved rows as skeletons | "No saved trips yet. Tap a trip to watch it." + example | Row shows last-known status and its age | Watch resolved but trip not yet in service: "scheduled, not yet running" | Watch shows resolution date so a stale shard is visible |
-| All-buses | Count animates up | Never empty in practice; if so, "feed returned no vehicles" | Falls back to last good snapshot with age | Deadheads shown even when in-service data is partial | Whole view greys, age banner |
+| All-buses | Count renders directly, no animation | Never empty in practice; if so, "feed returned no vehicles" | Falls back to last good snapshot with age | Deadheads shown even when in-service data is partial | Whole view greys, age banner |
 
 **First run** (no state at all): show the route picker with the six watchlist routes pre-offered,
 one line explaining what the board does, and no empty panels. Never show a blank screen with a
@@ -549,6 +549,25 @@ schedule shard already holds everything needed to say it.
 
 The emotional low point is a kid at a stop with no bus visible. Both the block-continuity feature
 and the non-blank empty state exist to serve that moment specifically.
+
+### Product identity and surface rules (from the design outside voice)
+
+- **The board must say what it is.** A compact persistent title in the top bar
+  (`School Bus Board`), small but unmistakable. Without it the first screen is a route chip and a
+  toggle, which reads as an anonymous internal tool when opened cold from a home screen or shared
+  with another parent. This was the one litmus check both reviewers failed.
+- **Bands, not cards.** Panels are full-width bands on a continuous surface, separated by hairline
+  dividers. **No panel is wrapped in a card container.** The only card-like objects are individual
+  tappable vehicle rows and watch rows, where the card *is* the interaction. Saying "panels"
+  without this rule reliably drifts into a dark dashboard mosaic, which is the App UI
+  anti-pattern, and reversing it later means redoing the layout rather than adjusting it.
+- **The lateness badge is the anchor.** It must be the strongest repeated object on the screen:
+  shape plus colour plus signed value (`▲ +3m`, `● ON`, `◀ -2m`), aligned in a fixed column so the
+  eye scans one vertical strip. If the badge is not visually dominant, the board degrades into an
+  undifferentiated data list with no instant read.
+- **Motion is for meaning only.** Dot movement, stale transitions, and row status changes may
+  animate. Nothing decorative. No count-up animation on load. All motion disabled under
+  `prefers-reduced-motion`.
 
 ### Visual language (Pass 4: 7/10 → 9/10)
 
@@ -624,9 +643,23 @@ label row. A string-line is continuous; only the labels are sparse.
 **Also found:** stop labels truncate mid-word (`UT Stadium SB (San Jacin`). Stop names need
 intelligent shortening that drops parenthetical suffixes, not character clipping.
 
-**BOTH-direction rendering** remains the one open layout question. At 412px, BOTH is roughly
-2x the rows; with timepoints that is ~16 rows for route 7, which fits. Mirroring around a shared
-time axis is the likely answer but is unverified.
+**BOTH-direction rendering** remains the one open layout question, and it is tighter than first
+estimated. Measured timepoint counts per direction:
+
+| Route | dir A tp | dir B tp | BOTH rows (stacked) | pitch at 412x915 |
+|---|---|---|---|---|
+| 4 | 3 | 3 | 6 | 76.0px |
+| 837 | 4 | 5 | 9 | 47.5px |
+| 350 | 5 | 5 | 10 | 42.2px |
+| 800 | 5 | 6 | 11 | 38.0px |
+| 337 | 6 | 6 | 12 | 34.5px |
+| **7** | **8** | **9** | **17** | **23.8px  TIGHT** |
+
+Five of six routes are comfortable. Route 7 at 23.8px falls below a comfortable pitch and well
+below the 44px touch target, so BOTH cannot simply stack. Mirroring around a shared time axis
+reduces route 7 to its 15-stop timepoint union (~27px), which is still tight. **A 412px render of
+BOTH on route 7 is required before implementation**; the outside voice independently reached the
+same conclusion. Tracked in `TODOS.md`.
 
 
 ## NOT in scope
@@ -848,29 +881,35 @@ Synthesized from this review's findings. Each task derives from a specific findi
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
-| Codex Review | `/codex review` | Independent 2nd opinion | 1 | issues_found | 21 raised, 5 material, 1 falsified |
+| Codex Review | `/codex review` | Independent 2nd opinion | 2 | issues_found | plan: 21 raised / 5 material / 1 falsified; design: pass with 8 required fixes |
 | Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | clean | 5 issues, 0 critical gaps |
-| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+| Design Review | `/plan-design-review` | UI/UX gaps | 1 | issues_open | score 4/10 → 9/10, 2 decisions resolved, 6 deferred |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
-**CODEX:** Outside voice raised 21 points. Five were material and are folded in: the
-build-time/runtime contradiction, "cache in memory" under cron, non-atomic writes, the missing
-route-state API contract, and service alerts being absent from the product. One claim was
-falsified by direct check: it argued the saved-watch trip would not run on 2026-08-20, but
-`3010894_22201` belongs to service `9-172`, which covers 99 dates including that one. Its
-underlying concern produced a better rule than either reviewer started with: calendar resolution
-is per route, not per feed.
+**CODEX:** Two passes. On the plan it caught the build-time/runtime contradiction, the incoherent
+in-memory cache, non-atomic writes, the missing API contract, and the absent service alerts, which
+turned out to be a live correctness bug. One of its claims was falsified by direct check. On the
+design it returned Pass With Required Fixes, failed exactly one litmus check (product identity),
+and confirmed the rows-first mobile hierarchy was correct. It independently reached the same
+conclusion as the measured data that BOTH-direction rendering is not yet approved.
 
-**CROSS-MODEL:** Both reviewers independently reached the same conclusion on three points: heavy
-GTFS parsing does not belong in PHP, writes into a served webroot must be atomic, and staleness
-must be an enforced rendered state rather than a log line. Codex uniquely caught service alerts,
-which turned out to be a live correctness bug affecting 6 stop/route pairs. This review uniquely
-caught the alerts feed's non-GTFS shape, its embedded staff PII, the gzip-versus-protobuf
-measurement, and the one-off-service-day frequency. Neither caught the per-route calendar split
-before it was probed directly. Scope reduction was proposed and **rejected by the user**; the full
-plan stands and was not re-argued.
+**CROSS-MODEL:** Agreement on every litmus check that both evaluated, and on three engineering
+conclusions reached independently: GTFS parsing does not belong in PHP, writes into a served
+webroot must be atomic, and staleness must be an enforced rendered state. Codex uniquely caught
+service alerts and the card-container drift risk. This review uniquely caught the alerts feed's
+non-GTFS shape and embedded staff PII, the gzip-versus-protobuf measurement, the one-off service
+day frequency, the 1.06:1 green-amber luminance collapse, and the 66-stop ladder failure. Claude
+subagents failed to return output in this session on all five attempts, so both outside voices
+were Codex alone rather than the intended Codex-plus-subagent pair.
 
-**VERDICT:** ENG CLEARED — ready to implement. CEO and Design reviews not run and not required
-for this change.
+**VERDICT:** ENG CLEARED — ready to implement. Design review complete at 9/10 with 6 decisions
+deliberately deferred. CEO and DX reviews not run and not required.
 
-NO UNRESOLVED DECISIONS
+**UNRESOLVED DECISIONS:**
+- BOTH-direction ladder rendering: route 7 stacks to 17 rows at 23.8px pitch, below a comfortable
+  touch target. Requires a 412px render before implementation.
+- Typeface selection (text face plus tabular figure face).
+- Stop-name shortening rule.
+- Map interaction model: what tapping a vehicle chip does.
+- Saved-watch creation gesture: the feature currently has no entry point.
+- All-buses view layout at 412px for ~392 vehicles.
