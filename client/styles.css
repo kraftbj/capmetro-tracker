@@ -803,3 +803,60 @@ button { font: inherit; color: inherit; }
  * heading elements is a screen-reader dead end. Reset the UA heading styling
  * so they match the p-based subband heads everywhere else. */
 h3.subband__head { font: inherit; margin: 0 0 8px; }
+
+/* ===== next buses at a stop ============================================= */
+/*
+ * Two directions side by side where there is room, stacked on a phone. The
+ * arrival time is the largest thing in the band because it is the one number
+ * someone standing at a stop is looking for.
+ */
+.band--nextbus .band__sub {
+  display: flex; align-items: baseline; gap: 10px;
+  margin: 0 0 12px; font-size: var(--fs-lead); color: var(--ink);
+  text-transform: none; letter-spacing: 0;
+}
+.linkbtn {
+  margin-left: auto; padding: 4px 2px;
+  background: none; border: 0; border-bottom: 1px solid var(--hairline);
+  color: var(--ink-dim); font-size: var(--fs-chrome); cursor: pointer;
+}
+.linkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.nextdirs { display: flex; flex-direction: column; gap: 16px; }
+.nextdir__head { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; }
+.nextdir__sign { font-size: var(--fs-meta); color: var(--ink-muted); }
+.nextdir__none { margin: 0; font-size: var(--fs-meta); color: var(--ink-dim); }
+
+.nextbuses { display: flex; flex-direction: column; gap: 8px; }
+.nextbus {
+  padding: 10px 12px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--dia-spine); border-radius: var(--radius);
+}
+/* The first one is the bus you are probably catching. */
+.nextbus:first-child { background: var(--surface-raised-hi); }
+.nextbus--early { border-left-color: var(--adh-early); }
+.nextbus--ontime { border-left-color: var(--adh-ontime); }
+.nextbus--late { border-left-color: var(--adh-late); }
+.nextbus--very_late { border-left-color: var(--adh-vlate); }
+.nextbus--unknown { border-left-color: var(--adh-unknown); }
+.nextbus--scheduled { border-left-style: dashed; }
+
+.nextbus__when { display: flex; align-items: baseline; gap: 10px; margin: 0; }
+.nextbus__clock { font-family: var(--font-figure); font-size: 26px; font-weight: 700; }
+.nextbus:first-child .nextbus__clock { font-size: 30px; }
+.nextbus__until { font-size: var(--fs-meta); color: var(--ink-dim); }
+.nextbus__sched, .nextbus__bus {
+  margin: 4px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome);
+}
+.nextbus__note {
+  margin: 6px 0 0; padding-left: 8px;
+  border-left: 2px solid var(--adh-special);
+  font-size: var(--fs-chrome); color: var(--ink-dim);
+}
+.nextbus .badge { margin-top: 6px; }
+
+@media (min-width: 720px) {
+  .nextdirs { flex-direction: row; }
+  .nextdir { flex: 1 1 0; min-width: 0; }
+}

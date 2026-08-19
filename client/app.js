@@ -84,7 +84,9 @@
     depStatus: {},       /* route id -> loading | ok | error */
     routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
     routeStatus: {},     /* route id -> loading | ok | error */
-    editor: { route_id: null, direction_id: null, stop_id: null }
+    editor: { route_id: null, direction_id: null, stop_id: null },
+    stopId: null,        /* the stop the Next buses band is answering for */
+    stopPicking: false
   };
 
   var dom = {};
@@ -207,7 +209,14 @@
    */
   function loadDepartures(routeId) {
     if (!routeId) return;
-    if (state.departures[routeId] || state.depStatus[routeId] === 'loading') return;
+    if (state.departures[routeId]) return;
+    /*
+     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
+     * called render, and render asked again - a fetch-and-repaint loop that
+     * hammered the server and rebuilt the DOM every frame. The 60s refresh
+     * clears the status so a transient failure still recovers.
+     */
+    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
@@ -535,8 +544,13 @@
     state.routeId = id;
     state.data = null;
     state.errorDetail = null;
+    /* Each route remembers its own stop, so switching back is one tap and not
+     * a fresh hunt through sixty-six of them. */
+    state.stopId = recall('stop.' + id);
+    state.stopPicking = false;
     store('route', id);
     load(id);
+    loadDepartures(id);
   }
 
   /* ---- render --------------------------------------------------------- */
@@ -616,6 +630,37 @@
     mapBand.setAttribute('aria-label', 'Map');
     dom.main.appendChild(mapBand);
     global.CMB.map.render(mapBand, d || {}, opts);
+
+    /*
+     * Last, because it answers a narrower question than the rest of the board:
+     * the other panels are "what is this route doing", this one is "I am at
+     * this stop". Anyone who wants it will scroll to it once and then it
+     * remembers their stop.
+     *
+     * The schedule is fetched by selectRoute and boot, NOT here. A render that
+     * starts a fetch is a render that can trigger another render, and the loop
+     * that produced destroyed the alerts disclosure mid-click.
+     */
+    var stopBand = el('section', 'band band--nextbus');
+    stopBand.setAttribute('aria-label', 'Next buses at a stop');
+    dom.main.appendChild(stopBand);
+    global.CMB.stopboard.render(
+      stopBand,
+      state.departures[state.routeId] || null,
+      d,
+      nowEpoch(),
+      {
+        stopId: state.stopId,
+        picking: state.stopPicking,
+        onPick: function (id) {
+          state.stopId = id;
+          state.stopPicking = false;
+          store('stop.' + state.routeId, id);
+          render();
+        },
+        onChange: function () { state.stopPicking = true; render(); }
+      }
+    );
 
     dom.main.appendChild(footer(d));
   }
@@ -768,6 +813,7 @@
 
     var routeId = q.route || recall('route') || '4';
     state.routeId = routeId;
+    state.stopId = q.stop || recall('stop.' + routeId);
     load(routeId);
     loadCatalog();
 
@@ -779,6 +825,12 @@
       setInterval(function () {
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
+        /* One retry per minute for a schedule that failed to load, and only
+         * here, where a retry cannot become a render loop. */
+        if (state.depStatus[state.routeId] === 'error') {
+          delete state.depStatus[state.routeId];
+          loadDepartures(state.routeId);
+        }
         if (state.view === 'saved') {
           /* A frozen saved trip is worse than none: it reads as a live prediction. */
           global.CMB.watch.list().forEach(function (w) {
