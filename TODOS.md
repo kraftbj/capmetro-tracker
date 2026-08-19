@@ -2,6 +2,68 @@
 
 ## Client
 
+### Show cancelled trips. This is the one that stranded a kid.
+
+**What:** A cancelled trip is invisible everywhere in the client. The stop board, the saved
+trips and the ladder all render it as "scheduled · no bus reporting yet", which a reader
+correctly parses as "it hasn't started yet" when it actually means "it is never coming".
+
+**Why:** On 2026-08-19 at 17:20 the owner's daughter waited at the Austin High stop for the
+17:02 EB special on block 4090. That trip was cancelled. The board could not have told her,
+and the stop it serves is the ONLY one that is served once in the morning and once in the
+afternoon, so there was no second bus at that stop all day. She was stranded.
+
+**It is not rare.** Live at 17:28 that same day: **187 cancelled trips system-wide, 17 on
+route 4 alone** — 16:49, 17:02, 17:40, 17:57, 18:14, 18:31, 19:05, 19:22, 19:39, 19:56 and
+more. There was also a route-wide `REDUCED_SERVICE` alert for the day. Cancellation is a
+normal operating condition on this system, not an edge case.
+
+**Where the data already is:** the trip updates feed carries
+`trip.scheduleRelationship: "CANCELED"`, and `runtime/lib/adherence.php` already knows the
+`trip_canceled` reason. But that reason only ever attaches to a VEHICLE, and a cancelled
+trip has no vehicle — so it can never surface through that path. The runtime has to read
+cancellation off the trip updates feed independently of vehicle matching and publish it as
+a property of the TRIP.
+
+**What to build:**
+- Runtime: a `canceled` set from the trip updates feed. Publish it on
+  `api/departures/{route}.json` trips (`"canceled": true`) so the stop board and saved
+  trips can read it, and on the route payload's `schedule.directions[].trips` rows.
+- Client: a cancelled departure must say CANCELED in words, must not be counted as "next",
+  and must never read as merely un-started. In the stop board it should be shown struck
+  through rather than hidden, because "the 5:40 is cancelled" is more useful than the 5:40
+  silently not existing.
+- The ladder should draw a cancelled diagonal differently, or omit it and say how many it
+  omitted.
+
+**Effort:** M
+**Priority:** P0
+**Depends on:** None
+
+### Order the vehicle rows by position along the route, not by lateness
+
+**What:** `client/rows.js` sorts by adherence severity — worst news first. Order them by
+where each bus actually is along the route instead, so the list reads in running order and
+lines up with the ladder beside it.
+
+**Why:** Owner's words: *"ordered by how late they are makes zero sense... the top one
+should be the one that is the most in that direction (e.g. a SB ladder should have the most
+southbound one at the top)."* Severity order is dispatcher thinking, the same wrong frame
+the all-buses triage band had. A rider is asking "which bus is nearest me", and that is a
+question about position.
+
+**Context:** `progress.current_stop_sequence` is the field; it is already on every
+in-service vehicle. Highest sequence is furthest along the route. The open question is
+whether the list should run furthest-along-first (matching "most southbound at the top") or
+first-stop-first (matching the ladder's own top-to-bottom order). Those disagree, so pick
+one deliberately and say which in the caption. Out-of-service buses have no sequence and
+should stay in their own group at the bottom.
+
+**Effort:** S
+**Priority:** P1
+**Depends on:** None
+
+
 
 
 
