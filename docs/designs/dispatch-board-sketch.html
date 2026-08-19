@@ -1,0 +1,99 @@
+<title>Route 4 Dispatch Board — live sketch</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#0b0d12;color:#e5e7eb;font:13px/1.45 ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:14px 18px 40px}
+header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #232833;padding-bottom:10px;margin-bottom:12px}
+.chip{border:1px solid #2b313d;background:#141821;padding:5px 11px;border-radius:6px;font-weight:600;letter-spacing:.01em}
+.chip.sel{background:#1d2531;border-color:#3b82f6;color:#fff}
+.tab{border:1px solid #2b313d;padding:5px 11px;border-radius:6px;color:#9aa4b2}
+.spacer{flex:1}
+.stamp{color:#6b7280;font-variant-numeric:tabular-nums;font-size:12px}
+h3{margin:16px 0 7px;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#8b95a5;font-weight:600}
+.panel{border:1px solid #232833;border-radius:8px;background:#0e1117;overflow:hidden}
+.mapfake{height:150px;background:
+  repeating-linear-gradient(90deg,#0f131a 0 39px,#131822 39px 40px),
+  repeating-linear-gradient(0deg,#0f131a 0 39px,#131822 39px 40px);
+  position:relative}
+.mapfake .note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.mapfake .bus{position:absolute;font:600 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#0b0d12;padding:2px 5px;border-radius:4px;font-variant-numeric:tabular-nums}
+svg text.ylab{fill:#7d8798;font:10px ui-sans-serif,system-ui;text-anchor:end}
+svg text.xlab{fill:#6b7280;font:10px ui-monospace,Menlo,monospace;text-anchor:middle}
+svg text.dot{fill:#e5e7eb;font:600 10px ui-monospace,Menlo,monospace}
+svg text.nowlab{fill:#e5e7eb;font:600 9px ui-sans-serif,system-ui}
+.row{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-bottom:1px solid #1a1e26}
+.row:last-child{border-bottom:0}
+.vid{font:700 13px ui-monospace,Menlo,monospace;width:56px;color:#cbd5e1;font-variant-numeric:tabular-nums}
+.badge{min-width:40px;text-align:center;border-radius:5px;color:#0b0d12;font:700 12px ui-monospace,Menlo,monospace;padding:2px 6px;font-variant-numeric:tabular-nums}
+.meta{flex:1;color:#c3cad6;font-size:12.5px}
+.dim{color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.pill{display:inline-block;margin-top:5px;background:#2e1065;border:1px solid #6d28d9;color:#ddd6fe;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:#8b95a5;font-size:11px;margin-top:9px;align-items:center}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.cap{color:#6b7280;font-size:11px;margin-top:8px;line-height:1.6}
+</style>
+<div class="wrap">
+<header>
+  <span class="chip sel">4 · 7th Street ▾</span>
+  <span class="chip">WB ⇄ EB</span>
+  <span class="tab">All buses (142 deadhead)</span>
+  <span class="spacer"></span>
+  <span class="stamp">feed 9:35:23 AM CT · 5 live on route</span>
+</header>
+
+<h3>Map</h3>
+<div class="panel"><div class="mapfake">
+  <div class="note">live map · route line · vehicle chips</div>
+  <span class="bus" style="left:14%;top:34%;background:#22c55e">2858 +0</span>
+  <span class="bus" style="left:38%;top:56%;background:#f59e0b">2641 +3</span>
+  <span class="bus" style="left:61%;top:28%;background:#22c55e">2216 +1</span>
+  <span class="bus" style="left:78%;top:64%;background:#3b82f6">2701 −3</span>
+</div></div>
+
+<h3>String-line board · westbound · real schedule, real positions</h3>
+<div class="panel"><svg viewBox="0 0 1180 470" width="100%">
+  <rect width="1180" height="470" fill="#0e1117"/>
+  <line x1="360.7" y1="30" x2="360.7" y2="444" stroke="#161a21"/><text x="360.7" y="20" class="xlab">9:30</text><line x1="517.3" y1="30" x2="517.3" y2="444" stroke="#161a21"/><text x="517.3" y="20" class="xlab">9:40</text><line x1="674.0" y1="30" x2="674.0" y2="444" stroke="#161a21"/><text x="674.0" y="20" class="xlab">9:50</text><line x1="830.7" y1="30" x2="830.7" y2="444" stroke="#161a21"/><text x="830.7" y="20" class="xlab">10:00</text><line x1="987.3" y1="30" x2="987.3" y2="444" stroke="#161a21"/><text x="987.3" y="20" class="xlab">10:10</text><line x1="1144.0" y1="30" x2="1144.0" y2="444" stroke="#161a21"/><text x="1144.0" y="20" class="xlab">10:20</text>
+  <text x="202" y="34.0" class="ylab">501 Pleasant Valley/5th</text><line x1="210" y1="30.0" x2="1150" y2="30.0" stroke="#1b1f27"/><text x="202" y="59.9" class="ylab">2730 7th/Pleasant Valley</text><line x1="210" y1="55.9" x2="1150" y2="55.9" stroke="#1b1f27"/><text x="202" y="85.8" class="ylab">2700 7th/Calles</text><line x1="210" y1="81.8" x2="1150" y2="81.8" stroke="#1b1f27"/><text x="202" y="111.6" class="ylab">2500 7th/Pedernales</text><line x1="210" y1="107.6" x2="1150" y2="107.6" stroke="#1b1f27"/><text x="202" y="137.5" class="ylab">7th/Northwestern</text><line x1="210" y1="133.5" x2="1150" y2="133.5" stroke="#1b1f27"/><text x="202" y="163.4" class="ylab">7th/Chicon</text><line x1="210" y1="159.4" x2="1150" y2="159.4" stroke="#1b1f27"/><text x="202" y="189.2" class="ylab">7th/Concho</text><line x1="210" y1="185.2" x2="1150" y2="185.2" stroke="#1b1f27"/><text x="202" y="215.1" class="ylab">1114 7th/Waller</text><line x1="210" y1="211.1" x2="1150" y2="211.1" stroke="#1b1f27"/><text x="202" y="241.0" class="ylab">411 8th/Trinity</text><line x1="210" y1="237.0" x2="1150" y2="237.0" stroke="#1b1f27"/><text x="202" y="266.9" class="ylab">104 8th/Congress</text><line x1="210" y1="262.9" x2="1150" y2="262.9" stroke="#1b1f27"/><text x="202" y="292.8" class="ylab">216 8Th/Lavaca</text><line x1="210" y1="288.8" x2="1150" y2="288.8" stroke="#1b1f27"/><text x="202" y="318.6" class="ylab">714 6th/West</text><line x1="210" y1="314.6" x2="1150" y2="314.6" stroke="#1b1f27"/><text x="202" y="344.5" class="ylab">842 6th/Wood</text><line x1="210" y1="340.5" x2="1150" y2="340.5" stroke="#1b1f27"/><text x="202" y="370.4" class="ylab">1208 6th/Harthan</text><line x1="210" y1="366.4" x2="1150" y2="366.4" stroke="#1b1f27"/><text x="202" y="396.2" class="ylab">6th/Pressler</text><line x1="210" y1="392.2" x2="1150" y2="392.2" stroke="#1b1f27"/><text x="202" y="422.1" class="ylab">6th/West Lynn</text><line x1="210" y1="418.1" x2="1150" y2="418.1" stroke="#1b1f27"/><text x="202" y="448.0" class="ylab">504 Campbell/5th</text><line x1="210" y1="444.0" x2="1150" y2="444.0" stroke="#1b1f27"/>
+  <polyline points="-93.7,30.0 -69.9,55.9 -60.8,81.8 -49.0,107.6 -31.8,133.5 2.4,159.4 24.6,185.2 58.3,211.1 119.7,237.0 141.3,262.9 162.7,288.8 216.5,314.6 233.0,340.5 260.9,366.4 271.1,392.2 284.9,418.1 298.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="157.0,30.0 180.8,55.9 189.9,81.8 201.6,107.6 218.9,133.5 253.1,159.4 275.3,185.2 309.0,211.1 370.3,237.0 392.0,262.9 413.4,288.8 467.2,314.6 483.6,340.5 511.6,366.4 521.8,392.2 535.6,418.1 548.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="407.7,30.0 431.4,55.9 440.6,81.8 452.3,107.6 469.5,133.5 503.8,159.4 525.9,185.2 559.6,211.1 621.0,237.0 642.7,262.9 664.1,288.8 717.9,314.6 734.3,340.5 762.2,366.4 772.4,392.2 786.3,418.1 799.3,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="658.3,30.0 682.1,55.9 691.2,81.8 703.0,107.6 720.2,133.5 754.4,159.4 776.6,185.2 810.3,211.1 871.7,237.0 893.3,262.9 914.7,288.8 968.5,314.6 985.0,340.5 1012.9,366.4 1023.1,392.2 1036.9,418.1 1050.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="909.0,30.0 932.8,55.9 941.9,81.8 953.6,107.6 970.9,133.5 1005.1,159.4 1027.3,185.2 1061.0,211.1 1122.3,237.0 1144.0,262.9 1165.4,288.8 1219.2,314.6 1235.6,340.5 1263.6,366.4 1273.8,392.2 1287.6,418.1 1300.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-93.7,30.0 -69.6,55.9 -59.7,81.8 -46.9,107.6 -28.7,133.5 5.3,159.4 29.6,185.2 61.4,211.1 119.9,237.0 141.3,262.9 156.2,288.8 202.7,314.6 214.2,340.5 250.2,366.4 265.1,392.2 280.2,418.1 298.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="157.0,30.0 181.0,55.9 190.9,81.8 203.7,107.6 222.0,133.5 256.0,159.4 280.2,185.2 312.1,211.1 370.6,237.0 392.0,262.9 406.9,288.8 453.4,314.6 464.8,340.5 500.9,366.4 515.8,392.2 530.9,418.1 548.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="407.7,30.0 431.7,55.9 441.6,81.8 454.4,107.6 472.7,133.5 506.6,159.4 530.9,185.2 562.8,211.1 621.2,237.0 642.7,262.9 657.5,288.8 704.0,314.6 715.5,340.5 751.5,366.4 766.4,392.2 781.6,418.1 799.3,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="658.3,30.0 682.3,55.9 692.3,81.8 705.1,107.6 723.3,133.5 757.3,159.4 781.6,185.2 813.4,211.1 871.9,237.0 893.3,262.9 908.2,288.8 954.7,314.6 966.2,340.5 1002.2,366.4 1017.1,392.2 1032.2,418.1 1050.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="909.0,30.0 933.0,55.9 942.9,81.8 955.7,107.6 974.0,133.5 1008.0,159.4 1032.2,185.2 1064.1,211.1 1122.6,237.0 1144.0,262.9 1158.9,288.8 1205.4,314.6 1216.8,340.5 1252.9,366.4 1267.8,392.2 1282.9,418.1 1300.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-93.7,30.0 -69.6,55.9 -59.7,81.8 -46.9,107.6 -28.7,133.5 5.3,159.4 29.6,185.2 61.4,211.1 119.9,237.0 141.3,262.9 156.2,288.8 202.7,314.6 214.2,340.5 250.2,366.4 265.1,392.2 280.2,418.1 298.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="157.0,30.0 181.0,55.9 190.9,81.8 203.7,107.6 222.0,133.5 256.0,159.4 280.2,185.2 312.1,211.1 370.6,237.0 392.0,262.9 406.9,288.8 453.4,314.6 464.8,340.5 500.9,366.4 515.8,392.2 530.9,418.1 548.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="407.7,30.0 431.7,55.9 441.6,81.8 454.4,107.6 472.7,133.5 506.6,159.4 530.9,185.2 562.8,211.1 621.2,237.0 642.7,262.9 657.5,288.8 704.0,314.6 715.5,340.5 751.5,366.4 766.4,392.2 781.6,418.1 799.3,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="658.3,30.0 682.3,55.9 692.3,81.8 705.1,107.6 723.3,133.5 757.3,159.4 781.6,185.2 813.4,211.1 871.9,237.0 893.3,262.9 908.2,288.8 954.7,314.6 966.2,340.5 1002.2,366.4 1017.1,392.2 1032.2,418.1 1050.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="909.0,30.0 933.0,55.9 942.9,81.8 955.7,107.6 974.0,133.5 1008.0,159.4 1032.2,185.2 1064.1,211.1 1122.6,237.0 1144.0,262.9 1158.9,288.8 1205.4,314.6 1216.8,340.5 1252.9,366.4 1267.8,392.2 1282.9,418.1 1300.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-93.7,30.0 -69.6,55.9 -59.7,81.8 -46.9,107.6 -28.7,133.5 5.3,159.4 29.6,185.2 61.4,211.1 119.9,237.0 141.3,262.9 156.2,288.8 202.7,314.6 214.2,340.5 250.2,366.4 265.1,392.2 280.2,418.1 298.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="157.0,30.0 181.0,55.9 190.9,81.8 203.7,107.6 222.0,133.5 256.0,159.4 280.2,185.2 312.1,211.1 370.6,237.0 392.0,262.9 406.9,288.8 453.4,314.6 464.8,340.5 500.9,366.4 515.8,392.2 530.9,418.1 548.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="407.7,30.0 431.7,55.9 441.6,81.8 454.4,107.6 472.7,133.5 506.6,159.4 530.9,185.2 562.8,211.1 621.2,237.0 642.7,262.9 657.5,288.8 704.0,314.6 715.5,340.5 751.5,366.4 766.4,392.2 781.6,418.1 799.3,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="658.3,30.0 682.3,55.9 692.3,81.8 705.1,107.6 723.3,133.5 757.3,159.4 781.6,185.2 813.4,211.1 871.9,237.0 893.3,262.9 908.2,288.8 954.7,314.6 966.2,340.5 1002.2,366.4 1017.1,392.2 1032.2,418.1 1050.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="909.0,30.0 933.0,55.9 942.9,81.8 955.7,107.6 974.0,133.5 1008.0,159.4 1032.2,185.2 1064.1,211.1 1122.6,237.0 1144.0,262.9 1158.9,288.8 1205.4,314.6 1216.8,340.5 1252.9,366.4 1267.8,392.2 1282.9,418.1 1300.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-93.7,30.0 -69.6,55.9 -59.7,81.8 -46.9,107.6 -28.7,133.5 5.3,159.4 29.6,185.2 61.4,211.1 119.9,237.0 141.3,262.9 156.2,288.8 202.7,314.6 214.2,340.5 250.2,366.4 265.1,392.2 280.2,418.1 298.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="157.0,30.0 181.0,55.9 190.9,81.8 203.7,107.6 222.0,133.5 256.0,159.4 280.2,185.2 312.1,211.1 370.6,237.0 392.0,262.9 406.9,288.8 453.4,314.6 464.8,340.5 500.9,366.4 515.8,392.2 530.9,418.1 548.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="407.7,30.0 431.7,55.9 441.6,81.8 454.4,107.6 472.7,133.5 506.6,159.4 530.9,185.2 562.8,211.1 621.2,237.0 642.7,262.9 657.5,288.8 704.0,314.6 715.5,340.5 751.5,366.4 766.4,392.2 781.6,418.1 799.3,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="658.3,30.0 682.3,55.9 692.3,81.8 705.1,107.6 723.3,133.5 757.3,159.4 781.6,185.2 813.4,211.1 871.9,237.0 893.3,262.9 908.2,288.8 954.7,314.6 966.2,340.5 1002.2,366.4 1017.1,392.2 1032.2,418.1 1050.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="909.0,30.0 933.0,55.9 942.9,81.8 955.7,107.6 974.0,133.5 1008.0,159.4 1032.2,185.2 1064.1,211.1 1122.6,237.0 1144.0,262.9 1158.9,288.8 1205.4,314.6 1216.8,340.5 1252.9,366.4 1267.8,392.2 1282.9,418.1 1300.7,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-187.7,30.0 -160.8,55.9 -150.3,81.8 -137.3,107.6 -117.7,133.5 -78.8,159.4 -53.7,185.2 -15.6,211.1 54.1,237.0 78.7,262.9 102.4,288.8 161.4,314.6 179.4,340.5 210.0,366.4 221.2,392.2 236.9,418.1 251.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="282.3,30.0 309.2,55.9 319.7,81.8 332.7,107.6 352.3,133.5 391.2,159.4 416.3,185.2 454.4,211.1 524.1,237.0 548.7,262.9 572.4,288.8 631.4,314.6 649.5,340.5 680.0,366.4 691.2,392.2 706.9,418.1 721.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="752.3,30.0 779.2,55.9 789.7,81.8 802.7,107.6 822.3,133.5 861.2,159.4 886.3,185.2 924.4,211.1 994.1,237.0 1018.7,262.9 1042.4,288.8 1101.4,314.6 1119.5,340.5 1150.0,366.4 1161.2,392.2 1176.9,418.1 1191.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-187.7,30.0 -160.5,55.9 -149.3,81.8 -134.7,107.6 -114.0,133.5 -75.4,159.4 -48.0,185.2 -11.9,211.1 54.4,237.0 78.7,262.9 94.9,288.8 146.0,314.6 158.6,340.5 198.2,366.4 214.7,392.2 231.7,418.1 251.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="282.3,30.0 309.5,55.9 320.7,81.8 335.3,107.6 356.0,133.5 394.6,159.4 422.0,185.2 458.1,211.1 524.4,237.0 548.7,262.9 564.9,288.8 616.0,314.6 628.6,340.5 668.2,366.4 684.7,392.2 701.7,418.1 721.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="752.3,30.0 779.5,55.9 790.7,81.8 805.3,107.6 826.0,133.5 864.6,159.4 892.0,185.2 928.1,211.1 994.4,237.0 1018.7,262.9 1034.8,288.8 1086.0,314.6 1098.6,340.5 1138.2,366.4 1154.7,392.2 1171.7,418.1 1191.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="-31.0,30.0 -10.4,55.9 -2.5,81.8 7.6,107.6 22.5,133.5 52.3,159.4 71.3,185.2 100.6,211.1 153.9,237.0 172.7,262.9 187.8,288.8 225.4,314.6 236.9,340.5 256.2,366.4 263.5,392.2 273.2,418.1 282.3,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="360.7,30.0 384.4,55.9 393.6,81.8 405.3,107.6 422.5,133.5 456.8,159.4 478.9,185.2 512.6,211.1 574.0,237.0 595.7,262.9 612.9,288.8 655.7,314.6 669.0,340.5 691.2,366.4 699.3,392.2 710.5,418.1 721.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/><polyline points="830.7,30.0 854.4,55.9 863.6,81.8 875.3,107.6 892.5,133.5 926.8,159.4 948.9,185.2 982.6,211.1 1044.0,237.0 1065.7,262.9 1082.9,288.8 1125.7,314.6 1139.0,340.5 1161.2,366.4 1169.3,392.2 1180.5,418.1 1191.0,444.0" fill="none" stroke="#3a3f4b" stroke-width="1" opacity='.85'/>
+  <line x1="445.0" y1="26" x2="445.0" y2="448" stroke="#e5e7eb" stroke-width="1.5" stroke-dasharray="3 3"/><text x="450.0" y="20" class="nowlab">NOW</text>
+  <circle cx="445.0" cy="55.9" r="6" fill="#22c55e" stroke="#0b0d12" stroke-width="2"/><text x="456.0" y="59.9" class="dot">#2216 +1m</text><circle cx="445.0" cy="314.6" r="6" fill="#22c55e" stroke="#0b0d12" stroke-width="2"/><text x="456.0" y="318.6" class="dot">#2858 +0m</text>
+</svg></div>
+<div class="legend">
+  <span><span class="sw" style="background:#3b82f6"></span>early</span>
+  <span><span class="sw" style="background:#22c55e"></span>on time</span>
+  <span><span class="sw" style="background:#f59e0b"></span>3–6 late</span>
+  <span><span class="sw" style="background:#ef4444"></span>7+ late</span>
+  <span><span class="sw" style="background:#6b7280"></span>deadhead / no trip</span>
+  <span><span class="sw" style="background:#8b5cf6"></span>special trip pattern</span>
+</div>
+
+<h3>Vehicles</h3>
+<div class="panel"><div class="row">
+      <div class="vid">#2216</div>
+      <div class="badge" style="background:#22c55e">+1m</div>
+      <div class="meta"><b>9:33am trip</b> · 4 Mopac WB<br>
+        <span class="dim">next</span> 2730 7th/Pleasant Valley <span class="dim">pred</span> 9:35 <span class="dim">sched</span> 9:34 </div>
+    </div><div class="row">
+      <div class="vid">#2858</div>
+      <div class="badge" style="background:#22c55e">+0m</div>
+      <div class="meta"><b>9:17am trip</b> · 4 Mopac WB<br>
+        <span class="dim">next</span> 714 6th/West <span class="dim">pred</span> 9:36 <span class="dim">sched</span> 9:35 </div>
+    </div><div class="row">
+      <div class="vid">#2641</div>
+      <div class="badge" style="background:#f59e0b">+3m</div>
+      <div class="meta"><b>9:33am trip</b> · 4 Shady EB<br>
+        <span class="dim">next</span> 504 Campbell/5th <span class="dim">pred</span> 9:36 <span class="dim">sched</span> 9:33 </div>
+    </div><div class="row">
+      <div class="vid">#2867</div>
+      <div class="badge" style="background:#22c55e">-0m</div>
+      <div class="meta"><b>8:59am trip</b> · 4 Shady EB<br>
+        <span class="dim">next</span> 2719 Cesar Chavez/Pleasant Valley <span class="dim">pred</span> 9:35 <span class="dim">sched</span> 9:35 </div>
+    </div><div class="row">
+      <div class="vid">#2701</div>
+      <div class="badge" style="background:#3b82f6">-3m</div>
+      <div class="meta"><b>9:17am trip</b> · 4 Shady EB<br>
+        <span class="dim">next</span> 1601 7th/Comal <span class="dim">pred</span> 9:34 <span class="dim">sched</span> 9:38 </div>
+    </div></div>
+<div class="cap">Sketch rendered from live CapMetro feeds at 9:35:23 AM CT. Lateness = predicted arrival (Trip Updates) minus scheduled arrival (GTFS stop_times), joined on tripId + stopSequence. Map panel is a placeholder; everything else is real data.</div>
+</div>
