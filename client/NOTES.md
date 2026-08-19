@@ -109,6 +109,46 @@ unresolved decision.
 
 ---
 
+## Nearest stop / "when is my bus here" (`near.js`)
+
+Answers a rider's question rather than a dispatcher's: which bus is coming to the
+stop I am standing at, and when. Uses `navigator.geolocation` and nothing else —
+no tile server, no geocoder, no key, no network call.
+
+- **The fix never leaves the browser and is never stored.** Not sent, not logged,
+  and deliberately not in `localStorage` next to the saved route and direction.
+  A saved route is a preference; a saved position is a record of where somebody
+  was. The permission prompt is only ever raised by tapping the button.
+- **It does not measure the distance to a bus.** That number is wrong in a way
+  that looks right: the nearest bus by metres is routinely one on the parallel
+  street going the other way. Instead the USER is snapped to a stop, and
+  `Vehicle.predictions` says which buses still have that stop ahead of them —
+  presence in that list IS "approaching", so there is no distance derivative to
+  get wrong. `bearing` could not have helped either: 208 of 392 vehicles in the
+  capture do not report one.
+- **Stops are matched by `stop_id`, never `stop_sequence`**, because route 4 runs
+  a 17-stop baseline on five services and a 19-stop one on three others.
+- **Every time shown is the agency's own `predicted_at`.** Nothing here adds a
+  deviation to a scheduled time or divides a distance by a speed, and the
+  countdown is measured against `generated_at` like every other age on the board.
+  When the feed is stale the server sends an empty list and the panel says why,
+  because a countdown is the number a rider acts on fastest.
+- **It renders in the banner slot above the rows, not as a fourth panel.** The
+  rows/ladder/map order is settled; this is a stated answer in the slot the
+  staleness banners already use. The vehicle rows get a marker, not a re-sort —
+  promoting "your" bus above a very late one would defeat the sort.
+- **Verified on `file://`** (the board must open from disk): the panel renders and
+  Chromium returns a fix there. What the harness cannot show is a real
+  permission *prompt* on a `file://` origin, since headless has no prompt UI —
+  if a browser refuses one, `getCurrentPosition` times out at 15s and the panel
+  renders its error state rather than hanging.
+
+Gap 3 above is now partly closed: `Vehicle.predictions` gives per-stop predicted
+times, so a rider-facing arrival time no longer has to be invented. A true
+time-axis string-line would still need scheduled times per timepoint per trip.
+
+---
+
 ## Decisions I made that reviewers should check
 
 - **The badge sits in the leftmost column, not after the vehicle id.** The approved

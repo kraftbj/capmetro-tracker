@@ -3,6 +3,40 @@
 All notable changes to the CapMetro dispatch board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
+## [Unreleased]
+
+### Added
+
+- **Nearest stop, and when the next bus reaches it.** Tap "Use my location" and
+  the board finds the stop you are standing at on the route you are looking at,
+  then shows when each approaching bus is due there — "4 min", "due" — with the
+  matching vehicle row marked. It uses the browser's own location and nothing
+  else: no map service, no key, and no request of any kind. Your position is
+  used in the page and thrown away; it is never sent anywhere and, unlike the
+  saved route, never written to storage. The prompt only ever appears when you
+  press the button.
+
+  Every time shown is the agency's own prediction for that stop. The board does
+  not estimate: when the feed is too far behind to stand behind a number, the
+  panel says so instead of counting down. And it never guesses which stop you
+  are at — if your location is too coarse to tell two stops apart, it says that
+  too.
+
+### Changed
+
+- `Vehicle.predictions` added to `/api/route/{id}.json`: the arrival times the
+  agency already publishes for every stop still ahead of a bus, within the same
+  45-minute window the schedule uses. `/api/all.json` deliberately does not
+  carry it — the fleet view does not ask the question, and it would cost that
+  document about 190 KB. See api-contract.md §2.
+
+### Fixed
+
+- `node client/data/regenerate.js` could not run at all: it used CommonJS
+  `require` in a package declaring `"type": "module"`. The bundled offline copy
+  of the fixture had drifted from the golden file as a result, and is now back
+  in sync.
+
 ## [0.3.0.0] - 2026-08-19
 
 ### Added

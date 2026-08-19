@@ -122,6 +122,8 @@ function cm_stop_refs(array $entries, array $stops): array
  * $trip_update   the matching tripUpdate, or null
  * $suppress      staleness.suppress_adherence, authoritative
  * $short_name    route_short_name from the shard index, or null
+ * $now           generated_at, the only clock this file knows; bounds the prediction
+ *                horizon. Passed in rather than read so the function stays pure.
  */
 function cm_build_vehicle(
     array $entity,
@@ -129,7 +131,8 @@ function cm_build_vehicle(
     ?array $times,
     ?array $trip_update,
     bool $suppress,
-    ?string $short_name
+    ?string $short_name,
+    int $now = 0
 ): ?array {
     $v = $entity['vehicle'] ?? null;
     if (!is_array($v)) {
@@ -227,6 +230,50 @@ function cm_build_vehicle(
         'current_stop_sequence' => $css,
         'scheduled'             => $scheduled,
     ]);
+
+    /*
+     * Vehicle.predictions -- when this bus reaches each stop still ahead of it.
+     *
+     * The feed has carried this all along and the board published exactly one row of it:
+     * adherence.against, the single stop lateness is measured at. That is the right anchor
+     * for "is she late" and useless for "when does it get to MY stop", because the anchor
+     * is whatever stop the bus is approaching, not the one the reader is standing at. The
+     * client cannot derive the rest -- route.schedule is timepoint-only and windowed, and
+     * a minor stop never appears in it -- so a client-side answer would have to be
+     * invented. Publishing the feed's own numbers is the only honest option.
+     *
+     * Two bounds, neither of them new policy:
+     *
+     * 1. STALENESS OUTRANKS IT, exactly as it outranks lateness. Data too old to say
+     *    "three minutes late" is far too old to say "here in four minutes" -- the arrival
+     *    time is the more confidently wrong of the two, because it reads as a countdown.
+     *    The list goes empty and the client says it cannot tell.
+     *
+     * 2. THE HORIZON IS THE SCHEDULE WINDOW, not a number chosen here. The board already
+     *    declares 45 minutes as how far ahead it looks (section 3.2), predictions decay
+     *    with horizon, and on the 2026-08-19 capture the cap drops route 7 from 508 rows
+     *    to 313 while leaving route 4 untouched at 70. One forward horizon, published
+     *    once, used twice.
+     *
+     * Emitted as [stop_sequence, stop_id, predicted_at] triples rather than objects for
+     * the same reason schedule.trips is compact: this is bulk repeated data, and objects
+     * cost about three times the bytes in a document re-fetched every 60 seconds.
+     */
+    $predictions = [];
+    if (!$suppress && $css !== null && is_array($trip_update)) {
+        $horizon = $now + CM_SCHEDULE_AFTER_S;
+        foreach (cm_stop_predictions($trip_update['stopTimeUpdate'] ?? [], $css) as $row) {
+            if ($row['stop_id'] === null) {
+                /* A prediction nobody can join to a stop is not a prediction. */
+                continue;
+            }
+            if ($now > 0 && $row['predicted_at'] > $horizon) {
+                continue;
+            }
+            $predictions[] = [$row['stop_sequence'], $row['stop_id'], $row['predicted_at']];
+        }
+    }
+    $out['predictions'] = $predictions;
 
     /*
      * pattern and block are required whenever in_service is true, so a trip missing from

@@ -334,7 +334,8 @@ foreach ($route_ids as $rid) {
             $times,
             $trip_updates[$tid] ?? null,
             $suppress,
-            $short_name
+            $short_name,
+            $now
         );
         if ($veh !== null) {
             $vehicles[] = $veh;
@@ -436,6 +437,14 @@ foreach ($route_ids as $rid) {
         $routes_active[$rid] = true;
     }
     foreach ($vehicles as $veh) {
+        /*
+         * all.json takes the same vehicles WITHOUT their predictions. The fleet view asks
+         * "is anything unusual happening", not "when does it reach my stop", and it never
+         * reads the field -- but it does carry all 392 vehicles, so keeping it would add
+         * about 190 KB to a 292 KB document to feed a question the view does not ask.
+         * Same reasoning as loading schedule.json only where it is used.
+         */
+        unset($veh['predictions']);
         $all_vehicles[] = $veh;
     }
 

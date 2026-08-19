@@ -71,6 +71,7 @@
         "current_stop_id": "2107",
         "current_status": "IN_TRANSIT_TO"
       },
+      "predictions": [],
       "adherence": {
         "state": "unknown",
         "seconds": null,
@@ -125,6 +126,7 @@
         "current_stop_id": "4181",
         "current_status": "STOPPED_AT"
       },
+      "predictions": [],
       "adherence": {
         "state": "unknown",
         "seconds": null,
@@ -179,6 +181,7 @@
         "current_stop_id": "934",
         "current_status": "STOPPED_AT"
       },
+      "predictions": [],
       "adherence": {
         "state": "unknown",
         "seconds": null,
@@ -233,6 +236,7 @@
         "current_stop_id": "1972",
         "current_status": "IN_TRANSIT_TO"
       },
+      "predictions": [],
       "adherence": {
         "state": "unknown",
         "seconds": null,
@@ -287,6 +291,7 @@
         "current_stop_id": "1368",
         "current_status": "STOPPED_AT"
       },
+      "predictions": [],
       "adherence": {
         "state": "unknown",
         "seconds": null,

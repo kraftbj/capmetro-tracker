@@ -75,6 +75,12 @@
     lastGoodAt: null,
     scenario: null,
     usingFixture: false,
+    /*
+     * The location fix. In memory only, and deliberately not in localStorage
+     * alongside the route and direction: a saved route is a preference, a saved
+     * position is a record of where somebody was.
+     */
+    geo: null,
     pickerOpen: false,
     pickerFilter: '',
     routes: null,        /* the catalog, once api/routes.json lands */
@@ -541,6 +547,35 @@
 
   /* ---- render --------------------------------------------------------- */
   var rafPending = false;
+  /*
+   * Ask the browser where we are. The prompt is only ever raised from here, in
+   * response to a tap, and the fix is used and dropped — it is never sent
+   * anywhere, and there is nowhere for it to be sent to: the board has no
+   * endpoint that accepts one.
+   */
+  function locate() {
+    if (!global.navigator || !global.navigator.geolocation) {
+      state.geo = { status: 'unsupported' };
+      render();
+      return;
+    }
+    state.geo = { status: 'locating' };
+    render();
+    global.navigator.geolocation.getCurrentPosition(function (pos) {
+      state.geo = {
+        status: 'ok',
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        at: Date.now()
+      };
+      render();
+    }, function (err) {
+      state.geo = { status: 'error', error: err };
+      render();
+    }, global.CMB.near.GEO_OPTS);
+  }
+
   function render() {
     if (rafPending) return;
     rafPending = true;
@@ -598,8 +633,24 @@
       lastGood: state.lastGoodAt,
       errorDetail: state.errorDetail,
       onRetry: function () { load(state.routeId); },
-      onToggle: function () { render(); }
+      onToggle: function () { render(); },
+      geo: state.geo,
+      onLocate: locate,
+      onClear: function () { state.geo = null; render(); }
     };
+
+    /*
+     * The near-me answer renders in the banner slot above the rows, not as a
+     * fourth panel: rows, ladder, map is settled, and this is a stated answer
+     * in the same place the staleness banners appear. It is offered only once
+     * there is a payload to answer from.
+     */
+    if (d && state.status === 'ok') {
+      var nearHost = el('div', 'nearhost');
+      global.CMB.near.render(nearHost, d, opts);
+      dom.main.appendChild(nearHost);
+      opts.highlightVehicleIds = global.CMB.near.highlightedVehicleIds(d, opts);
+    }
 
     /* order is fixed: rows, then ladder, then map */
     var rowsBand = el('section', 'band band--rows');

@@ -178,6 +178,11 @@ enforcement rule the engineering review required: staleness is a rendered state,
     "current_status": "IN_TRANSIT_TO"   // IN_TRANSIT_TO | STOPPED_AT | INCOMING_AT | null
   },
 
+  "predictions": [                      // absent when in_service is false; see below
+    [43, "6243", 1787152563],           // [stop_sequence, stop_id, predicted_at]
+    [44, "1977", 1787152701]
+  ],
+
   "adherence": {
     "state": "late",                    // early | ontime | late | very_late | unknown | deadhead
     "seconds": 183,                     // null when state is unknown or deadhead
@@ -215,6 +220,44 @@ enforcement rule the engineering review required: staleness is a rendered state,
   }
 }
 ```
+
+### `predictions` — when this bus reaches each stop still ahead of it
+
+`adherence.against` answers "is she late" and is anchored at whichever stop the bus is
+approaching. It cannot answer "when does this bus reach MY stop", because the reader's stop
+is almost never the anchor. `predictions` publishes the rest of the trip update's own
+arrival times so a client can answer that without inventing anything: nothing may add a
+deviation to a scheduled time, interpolate between stops, or divide a distance by a speed.
+
+Rows are `[stop_sequence, stop_id, predicted_at]`, ascending by `stop_sequence`. Compact
+triples rather than objects because this is bulk repeated data in a document re-fetched
+every 60 seconds; objects cost about three times the bytes.
+
+Included rows are exactly those the §2 anchor rule keeps, in the same order:
+
+- `stopSequence` at or after `progress.current_stop_sequence` — at, not after: a bus
+  `STOPPED_AT` your stop is still an arrival you can board;
+- no entry whose `scheduleRelationship` is `SKIPPED`;
+- no entry with neither an arrival nor a departure time; arrival wins when both are present;
+- no entry without a `stopId`, which nothing could join to a stop;
+- nothing beyond the §3.2 forward window (`generated_at + after_s`, 45 minutes). Predictions
+  decay with horizon and the board already declares that window as how far ahead it looks.
+  On the 2026-08-19 capture the cap takes route 7 from 508 rows to 313 and leaves route 4
+  untouched at 70.
+
+`adherence.against` is the first row of this list joined to its scheduled time, by
+construction rather than by convention — one implementation, two readers.
+
+**The list is empty, never absent, when the board cannot stand behind a time**: when
+`staleness.suppress_adherence` is true, when `current_stop_sequence` is null, or when the
+trip has no usable prediction left. Suppression matters more here than it does for lateness:
+an arrival time reads as a countdown and a rider acts on it immediately, so a stale one is
+the more confidently wrong of the two.
+
+**`/api/all.json` strips the field entirely** (§8). The fleet view asks whether anything
+unusual is happening, not when a bus reaches a stop, and it carries every vehicle in the
+system — keeping predictions there would add roughly 190 KB to a 292 KB document to answer
+a question that view does not ask.
 
 ### `adherence.state` decision table
 
@@ -490,6 +533,13 @@ denylist, so a new upstream field cannot leak by default.
 
 No endpoint carries user data of any kind. Saved watches are client-local only; see §9.
 
+The same rule governs the rider's own position. The client's nearest-stop feature reads the
+browser's Geolocation API, and the fix is used in the page and discarded: there is no
+endpoint that accepts a position, none is logged, and unlike the saved route and direction it
+is deliberately never written to `localStorage` — a saved route is a preference, a saved
+position is a record of where somebody was. Any future endpoint taking a coordinate would be
+a change to this section first.
+
 ---
 
 ## 7. Stop name shortening
@@ -551,9 +601,9 @@ clip mid-word on a 412px ladder. The build job emits both `stop_name` (shortened
 
 ## 8. `GET /api/all.json`
 
-Every vehicle in the system, including deadheads. Same `Vehicle` shape as §2, same envelope
-fields (`schema`, `generated_at`, `feeds`, `staleness`), with `route` and `timepoints` omitted and
-a `counts` block added:
+Every vehicle in the system, including deadheads. Same `Vehicle` shape as §2 **except that
+`predictions` is stripped** (see §2), same envelope fields (`schema`, `generated_at`, `feeds`,
+`staleness`), with `route` and `timepoints` omitted and a `counts` block added:
 
 ```jsonc
 { "counts": { "total": 392, "in_service": 249, "deadhead": 143, "routes_active": 46 } }

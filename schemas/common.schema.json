@@ -575,6 +575,32 @@
             "string",
             "null"
           ]
+        },
+        "predictions": {
+          "type": "array",
+          "description": "When this vehicle reaches each stop still ahead of it: [stop_sequence, stop_id, predicted_at] triples, ascending by stop_sequence, straight from the trip update's stopTimeUpdate entries. Filtered by the same rule adherence.against is anchored with (section 2): stop_sequence at or after progress.current_stop_sequence, no SKIPPED entries, no entry without a time, arrival preferred over departure. Bounded ahead by the section 3.2 schedule window (generated_at + after_s). Empty -- never absent -- when staleness.suppress_adherence is true, when current_stop_sequence is null, or when the trip has no usable prediction left: an arrival time reads as a countdown, so a stale one is more confidently wrong than a stale lateness number. Present on route documents only; all.json strips it. Compact triples rather than objects because this is bulk data in a document re-fetched every 60 seconds.",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "description": "stop_sequence"
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "description": "stop_id"
+              },
+              {
+                "$ref": "#/$defs/epoch",
+                "description": "predicted_at"
+              }
+            ],
+            "items": false
+          }
         }
       },
       "allOf": [
@@ -624,6 +650,11 @@
                 {
                   "required": [
                     "block"
+                  ]
+                },
+                {
+                  "required": [
+                    "predictions"
                   ]
                 }
               ]

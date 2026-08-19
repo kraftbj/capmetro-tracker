@@ -803,3 +803,68 @@ button { font: inherit; color: inherit; }
  * heading elements is a screen-reader dead end. Reset the UA heading styling
  * so they match the p-based subband heads everywhere else. */
 h3.subband__head { font: inherit; margin: 0 0 8px; }
+
+/* ===== near me — the rider's question =================================== */
+/*
+ * Sits in the banner slot above the vehicle rows rather than being a fourth
+ * panel: the panel order is settled, and this is an answer, not a panel. The
+ * countdown is the largest figure on the band because it is the only number
+ * somebody reads while walking.
+ */
+.nearhost:empty { display: none; }
+.near {
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 12px var(--pad-band);
+  margin-bottom: 10px;
+}
+.near__head { display: flex; align-items: center; gap: 10px; }
+.near__title {
+  margin: 0; font-size: var(--fs-chrome); color: var(--ink-chrome);
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+}
+.near__tools { margin-left: auto; display: flex; gap: 6px; }
+.btn--ghost {
+  margin-top: 0; min-height: 34px; padding: 0 10px;
+  font-size: var(--fs-chrome); color: var(--ink-dim);
+  background: none;
+}
+.btn--near { margin-top: 0; }
+
+.near__offer { display: flex; flex-direction: column; gap: 6px; }
+.near__pitch { margin: 0; font-size: var(--fs-meta); color: var(--ink-dim); }
+
+.near__stop { margin-top: 10px; }
+.near__stophead { margin: 0 0 6px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.near__stopname { color: var(--ink-strong); font-size: var(--fs-lead); }
+.near__walk { color: var(--ink-chrome); font-size: var(--fs-chrome); }
+.near__caveat { margin: 0 0 6px; font-size: var(--fs-meta); color: var(--warn); }
+
+.near__arrivals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.near__arrival {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 7px 9px;
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+}
+/* The countdown carries the band. Tabular figures so a column of them aligns. */
+.near__when b { font-family: var(--font-figure); font-size: 20px; color: var(--ink-strong); }
+.near__ameta { font-size: var(--fs-meta); color: var(--ink-muted); min-width: 0; }
+.near__vid { font-family: var(--font-figure); color: var(--ink); }
+.near__foot { margin: 10px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome); }
+
+/*
+ * The marked row. A left border alone would collide with the adherence colour
+ * that border already carries, so the marker is a ring plus a written label —
+ * the same never-colour-alone rule the badges follow.
+ */
+.vrow.is-yours { box-shadow: inset 0 0 0 1px var(--accent); position: relative; }
+.vrow__yours {
+  display: block;
+  padding: 0 10px 6px;
+  font-size: var(--fs-chrome-sm); color: var(--accent);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}

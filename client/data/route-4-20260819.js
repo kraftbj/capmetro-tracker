@@ -23,7 +23,14 @@ window.CMB_FIXTURES["4"] =
     "id": 1,
     "headsign": "4 Shady EB"
    }
-  ]
+  ],
+  "next_departure": {
+   "scheduled_at": 1787152860,
+   "stop_id": "1368",
+   "stop_name": "Pleasant Valley/5th",
+   "direction_id": 0,
+   "headsign": "4 Mopac WB"
+  }
  },
  "feeds": {
   "positions_at": 1787152239,
@@ -73,6 +80,123 @@ window.CMB_FIXTURES["4"] =
     "current_stop_id": "2107",
     "current_status": "IN_TRANSIT_TO"
    },
+   "predictions": [
+    [
+     5,
+     "2107",
+     1787152284
+    ],
+    [
+     6,
+     "2108",
+     1787152296
+    ],
+    [
+     7,
+     "2110",
+     1787152319
+    ],
+    [
+     8,
+     "2112",
+     1787152376
+    ],
+    [
+     9,
+     "6314",
+     1787152524
+    ],
+    [
+     10,
+     "6370",
+     1787152663
+    ],
+    [
+     11,
+     "928",
+     1787152695
+    ],
+    [
+     12,
+     "929",
+     1787152833
+    ],
+    [
+     13,
+     "6461",
+     1787152878
+    ],
+    [
+     14,
+     "5610",
+     1787152912
+    ],
+    [
+     15,
+     "934",
+     1787153196
+    ],
+    [
+     16,
+     "935",
+     1787153240
+    ],
+    [
+     17,
+     "936",
+     1787153334
+    ],
+    [
+     18,
+     "937",
+     1787153362
+    ],
+    [
+     19,
+     "938",
+     1787153406
+    ],
+    [
+     20,
+     "939",
+     1787153491
+    ],
+    [
+     21,
+     "6570",
+     1787153595
+    ],
+    [
+     22,
+     "942",
+     1787153654
+    ],
+    [
+     23,
+     "6450",
+     1787153688
+    ],
+    [
+     24,
+     "6261",
+     1787153786
+    ],
+    [
+     25,
+     "6263",
+     1787153806
+    ],
+    [
+     26,
+     "6265",
+     1787153840
+    ],
+    [
+     27,
+     "1368",
+     1787153917
+    ]
+   ],
    "adherence": {
     "state": "ontime",
     "seconds": -13,
@@ -133,6 +257,73 @@ window.CMB_FIXTURES["4"] =
     "current_stop_id": "4181",
     "current_status": "STOPPED_AT"
    },
+   "predictions": [
+    [
+     5,
+     "4181",
+     1787152191
+    ],
+    [
+     6,
+     "5119",
+     1787152276
+    ],
+    [
+     7,
+     "5120",
+     1787152343
+    ],
+    [
+     8,
+     "6460",
+     1787152394
+    ],
+    [
+     9,
+     "5949",
+     1787152669
+    ],
+    [
+     10,
+     "5937",
+     1787152787
+    ],
+    [
+     11,
+     "5938",
+     1787152844
+    ],
+    [
+     12,
+     "5499",
+     1787153099
+    ],
+    [
+     13,
+     "1970",
+     1787153116
+    ],
+    [
+     14,
+     "1972",
+     1787153197
+    ],
+    [
+     15,
+     "1973",
+     1787153218
+    ],
+    [
+     16,
+     "1974",
+     1787153239
+    ],
+    [
+     17,
+     "6243",
+     1787153292
+    ]
+   ],
    "adherence": {
     "state": "ontime",
     "seconds": 42,
@@ -193,6 +384,73 @@ window.CMB_FIXTURES["4"] =
     "current_stop_id": "934",
     "current_status": "STOPPED_AT"
    },
+   "predictions": [
+    [
+     15,
+     "934",
+     1787152218
+    ],
+    [
+     16,
+     "935",
+     1787152248
+    ],
+    [
+     17,
+     "936",
+     1787152294
+    ],
+    [
+     18,
+     "937",
+     1787152338
+    ],
+    [
+     19,
+     "938",
+     1787152381
+    ],
+    [
+     20,
+     "939",
+     1787152439
+    ],
+    [
+     21,
+     "6570",
+     1787152495
+    ],
+    [
+     22,
+     "942",
+     1787152523
+    ],
+    [
+     23,
+     "6450",
+     1787152565
+    ],
+    [
+     24,
+     "6261",
+     1787152708
+    ],
+    [
+     25,
+     "6263",
+     1787152733
+    ],
+    [
+     26,
+     "6265",
+     1787152825
+    ],
+    [
+     27,
+     "1368",
+     1787152904
+    ]
+   ],
    "adherence": {
     "state": "ontime",
     "seconds": -45,
@@ -253,6 +511,28 @@ window.CMB_FIXTURES["4"] =
     "current_stop_id": "1972",
     "current_status": "IN_TRANSIT_TO"
    },
+   "predictions": [
+    [
+     14,
+     "1972",
+     1787152292
+    ],
+    [
+     15,
+     "1973",
+     1787152310
+    ],
+    [
+     16,
+     "1974",
+     1787152327
+    ],
+    [
+     17,
+     "6243",
+     1787152367
+    ]
+   ],
    "adherence": {
     "state": "ontime",
     "seconds": 35,
@@ -313,6 +593,93 @@ window.CMB_FIXTURES["4"] =
     "current_stop_id": "1368",
     "current_status": "STOPPED_AT"
    },
+   "predictions": [
+    [
+     1,
+     "1368",
+     1787152860
+    ],
+    [
+     2,
+     "3337",
+     1787153123
+    ],
+    [
+     3,
+     "847",
+     1787153165
+    ],
+    [
+     4,
+     "848",
+     1787153186
+    ],
+    [
+     5,
+     "4181",
+     1787153270
+    ],
+    [
+     6,
+     "5119",
+     1787153340
+    ],
+    [
+     7,
+     "5120",
+     1787153364
+    ],
+    [
+     8,
+     "6460",
+     1787153428
+    ],
+    [
+     9,
+     "5949",
+     1787153714
+    ],
+    [
+     10,
+     "5937",
+     1787153834
+    ],
+    [
+     11,
+     "5938",
+     1787153874
+    ],
+    [
+     12,
+     "5499",
+     1787154113
+    ],
+    [
+     13,
+     "1970",
+     1787154126
+    ],
+    [
+     14,
+     "1972",
+     1787154301
+    ],
+    [
+     15,
+     "1973",
+     1787154343
+    ],
+    [
+     16,
+     "1974",
+     1787154383
+    ],
+    [
+     17,
+     "6243",
+     1787154417
+    ]
+   ],
    "adherence": {
     "state": "ontime",
     "seconds": 0,
@@ -498,7 +865,7 @@ window.CMB_FIXTURES["4"] =
    "minor_stops": [
     {
      "stop_id": "5938",
-     "stop_name": "8Th/Lavaca",
+     "stop_name": "8th/Lavaca",
      "stop_sequence": 11,
      "lat": 30.270613,
      "lon": -97.744215,
@@ -584,8 +951,481 @@ window.CMB_FIXTURES["4"] =
     "detail": null
    },
    "minor_stops": []
+  },
+  {
+   "stop_id": "6243",
+   "stop_name": "Campbell/5th",
+   "stop_name_full": "504 Campbell/5th",
+   "stop_sequence": 1,
+   "direction_id": 1,
+   "lat": 30.275026,
+   "lon": -97.764825,
+   "service_status": {
+    "served": true,
+    "source": null,
+    "detail": null
+   },
+   "minor_stops": [
+    {
+     "stop_id": "4086",
+     "stop_name": "5th/West Lynn",
+     "stop_sequence": 2,
+     "lat": 30.273605,
+     "lon": -97.763241,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "2104",
+     "stop_name": "5th/Pressler",
+     "stop_sequence": 3,
+     "lat": 30.2726,
+     "lon": -97.760749,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "2106",
+     "stop_name": "5th/Baylor",
+     "stop_sequence": 4,
+     "lat": 30.270977,
+     "lon": -97.756406,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "2107",
+     "stop_name": "5th/Bowie",
+     "stop_sequence": 5,
+     "lat": 30.269522,
+     "lon": -97.752626,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "2108",
+     "stop_name": "5th/West",
+     "stop_sequence": 6,
+     "lat": 30.26926,
+     "lon": -97.75113,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "2110",
+     "stop_name": "5th/Nueces",
+     "stop_sequence": 7,
+     "lat": 30.268672,
+     "lon": -97.748979,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "2112",
+     "stop_name": "5th/Guadalupe",
+     "stop_sequence": 8,
+     "lat": 30.268054,
+     "lon": -97.74679,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6314",
+     "stop_name": "7th/Colorado",
+     "stop_sequence": 9,
+     "lat": 30.269226,
+     "lon": -97.743548,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6370",
+     "stop_name": "7th/San Jacinto",
+     "stop_sequence": 10,
+     "lat": 30.268158,
+     "lon": -97.739822,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "928",
+     "stop_name": "7th/Red River",
+     "stop_sequence": 11,
+     "lat": 30.267462,
+     "lon": -97.737166,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "929",
+     "stop_name": "7th/San Marcos",
+     "stop_sequence": 12,
+     "lat": 30.265971,
+     "lon": -97.732268,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6461",
+     "stop_name": "7th/Attayac",
+     "stop_sequence": 13,
+     "lat": 30.264972,
+     "lon": -97.729337,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    }
+   ]
+  },
+  {
+   "stop_id": "5610",
+   "stop_name": "7th/Comal",
+   "stop_name_full": "1601 7th/Comal",
+   "stop_sequence": 14,
+   "direction_id": 1,
+   "lat": 30.263763,
+   "lon": -97.725888,
+   "service_status": {
+    "served": true,
+    "source": null,
+    "detail": null
+   },
+   "minor_stops": [
+    {
+     "stop_id": "934",
+     "stop_name": "Chicon/East 7th",
+     "stop_sequence": 15,
+     "lat": 30.262511,
+     "lon": -97.722327,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "935",
+     "stop_name": "7th/Robert T Martinez Jr",
+     "stop_sequence": 16,
+     "lat": 30.261532,
+     "lon": -97.718195,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "936",
+     "stop_name": "7th/Pedernales",
+     "stop_sequence": 17,
+     "lat": 30.260851,
+     "lon": -97.713904,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "937",
+     "stop_name": "7th/Calles",
+     "stop_sequence": 18,
+     "lat": 30.260533,
+     "lon": -97.711831,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "938",
+     "stop_name": "7th/Pleasant Valley",
+     "stop_sequence": 19,
+     "lat": 30.260049,
+     "lon": -97.709665,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "939",
+     "stop_name": "7th/Allen",
+     "stop_sequence": 20,
+     "lat": 30.257758,
+     "lon": -97.704514,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6570",
+     "stop_name": "7th/Springdale",
+     "stop_sequence": 21,
+     "lat": 30.255952,
+     "lon": -97.701621,
+     "service_status": {
+      "served": false,
+      "source": "realtime_skipped",
+      "detail": "Skipped on 1 trips today"
+     }
+    },
+    {
+     "stop_id": "942",
+     "stop_name": "7th/Shady",
+     "stop_sequence": 22,
+     "lat": 30.253397,
+     "lon": -97.697886,
+     "service_status": {
+      "served": false,
+      "source": "realtime_skipped",
+      "detail": "Skipped on 1 trips today"
+     }
+    },
+    {
+     "stop_id": "6450",
+     "stop_name": "Eastside Bus Plaza Bay J",
+     "stop_sequence": 23,
+     "lat": 30.251893,
+     "lon": -97.698021,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6261",
+     "stop_name": "Cesar Chavez/Springdale",
+     "stop_sequence": 24,
+     "lat": 30.252034,
+     "lon": -97.7047,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6263",
+     "stop_name": "Cesar Chavez/Tillery",
+     "stop_sequence": 25,
+     "lat": 30.251738,
+     "lon": -97.708599,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "6265",
+     "stop_name": "Cesar Chavez/Pleasant\u2026",
+     "stop_sequence": 26,
+     "lat": 30.253005,
+     "lon": -97.712584,
+     "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    }
+   ]
+  },
+  {
+   "stop_id": "1368",
+   "stop_name": "Pleasant Valley/5th",
+   "stop_name_full": "501 Pleasant Valley/5th",
+   "stop_sequence": 27,
+   "direction_id": 1,
+   "lat": 30.257443,
+   "lon": -97.710596,
+   "service_status": {
+    "served": true,
+    "source": null,
+    "detail": null
+   },
+   "minor_stops": []
   }
  ],
+ "schedule": {
+  "window": {
+   "from": 1787151339,
+   "until": 1787154939,
+   "before_s": 900,
+   "after_s": 2700
+  },
+  "directions": [
+   {
+    "direction_id": 0,
+    "timepoint_stop_ids": [
+     "1368",
+     "5937",
+     "6243"
+    ],
+    "trips": [
+     [
+      "3014705_15607",
+      1787149980,
+      [
+       0,
+       900,
+       1500
+      ]
+     ],
+     [
+      "3014706_15608",
+      1787150940,
+      [
+       0,
+       900,
+       1500
+      ]
+     ],
+     [
+      "3014707_15609",
+      1787151900,
+      [
+       0,
+       900,
+       1500
+      ]
+     ],
+     [
+      "3014708_15610",
+      1787152860,
+      [
+       0,
+       900,
+       1500
+      ]
+     ],
+     [
+      "3014709_15611",
+      1787153820,
+      [
+       0,
+       900,
+       1500
+      ]
+     ],
+     [
+      "3014710_15612",
+      1787154780,
+      [
+       0,
+       900,
+       1500
+      ]
+     ]
+    ]
+   },
+   {
+    "direction_id": 1,
+    "timepoint_stop_ids": [
+     "6243",
+     "5610",
+     "1368"
+    ],
+    "trips": [
+     [
+      "3014767_15200",
+      1787149980,
+      [
+       0,
+       1260,
+       2160
+      ]
+     ],
+     [
+      "3014768_15201",
+      1787150940,
+      [
+       0,
+       1260,
+       2160
+      ]
+     ],
+     [
+      "3014769_15202",
+      1787151900,
+      [
+       0,
+       1260,
+       2160
+      ]
+     ],
+     [
+      "3014770_15203",
+      1787152860,
+      [
+       0,
+       1260,
+       2160
+      ]
+     ],
+     [
+      "3014771_15204",
+      1787153820,
+      [
+       0,
+       1260,
+       2160
+      ]
+     ],
+     [
+      "3014772_15205",
+      1787154780,
+      [
+       0,
+       1260,
+       2160
+      ]
+     ]
+    ]
+   }
+  ]
+ },
  "alerts": [
   {
    "id": "fc3c62c6-9c81-4c1c-a1a2-033e98c12672",
@@ -597,7 +1437,6 @@ window.CMB_FIXTURES["4"] =
    "active_from": 1781376960,
    "active_until": null,
    "stop_ids": [
-    "940",
     "940"
    ],
    "severity": "high"
@@ -612,7 +1451,6 @@ window.CMB_FIXTURES["4"] =
    "active_from": 1780601040,
    "active_until": null,
    "stop_ids": [
-    "1967",
     "1967"
    ],
    "severity": "high"
@@ -627,7 +1465,6 @@ window.CMB_FIXTURES["4"] =
    "active_from": 1745865480,
    "active_until": null,
    "stop_ids": [
-    "1971",
     "1971"
    ],
    "severity": "high"
