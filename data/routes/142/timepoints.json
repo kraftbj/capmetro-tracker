@@ -124,7 +124,7 @@
 								}
 							],
 							"stop_id": "6314",
-							"stop_name": "7Th/Colorado",
+							"stop_name": "7th/Colorado",
 							"stop_name_full": "115 7Th/Colorado",
 							"stop_sequence": 5
 						},
@@ -410,7 +410,7 @@
 									"lat": 30.415114,
 									"lon": -97.6965,
 									"stop_id": "2564",
-									"stop_name": "Lamplight…",
+									"stop_name": "Lamplight Village/…",
 									"stop_sequence": 6
 								},
 								{
@@ -418,7 +418,7 @@
 									"lat": 30.41085,
 									"lon": -97.695734,
 									"stop_id": "2566",
-									"stop_name": "Lamplight…",
+									"stop_name": "Lamplight Village/Metric…",
 									"stop_sequence": 7
 								},
 								{
@@ -651,7 +651,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 35
 								},
 								{
@@ -659,7 +659,7 @@
 									"lat": 30.268253,
 									"lon": -97.74669,
 									"stop_id": "2612",
-									"stop_name": "Guadalupe/5Th",
+									"stop_name": "Guadalupe/5th",
 									"stop_sequence": 36
 								},
 								{

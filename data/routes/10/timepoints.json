@@ -117,7 +117,7 @@
 								}
 							],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 1
 						},
@@ -305,7 +305,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 34
 								},
 								{
@@ -696,7 +696,7 @@
 								}
 							],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 1
 						},
@@ -900,7 +900,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 36
 								},
 								{
@@ -1511,7 +1511,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 36
 								}
 							],
@@ -1807,7 +1807,7 @@
 							"lon": -97.691345,
 							"minor_stops": [],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 71
 						}
@@ -2124,7 +2124,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 37
 								}
 							],
@@ -2420,7 +2420,7 @@
 							"lon": -97.691345,
 							"minor_stops": [],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 72
 						}

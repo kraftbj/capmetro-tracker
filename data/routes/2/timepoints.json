@@ -274,7 +274,7 @@
 								}
 							],
 							"stop_id": "5938",
-							"stop_name": "8Th/Lavaca",
+							"stop_name": "8th/Lavaca",
 							"stop_name_full": "216 8Th/Lavaca",
 							"stop_sequence": 19
 						},
@@ -312,7 +312,7 @@
 									"lat": 30.255955,
 									"lon": -97.701385,
 									"stop_id": "844",
-									"stop_name": "7Th/Springdale",
+									"stop_name": "7th/Springdale",
 									"stop_sequence": 2
 								},
 								{
@@ -563,7 +563,7 @@
 								}
 							],
 							"stop_id": "5938",
-							"stop_name": "8Th/Lavaca",
+							"stop_name": "8th/Lavaca",
 							"stop_name_full": "216 8Th/Lavaca",
 							"stop_sequence": 21
 						},
@@ -718,7 +718,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 14
 								}
 							],
@@ -737,7 +737,7 @@
 									"lat": 30.27114,
 									"lon": -97.735733,
 									"stop_id": "5209",
-									"stop_name": "11Th/Red River",
+									"stop_name": "11th/Red River",
 									"stop_sequence": 16
 								},
 								{
@@ -1026,7 +1026,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 14
 								}
 							],
@@ -1045,7 +1045,7 @@
 									"lat": 30.27114,
 									"lon": -97.735733,
 									"stop_id": "5209",
-									"stop_name": "11Th/Red River",
+									"stop_name": "11th/Red River",
 									"stop_sequence": 16
 								},
 								{

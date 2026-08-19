@@ -52,7 +52,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 5
 								}
 							],
@@ -190,7 +190,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 6
 								},
 								{
@@ -198,7 +198,7 @@
 									"lat": 30.268253,
 									"lon": -97.74669,
 									"stop_id": "2612",
-									"stop_name": "Guadalupe/5Th",
+									"stop_name": "Guadalupe/5th",
 									"stop_sequence": 7
 								},
 								{
@@ -290,7 +290,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 7
 								},
 								{
@@ -298,7 +298,7 @@
 									"lat": 30.268253,
 									"lon": -97.74669,
 									"stop_id": "2612",
-									"stop_name": "Guadalupe/5Th",
+									"stop_name": "Guadalupe/5th",
 									"stop_sequence": 8
 								},
 								{

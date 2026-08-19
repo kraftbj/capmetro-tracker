@@ -257,7 +257,7 @@
 									"lat": 30.357206,
 									"lon": -97.686372,
 									"stop_id": "6416",
-									"stop_name": "Rundberg/Middle…",
+									"stop_name": "Rundberg/Middle Fiskville",
 									"stop_sequence": 29
 								},
 								{
@@ -339,7 +339,7 @@
 							"lon": -97.691019,
 							"minor_stops": [],
 							"stop_id": "6421",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - C",
 							"stop_sequence": 38
 						}
@@ -418,7 +418,7 @@
 								}
 							],
 							"stop_id": "6421",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - C",
 							"stop_sequence": 1
 						},
@@ -448,7 +448,7 @@
 									"lat": 30.357437,
 									"lon": -97.686345,
 									"stop_id": "1143",
-									"stop_name": "Rundberg/Middle…",
+									"stop_name": "Rundberg/Middle Fiskville",
 									"stop_sequence": 10
 								},
 								{

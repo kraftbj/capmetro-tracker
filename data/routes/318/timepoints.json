@@ -124,7 +124,7 @@
 									"lat": 30.210896,
 									"lon": -97.814594,
 									"stop_id": "2343",
-									"stop_name": "West Gate/Deaton Hill…",
+									"stop_name": "West Gate/Deaton Hill NW…",
 									"stop_sequence": 13
 								},
 								{
@@ -333,7 +333,7 @@
 									"lat": 30.160354,
 									"lon": -97.776979,
 									"stop_id": "6325",
-									"stop_name": "Slaughter/E Slaughter…",
+									"stop_name": "Slaughter/E Slaughter To…",
 									"stop_sequence": 38
 								},
 								{
@@ -364,7 +364,7 @@
 							"lon": -97.758644,
 							"minor_stops": [],
 							"stop_id": "6560",
-							"stop_name": "Slaughter/Goodnight…",
+							"stop_name": "Slaughter/Goodnight Ranch",
 							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
 							"stop_sequence": 41
 						}
@@ -480,7 +480,7 @@
 									"lat": 30.210896,
 									"lon": -97.814594,
 									"stop_id": "2343",
-									"stop_name": "West Gate/Deaton Hill…",
+									"stop_name": "West Gate/Deaton Hill NW…",
 									"stop_sequence": 13
 								},
 								{
@@ -697,7 +697,7 @@
 									"lat": 30.160354,
 									"lon": -97.776979,
 									"stop_id": "6325",
-									"stop_name": "Slaughter/E Slaughter…",
+									"stop_name": "Slaughter/E Slaughter To…",
 									"stop_sequence": 39
 								},
 								{
@@ -728,7 +728,7 @@
 							"lon": -97.758644,
 							"minor_stops": [],
 							"stop_id": "6560",
-							"stop_name": "Slaughter/Goodnight…",
+							"stop_name": "Slaughter/Goodnight Ranch",
 							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
 							"stop_sequence": 42
 						}
@@ -852,7 +852,7 @@
 									"lat": 30.210896,
 									"lon": -97.814594,
 									"stop_id": "2343",
-									"stop_name": "West Gate/Deaton Hill…",
+									"stop_name": "West Gate/Deaton Hill NW…",
 									"stop_sequence": 14
 								},
 								{
@@ -1069,7 +1069,7 @@
 									"lat": 30.160354,
 									"lon": -97.776979,
 									"stop_id": "6325",
-									"stop_name": "Slaughter/E Slaughter…",
+									"stop_name": "Slaughter/E Slaughter To…",
 									"stop_sequence": 40
 								},
 								{
@@ -1100,7 +1100,7 @@
 							"lon": -97.758644,
 							"minor_stops": [],
 							"stop_id": "6560",
-							"stop_name": "Slaughter/Goodnight…",
+							"stop_name": "Slaughter/Goodnight Ranch",
 							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
 							"stop_sequence": 43
 						}
@@ -1163,7 +1163,7 @@
 									"lat": 30.160628,
 									"lon": -97.776726,
 									"stop_id": "6326",
-									"stop_name": "Slaughter/E Slaughter…",
+									"stop_name": "Slaughter/E Slaughter To…",
 									"stop_sequence": 4
 								},
 								{
@@ -1208,7 +1208,7 @@
 								}
 							],
 							"stop_id": "6560",
-							"stop_name": "Slaughter/Goodnight…",
+							"stop_name": "Slaughter/Goodnight Ranch",
 							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
 							"stop_sequence": 1
 						},
@@ -1513,7 +1513,7 @@
 									"lat": 30.160628,
 									"lon": -97.776726,
 									"stop_id": "6326",
-									"stop_name": "Slaughter/E Slaughter…",
+									"stop_name": "Slaughter/E Slaughter To…",
 									"stop_sequence": 4
 								},
 								{
@@ -1558,7 +1558,7 @@
 								}
 							],
 							"stop_id": "6560",
-							"stop_name": "Slaughter/Goodnight…",
+							"stop_name": "Slaughter/Goodnight Ranch",
 							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
 							"stop_sequence": 1
 						},

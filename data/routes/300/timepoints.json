@@ -302,7 +302,7 @@
 									"lat": 30.26517,
 									"lon": -97.708825,
 									"stop_id": "1346",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/…",
 									"stop_sequence": 34
 								},
 								{
@@ -345,7 +345,7 @@
 									"lat": 30.246213,
 									"lon": -97.714935,
 									"stop_id": "5032",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Lakeshore",
 									"stop_sequence": 39
 								},
 								{
@@ -377,7 +377,7 @@
 									"lat": 30.233458,
 									"lon": -97.724063,
 									"stop_id": "6428",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Riverside",
 									"stop_sequence": 43
 								},
 								{
@@ -854,7 +854,7 @@
 								}
 							],
 							"stop_id": "1331",
-							"stop_name": "Springdale/Martin…",
+							"stop_name": "Springdale/Martin Luther…",
 							"stop_name_full": "4300 Springdale/Martin Luther King",
 							"stop_sequence": 24
 						},
@@ -884,7 +884,7 @@
 									"lat": 30.26517,
 									"lon": -97.708825,
 									"stop_id": "1346",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/…",
 									"stop_sequence": 35
 								},
 								{
@@ -927,7 +927,7 @@
 									"lat": 30.246213,
 									"lon": -97.714935,
 									"stop_id": "5032",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Lakeshore",
 									"stop_sequence": 40
 								},
 								{
@@ -959,7 +959,7 @@
 									"lat": 30.233458,
 									"lon": -97.724063,
 									"stop_id": "6428",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Riverside",
 									"stop_sequence": 44
 								},
 								{
@@ -1479,7 +1479,7 @@
 									"lat": 30.265299,
 									"lon": -97.708781,
 									"stop_id": "1373",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/…",
 									"stop_sequence": 33
 								},
 								{
@@ -1666,7 +1666,7 @@
 								}
 							],
 							"stop_id": "4742",
-							"stop_name": "Springdale/Martin…",
+							"stop_name": "Springdale/Martin Luther…",
 							"stop_name_full": "4311 Springdale/Martin Luther King",
 							"stop_sequence": 45
 						},
@@ -2061,7 +2061,7 @@
 									"lat": 30.265299,
 									"lon": -97.708781,
 									"stop_id": "1373",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/…",
 									"stop_sequence": 34
 								},
 								{
@@ -2248,7 +2248,7 @@
 								}
 							],
 							"stop_id": "4742",
-							"stop_name": "Springdale/Martin…",
+							"stop_name": "Springdale/Martin Luther…",
 							"stop_name_full": "4311 Springdale/Martin Luther King",
 							"stop_sequence": 46
 						},

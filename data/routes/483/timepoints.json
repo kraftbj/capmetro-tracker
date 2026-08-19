@@ -145,7 +145,7 @@
 									"lat": 30.233381,
 									"lon": -97.723235,
 									"stop_id": "6536",
-									"stop_name": "Riverside/Pleasant…",
+									"stop_name": "Riverside/Pleasant Valley",
 									"stop_sequence": 15
 								},
 								{
@@ -393,7 +393,7 @@
 									"lat": 30.233381,
 									"lon": -97.723235,
 									"stop_id": "6536",
-									"stop_name": "Riverside/Pleasant…",
+									"stop_name": "Riverside/Pleasant Valley",
 									"stop_sequence": 19
 								},
 								{
@@ -560,7 +560,7 @@
 									"lat": 30.222831,
 									"lon": -97.698094,
 									"stop_id": "3248",
-									"stop_name": "Riverside/Frontier…",
+									"stop_name": "Riverside/Frontier Valley",
 									"stop_sequence": 6
 								},
 								{
@@ -619,7 +619,7 @@
 									"lat": 30.233458,
 									"lon": -97.724063,
 									"stop_id": "6428",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Riverside",
 									"stop_sequence": 13
 								},
 								{
@@ -758,7 +758,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 30
 								}
 							],
@@ -835,7 +835,7 @@
 									"lat": 30.222831,
 									"lon": -97.698094,
 									"stop_id": "3248",
-									"stop_name": "Riverside/Frontier…",
+									"stop_name": "Riverside/Frontier Valley",
 									"stop_sequence": 6
 								},
 								{
@@ -894,7 +894,7 @@
 									"lat": 30.233458,
 									"lon": -97.724063,
 									"stop_id": "6428",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Riverside",
 									"stop_sequence": 13
 								},
 								{
@@ -1025,7 +1025,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 29
 								}
 							],

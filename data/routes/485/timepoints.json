@@ -384,7 +384,7 @@
 							"lon": -97.691345,
 							"minor_stops": [],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 44
 						}
@@ -747,7 +747,7 @@
 							"lon": -97.691345,
 							"minor_stops": [],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 42
 						}
@@ -941,7 +941,7 @@
 								}
 							],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 1
 						},
@@ -1011,7 +1011,7 @@
 									"lat": 30.255955,
 									"lon": -97.701385,
 									"stop_id": "844",
-									"stop_name": "7Th/Springdale",
+									"stop_name": "7th/Springdale",
 									"stop_sequence": 29
 								}
 							],
@@ -1264,7 +1264,7 @@
 								}
 							],
 							"stop_id": "6419",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - A",
 							"stop_sequence": 1
 						},
@@ -1326,7 +1326,7 @@
 									"lat": 30.255955,
 									"lon": -97.701385,
 									"stop_id": "844",
-									"stop_name": "7Th/Springdale",
+									"stop_name": "7th/Springdale",
 									"stop_sequence": 27
 								}
 							],

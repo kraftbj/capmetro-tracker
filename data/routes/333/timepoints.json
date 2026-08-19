@@ -134,7 +134,7 @@
 									"lat": 30.183658,
 									"lon": -97.768765,
 									"stop_id": "2511",
-									"stop_name": "Blue Meadow/Bluff…",
+									"stop_name": "Blue Meadow/Bluff Springs",
 									"stop_sequence": 14
 								},
 								{
@@ -169,7 +169,7 @@
 									"lat": 30.193894,
 									"lon": -97.780466,
 									"stop_id": "3169",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Starstreak",
 									"stop_sequence": 18
 								},
 								{
@@ -289,7 +289,7 @@
 								}
 							],
 							"stop_id": "3175",
-							"stop_name": "William…",
+							"stop_name": "William Cannon/…",
 							"stop_name_full": "1900 William Cannon/Cannonleague",
 							"stop_sequence": 26
 						},
@@ -418,7 +418,7 @@
 									"lat": 30.223818,
 									"lon": -97.864469,
 									"stop_id": "3197",
-									"stop_name": "Convict Hill/John…",
+									"stop_name": "Convict Hill/John Blocker",
 									"stop_sequence": 48
 								},
 								{
@@ -577,7 +577,7 @@
 									"lat": 30.183658,
 									"lon": -97.768765,
 									"stop_id": "2511",
-									"stop_name": "Blue Meadow/Bluff…",
+									"stop_name": "Blue Meadow/Bluff Springs",
 									"stop_sequence": 14
 								},
 								{
@@ -612,7 +612,7 @@
 									"lat": 30.193894,
 									"lon": -97.780466,
 									"stop_id": "3169",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Starstreak",
 									"stop_sequence": 18
 								},
 								{
@@ -732,7 +732,7 @@
 								}
 							],
 							"stop_id": "3175",
-							"stop_name": "William…",
+							"stop_name": "William Cannon/…",
 							"stop_name_full": "1900 William Cannon/Cannonleague",
 							"stop_sequence": 26
 						},
@@ -861,7 +861,7 @@
 									"lat": 30.223818,
 									"lon": -97.864469,
 									"stop_id": "3197",
-									"stop_name": "Convict Hill/John…",
+									"stop_name": "Convict Hill/John Blocker",
 									"stop_sequence": 48
 								},
 								{
@@ -1011,7 +1011,7 @@
 									"lat": 30.183658,
 									"lon": -97.768765,
 									"stop_id": "2511",
-									"stop_name": "Blue Meadow/Bluff…",
+									"stop_name": "Blue Meadow/Bluff Springs",
 									"stop_sequence": 14
 								},
 								{
@@ -1046,7 +1046,7 @@
 									"lat": 30.193894,
 									"lon": -97.780466,
 									"stop_id": "3169",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Starstreak",
 									"stop_sequence": 18
 								},
 								{
@@ -1166,7 +1166,7 @@
 								}
 							],
 							"stop_id": "3175",
-							"stop_name": "William…",
+							"stop_name": "William Cannon/…",
 							"stop_name_full": "1900 William Cannon/Cannonleague",
 							"stop_sequence": 26
 						},
@@ -1299,7 +1299,7 @@
 									"lat": 30.216888,
 									"lon": -97.846068,
 									"stop_id": "3887",
-									"stop_name": "Convict…",
+									"stop_name": "Convict Hill/Latta/Brush…",
 									"stop_sequence": 9
 								},
 								{
@@ -1390,7 +1390,7 @@
 									"lat": 30.210944,
 									"lon": -97.82455,
 									"stop_id": "3224",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stagecoach",
 									"stop_sequence": 20
 								},
 								{
@@ -1422,7 +1422,7 @@
 									"lat": 30.203663,
 									"lon": -97.809228,
 									"stop_id": "4424",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/…",
 									"stop_sequence": 24
 								}
 							],
@@ -1532,7 +1532,7 @@
 									"lat": 30.187382,
 									"lon": -97.76818,
 									"stop_id": "6520",
-									"stop_name": "Bluff…",
+									"stop_name": "Bluff Springs/BitterCreek",
 									"stop_sequence": 37
 								},
 								{
@@ -1540,7 +1540,7 @@
 									"lat": 30.183426,
 									"lon": -97.768629,
 									"stop_id": "2478",
-									"stop_name": "Blue Meadow/Bluff…",
+									"stop_name": "Blue Meadow/Bluff Springs",
 									"stop_sequence": 38
 								},
 								{
@@ -1734,7 +1734,7 @@
 									"lat": 30.216888,
 									"lon": -97.846068,
 									"stop_id": "3887",
-									"stop_name": "Convict…",
+									"stop_name": "Convict Hill/Latta/Brush…",
 									"stop_sequence": 8
 								},
 								{
@@ -1825,7 +1825,7 @@
 									"lat": 30.210944,
 									"lon": -97.82455,
 									"stop_id": "3224",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stagecoach",
 									"stop_sequence": 19
 								},
 								{
@@ -1857,7 +1857,7 @@
 									"lat": 30.203663,
 									"lon": -97.809228,
 									"stop_id": "4424",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/…",
 									"stop_sequence": 23
 								}
 							],
@@ -1967,7 +1967,7 @@
 									"lat": 30.187382,
 									"lon": -97.76818,
 									"stop_id": "6520",
-									"stop_name": "Bluff…",
+									"stop_name": "Bluff Springs/BitterCreek",
 									"stop_sequence": 36
 								},
 								{
@@ -1975,7 +1975,7 @@
 									"lat": 30.183426,
 									"lon": -97.768629,
 									"stop_id": "2478",
-									"stop_name": "Blue Meadow/Bluff…",
+									"stop_name": "Blue Meadow/Bluff Springs",
 									"stop_sequence": 37
 								},
 								{
@@ -2127,7 +2127,7 @@
 									"lat": 30.210944,
 									"lon": -97.82455,
 									"stop_id": "3224",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stagecoach",
 									"stop_sequence": 3
 								},
 								{
@@ -2159,7 +2159,7 @@
 									"lat": 30.203663,
 									"lon": -97.809228,
 									"stop_id": "4424",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/…",
 									"stop_sequence": 7
 								}
 							],
@@ -2269,7 +2269,7 @@
 									"lat": 30.187382,
 									"lon": -97.76818,
 									"stop_id": "6520",
-									"stop_name": "Bluff…",
+									"stop_name": "Bluff Springs/BitterCreek",
 									"stop_sequence": 20
 								},
 								{
@@ -2277,7 +2277,7 @@
 									"lat": 30.183426,
 									"lon": -97.768629,
 									"stop_id": "2478",
-									"stop_name": "Blue Meadow/Bluff…",
+									"stop_name": "Blue Meadow/Bluff Springs",
 									"stop_sequence": 21
 								},
 								{

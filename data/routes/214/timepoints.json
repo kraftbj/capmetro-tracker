@@ -28,7 +28,7 @@
 									"lat": 30.476288,
 									"lon": -97.794455,
 									"stop_id": "5223",
-									"stop_name": "North Lake…",
+									"stop_name": "North Lake Creek/…",
 									"stop_sequence": 2
 								},
 								{
@@ -296,7 +296,7 @@
 									"lat": 30.479846,
 									"lon": -97.79749,
 									"stop_id": "5805",
-									"stop_name": "Lakeline/North Lake…",
+									"stop_name": "Lakeline/North Lake Creek",
 									"stop_sequence": 9
 								}
 							],

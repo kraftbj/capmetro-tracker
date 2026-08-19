@@ -232,7 +232,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 25
 								},
 								{
@@ -515,7 +515,7 @@
 								}
 							],
 							"stop_id": "2169",
-							"stop_name": "Woodward/Parker SW…",
+							"stop_name": "Woodward/Parker SW Corner",
 							"stop_name_full": "Woodward/Parker SW Corner",
 							"stop_sequence": 45
 						},
@@ -545,7 +545,7 @@
 									"lat": 30.186637,
 									"lon": -97.759034,
 									"stop_id": "4350",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stoneleigh",
 									"stop_sequence": 63
 								},
 								{
@@ -807,7 +807,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 25
 								},
 								{
@@ -1082,7 +1082,7 @@
 								}
 							],
 							"stop_id": "2169",
-							"stop_name": "Woodward/Parker SW…",
+							"stop_name": "Woodward/Parker SW Corner",
 							"stop_name_full": "Woodward/Parker SW Corner",
 							"stop_sequence": 44
 						},
@@ -1112,7 +1112,7 @@
 									"lat": 30.186637,
 									"lon": -97.759034,
 									"stop_id": "4350",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stoneleigh",
 									"stop_sequence": 62
 								},
 								{
@@ -1216,7 +1216,7 @@
 									"lat": 30.186202,
 									"lon": -97.758733,
 									"stop_id": "4349",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stoneleigh",
 									"stop_sequence": 4
 								},
 								{
@@ -1224,7 +1224,7 @@
 									"lat": 30.183639,
 									"lon": -97.754477,
 									"stop_id": "4351",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Branchwood",
 									"stop_sequence": 5
 								}
 							],
@@ -1251,7 +1251,7 @@
 									"lat": 30.185198,
 									"lon": -97.745196,
 									"stop_id": "1219",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Turnstone",
 									"stop_sequence": 8
 								},
 								{
@@ -1505,7 +1505,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 39
 								}
 							],
@@ -1762,7 +1762,7 @@
 									"lat": 30.186202,
 									"lon": -97.758733,
 									"stop_id": "4349",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Stoneleigh",
 									"stop_sequence": 4
 								},
 								{
@@ -1770,7 +1770,7 @@
 									"lat": 30.183639,
 									"lon": -97.754477,
 									"stop_id": "4351",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/Branchwood",
 									"stop_sequence": 5
 								}
 							],
@@ -1797,7 +1797,7 @@
 									"lat": 30.185198,
 									"lon": -97.745196,
 									"stop_id": "1219",
-									"stop_name": "Pleasant…",
+									"stop_name": "Pleasant Valley/Turnstone",
 									"stop_sequence": 8
 								},
 								{
@@ -2019,7 +2019,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 35
 								}
 							],

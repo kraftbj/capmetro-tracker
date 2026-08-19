@@ -39,7 +39,7 @@
 									"lat": 30.258478,
 									"lon": -97.811286,
 									"stop_id": "4494",
-									"stop_name": "Walsh Tarlton/Capital…",
+									"stop_name": "Walsh Tarlton/Capital of…",
 									"stop_sequence": 2
 								}
 							],
@@ -58,7 +58,7 @@
 									"lat": 30.258478,
 									"lon": -97.811286,
 									"stop_id": "4494",
-									"stop_name": "Walsh Tarlton/Capital…",
+									"stop_name": "Walsh Tarlton/Capital of…",
 									"stop_sequence": 4
 								},
 								{
@@ -299,7 +299,7 @@
 									"lat": 30.297767,
 									"lon": -97.741167,
 									"stop_id": "603",
-									"stop_name": "31st Street Rapid…",
+									"stop_name": "31st Street Rapid Station",
 									"stop_sequence": 33
 								},
 								{
@@ -695,7 +695,7 @@
 									"lat": 30.258478,
 									"lon": -97.811286,
 									"stop_id": "4494",
-									"stop_name": "Walsh Tarlton/Capital…",
+									"stop_name": "Walsh Tarlton/Capital of…",
 									"stop_sequence": 2
 								}
 							],
@@ -714,7 +714,7 @@
 									"lat": 30.258478,
 									"lon": -97.811286,
 									"stop_id": "4494",
-									"stop_name": "Walsh Tarlton/Capital…",
+									"stop_name": "Walsh Tarlton/Capital of…",
 									"stop_sequence": 4
 								},
 								{
@@ -963,7 +963,7 @@
 									"lat": 30.297767,
 									"lon": -97.741167,
 									"stop_id": "603",
-									"stop_name": "31st Street Rapid…",
+									"stop_name": "31st Street Rapid Station",
 									"stop_sequence": 34
 								},
 								{
@@ -1469,7 +1469,7 @@
 									"lat": 30.36082,
 									"lon": -97.75738,
 									"stop_id": "1917",
-									"stop_name": "Greystone/Chimney…",
+									"stop_name": "Greystone/Chimney Corners",
 									"stop_sequence": 13
 								},
 								{

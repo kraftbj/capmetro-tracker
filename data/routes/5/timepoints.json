@@ -331,7 +331,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 37
 								},
 								{
@@ -544,7 +544,7 @@
 							"lon": -97.66973,
 							"minor_stops": [],
 							"stop_id": "5017",
-							"stop_name": "Technicenter/Ed…",
+							"stop_name": "Technicenter/Ed Bluestein",
 							"stop_name_full": "Technicenter/Ed Bluestein",
 							"stop_sequence": 62
 						}
@@ -665,7 +665,7 @@
 								}
 							],
 							"stop_id": "5017",
-							"stop_name": "Technicenter/Ed…",
+							"stop_name": "Technicenter/Ed Bluestein",
 							"stop_name_full": "Technicenter/Ed Bluestein",
 							"stop_sequence": 1
 						},
@@ -810,7 +810,7 @@
 								}
 							],
 							"stop_id": "5938",
-							"stop_name": "8Th/Lavaca",
+							"stop_name": "8th/Lavaca",
 							"stop_name_full": "216 8Th/Lavaca",
 							"stop_sequence": 23
 						},

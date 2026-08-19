@@ -796,7 +796,7 @@
 									"lat": 30.316608,
 									"lon": -97.713996,
 									"stop_id": "5372",
-									"stop_name": "Airport/55Th",
+									"stop_name": "Airport/55th",
 									"stop_sequence": 10
 								},
 								{
@@ -804,7 +804,7 @@
 									"lat": 30.314679,
 									"lon": -97.714927,
 									"stop_id": "5415",
-									"stop_name": "Airport/53Rd",
+									"stop_name": "Airport/53rd",
 									"stop_sequence": 11
 								},
 								{
@@ -812,7 +812,7 @@
 									"lat": 30.311873,
 									"lon": -97.715492,
 									"stop_id": "5684",
-									"stop_name": "Airport/51St",
+									"stop_name": "Airport/51st",
 									"stop_sequence": 12
 								},
 								{
@@ -1128,7 +1128,7 @@
 									"lat": 30.316608,
 									"lon": -97.713996,
 									"stop_id": "5372",
-									"stop_name": "Airport/55Th",
+									"stop_name": "Airport/55th",
 									"stop_sequence": 10
 								},
 								{
@@ -1136,7 +1136,7 @@
 									"lat": 30.314679,
 									"lon": -97.714927,
 									"stop_id": "5415",
-									"stop_name": "Airport/53Rd",
+									"stop_name": "Airport/53rd",
 									"stop_sequence": 11
 								},
 								{
@@ -1144,7 +1144,7 @@
 									"lat": 30.311873,
 									"lon": -97.715492,
 									"stop_id": "5684",
-									"stop_name": "Airport/51St",
+									"stop_name": "Airport/51st",
 									"stop_sequence": 12
 								},
 								{

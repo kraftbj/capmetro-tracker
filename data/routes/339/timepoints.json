@@ -142,7 +142,7 @@
 									"lat": 30.338844,
 									"lon": -97.694029,
 									"stop_id": "5193",
-									"stop_name": "Norwood…",
+									"stop_name": "Norwood Park/Brettonwoods",
 									"stop_sequence": 15
 								},
 								{
@@ -155,7 +155,7 @@
 								}
 							],
 							"stop_id": "6424",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - F",
 							"stop_sequence": 14
 						},
@@ -421,7 +421,7 @@
 								}
 							],
 							"stop_id": "6423",
-							"stop_name": "Norwood Transit Center…",
+							"stop_name": "Norwood Transit Center -…",
 							"stop_name_full": "Norwood Transit Center - E",
 							"stop_sequence": 9
 						},

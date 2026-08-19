@@ -37,7 +37,7 @@
 								}
 							],
 							"stop_id": "5873",
-							"stop_name": "Southpark Meadows…",
+							"stop_name": "Southpark Meadows Station",
 							"stop_name_full": "Southpark Meadows Station",
 							"stop_sequence": 1
 						},
@@ -172,7 +172,7 @@
 									"lat": 30.297767,
 									"lon": -97.741167,
 									"stop_id": "603",
-									"stop_name": "31st Street Rapid…",
+									"stop_name": "31st Street Rapid Station",
 									"stop_sequence": 18
 								}
 							],
@@ -598,7 +598,7 @@
 							"lon": -97.790317,
 							"minor_stops": [],
 							"stop_id": "5873",
-							"stop_name": "Southpark Meadows…",
+							"stop_name": "Southpark Meadows Station",
 							"stop_name_full": "Southpark Meadows Station",
 							"stop_sequence": 31
 						}

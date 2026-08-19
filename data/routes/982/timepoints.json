@@ -117,7 +117,7 @@
 									"lat": 30.268253,
 									"lon": -97.74669,
 									"stop_id": "2612",
-									"stop_name": "Guadalupe/5Th",
+									"stop_name": "Guadalupe/5th",
 									"stop_sequence": 12
 								}
 							],
@@ -266,7 +266,7 @@
 									"lat": 30.407651,
 									"lon": -97.747776,
 									"stop_id": "4658",
-									"stop_name": "Jollyville/Balcones…",
+									"stop_name": "Jollyville/Balcones Woods",
 									"stop_sequence": 12
 								}
 							],
@@ -404,7 +404,7 @@
 									"lat": 30.407651,
 									"lon": -97.747776,
 									"stop_id": "4658",
-									"stop_name": "Jollyville/Balcones…",
+									"stop_name": "Jollyville/Balcones Woods",
 									"stop_sequence": 13
 								}
 							],

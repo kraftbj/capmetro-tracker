@@ -53,7 +53,7 @@
 									"lat": 30.308047,
 									"lon": -97.643051,
 									"stop_id": "6004",
-									"stop_name": "Johnny Morris/Point…",
+									"stop_name": "Johnny Morris/Point North",
 									"stop_sequence": 4
 								},
 								{
@@ -77,7 +77,7 @@
 									"lat": 30.307142,
 									"lon": -97.622128,
 									"stop_id": "6070",
-									"stop_name": "Eagles Landing…",
+									"stop_name": "Eagles Landing Apt/Decker",
 									"stop_sequence": 7
 								}
 							],
@@ -130,7 +130,7 @@
 									"lat": 30.308047,
 									"lon": -97.643051,
 									"stop_id": "6004",
-									"stop_name": "Johnny Morris/Point…",
+									"stop_name": "Johnny Morris/Point North",
 									"stop_sequence": 3
 								},
 								{
@@ -154,7 +154,7 @@
 									"lat": 30.307142,
 									"lon": -97.622128,
 									"stop_id": "6070",
-									"stop_name": "Eagles Landing…",
+									"stop_name": "Eagles Landing Apt/Decker",
 									"stop_sequence": 6
 								}
 							],
@@ -227,7 +227,7 @@
 									"lat": 30.300421,
 									"lon": -97.636572,
 									"stop_id": "5997",
-									"stop_name": "Overton…",
+									"stop_name": "Overton Driveway/Overton…",
 									"stop_sequence": 4
 								},
 								{

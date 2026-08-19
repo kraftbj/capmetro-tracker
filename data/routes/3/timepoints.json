@@ -1285,7 +1285,7 @@
 									"lat": 30.297767,
 									"lon": -97.741167,
 									"stop_id": "603",
-									"stop_name": "31st Street Rapid…",
+									"stop_name": "31st Street Rapid Station",
 									"stop_sequence": 54
 								},
 								{
@@ -1590,7 +1590,7 @@
 									"lat": 30.400813,
 									"lon": -97.74724,
 									"stop_id": "3834",
-									"stop_name": "Braker/Research NW…",
+									"stop_name": "Braker/Research NW Corner",
 									"stop_sequence": 91
 								},
 								{
@@ -2074,7 +2074,7 @@
 									"lat": 30.297767,
 									"lon": -97.741167,
 									"stop_id": "603",
-									"stop_name": "31st Street Rapid…",
+									"stop_name": "31st Street Rapid Station",
 									"stop_sequence": 53
 								},
 								{
@@ -2379,7 +2379,7 @@
 									"lat": 30.400813,
 									"lon": -97.74724,
 									"stop_id": "3834",
-									"stop_name": "Braker/Research NW…",
+									"stop_name": "Braker/Research NW Corner",
 									"stop_sequence": 90
 								},
 								{

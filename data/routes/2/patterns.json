@@ -40,7 +40,7 @@
 							"skips": [
 								{
 									"stop_id": "844",
-									"stop_name": "7Th/Springdale"
+									"stop_name": "7th/Springdale"
 								},
 								{
 									"stop_id": "4534",
@@ -385,7 +385,7 @@
 							"adds": [
 								{
 									"stop_id": "844",
-									"stop_name": "7Th/Springdale"
+									"stop_name": "7th/Springdale"
 								},
 								{
 									"stop_id": "4534",
@@ -626,7 +626,7 @@
 							"skips": [
 								{
 									"stop_id": "844",
-									"stop_name": "7Th/Springdale"
+									"stop_name": "7th/Springdale"
 								},
 								{
 									"stop_id": "4534",

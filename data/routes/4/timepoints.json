@@ -114,7 +114,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 11
 								},
 								{
@@ -272,7 +272,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 11
 								},
 								{
@@ -403,7 +403,7 @@
 									"lat": 30.2726,
 									"lon": -97.760749,
 									"stop_id": "2104",
-									"stop_name": "5Th/Pressler",
+									"stop_name": "5th/Pressler",
 									"stop_sequence": 3
 								},
 								{
@@ -451,7 +451,7 @@
 									"lat": 30.269226,
 									"lon": -97.743548,
 									"stop_id": "6314",
-									"stop_name": "7Th/Colorado",
+									"stop_name": "7th/Colorado",
 									"stop_sequence": 9
 								},
 								{

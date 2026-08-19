@@ -125,7 +125,7 @@
 									"lat": 30.278688,
 									"lon": -97.731471,
 									"stop_id": "5624",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 12
 								},
 								{
@@ -149,7 +149,7 @@
 									"lat": 30.279695,
 									"lon": -97.721372,
 									"stop_id": "872",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Chicon",
 									"stop_sequence": 15
 								},
 								{
@@ -157,7 +157,7 @@
 									"lat": 30.28023,
 									"lon": -97.718137,
 									"stop_id": "873",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 16
 								},
 								{
@@ -173,7 +173,7 @@
 									"lat": 30.280972,
 									"lon": -97.713458,
 									"stop_id": "875",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Walnut",
 									"stop_sequence": 18
 								},
 								{
@@ -181,7 +181,7 @@
 									"lat": 30.281548,
 									"lon": -97.709813,
 									"stop_id": "5802",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 19
 								},
 								{
@@ -189,7 +189,7 @@
 									"lat": 30.281869,
 									"lon": -97.707799,
 									"stop_id": "877",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 20
 								}
 							],
@@ -208,7 +208,7 @@
 									"lat": 30.283318,
 									"lon": -97.698197,
 									"stop_id": "880",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 22
 								},
 								{
@@ -245,7 +245,7 @@
 								}
 							],
 							"stop_id": "4195",
-							"stop_name": "Martin Luther…",
+							"stop_name": "Martin Luther King/…",
 							"stop_name_full": "3205 Martin Luther King/Airport",
 							"stop_sequence": 21
 						},
@@ -342,7 +342,7 @@
 									"lat": 30.282478,
 									"lon": -97.6232,
 									"stop_id": "5984",
-									"stop_name": "Hog Eye - Community…",
+									"stop_name": "Hog Eye - Community First",
 									"stop_sequence": 38
 								}
 							],
@@ -414,7 +414,7 @@
 									"lat": 30.282478,
 									"lon": -97.6232,
 									"stop_id": "5984",
-									"stop_name": "Hog Eye - Community…",
+									"stop_name": "Hog Eye - Community First",
 									"stop_sequence": 3
 								},
 								{
@@ -473,7 +473,7 @@
 									"lat": 30.286729,
 									"lon": -97.671079,
 									"stop_id": "5640",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 10
 								},
 								{
@@ -489,7 +489,7 @@
 									"lat": 30.286309,
 									"lon": -97.678798,
 									"stop_id": "4602",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 12
 								},
 								{
@@ -513,7 +513,7 @@
 									"lat": 30.283022,
 									"lon": -97.701544,
 									"stop_id": "905",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 15
 								}
 							],
@@ -532,7 +532,7 @@
 									"lat": 30.282033,
 									"lon": -97.70768,
 									"stop_id": "5786",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 17
 								},
 								{
@@ -540,7 +540,7 @@
 									"lat": 30.281684,
 									"lon": -97.709892,
 									"stop_id": "5801",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 18
 								},
 								{
@@ -548,7 +548,7 @@
 									"lat": 30.28113,
 									"lon": -97.713317,
 									"stop_id": "909",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Walnut",
 									"stop_sequence": 19
 								},
 								{
@@ -556,7 +556,7 @@
 									"lat": 30.280549,
 									"lon": -97.717136,
 									"stop_id": "910",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 20
 								},
 								{
@@ -564,7 +564,7 @@
 									"lat": 30.280356,
 									"lon": -97.718217,
 									"stop_id": "5492",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Coleto",
 									"stop_sequence": 21
 								},
 								{
@@ -572,7 +572,7 @@
 									"lat": 30.279877,
 									"lon": -97.721101,
 									"stop_id": "911",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Chicon",
 									"stop_sequence": 22
 								},
 								{
@@ -596,7 +596,7 @@
 									"lat": 30.279666,
 									"lon": -97.734311,
 									"stop_id": "4586",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 25
 								},
 								{
@@ -604,7 +604,7 @@
 									"lat": 30.280545,
 									"lon": -97.737318,
 									"stop_id": "5992",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 26
 								},
 								{
@@ -617,7 +617,7 @@
 								}
 							],
 							"stop_id": "4196",
-							"stop_name": "Martin Luther…",
+							"stop_name": "Martin Luther King/…",
 							"stop_name_full": "3014 Martin Luther King/Airport",
 							"stop_sequence": 16
 						},
@@ -754,7 +754,7 @@
 									"lat": 30.282478,
 									"lon": -97.6232,
 									"stop_id": "5984",
-									"stop_name": "Hog Eye - Community…",
+									"stop_name": "Hog Eye - Community First",
 									"stop_sequence": 3
 								},
 								{
@@ -821,7 +821,7 @@
 									"lat": 30.286729,
 									"lon": -97.671079,
 									"stop_id": "5640",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 11
 								},
 								{
@@ -837,7 +837,7 @@
 									"lat": 30.286309,
 									"lon": -97.678798,
 									"stop_id": "4602",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 13
 								}
 							],
@@ -872,12 +872,12 @@
 									"lat": 30.283022,
 									"lon": -97.701544,
 									"stop_id": "905",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 17
 								}
 							],
 							"stop_id": "898",
-							"stop_name": "Martin Luther…",
+							"stop_name": "Martin Luther King/…",
 							"stop_name_full": "4600 Martin Luther King/Springdale",
 							"stop_sequence": 14
 						},
@@ -891,7 +891,7 @@
 									"lat": 30.282033,
 									"lon": -97.70768,
 									"stop_id": "5786",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 19
 								},
 								{
@@ -899,7 +899,7 @@
 									"lat": 30.281684,
 									"lon": -97.709892,
 									"stop_id": "5801",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 20
 								},
 								{
@@ -907,7 +907,7 @@
 									"lat": 30.28113,
 									"lon": -97.713317,
 									"stop_id": "909",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Walnut",
 									"stop_sequence": 21
 								},
 								{
@@ -915,7 +915,7 @@
 									"lat": 30.280549,
 									"lon": -97.717136,
 									"stop_id": "910",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 22
 								},
 								{
@@ -923,7 +923,7 @@
 									"lat": 30.280356,
 									"lon": -97.718217,
 									"stop_id": "5492",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Coleto",
 									"stop_sequence": 23
 								},
 								{
@@ -931,7 +931,7 @@
 									"lat": 30.279877,
 									"lon": -97.721101,
 									"stop_id": "911",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/Chicon",
 									"stop_sequence": 24
 								},
 								{
@@ -955,7 +955,7 @@
 									"lat": 30.279666,
 									"lon": -97.734311,
 									"stop_id": "4586",
-									"stop_name": "Martin Luther…",
+									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 27
 								},
 								{
@@ -963,7 +963,7 @@
 									"lat": 30.280545,
 									"lon": -97.737318,
 									"stop_id": "5992",
-									"stop_name": "Martin Luther King…",
+									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 28
 								},
 								{
@@ -976,7 +976,7 @@
 								}
 							],
 							"stop_id": "4196",
-							"stop_name": "Martin Luther…",
+							"stop_name": "Martin Luther King/…",
 							"stop_name_full": "3014 Martin Luther King/Airport",
 							"stop_sequence": 18
 						},

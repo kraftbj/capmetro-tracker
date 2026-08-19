@@ -70,7 +70,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 6
 								},
 								{
@@ -320,7 +320,7 @@
 									"lat": 30.270613,
 									"lon": -97.744215,
 									"stop_id": "5938",
-									"stop_name": "8Th/Lavaca",
+									"stop_name": "8th/Lavaca",
 									"stop_sequence": 7
 								},
 								{
@@ -646,7 +646,7 @@
 									"lat": 30.203663,
 									"lon": -97.809228,
 									"stop_id": "4424",
-									"stop_name": "William…",
+									"stop_name": "William Cannon/…",
 									"stop_sequence": 14
 								},
 								{
@@ -772,7 +772,7 @@
 								}
 							],
 							"stop_id": "6314",
-							"stop_name": "7Th/Colorado",
+							"stop_name": "7th/Colorado",
 							"stop_name_full": "115 7Th/Colorado",
 							"stop_sequence": 23
 						},
