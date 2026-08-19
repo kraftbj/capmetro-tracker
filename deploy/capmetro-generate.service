@@ -1,0 +1,44 @@
+# Written by deploy/install.sh; @PLACEHOLDERS@ are substituted at install time.
+#
+# Type=oneshot, driven by capmetro-generate.timer. A long-running daemon would
+# have to own its own scheduling, its own restart-on-crash and its own log
+# rotation; a oneshot that exits gets all three from systemd for free, and a run
+# that wedges is killed by the timeout rather than blocking every run after it.
+[Unit]
+Description=CapMetro dispatch board: poll the realtime feeds and write the API
+Documentation=file:///srv/capmetro/src/docs/DEPLOY.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@RUN_USER@
+Group=@RUN_USER@
+ExecStart=@GEN@
+
+# Three feeds are fetched sequentially at 15s each, so the worst honest case is
+# ~45s. 50 keeps a wedged run from overlapping the next one; the runtime's own
+# flock is the backstop if it does.
+TimeoutStartSec=50
+
+# The job writes to exactly three places and reads the rest. Everything else on
+# the box is off limits: this process talks to the public internet every minute.
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+NoNewPrivileges=yes
+RestrictSUIDSGID=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+ReadWritePaths=@WEBROOT@ @STATE_DIR@
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+# Written by deploy/install.sh; @INTERVAL_S@ is substituted at install time.
+[Unit]
+Description=Run the CapMetro generator every @INTERVAL_S@ seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=@INTERVAL_S@s
+# Fire on the interval measured from the last START, so a slow run does not
+# push every later run later and later.
+AccuracySec=1s
+# No RandomizedDelaySec: this is one box hitting a public feed once a minute,
+# and a predictable cadence is what makes `staleness` legible.
+Persistent=false
+
+[Install]
+WantedBy=timers.target
