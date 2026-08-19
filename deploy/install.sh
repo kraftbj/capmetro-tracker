@@ -57,6 +57,22 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Drop privileges without assuming sudo is installed. A minimal Debian image has
+# no sudo at all - this script failed on exactly that - while runuser ships in
+# util-linux, which is an essential package. Prefer runuser, fall back to sudo,
+# and say so plainly rather than dying with "command not found" halfway through
+# a half-finished install.
+as_user() {
+  local u="$1"; shift
+  if command -v runuser >/dev/null 2>&1; then
+    runuser -u "$u" -- "$@"
+  elif command -v sudo >/dev/null 2>&1; then
+    sudo -u "$u" "$@"
+  else
+    die "neither runuser nor sudo is available; cannot drop privileges to $u"
+  fi
+}
+
 say()  { printf '\033[1m==\033[0m %s\n' "$*"; }
 warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
@@ -97,12 +113,12 @@ run chown -R "$RUN_USER:$RUN_USER" "$SRC_DIR" "$WEBROOT" "$STATE_DIR"
 # ---- source ----------------------------------------------------------------
 if [ -d "$SRC_DIR/.git" ]; then
   say "updating checkout in $SRC_DIR"
-  run sudo -u "$RUN_USER" git -C "$SRC_DIR" fetch --quiet origin "$BRANCH"
-  run sudo -u "$RUN_USER" git -C "$SRC_DIR" checkout --quiet "$BRANCH"
-  run sudo -u "$RUN_USER" git -C "$SRC_DIR" merge --ff-only --quiet "origin/$BRANCH"
+  run as_user "$RUN_USER" git -C "$SRC_DIR" fetch --quiet origin "$BRANCH"
+  run as_user "$RUN_USER" git -C "$SRC_DIR" checkout --quiet "$BRANCH"
+  run as_user "$RUN_USER" git -C "$SRC_DIR" merge --ff-only --quiet "origin/$BRANCH"
 else
   say "cloning $REPO into $SRC_DIR"
-  run sudo -u "$RUN_USER" git clone --quiet --branch "$BRANCH" "$REPO" "$SRC_DIR" \
+  run as_user "$RUN_USER" git clone --quiet --branch "$BRANCH" "$REPO" "$SRC_DIR" \
     || die "clone failed. The repo is private: give $RUN_USER a deploy key, or clone it yourself and re-run."
 fi
 
@@ -156,7 +172,7 @@ fi
 # ---- first run, so a failure surfaces now and not at a bus stop ------------
 say "running the generator once"
 if [ "$DRY_RUN" = 0 ]; then
-  if sudo -u "$RUN_USER" $GEN; then
+  if as_user "$RUN_USER" $GEN; then
     say "generator ran clean"
   else
     die "the generator failed. Nothing is serving stale data yet, so fix this before pointing a browser at it."
@@ -202,5 +218,5 @@ Next:
   1. install the vhost printed above and reload the web server
   2. get a certificate:  certbot --nginx -d ${DOMAIN:-your.domain}
   3. check it:           curl -s https://${DOMAIN:-your.domain}/api/health.json | head -c 200
-  4. update later:       sudo $SRC_DIR/deploy/update.sh
+  4. update later:       $SRC_DIR/deploy/update.sh   (as root)
 EOF
