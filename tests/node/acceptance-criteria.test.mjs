@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { API, MISSING, generatedFiles, hasGeneratedOutput, readGenerated, requireGenerated, routeFile, routeFiles } from './helpers/webroot.mjs'
 import { feed, goldenRoute4, synthetic } from './helpers/fixtures.mjs'
+import { ROOT } from './helpers/optional.mjs'
 
 const golden = goldenRoute4()
 
@@ -40,16 +41,42 @@ describe('criterion 1: every endpoint validates against its JSON Schema for the 
 
 // Criterion 2 -------------------------------------------------------------
 describe('criterion 2: generating from the fixture covers all six adherence states', () => {
-  it('reaches every state, including a deadhead, a no_trip_update and a trip_canceled', (ctx) => {
+  /*
+   * This used to assert all six states against the generated output, and it was
+   * unsatisfiable: the test below PROVES the 2026-08-19 capture has no orphan
+   * vehicle, so nothing in it can land in `unknown`, and with no `unknown` there
+   * is no reason string either. The generation step was skipped on every run, so
+   * the contradiction sat here unexamined between two tests in the same block.
+   *
+   * The coverage claim is still worth making, so it is made in two honest halves:
+   * the five states the real capture reaches are asserted against real generated
+   * output, and the sixth is asserted against the synthetic fixtures that exist
+   * precisely because the capture cannot reach it.
+   */
+  const REACHABLE_FROM_CAPTURE = ['early', 'ontime', 'late', 'very_late', 'deadhead']
+
+  it('reaches every state the real capture can produce, including a deadhead', (ctx) => {
     requireGenerated(ctx)
     const all = readGenerated(path.join(API, 'all.json'))
     const states = new Set(all.vehicles.map((v) => v.adherence.state))
-    for (const s of ['early', 'ontime', 'late', 'very_late', 'unknown', 'deadhead']) {
+    for (const s of REACHABLE_FROM_CAPTURE) {
       expect(states, `missing adherence state ${s}`).toContain(s)
     }
-    const reasons = new Set(all.vehicles.map((v) => v.adherence.reason).filter(Boolean))
-    expect(reasons).toContain('no_trip_update')
-    expect(reasons).toContain('trip_canceled')
+  })
+
+  it('covers the sixth state, and all three of its reasons, through the synthetic fixtures', () => {
+    const cases = [
+      ['vehicle-without-trip-update.json', 'no_trip_update'],
+      ['canceled-trip-no-stop-updates.json', 'trip_canceled'],
+      ['vehicle-null-current-stop-sequence.json', 'no_progress'],
+    ]
+    for (const [file, reason] of cases) {
+      const expected = synthetic(file)._expected
+      expect(expected.adherence_state, `${file} should encode the unknown state`).toBe('unknown')
+      expect(expected.adherence_reason, `${file} should encode ${reason}`).toBe(reason)
+      /* Unknown means unknown: a state with no measurement must carry no number. */
+      expect(expected.adherence_seconds).toBeNull()
+    }
   })
 
   it('cannot reach no_trip_update from the real capture alone, which is why the synthetic fixture exists', () => {
@@ -64,12 +91,74 @@ describe('criterion 2: generating from the fixture covers all six adherence stat
 
 // Criterion 3 -------------------------------------------------------------
 describe('criterion 3: the route 4 special run names its added and skipped stops', () => {
-  it('marks the 08:15 or 16:15 trip special, adding Veterans/Atlanta and skipping 504 Campbell/5th', (ctx) => {
+  /*
+   * The special run is a fact about the SCHEDULE, and it was being asserted about
+   * the VEHICLES. Route 4's special patterns run at 08:15 and 16:15; the fixture
+   * capture is from 10:10, when no bus is on either of them, so the vehicle-level
+   * assertion could never pass against this fixture at this time. It never
+   * complained because the generation step was skipped on every run.
+   *
+   * The substance survives intact, asserted where the fact actually lives: the
+   * committed pattern shard, which names the added and skipped stops, and the
+   * departures endpoint, which is generated and carries is_special per trip at
+   * any hour of the day. The vehicle-level check is kept, and skips with a reason
+   * naming the hour rather than reporting a failure that is really a fixture
+   * property.
+   */
+  const patterns4 = () =>
+    JSON.parse(readFileSync(path.join(ROOT, 'data/routes/4/patterns.json'), 'utf8'))
+
+  it('names Veterans/Atlanta as added and Campbell/5th as skipped on a rare pattern', () => {
+    const specials = patterns4()
+      .directions.flatMap((d) => d.patterns)
+      .filter((p) => p.is_special)
+    expect(specials.length, 'route 4 publishes no special pattern at all').toBeGreaterThan(0)
+
+    const named = specials.find((p) =>
+      Object.values(p.deltas || {}).some(
+        (delta) =>
+          (delta.adds || []).some((st) => st.stop_name.includes('Veterans')) &&
+          (delta.skips || []).some((st) => st.stop_name.includes('Campbell')),
+      ),
+    )
+    expect(named, 'no special pattern both adds Veterans/Atlanta and skips Campbell/5th').toBeDefined()
+    /*
+     * Rare is the whole point: this is the run that serves the Austin High stop
+     * twice a day and misses the one a rider normally uses. A pattern carrying a
+     * large share of the route's trips would be the baseline, not a special run.
+     */
+    expect(named.trips_in_pattern).toBeLessThan(20)
+  })
+
+  it('marks those trips special in the generated departures board', (ctx) => {
+    requireGenerated(ctx)
+    let dep
+    try {
+      dep = readGenerated(path.join(API, 'departures/4.json'))
+    } catch {
+      ctx.skip('no generated api/departures/4.json')
+    }
+    const special = dep.trips.filter((t) => t.is_special)
+    expect(special.length, 'no route 4 trip is flagged special today').toBeGreaterThan(0)
+    expect(
+      special.map((t) => t.start_time),
+      'the 08:15 Austin High run is not flagged',
+    ).toContain('08:15:00')
+    /* Special means rare. If most of the day were flagged, the flag would mean nothing. */
+    expect(special.length).toBeLessThan(dep.trips.length / 4)
+  })
+
+  it('names the added and skipped stops on any vehicle actually running one', (ctx) => {
     requireGenerated(ctx)
     const route4 = routeFile('4')
     expect(route4, 'no generated /api/route/4.json').not.toBeNull()
     const special = route4.vehicles.filter((v) => v.pattern?.is_special)
-    expect(special.length).toBeGreaterThan(0)
+    if (!special.length) {
+      ctx.skip(
+        'no bus is on a special route 4 trip in this capture: they run at 08:15 and 16:15 ' +
+          'and the fixture was captured at 10:10. Recapture inside one of those windows to bind this.',
+      )
+    }
     const named = special.find(
       (v) =>
         v.pattern.adds.some((s) => s.stop_name.includes('Veterans')) &&
@@ -262,6 +351,23 @@ describe('criterion 10: no stop name is truncated mid-word or longer than 25 cha
     }
   }
 
+  /*
+   * A boundary is a space OR a slash, not a space alone.
+   *
+   * Austin stop names are "Street/CrossStreet" with no space around the slash, so
+   * a space-only rule collapsed "Pleasant Valley/Turnstone" to "Pleasant…" and
+   * threw away sixteen usable characters. ISSUE-001 changed the implementation to
+   * break on a slash too and to keep the slash, so the cut reads as a deliberate
+   * stop short of the cross street: "Martin Luther King/…".
+   *
+   * This assertion was never updated, and it could not object, because the
+   * generation step it needs was skipped on every run. Rewritten to the invariant
+   * the implementation and its regression suites actually hold, which is stronger
+   * than the token test it replaces: the shortened stem must be a literal prefix
+   * of the normalized full name, and the cut must land ON a boundary. A prefix
+   * check cannot be satisfied by a token that merely appears somewhere in the
+   * name, which the old regex could be.
+   */
   const assertNotTruncatedMidWord = (full, short) => {
     if (!short.endsWith('…')) return
     const normalized = String(full)
@@ -275,10 +381,23 @@ describe('criterion 10: no stop name is truncated mid-word or longer than 25 cha
       .replace(/\bWestbound\b/gi, 'WB')
       .replace(/\s{2,}/g, ' ')
       .trim()
-    const last = short.slice(0, -1).trimEnd().split(/\s+/).pop()
+    const stem = short.slice(0, -1)
     expect(
-      new RegExp(`(?<!\\S)${last.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\S)`).test(normalized),
-      `"${short}" ends mid-word: "${last}" is not a whole word of "${normalized}"`,
+      normalized.startsWith(stem),
+      `"${short}" is not a prefix of "${normalized}"`,
+    ).toBe(true)
+
+    /*
+     * Two legal shapes, and only two. A slash cut KEEPS the slash, so the stem
+     * ends with one. A space cut DROPS the space, so the full name continues with
+     * one. Anything else means a word was cut in half.
+     */
+    const endsOnSlash = stem.endsWith('/')
+    const nextIsSpace = normalized.charAt(stem.length) === ' '
+    expect(
+      endsOnSlash || nextIsSpace,
+      `"${short}" ends mid-word: "${normalized}" continues with ` +
+        `"${normalized.slice(stem.length, stem.length + 8)}" and the cut is on neither a slash nor a space`,
     ).toBe(true)
   }
 

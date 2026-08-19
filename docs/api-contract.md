@@ -7,6 +7,10 @@ Amended: 2026-08-19 — added `route.next_departure` (§1) and the windowed time
 `schedule` (§3.2); made `alerts[].stop_ids` an explicit set (§5); added ordinal normalization as
 §7 rule 4; acceptance criteria 11 to 14. Purely additive: no existing field changed shape, so
 `schema` stays **1**.
+Amended: 2026-08-19 — added two endpoint kinds, the route catalog `/api/routes.json` (§15) and
+the service-day departure board `/api/departures/{route_id}.json` (§16), the latter carrying
+`service_day_start_epoch` and `day_type`; acceptance criteria 15 to 19. Both are new files. No
+existing field changed shape, so `schema` stays **1**.
 Source task: T6 in `docs/designs/capmetro-dispatch-board.md`
 
 The runtime job writes static JSON into the webroot. The client reads it and renders. This
@@ -23,10 +27,12 @@ All shapes are validated by JSON Schema, committed alongside this document:
 | `/api/all.json` | `schemas/all.schema.json` |
 | `/api/watch/{id}.json` | `schemas/watch.schema.json` |
 | `/api/health.json` | `schemas/health.schema.json` |
+| `/api/routes.json` | `schemas/routes.schema.json` |
+| `/api/departures/{id}.json` | `schemas/departures.schema.json` |
 
 The committed fixtures in `tests/fixtures/feeds-20260819/` are the inputs; schema validation of
-generated output is a test, not a convention. There are **four endpoint kinds**; the route
-endpoint is one kind with one file per route.
+generated output is a test, not a convention. There are **six endpoint kinds**; the route
+endpoint and the departure board are each one kind with one file per route.
 
 ---
 
@@ -509,8 +515,30 @@ clip mid-word on a 412px ladder. The build job emits both `stop_name` (shortened
    never changes a string's length, so it is safe to apply before truncation and it cannot
    affect rule 5. Any regex flavor works: PHP `preg_replace`, JavaScript `String.replace` with
    `/(?<=[0-9])(St|Nd|Rd|Th)\b/g`, Python `re.sub`.
-5. If still over 24 characters, truncate at the last word boundary under 24 and append `…`.
-   **Never truncate mid-word.**
+5. If the name is still over **25** characters — the schema cap, not the stem budget —
+   truncate at the last boundary under 24 and append `…`. **Never truncate mid-word.**
+
+   A **boundary is a space OR a slash.** Austin stop names are `Street/CrossStreet` with no
+   space around the slash, so a space-only rule discards a whole cross street:
+   `Pleasant Valley/Turnstone` has its only space at index 8 and collapses to `Pleasant…`,
+   throwing away sixteen usable characters. Breaking on a slash as well yields
+   `Pleasant Valley/…`, which reads as a deliberate stop short of the cross street.
+
+   The two boundary kinds keep different budgets, because they keep different text. Cutting
+   AT a space DROPS it, so a space at index *i* keeps *i* characters and *i* may reach 24.
+   A slash is KEPT, so a slash at index *i* keeps *i + 1* characters and *i* must stop one
+   earlier. Search the first 25 characters for a space and the first 24 for a slash; take
+   whichever boundary is later. A single token longer than the budget has no boundary to
+   fall back to, so cut one character short of it and mark the cut.
+
+   Two shapes are legal and no others. The stem is always a literal prefix of the
+   post-rule-4 name, and either it ends with a slash, or the name continues with a space.
+   Anything else is a word cut in half.
+
+   > **Cap 25, stem budget 24.** Testing the stem budget to decide whether to truncate at
+   > all truncated thirteen real stops that already fitted exactly, turning
+   > `Bluff Springs/BitterCreek` into `Bluff…`. That was ISSUE-001. The two numbers are not
+   > interchangeable and the check that chooses between them uses the cap.
 
 ---
 
@@ -602,6 +630,12 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
   A failed run never writes a partial or empty file.
 - Served with `Cache-Control: no-cache` for `/api/*` (regenerated every 60s) and a long max-age
   for `/data/*` schedule shards (regenerated only when `feed_version` changes).
+- One exception, added with §16: `/api/departures/*` carries nothing from a realtime feed and
+  changes only when `service_date` or `feed_version` changes. Both are in the payload, so it may
+  be served with a max-age up to the end of the service day. Serving it `no-cache` is safe but
+  wasteful — 2.8 MB re-fetched for a document that did not change.
+
+  `/api/routes.json` stays `no-cache`: its vehicle counts move every run.
 
 ---
 
@@ -642,6 +676,28 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
     three elements and an `offsets` array as long as `timepoint_stop_ids`. On the 2026-08-19
     fixture that is 6 trip rows per direction and all 5 in-service route 4 vehicles matched.
 14. No `alerts[].stop_ids` array in any generated file contains a duplicate.
+15. `/api/routes.json` carries one row for each of the 71 generated route files, ordered
+    `1, 2, 3, 4, 5, 7, 10, 18, 20, 30, 50, 103, …` — the 10 after the 7, not between the 1 and
+    the 103. Routes `454`, `491`, `492` and `493` appear with `has_service_today: false` rather
+    than being omitted, and summing `vehicles.in_service` over every row gives **249**, which is
+    `/api/all.json`'s `counts.in_service` for the same run.
+16. `/api/departures/800.json` carries **196** trips of the 903 in the extract and **42** stop
+    rows over **40** distinct stops, `6558` and `5926` each appearing once per direction. Stop
+    `6293` has **98** departures, among them `[28329, 27]` — 07:52:09 on trip `3010894_22201`,
+    `direction_id: 1`, which is the trip criterion 9 resolves from the same tuple. That stop's
+    row reports `is_timepoint: false`, which is why §3.2 cannot answer this watch.
+17. No `arrival_seconds` in any departure board is wrapped at 86400. Route 800's largest on
+    2026-08-19 is `89760`, which is 24:56:00 and must survive as `89760`.
+18. `trips[].is_special` in a departure board agrees with `vehicle.pattern.is_special` in the
+    matching route file for every vehicle whose trip appears in both. On 2026-08-19 there are 86
+    special trips across 10 routes, 8 of them on route 4, and none of them currently has a bus —
+    the Austin High runs are the 08:15 and 16:15, and `generated_at` is 10:10:39.
+19. `/api/departures/800.json` reports `service_day_start_epoch: 1787115600` and
+    `day_type: "weekday"` for 20260819, and the two endpoints agree about when every trip is due:
+    for every row of `/api/route/800.json`'s `schedule.directions[].trips[]` whose trip also
+    appears in the board, `service_day_start_epoch + first arrival_seconds` equals that row's
+    `start_epoch`, and `service_day_start_epoch + arrival_seconds` at each timepoint equals
+    `start_epoch + offsets[i]` for the same column.
 
 ## 13. Out of scope
 
@@ -664,3 +720,259 @@ either always present or explicitly nullable. It is **not** safe in the other di
 file written before the amendment no longer validates, because `next_departure` and `schedule`
 are required. Regenerating is the fix; there is no migration, because every file is rewritten
 every 60 seconds anyway.
+
+---
+
+## 15. `GET /api/routes.json`
+
+The route catalog. One row per route that has a generated `/api/route/{id}.json`, and nothing
+else.
+
+It exists because the client cannot know what routes there are. The build generates **71** route
+files; the picker shipped against a hard-coded list of six, which is wrong the day CapMetro adds
+a route and wrong silently — a rider who searches for the 335 gets an empty screen and no reason
+why. Fetching 71 route files to find out is not an alternative: this file is fetched on first
+paint, before the user has chosen anything.
+
+```jsonc
+{
+  "schema": 1,
+  "generated_at": 1787152239,
+  "service_day": {                       // the SYSTEM service day, as in §8
+    "date": "20260819",
+    "service_ids": ["17-172", "20-172", "29-172", "3-172", "9-172"],
+    "is_exception_day": true
+  },
+  "routes": [
+    {
+      "id": "800",
+      "short_name": "800",
+      "long_name": "800 PLEASANT VALLEY",   // verbatim; see below
+      "directions": [
+        { "id": 0, "headsign": "800 Mueller NB" },
+        { "id": 1, "headsign": "800 Goodnight SB" }
+      ],
+      "vehicles": { "in_service": 14, "out_of_service": 0 },
+      "has_service_today": true
+    }
+  ]
+}
+```
+
+**Order is how a human reads route numbers.** A `short_name` that is entirely digits sorts by
+numeric value; everything else sorts alphabetically after all of them. Ties fall through to the
+lowercased `short_name` and then to `id`, so two runs over one feed emit byte-identical files.
+Lexicographic order is not merely untidy here, it is unusable: it reads `10 < 103 < 18 < 2`, which
+puts the 10 nine rows above the 4. On this feed the first rows are `1, 2, 3, 4, 5, 7, 10, 18, 20,
+30, 50, 103, …`. No route in feed `260818_1456` has a letter in its `short_name`; the second
+bucket exists because §0 makes route ids strings precisely because that is not guaranteed, and a
+lettered route sorting into the middle of the numbers would be worse than one sorting to the end.
+
+**`long_name` is published verbatim**, leading `"{id}-"` and all, exactly as
+`/api/route/{id}.json` publishes it. The client may strip the prefix; the server does not. One
+string with two spellings across two documents is worse than a prefix the client removes in one
+place, and consistency between the two files is what lets a client cache either one.
+
+**`vehicles` is the same live join as §8**, counted off each route's own `Vehicle` objects using
+their `in_service` flag rather than recounted from the feed, so the number on the picker row and
+the number of rows on that route's board cannot disagree. Measured on the 2026-08-19 fixture:
+summing `in_service` over all 71 rows gives **249**, which is exactly `all.json`'s
+`counts.in_service`. `out_of_service` is **0 on every route**, and that is a fact about the feed,
+not a bug: all 143 out-of-service vehicles report no `routeId` at all, so none can be attributed
+to a route. The field is still published, because §0 forbids the client inferring a number from
+an absent key, and because a feed that did start attributing deadheads to a route should change
+one of this document's numbers rather than its shape.
+
+**`has_service_today` is `false` when no trip on that route is active for the current service
+date**, and the row is published either way. Four routes — `454`, `491`, `492`, `493` — qualify on
+2026-08-19. Hiding them would hand the client an inference to make; a picker that can say "the 492
+does not run today" is strictly better than one where the 492 is missing. The boolean is read off
+the trip list of that route's §16 departure board rather than off the calendar, so a route whose
+calendar names a service that has no trips today is not advertised and then opened onto an empty
+board.
+
+`service_day` is the **system** service day, the same block `/api/all.json` carries. A per-route
+calendar cannot go in one envelope field — it would have to be 71 different answers at once — and
+each row's own answer is `has_service_today`.
+
+Measured size, 2026-08-19 fixture, compact as `runtime/` writes it: **17,179 B raw, 2,781 B
+gzipped** for all 71 routes. That is the whole justification for the field list: it carries the
+picker's row and the two numbers a row can show, and nothing a user only wants after choosing a
+route.
+
+---
+
+## 16. `GET /api/departures/{route_id}.json`
+
+One service day of scheduled departures for one route: **every stop, every active trip, no
+window**. One file per route, same as §1.
+
+This is what a saved watch is built from. The worked example throughout this project is *"the
+7:50a 800 SB from Simond/Berkman"*, and the client has to let a user pick that departure from a
+list before there is anything to watch. Nothing already published can answer it:
+
+- `route.schedule` (§3.2) is windowed to `generated_at - 900 .. + 2700` and carries **timepoints
+  only**. At 6am it does not contain the 7:50 at all, and stop `6293` Simond SB is a **minor**
+  stop that never appears in it at any hour of any day.
+- `route.timepoints` (§3) is a row set for the ladder, not a list of times.
+- `route.next_departure` (§1) is exactly one trip.
+
+So this document drops the two restrictions that keep §3.2 small, and pays for them in bytes. It
+is a separate file rather than a bigger route file for exactly that reason: the route file is
+regenerated and re-fetched every 60 seconds, and this one only changes when the service date or
+the GTFS `feed_version` does.
+
+```jsonc
+{
+  "schema": 1,
+  "generated_at": 1787152239,
+  "route_id": "800",
+  "service_date": "20260819",             // what every arrival_s below counts from
+  "service_day_start_epoch": 1787115600,  // that date's midnight, resolved server-side
+  "day_type": "weekday",                  // weekday | saturday | sunday, as in the §9 tuple
+  "feed_version": "260818_1456",          // so a cached copy can be told from a current one
+  "stops": [
+    { "stop_id": "6293", "stop_name": "Simond SB",
+      "stop_name_full": "Simond SB (Berkman/Simond)",
+      "direction_id": 1, "stop_sequence": 2,
+      "lat": 30.296149, "lon": -97.700385, "is_timepoint": false }
+  ],
+  "trips": [
+    { "id": "3010894_22201", "direction_id": 1, "headsign": "800 Goodnight SB",
+      "start_time": "07:50:00", "block_id": "800005", "is_special": false }
+  ],
+  "departures": {
+    "6293": [ [18122, 1], [19022, 3], /* … */ [28329, 27] ]   // 28329 = 07:52:09, trips[27]
+  }
+}
+```
+
+### `service_day_start_epoch` and `day_type`
+
+Both are answers the client would otherwise have to compute in a browser, and both are timezone
+traps the server has already solved exactly once.
+
+**`service_day_start_epoch`** is epoch seconds of service-day midnight for `service_date`. It is
+the anchor every `arrival_seconds` below is measured from:
+
+> for any trip, `service_day_start_epoch + arrival_seconds` **is** the absolute epoch at which
+> that stop is scheduled, and for the trip's **first** stop it equals the `start_epoch` that the
+> same trip's row carries in `route.schedule` (§3.2) and that `Vehicle.trip.start_epoch` (§2)
+> carries for the bus running it.
+
+That is one number with three publishers, and they are required to agree. Acceptance criterion 19
+checks it at the trip start **and at every timepoint column** of every windowed trip, because
+agreeing on the start alone is not enough: the client plots a live vehicle against the ladder from
+an arrival part-way through a trip.
+
+Computed server-side by the §2 rule — noon on the service date in `America/Chicago`, minus twelve
+hours — because that form is the only one that survives both DST transitions. Re-deriving it in
+ES5 in a browser is the same trap, reimplemented, and getting it wrong is an hour's error on two
+days a year on a document whose only job is telling a parent when to be at a stop.
+
+**`day_type`** is `weekday`, `saturday` or `sunday` for `service_date`, spelled exactly as the §9
+watch tuple spells it (`800|1|6293|07:52:09|weekday`), so the client can decide whether a saved
+watch applies today without parsing `YYYYMMDD` in a second timezone. There is one definition of
+the word in the codebase and this is the same call the tuple is checked against. The fourth value
+§9 allows, `exception`, is a property of a saved watch and not of the calendar, so it never
+appears here.
+
+Both are `null` **only** when `service_date` is not a valid `YYYYMMDD`. The cron job cannot
+produce that — it passes `cm_service_date_for()`'s output — but a plausible-looking `0` or
+`"weekday"` would make every absolute time in the document silently wrong, and §0 is explicit that
+`0` must never stand for unknown. A client that sees `null` must not compute absolute times from
+this file.
+
+### `departures`
+
+**`departures[stop_id]` is an array of `[arrival_seconds, trip_index]`**, ascending by
+`arrival_seconds`, ties broken by `trip_index`. Two elements exactly, in that order.
+
+- **`arrival_seconds` is seconds since the START of the service day**, on the GTFS clock. It is
+  never an epoch and **never wrapped at 86400**: a 25:10:00 arrival is `90600` and stays `90600`.
+  Route 800's largest on this date is `89760`, which is 24:56:00. Wrapping would sort the last
+  bus of the night to the top of the morning list and hand a rider the 1:10am when they asked for
+  the first one of the day. Resolve it to epoch by the §2 service-day rule; `service_date` is in
+  the payload so the client can.
+- **`trip_index` indexes `trips[]`.** It is the only join between a departure and the headsign,
+  direction and block that describe it. Offsets and an index rather than repeated objects for the
+  same reason §3.2 gives: the key names would otherwise repeat once per departure, and there are
+  4,116 of them on route 800.
+- **The key is the `stop_id` alone**, not a `(stop, direction)` pair. A rider standing at a stop
+  wants that stop's departures; the direction is a property of the trip they pick, and
+  `trips[trip_index].direction_id` answers it in one lookup. Keying by the pair would force the
+  client to build `"6293|1"` by string concatenation and to read two lists to answer one
+  question. The two route 800 stops that serve both directions (`6558`, `5926`) therefore have
+  one merged, time-ordered list each, which is also what a rider at a shared bay actually sees.
+
+### `stops`
+
+**One entry per `(stop_id, direction_id)`.** A stop serving both directions is emitted twice,
+with the same `stop_id` and different `direction_id` — 42 rows over 40 distinct stops on route
+800. One row could only name one direction, so a direction filter built on a single row would
+silently drop half of that stop's service, and it is the half the rider going the other way
+needs.
+
+- `stop_name` is shortened per §7 and comes from the shard's stop table, which has already been
+  through `cm_shorten_stop_name()`. There is no second shortening path.
+- `stop_sequence` is **the sequence the greatest number of today's trips agree on**, ties breaking
+  toward the lower number. A stop does not have one sequence: a short-turn or special pattern
+  starting mid-route gives it a much lower one, so the minimum would let a handful of
+  Austin-High-style runs reorder a list built from ninety ordinary ones, and "first seen" would
+  make the answer depend on trip id ordering. It is published for ordering and for display beside
+  a stop, never as a key.
+- `is_timepoint` is true when **any** of today's trips marks the stop as a timepoint. GTFS carries
+  the flag per stop time, not per stop, so a short-turn pattern that omits it would otherwise
+  demote a stop the printed timetable sets in bold. It is also the field that makes this
+  document's premise checkable: `6293` is `false`, which is why §3.2 cannot answer this watch.
+- `stops` is sorted by `direction_id`, then `stop_sequence`, then `stop_id`.
+
+### `trips`
+
+**Only trips whose `service_id` is active for `service_date`**, resolved by the §9
+`calendar_dates.txt` rule. On route 800 that is **196 of the 903** trips in the extract.
+Publishing all 903 would be four and a half times the bytes and every extra row would be a
+departure that does not happen today, which on a picker is not merely wasteful but wrong.
+
+Ordered by scheduled start ascending, then `trip_id`. *Scheduled start* is the arrival at the
+trip's **first stop** — the same value §3.2 calls `start_epoch` and the same one
+`Vehicle.trip.start_epoch` carries — so the ordering, and therefore every `trip_index`, is stable
+across two runs on one feed and a diff between two days is readable.
+
+`block_id` and `headsign` may be `null`. **`is_special` is the same flag as §2's
+`pattern.is_special`**, computed by the same function: a pattern the build calls special is still
+the ordinary run on the days it is itself the baseline, so the answer depends on the trip's own
+`service_id`. Two definitions would eventually disagree about the Austin High run and the board
+would call a bus special while the picker called it ordinary. On 2026-08-19 there are 86 special
+trips across 10 routes, 8 of them on route 4.
+
+### A route with no service today
+
+Written anyway, with `stops: []`, `trips: []` and `departures: {}`. §15 lists those four routes,
+so the client will fetch this file for them; an empty but well-formed document is an answer, and a
+404 is a guess. `departures` is an object even when empty — a client indexing it by stop id must
+never be handed an array.
+
+### Measured size cost
+
+Route 800, 2026-08-19 fixture, compact as `runtime/` writes it. Compressed figures are `gzip -9
+-n` over the written bytes.
+
+| | raw | gzipped |
+|---|---|---|
+| `/api/departures/800.json` — 196 trips, 42 stop rows, 4,116 departures | 81,756 B | 19,467 B |
+| of which `departures` | 47,442 B | |
+| of which `trips` | 25,873 B | |
+| of which `stops` | 8,240 B | |
+| widest route on this feed (`10`) | 142,642 B | 39,914 B |
+| all 71 routes on disk | 2.8 MB | |
+
+The two restrictions that keep it there are the active-service filter and the decision to carry
+one row per departure instead of one object per departure. Dropping the service filter would take
+route 800 past 350 KB.
+
+Unlike `/api/route/{id}.json` this file does **not** change every 60 seconds — nothing in it comes
+from a realtime feed — so §11's `no-cache` is the wrong policy for it. It changes only when
+`service_date` or `feed_version` changes, both of which are in the payload, and a client that has
+today's copy for a route does not need to fetch it again today.
+

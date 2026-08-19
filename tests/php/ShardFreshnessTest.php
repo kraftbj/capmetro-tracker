@@ -19,7 +19,14 @@ use PHPUnit\Framework\TestCase;
  */
 final class ShardFreshnessTest extends TestCase
 {
-    private const SHARD_DIR = '.local/shards';
+    /*
+     * The committed shards live in data/, which is where runtime/config.fixture.php
+     * points and what the GitHub Actions job writes. This constant said .local/shards,
+     * a path this checkout has never had, so every test in this file skipped on every
+     * run and said so in a message nobody read as a failure. A skip that reads as a
+     * pass is worse than a failure.
+     */
+    private const SHARD_DIR = 'data';
     private const ALARM_THRESHOLD = 0.20;
 
     /** @return array{matched: int, unmatched: int, rate: float} */
@@ -52,15 +59,24 @@ final class ShardFreshnessTest extends TestCase
             sprintf('no schedule shards at %s; build them with runtime/tools/make-shards.php. See tests/NOTES.md.', self::SHARD_DIR)
         );
 
-        if (glob($dir . '/route-*.json') === []) {
-            self::markTestSkipped(sprintf('no per-route shards under %s. See tests/NOTES.md.', self::SHARD_DIR));
+        /*
+         * One directory per route holding schedule.json, not a flat route-*.json per
+         * route. The flat layout is what the build lane emitted before the shard format
+         * settled, and this glob was never updated, so the most valuable assertion in
+         * the file — the one that fires the morning after a GTFS reset — skipped on
+         * every run instead of guarding anything.
+         */
+        $schedules = glob($dir . '/routes/*/schedule.json') ?: [];
+        if ($schedules === []) {
+            self::markTestSkipped(sprintf(
+                'no per-route schedule shards under %s/routes. Run `npm run gtfs` to rebuild them; '
+                . 'they are normally committed. See tests/NOTES.md.',
+                self::SHARD_DIR
+            ));
         }
 
         $ids = [];
-        foreach (glob($dir . '/route-*.json') ?: [] as $path) {
-            if (str_contains($path, '.times.json')) {
-                continue;
-            }
+        foreach ($schedules as $path) {
             $doc = json_decode((string) file_get_contents($path), true);
             foreach (array_keys($doc['trips'] ?? []) as $tripId) {
                 $ids[(string) $tripId] = true;

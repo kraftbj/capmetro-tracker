@@ -20,7 +20,14 @@ use PHPUnit\Framework\TestCase;
 final class WatchResolutionTest extends TestCase
 {
     private const FILES = ['runtime/lib/watch.php'];
-    private const SHARD_DIR = '.local/shards';
+    /*
+     * The committed shards live in data/, which is where runtime/config.fixture.php
+     * points and what the GitHub Actions job writes. This constant said .local/shards,
+     * a path this checkout has never had, so every test in this file skipped on every
+     * run and said so in a message nobody read as a failure. A skip that reads as a
+     * pass is worse than a failure.
+     */
+    private const SHARD_DIR = 'data';
 
     private const TUPLE = [
         'route_id' => '800',
@@ -42,8 +49,8 @@ final class WatchResolutionTest extends TestCase
             $this,
             self::SHARD_DIR,
             sprintf(
-                'no schedule shards at %s. Build them with runtime/tools/make-shards.php (needs the GTFS static feed) '
-                . 'or point the build lane\'s output there. See tests/NOTES.md.',
+                'no schedule shards at %s. Run `npm run gtfs` to rebuild them, or check them out. '
+                . 'They are normally committed. See tests/NOTES.md.',
                 self::SHARD_DIR
             )
         );

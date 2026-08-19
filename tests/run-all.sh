@@ -27,10 +27,19 @@ note() { printf '   %s\n' "$1"; }
 # ---------------------------------------------------------------------------
 hr "generate a webroot from the fixtures (optional input for the acceptance criteria)"
 GEN_OUT="$ROOT/.local/test-webroot"
-if [ -f runtime/generate-api.php ] && [ -d .local/shards ] && command -v php >/dev/null 2>&1; then
+#    The shards are the COMMITTED ones in data/, reached through
+#    runtime/config.fixture.php. This gate used to require .local/shards, a
+#    directory this checkout has never had: the generation step was skipped on
+#    every run, so the one assertion that validates all 71 route files, both new
+#    catalog endpoints and the acceptance criteria against real output quietly
+#    stood down. The suite reported 13 passing schema checks where pointing it
+#    at generated output reports over 300. A skip that reads as a pass is worse
+#    than a failure, so the gate now tests for what is actually required.
+if [ -f runtime/generate-api.php ] && [ -f runtime/config.fixture.php ] \
+   && [ -d data/routes ] && command -v php >/dev/null 2>&1; then
   if php runtime/generate-api.php \
+      --config=runtime/config.fixture.php \
       --fixtures=tests/fixtures/feeds-20260819 \
-      --shards=.local/shards \
       --out="$GEN_OUT" \
       --now=1787152239 --quiet >/dev/null 2>&1 \
     && [ -s "$GEN_OUT/api/health.json" ] \
@@ -41,7 +50,7 @@ if [ -f runtime/generate-api.php ] && [ -d .local/shards ] && command -v php >/d
     note "runtime job could not produce a clean webroot; acceptance criteria that need one will skip"
   fi
 else
-  note "runtime job or shards not available; acceptance criteria that need generated output will skip"
+  note "runtime job or committed shards not available; acceptance criteria that need generated output will skip"
 fi
 
 # ---------------------------------------------------------------------------
