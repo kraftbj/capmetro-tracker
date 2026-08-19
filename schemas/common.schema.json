@@ -501,6 +501,7 @@
         "block": {
           "type": "object",
           "additionalProperties": false,
+          "$comment": "spans_routes, route_ids and is_last_trip are additive: the runtime always writes them, but they stay out of `required` so a capture taken before they existed still validates. Presence on live output is asserted in tests/php/BlockRouteContinuationTest.php, which checks real generated files rather than the shape.",
           "required": [
             "block_id",
             "confidence",
@@ -519,6 +520,19 @@
                 "low"
               ]
             },
+            "spans_routes": {
+              "type": "boolean"
+            },
+            "route_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              }
+            },
+            "is_last_trip": {
+              "type": "boolean"
+            },
             "next_trip": {
               "oneOf": [
                 {
@@ -527,6 +541,7 @@
                 {
                   "type": "object",
                   "additionalProperties": false,
+                  "$comment": "route_id and route_short_name are additive, for the same reason as the block fields above.",
                   "required": [
                     "trip_id",
                     "direction_id",
@@ -539,6 +554,18 @@
                   "properties": {
                     "trip_id": {
                       "type": "string"
+                    },
+                    "route_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "route_short_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "direction_id": {
                       "enum": [

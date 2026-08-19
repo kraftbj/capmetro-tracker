@@ -194,6 +194,21 @@ function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?a
             'block_id'         => $b['block_id'] ?? null,
             'block_confidence' => (string) ($b['confidence'] ?? 'low'),
             'next_trip'        => is_array($b['next_trip'] ?? null) ? $b['next_trip'] : null,
+            /*
+             * The successor's route, as the build resolved it. A block that interlines puts
+             * its next trip on a different route_id, and that route is a fact about the
+             * successor, not about the bus reading this record -- so it is carried here
+             * rather than re-derived from the current route downstream.
+             */
+            'next_route_id'    => isset($b['next_route_id']) && $b['next_route_id'] !== null
+                ? (string) $b['next_route_id']
+                : null,
+            /*
+             * Kept for one reason: "last_trip_of_block" is the build stating that this trip
+             * ENDS the block. Without it a null next_trip is ambiguous between "pulling in"
+             * and "we could not resolve a successor". See cm_trip_is_last_of_block().
+             */
+            'grade_reasons'    => array_map('strval', $b['grade_reasons'] ?? []),
             'pattern'          => null,
             'direction_id'     => 0,
         ];
@@ -204,12 +219,45 @@ function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?a
             if (!isset($trips[$tid])) {
                 $trips[$tid] = [
                     'service_id' => '', 'block_id' => null, 'block_confidence' => 'low',
-                    'next_trip' => null, 'pattern' => null, 'direction_id' => 0,
+                    'next_trip' => null, 'next_route_id' => null, 'grade_reasons' => [],
+                    'pattern' => null, 'direction_id' => 0,
                 ];
             }
             $trips[$tid]['pattern'] = (string) $pid;
             $trips[$tid]['direction_id'] = (int) $p['direction_id'];
         }
+    }
+
+    /*
+     * The block table, minus its chains.
+     *
+     * blocks.json already states which routes a block covers and whether that set is
+     * larger than one; recomputing either from the trip list would be a second definition
+     * of the same fact, and ISSUE-002 is what two definitions of one fact cost. The chains
+     * are dropped because nothing in the runtime reads them and they are the bulk of the
+     * file -- block 1010 alone lists 92 trip ids across six services.
+     */
+    $blocks = [];
+    foreach ($blocks_doc['blocks'] ?? [] as $bid => $b) {
+        $route_ids = array_values(array_unique(array_map('strval', $b['route_ids'] ?? [])));
+        /* Natural order so 4 sorts before 10 rather than after it; every current route id
+           is numeric, but the comparison must not depend on that staying true. */
+        sort($route_ids, SORT_NATURAL);
+        $blocks[(string) $bid] = [
+            'route_ids'    => $route_ids,
+            'spans_routes' => (bool) ($b['spans_routes'] ?? (count($route_ids) > 1)),
+            'trip_count'   => (int) ($b['trip_count'] ?? 0),
+        ];
+    }
+
+    /*
+     * route_id -> short name for EVERY route in the feed, not just this one. A block that
+     * interlines names a successor on another route, and the join has only this shard in
+     * hand when it has to render "becomes the 485". 71 short strings.
+     */
+    $route_short_names = [];
+    foreach ($index['routes'] ?? [] as $other_id => $other) {
+        $route_short_names[(string) $other_id] = (string) ($other['short_name'] ?? $other_id);
     }
 
     return [
@@ -226,9 +274,67 @@ function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?a
         'baseline_pattern_id' => $baseline_default,
         'ladders'             => $ladders,
         'trips'               => $trips,
+        'blocks'              => $blocks,
+        'route_short_names'   => $route_short_names,
         'calendar'            => $cal_doc['dates'] ?? [],
         'service_ids'         => array_map('strval', $cal_doc['service_ids'] ?? []),
     ];
+}
+
+/*
+ * What the shard says about one block: the whole route set it covers, whether that set is
+ * larger than one route, and how many trips it holds.
+ *
+ * This exists so the contract's section 4 downgrade is explainable. A block whose trips
+ * span more than one route_id is graded `low`, and until now the payload carried the grade
+ * without the reason, leaving a client to either hedge every continuation or invent an
+ * explanation. The answer is already in blocks.json; it just was not being read.
+ *
+ * Returns null for an unknown or missing block, which is the only honest answer: an empty
+ * route set would read as "this block covers no routes" rather than "we do not know".
+ */
+function cm_shard_block(?array $route_shard, ?string $block_id): ?array
+{
+    if ($route_shard === null || $block_id === null || $block_id === '') {
+        return null;
+    }
+    $block = $route_shard['blocks'][$block_id] ?? null;
+    return is_array($block) ? $block : null;
+}
+
+/*
+ * The short name of any route in the feed, not only this shard's own.
+ *
+ * Falls back to the id, matching cm_shard_index(): a route with no short name still needs
+ * something to render, and the id is what riders see on the front of the bus anyway.
+ * Returns null only when there is no route to name at all.
+ */
+function cm_shard_route_short_name(?array $route_shard, ?string $route_id): ?string
+{
+    if ($route_id === null || $route_id === '') {
+        return null;
+    }
+    return (string) ($route_shard['route_short_names'][$route_id] ?? $route_id);
+}
+
+/*
+ * Does this trip END its block?
+ *
+ * Deliberately not `next_trip === null`. Those two statements differ: "the bus is pulling
+ * in" is a fact the build asserts by grading the trip `last_trip_of_block`, while a null
+ * successor could equally mean the continuation could not be resolved. Today the build
+ * only ever emits a null successor together with that reason -- all 2,115 of them across
+ * the 71 shards -- but reading the assertion rather than the absence is what keeps the two
+ * distinguishable if that ever stops being true.
+ *
+ * A trip that is not in the shard at all is therefore NOT last: we know nothing about it.
+ */
+function cm_trip_is_last_of_block(?array $shard_trip): bool
+{
+    if ($shard_trip === null) {
+        return false;
+    }
+    return in_array('last_trip_of_block', $shard_trip['grade_reasons'] ?? [], true);
 }
 
 /*

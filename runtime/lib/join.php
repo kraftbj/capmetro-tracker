@@ -287,8 +287,18 @@ function cm_build_vehicle(
         $next = $shard_trip['next_trip'] ?? null;
         if (is_array($next)) {
             $next_epoch = cm_clock_to_epoch((string) $next['start_time'], $service_date);
+            /*
+             * The successor's route comes from the successor, never from the bus reading
+             * this record. They are the same on most blocks and that is exactly the trap:
+             * copying the current route would look correct on every single-route block and
+             * be wrong on precisely the blocks the field exists for. On block 1010 a
+             * route 4 bus finishes and starts the 485.
+             */
+            $next_route_id = $shard_trip['next_route_id'] ?? null;
             $next = [
                 'trip_id'           => (string) $next['trip_id'],
+                'route_id'          => $next_route_id,
+                'route_short_name'  => cm_shard_route_short_name($route_shard, $next_route_id),
                 'direction_id'      => (int) $next['direction_id'],
                 'start_time'        => (string) $next['start_time'],
                 'start_epoch'       => $next_epoch ?? 0,
@@ -302,13 +312,42 @@ function cm_build_vehicle(
         } else {
             $next = null;
         }
+        /*
+         * spans_routes and route_ids are the shard's own statement about the block, copied
+         * rather than counted from the trip list: the build already decided this and one
+         * definition of a fact is the rule. They are also what makes a `low` confidence
+         * grade legible -- section 4 downgrades any block spanning more than one route, and
+         * without the route set the client can only report the downgrade, not explain it.
+         *
+         * A block the shard does not name gets an empty set and false, alongside the
+         * block_id null it already reported. That pairing says "no block", which is a
+         * different claim from "a block on no routes".
+         */
+        $block_id = $shard_trip['block_id'] ?? null;
+        $block_meta = cm_shard_block($route_shard, $block_id === null ? null : (string) $block_id);
         $out['block'] = [
-            'block_id'   => $shard_trip['block_id'] ?? null,
-            'confidence' => (string) ($shard_trip['block_confidence'] ?? 'low'),
-            'next_trip'  => $next,
+            'block_id'     => $block_id,
+            'confidence'   => (string) ($shard_trip['block_confidence'] ?? 'low'),
+            'spans_routes' => (bool) ($block_meta['spans_routes'] ?? false),
+            'route_ids'    => $block_meta['route_ids'] ?? [],
+            'next_trip'    => $next,
+            /*
+             * Not derived from next_trip === null. "This bus is pulling in" is something
+             * the build asserts; "we could not resolve a successor" is an absence. The
+             * client should not have to guess which one it is looking at.
+             */
+            'is_last_trip' => cm_trip_is_last_of_block($shard_trip),
         ];
     } else {
-        $out['block'] = ['block_id' => null, 'confidence' => 'low', 'next_trip' => null];
+        /* Trip not in the schedule at all: no block, and no claim that the bus is done. */
+        $out['block'] = [
+            'block_id'     => null,
+            'confidence'   => 'low',
+            'spans_routes' => false,
+            'route_ids'    => [],
+            'next_trip'    => null,
+            'is_last_trip' => false,
+        ];
     }
 
     return $out;

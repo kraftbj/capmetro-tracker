@@ -341,7 +341,16 @@
       field(dl, 'This bus today', 'runs routes ' + b.route_ids.join(', '));
     }
     if (b.confidence === 'low') {
-      field(dl, 'Confidence', 'low — the block is shared, so what it does next is a guess', 'dim');
+      /*
+       * States the grade, never a cause. The obvious guess - that it is low
+       * because the block interlines - is wrong most of the time: of the 85
+       * low-confidence vehicles in the 2026-08-19 capture only 26 cite
+       * block_spans_multiple_routes, while stops_too_far_apart (59) and
+       * layover_too_long (58) dominate, and 6 vehicles on multi-route blocks
+       * are graded high. The reason is not published, so the client does not
+       * get to invent one.
+       */
+      field(dl, 'Confidence', 'low — what it does next is uncertain', 'dim');
     }
 
     box.appendChild(dl);
