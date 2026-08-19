@@ -86,7 +86,8 @@
     routeStatus: {},     /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
-    stopPicking: false
+    stopPicking: false,
+    openBuses: {}        /* vehicle_id -> true, for the all-buses detail panels */
   };
 
   var dom = {};
@@ -685,6 +686,26 @@
       onSelectRoute: function (routeId) {
         selectView('board');
         selectRoute(routeId);
+      },
+      /*
+       * api/all.json carries no stops, so the one thing a bus detail cannot
+       * answer from it is "what stop did it just leave". The route file has
+       * that and is already generated, so it is fetched when a reader opens a
+       * bus rather than for all 392 up front.
+       */
+      onWantRoute: loadRouteData,
+      routeFor: function (routeId) { return liveRoute(routeId); },
+      open: state.openBuses,
+      onToggleBus: function (vehicleId) {
+        if (state.openBuses[vehicleId]) { delete state.openBuses[vehicleId]; }
+        else {
+          state.openBuses[vehicleId] = true;
+          var v = ((state.all && state.all.vehicles) || []).filter(function (x) {
+            return x.vehicle_id === vehicleId;
+          })[0];
+          if (v && v.route_id) loadRouteData(v.route_id);
+        }
+        render();
       }
     });
     dom.main.appendChild(footer(state.all));

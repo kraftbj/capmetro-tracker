@@ -160,38 +160,76 @@ describe('deadheads are said out loud', () => {
   })
 
   t('spells out every chip for a screen reader, since the chip itself is two tokens', (cmb, document) => {
-    const chips = all(draw(cmb, document, FLEET()), 'abchip')
-    expect(chips.length).toBeGreaterThan(0)
-    chips.forEach((c) => {
-      expect(c.getAttribute('aria-label')).toMatch(/^Bus .+ not carrying passengers/)
+    /* The label lives on the button now that the chip is tappable, because
+     * that is the thing a screen reader announces when it lands on it. */
+    const buttons = all(draw(cmb, document, FLEET()), 'abchip__btn')
+    expect(buttons.length).toBeGreaterThan(0)
+    buttons.forEach((b) => {
+      expect(b.getAttribute('aria-label')).toMatch(/^Bus .+ not carrying passengers/)
     })
+  })
+
+  t('opens to the only three facts an out-of-service bus reports', (cmb, document) => {
+    /*
+     * No trip, no route, no headsign exist for a deadhead. Where it is, whether
+     * it is moving, and when it last said so is the whole of the feed's answer,
+     * and the panel says as much rather than looking unfinished.
+     */
+    const data = FLEET()
+    const oos = data.vehicles.find((v) => !v.in_service)
+    expect(oos).toBeTruthy()
+    const open = {}
+    open[oos.vehicle_id] = true
+    const host = document.createElement('section')
+    cmb.allbuses.render(host, data, { status: 'ok', open, onToggleBus() {} })
+    const panel = all(host, 'abchip')
+      .map((c) => textDeep(c))
+      .find((txt) => /Where|no position/.test(txt))
+    expect(panel).toBeTruthy()
+    expect(panel).toMatch(/Last reported/i)
+    expect(panel).toMatch(/nothing else in the feed/i)
   })
 })
 
-describe('the exceptional leads', () => {
-  t('lists exactly the very late and the unmeasurable above the fold', (cmb, document) => {
-    const data = FLEET()
-    const host = draw(cmb, document, data)
-    const flagged = data.vehicles.filter((v) => {
-      const s = v.adherence && v.adherence.state
-      return v.in_service && v.trip && (s === 'very_late' || s === 'unknown')
-    })
-    expect(flagged.length).toBeGreaterThan(0)
-    const band = all(host, 'abband--attention')[0]
-    expect(band).toBeTruthy()
-    const ids = busIds(band)
-    flagged.forEach((v) => expect(ids.has(label(v))).toBe(true))
-    expect(ids.size).toBe(flagged.length)
+describe('every bus is reachable under its own route', () => {
+  /*
+   * There used to be a "Needs a look" band above the routes, listing the very
+   * late and the unmeasurable the way a dispatcher triages a fleet. Removed:
+   * the reader is someone finding one particular bus, not someone managing 392
+   * of them, and the count strip already answers "is anything unusual" in four
+   * numbers. What replaced it is simply every route with all of its buses.
+   */
+  t('draws no triage band', (cmb, document) => {
+    const host = draw(cmb, document, FLEET())
+    expect(all(host, 'abband--attention')).toHaveLength(0)
+    expect(textDeep(host)).not.toMatch(/needs a look/i)
   })
 
-  t('says so plainly when nothing is wrong, rather than showing an empty box', (cmb, document) => {
+  t('lists every in-service bus exactly once, under its route', (cmb, document) => {
+    /*
+     * With the triage band gone a bus appears once rather than twice, so this
+     * can assert an exact count instead of a subset.
+     */
     const data = FLEET()
-    data.vehicles.forEach((v) => {
-      if (v.adherence && v.adherence.state === 'very_late') v.adherence.state = 'ontime'
-    })
-    const band = all(draw(cmb, document, data), 'abband--attention')[0]
-    expect(all(band, 'notice')).toHaveLength(1)
-    expect(textDeep(band)).toMatch(/No bus is running very late/)
+    const carrying = data.vehicles.filter((v) => v.in_service && v.trip)
+    expect(carrying.length).toBeGreaterThan(0)
+    const ids = busIds(all(draw(cmb, document, data), 'abband--routes')[0])
+    carrying.forEach((v) => expect(ids.has(label(v))).toBe(true))
+    expect(ids.size).toBe(carrying.length)
+  })
+
+  t('still says how many are running very late, in the count strip', (cmb, document) => {
+    /*
+     * Dropping the band must not drop the fact. The strip is where "is anything
+     * unusual happening" now lives entirely.
+     */
+    const data = FLEET()
+    const veryLate = data.vehicles.filter(
+      (v) => v.in_service && v.trip && v.adherence && v.adherence.state === 'very_late',
+    ).length
+    const strip = all(draw(cmb, document, data), 'fleetstrip')[0]
+    expect(strip).toBeTruthy()
+    expect(textDeep(strip)).toMatch(new RegExp(`${veryLate}\\s*very late`, 'i'))
   })
 
   withLive('orders the route groups by worst news, not by route number', (cmb, document, data) => {
@@ -244,7 +282,8 @@ describe('a lateness reading is never invented and never leaks', () => {
     const data = FLEET()
     data.staleness = { level: 'stale', oldest_feed_age_s: 940, suppress_adherence: true, reason: null }
     const host = draw(cmb, document, data)
-    expect(textDeep(all(host, 'abband--attention')[0])).toMatch(/cannot say which buses are late/i)
+    /* No band to check any more; what matters is that nothing claims a ranking. */
+    expect(textDeep(host)).not.toMatch(/[+−-]\d+\s*m\b/)
     const names = all(host, 'abroute__id').map((n) => n.textContent)
     const numeric = names.map(Number).filter((n) => !Number.isNaN(n))
     expect(numeric).toEqual([...numeric].sort((a, b) => a - b))
@@ -320,5 +359,105 @@ describe('a thin vehicle record does not take the panel down', () => {
     const host = document.createElement('section')
     cmb.allbuses.render(host, FLEET(), { status: 'ok' })
     expect(all(host, 'abroute__head')[0].tagName).toBe('div')
+  })
+})
+
+/*
+ * The detail a tap opens.
+ *
+ * Its open state lives in the CALLER's state rather than in the DOM, because
+ * the board repaints on every refresh and again when a fetch resolves. A panel
+ * whose openness was a DOM property closed itself each time - including
+ * immediately, since opening one asks for the route file and that fetch
+ * triggers a repaint.
+ */
+describe('a bus opens to its own detail', () => {
+  const openOn = (cmb, document, data, vehicleId, opts) => {
+    const open = {}
+    open[vehicleId] = true
+    const host = document.createElement('section')
+    cmb.allbuses.render(host, data, Object.assign(
+      { status: 'ok', open, onToggleBus() {} }, opts || {},
+    ))
+    return host
+  }
+
+  t('draws no panel for a bus nobody opened', (cmb, document) => {
+    const host = document.createElement('section')
+    cmb.allbuses.render(host, FLEET(), { status: 'ok', open: {}, onToggleBus() {} })
+    expect(all(host, 'abdet')).toHaveLength(0)
+  })
+
+  t('survives a repaint, because the open set is not held in the DOM', (cmb, document) => {
+    const data = FLEET()
+    const bus = data.vehicles.find((v) => v.in_service && v.trip)
+    const first = openOn(cmb, document, data, bus.vehicle_id)
+    const second = openOn(cmb, document, data, bus.vehicle_id)
+    expect(all(first, 'abdet').length).toBe(1)
+    expect(all(second, 'abdet').length).toBe(1)
+  })
+
+  t('names the next stop and both of the times the lateness is the gap between', (cmb, document) => {
+    const data = FLEET()
+    const bus = data.vehicles.find(
+      (v) => v.in_service && v.trip && v.adherence && v.adherence.against,
+    )
+    expect(bus).toBeTruthy()
+    const text = textDeep(openOn(cmb, document, data, bus.vehicle_id))
+    expect(text).toMatch(/Next stop/i)
+    expect(text).toMatch(/Due there/i)
+    expect(text).toMatch(/Scheduled there/i)
+  })
+
+  t('says a bus is pulling in when its block has nothing after it', (cmb, document) => {
+    const data = FLEET()
+    const bus = data.vehicles.find((v) => v.in_service && v.trip)
+    bus.block = { block_id: 'B1', confidence: 'high', next_trip: null }
+    expect(textDeep(openOn(cmb, document, data, bus.vehicle_id)))
+      .toMatch(/pulling in to the garage/i)
+  })
+
+  t('calls out a bus that becomes a different route', (cmb, document) => {
+    /*
+     * The question this whole panel was asked for: garage, or another route.
+     */
+    const data = FLEET()
+    const bus = data.vehicles.find((v) => v.in_service && v.trip)
+    bus.route_short_name = '4'
+    bus.block = {
+      block_id: '1010', confidence: 'low', route_ids: ['1', '4', '485'],
+      next_trip: {
+        trip_id: 'x', direction_id: 0, start_time: '18:05:00',
+        start_stop_id: '1', start_stop_name: 'Somewhere',
+        is_direction_flip: false, route_id: '485', route_short_name: '485',
+      },
+    }
+    const text = textDeep(openOn(cmb, document, data, bus.vehicle_id))
+    expect(text).toMatch(/becomes route 485/i)
+    expect(text).toMatch(/runs routes 1, 4, 485/i)
+  })
+
+  t('does not claim a route change when the next trip is the same route', (cmb, document) => {
+    const data = FLEET()
+    const bus = data.vehicles.find((v) => v.in_service && v.trip)
+    bus.route_short_name = '4'
+    bus.block = {
+      block_id: 'B', confidence: 'high',
+      next_trip: {
+        trip_id: 'x', direction_id: 1, start_time: '18:05:00',
+        start_stop_id: '1', start_stop_name: 'Campbell/5th',
+        is_direction_flip: true, route_id: '4', route_short_name: '4',
+      },
+    }
+    expect(textDeep(openOn(cmb, document, data, bus.vehicle_id))).not.toMatch(/becomes route/i)
+  })
+
+  t('shows no lateness in the detail while the feed is suppressed', (cmb, document) => {
+    const data = FLEET()
+    data.staleness = { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true, reason: 'cron down' }
+    const bus = data.vehicles.find((v) => v.in_service && v.trip)
+    const text = textDeep(openOn(cmb, document, data, bus.vehicle_id))
+    expect(text).toMatch(/lateness unavailable/i)
+    expect(text).not.toMatch(/[+−-]\d+m\b/)
   })
 })

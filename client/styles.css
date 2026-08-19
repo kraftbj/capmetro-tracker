@@ -860,3 +860,45 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   .nextdirs { flex-direction: row; }
   .nextdir { flex: 1 1 0; min-width: 0; }
 }
+
+/* ===== all-buses: the detail a tap opens ================================ */
+.abrow { flex-direction: column; align-items: stretch; padding: 0; }
+.abrow__main {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: var(--tap); padding: 6px 10px;
+  background: none; border: 0; color: inherit; cursor: pointer; text-align: left;
+}
+.abrow__main:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.abrow__caret {
+  margin-left: auto; color: var(--ink-chrome);
+  transition: transform var(--dur-state) var(--ease);
+}
+.abrow.is-open .abrow__caret { transform: rotate(180deg); }
+.abrow.is-open { background: var(--surface-raised-hi); }
+
+.abdet__wrap { padding: 0 10px 10px; }
+.abdet__list { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+.abdet__row { display: contents; }
+.abdet__k {
+  font-size: var(--fs-chrome); color: var(--ink-chrome);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  align-self: baseline;
+}
+.abdet__v { margin: 0; font-size: var(--fs-meta); }
+.abdet__v.dim { color: var(--ink-dim); }
+/* The one fact worth colour: this bus becomes a different route. */
+.abdet__v--change { color: var(--adh-early); font-weight: 600; }
+.abdet__note {
+  margin: 10px 0 0; font-size: var(--fs-chrome);
+  line-height: var(--lh-body); color: var(--ink-dim);
+}
+.abdet__note--special { padding-left: 8px; border-left: 2px solid var(--adh-special); }
+.abchip { padding: 0; }
+.abchip__btn {
+  display: flex; flex-direction: column; gap: 1px; width: 100%;
+  min-height: 40px; padding: 6px 8px;
+  background: none; border: 0; color: inherit; cursor: pointer; text-align: left;
+}
+.abchip__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.abchip.is-open { grid-column: 1 / -1; background: var(--surface-raised-hi); }
+.abchip.is-open .abdet { padding: 0 8px 8px; }

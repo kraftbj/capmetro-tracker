@@ -43,13 +43,6 @@
   /* Worst first, and the same order adherence.js sorts by. */
   var STATE_ORDER = ['very_late', 'late', 'early', 'unknown', 'ontime', 'deadhead'];
 
-  /*
-   * What earns a place above the fold: the payload's own worst word, and the
-   * state that admits the board cannot say. "late" does not — a third of the
-   * fleet is a few minutes late at any moment and a list of 33 buses that are
-   * merely behind is the phone book again.
-   */
-  var ATTENTION = { very_late: true, unknown: true };
 
   /*
    * Deadhead sub-groups. A missing speed is its own group rather than being
@@ -165,11 +158,9 @@
   function summarize(data) {
     var parts = partition(data);
     var routes = Object.create(null);
-    var attention = 0;
     var veryLate = 0;
     parts.carrying.forEach(function (e) {
       if (e.v.route_id) routes[e.v.route_id] = true;
-      if (ATTENTION[e.view.state]) attention++;
       if (e.view.state === 'very_late') veryLate++;
     });
     return {
@@ -177,7 +168,6 @@
       carrying: parts.carrying.length,
       deadhead: parts.deadhead.length,
       routes: Object.keys(routes).length,
-      attention: attention,
       veryLate: veryLate,
       suppressed: !!(data.staleness && data.staleness.suppress_adherence)
     };
@@ -222,10 +212,178 @@
    * card: there are up to 392 of these, and the expansion already exists — it
    * is the route board, one tap away on the group header.
    */
-  function busRow(e, data, showRoute) {
+
+  /* ---- the detail a tap opens ---------------------------------------- */
+
+  /*
+   * stop_sequence -> stop name for one route, built from the route payload's
+   * timepoints and their minor_stops. It exists because the ONE thing a reader
+   * asks for that api/all.json cannot answer is "what stop did it just leave":
+   * all.json carries no stops at all. The route file does, and it is already
+   * generated, so the detail view asks for it on tap rather than every vehicle
+   * carrying a previous stop it usually does not need.
+   */
+  function stopsBySequence(route, directionId) {
+    var bySeq = Object.create(null);
+    ((route && route.timepoints) || []).forEach(function (tp) {
+      if (tp.direction_id !== undefined && tp.direction_id !== null &&
+          directionId !== undefined && directionId !== null &&
+          tp.direction_id !== directionId) { return; }
+      if (tp.stop_sequence) bySeq[tp.stop_sequence] = tp.stop_name;
+      (tp.minor_stops || []).forEach(function (m) {
+        if (m.stop_sequence) bySeq[m.stop_sequence] = m.stop_name;
+      });
+    });
+    return bySeq;
+  }
+
+  function field(dl, label, value, cls) {
+    if (value === null || value === undefined || value === '') { return; }
+    var row = el('div', 'abdet__row');
+    row.appendChild(el('dt', 'abdet__k', label));
+    row.appendChild(el('dd', 'abdet__v' + (cls ? ' ' + cls : ''), String(value)));
+    dl.appendChild(row);
+  }
+
+  /* "moving" and "parked" are read off speed_mps, never inferred from a state. */
+  function speedWord(v) {
+    var p = v.position || {};
+    if (p.speed_mps === null || p.speed_mps === undefined) { return 'speed not reported'; }
+    return p.speed_mps > 0.5
+      ? 'moving, ' + Math.round(p.speed_mps * 2.23694) + ' mph'
+      : 'stopped';
+  }
+
+  function coords(v) {
+    var p = v.position || {};
+    if (typeof p.lat !== 'number' || typeof p.lon !== 'number') { return null; }
+    return p.lat.toFixed(5) + ', ' + p.lon.toFixed(5);
+  }
+
+  function busDetail(e, data, opts) {
+    var v = e.v;
+    var view = e.view;
+    var box = el('div', 'abdet');
+    var dl = el('dl', 'abdet__list');
+
+    if (!v.in_service) {
+      /*
+       * An out-of-service vehicle carries vehicle_id, label, position and
+       * position_at and nothing else. No trip, no route, no headsign. So this
+       * is the whole truthful detail, and padding it out would mean inventing.
+       */
+      field(dl, 'Where', coords(v) || 'no position reported');
+      field(dl, 'Doing', speedWord(v));
+      field(dl, 'Last reported', v.position_at ? fmt.clock(v.position_at) + ' (' + fmt.age(Math.max(0, (data.generated_at || v.position_at) - v.position_at)) + ')' : null);
+      box.appendChild(dl);
+      box.appendChild(el('p', 'abdet__note',
+        'A bus with no trip assigned reports only where it is. There is nothing ' +
+        'else in the feed for it.'));
+      return box;
+    }
+
+    var t = v.trip || {};
+    var against = v.adherence && v.adherence.against;
+    var prog = v.progress || {};
+    var route = opts.routeFor ? opts.routeFor(v.route_id) : null;
+
+    field(dl, 'Route', (v.route_short_name || v.route_id || '?') +
+      (t.headsign ? ' · ' + t.headsign : ''));
+
+    if (against && !view.suppressed) {
+      var away = data.generated_at && against.predicted_at
+        ? Math.round((against.predicted_at - data.generated_at) / 60) : null;
+      field(dl, 'Next stop', against.stop_name || ('stop ' + against.stop_id));
+      field(dl, 'Due there', fmt.clock(against.predicted_at) +
+        (away === null ? '' : away <= 0 ? ' (now)' : ' (' + fmt.plural(away, 'minute', 'minutes') + ')'));
+      /* Scheduled is printed beside predicted because the pair IS the lateness;
+       * one number without the other cannot be checked. */
+      field(dl, 'Scheduled there', fmt.clock(against.scheduled_at));
+      field(dl, 'Running', view.label + (view.value && view.value !== '—' ? ' · ' + view.value : ''));
+    } else if (view.suppressed) {
+      field(dl, 'Running', 'lateness unavailable, the feed is too far behind');
+    } else {
+      field(dl, 'Running', view.reasonLabel || 'no prediction available');
+    }
+
+    if (prog.current_stop_sequence) {
+      var bySeq = stopsBySequence(route, t.direction_id);
+      var prev = bySeq[prog.current_stop_sequence - 1];
+      if (prev) {
+        field(dl, 'Just left', prev);
+      } else if (!route) {
+        field(dl, 'Just left', 'loading the route…', 'dim');
+      }
+      field(dl, 'Status', STATUS_WORD[prog.current_status] || prog.current_status || null);
+    }
+
+    field(dl, 'Where', coords(v));
+    field(dl, 'Doing', speedWord(v));
+
+    /*
+     * The question this answers: is it going to the garage, or about to run a
+     * different route. A null successor is a bus pulling in.
+     */
+    var b = v.block || {};
+    if (b.next_trip) {
+      var nt = b.next_trip;
+      var nextRoute = nt.route_short_name || nt.route_id;
+      var changing = nextRoute && String(nextRoute) !== String(v.route_short_name || v.route_id);
+      field(dl, 'Then',
+        (changing ? 'becomes route ' + nextRoute + ', ' : '') +
+        fmt.serviceClock(nt.start_time) + ' from ' + (nt.start_stop_name || 'stop ' + nt.start_stop_id) +
+        (nt.is_direction_flip ? ' (turns around)' : ''),
+        changing ? 'abdet__v--change' : null);
+    } else if (b.block_id) {
+      field(dl, 'Then', 'nothing else today · pulling in to the garage');
+    }
+    if (b.route_ids && b.route_ids.length > 1) {
+      field(dl, 'This bus today', 'runs routes ' + b.route_ids.join(', '));
+    }
+    if (b.confidence === 'low') {
+      field(dl, 'Confidence', 'low — the block is shared, so what it does next is a guess', 'dim');
+    }
+
+    box.appendChild(dl);
+
+    var pat = v.pattern || {};
+    if (pat.is_special) {
+      var note = el('p', 'abdet__note abdet__note--special');
+      note.textContent = 'Special run. ' +
+        ((pat.adds || []).length ? 'Adds ' + pat.adds.map(function (x) { return x.stop_name; }).join(', ') + '. ' : '') +
+        ((pat.skips || []).length ? 'Skips ' + pat.skips.map(function (x) { return x.stop_name; }).join(', ') + '.' : '');
+      box.appendChild(note);
+    }
+    return box;
+  }
+
+  var rowSeq = 0;
+
+  function busRow(e, data, showRoute, opts) {
+    opts = opts || {};
     var v = e.v;
     var view = e.view;
     var row = el('article', 'abrow abrow--' + view.state);
+
+    /*
+     * The summary is a button and the detail is a panel it discloses, rather
+     * than a link to a separate screen. Every fact in the detail is about THIS
+     * bus and there are 392 of them; a screen per bus would be a navigation
+     * model for data that fits in a paragraph.
+     */
+    var main = el('button', 'abrow__main');
+    main.type = 'button';
+    var detailId = 'abdet-' + (v.vehicle_id || 'x') + '-' + (rowSeq++);
+    /*
+     * Whether this row is open lives in the CALLER's state, not in the DOM.
+     * The board repaints on every 60s refresh and again whenever a fetch
+     * resolves, and a panel whose openness was a DOM property closed itself
+     * each time - including immediately, because opening one asks for the
+     * route file and that fetch triggers a repaint.
+     */
+    var isOpen = !!(opts.open && opts.open[v.vehicle_id]);
+    main.setAttribute('aria-controls', detailId);
+    main.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 
     var badge = el('span', 'abrow__badge');
     badge.appendChild(adh.badge(view, { small: true }));
@@ -279,49 +437,37 @@
       l2.appendChild(el('span', null, 'not carrying passengers'));
     }
     meta.appendChild(l2);
-    row.appendChild(meta);
+    main.appendChild(meta);
+
+    var caret = el('span', 'abrow__caret', '▾');
+    caret.setAttribute('aria-hidden', 'true');
+    main.appendChild(caret);
+    row.appendChild(main);
+
+    var panel = el('div', 'abdet__wrap');
+    panel.id = detailId;
+    panel.hidden = !isOpen;
+    /* Built only for the rows actually open. 392 detail panels nobody asked
+     * for is 392 panels of layout work on every refresh. */
+    if (isOpen) {
+      row.classList.add('is-open');
+      panel.appendChild(busDetail(e, data, opts));
+    }
+    row.appendChild(panel);
+
+    main.addEventListener('click', function () {
+      if (opts.onToggleBus) { opts.onToggleBus(v.vehicle_id); }
+    });
+
     return row;
   }
 
-  function rowList(entries, data, showRoute) {
+  function rowList(entries, data, showRoute, opts) {
     var list = el('div', 'abrows');
-    entries.forEach(function (e) { list.appendChild(busRow(e, data, showRoute)); });
+    entries.forEach(function (e) { list.appendChild(busRow(e, data, showRoute, opts)); });
     return list;
   }
 
-  /* ---- the trouble band ---------------------------------------------- */
-
-  function attentionBand(carrying, data, suppressed) {
-    var band = el('section', 'abband abband--attention');
-
-    if (suppressed) {
-      band.appendChild(sectionHead('Needs a look', 'lateness hidden'));
-      band.appendChild(S.notice('empty', 'The board cannot say which buses are late.',
-        'The feed is too far behind to judge lateness, so no bus can be ranked by it. ' +
-        'Positions below are the last ones received.'));
-      return band;
-    }
-
-    var flagged = carrying.filter(function (e) { return ATTENTION[e.view.state]; });
-    flagged.sort(bySeverity);
-
-    var counts = tallyStates(flagged);
-    var note = counts.map(function (c) { return c.n + ' ' + c.label; }).join(' · ');
-    band.appendChild(sectionHead('Needs a look', note || 'nothing flagged'));
-
-    if (!flagged.length) {
-      band.appendChild(S.notice('empty', 'No bus is running very late.',
-        fmt.plural(carrying.length, 'bus is', 'buses are') + ' carrying riders right now, ' +
-        'and every one of them is reporting early, on time or late — none has crossed ' +
-        'into very late, and none is missing a prediction.'));
-      return band;
-    }
-
-    band.appendChild(el('p', 'abnote',
-      'These buses are also listed under their route below.'));
-    band.appendChild(rowList(flagged, data, true));
-    return band;
-  }
 
   /* ---- the deadhead band ---------------------------------------------- */
 
@@ -332,24 +478,43 @@
    * reader needs is the count, the plain-language reason, and the ability to
    * find one specific bus by number.
    */
-  function deadheadChips(entries) {
+  function deadheadChips(entries, data, opts) {
+    opts = opts || {};
     var list = el('ul', 'abchips');
     entries.slice().sort(function (a, b) {
       return byRouteLabel(vehicleName(a.v), vehicleName(b.v));
     }).forEach(function (e) {
       var v = e.v;
-      var item = el('li', 'abchip abchip--' + movement(v));
-      item.setAttribute('aria-label', 'Bus ' + vehicleName(v) +
+      var isOpen = !!(opts.open && opts.open[v.vehicle_id]);
+      var item = el('li', 'abchip abchip--' + movement(v) + (isOpen ? ' is-open' : ''));
+
+      /*
+       * Tappable for the same reason a bus row is, and for a much shorter
+       * answer: an out-of-service vehicle reports a position and a timestamp
+       * and nothing else. There is no trip, no route and no headsign in the
+       * feed for it, so "just the location" is not a design choice, it is the
+       * whole of what exists.
+       */
+      var btn = el('button', 'abchip__btn');
+      btn.type = 'button';
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      btn.setAttribute('aria-label', 'Bus ' + vehicleName(v) +
         ', not carrying passengers, ' + MOVEMENT_WORD[movement(v)] +
-        ', last reported ' + fmt.clockSpoken(v.position_at) + '.');
-      item.appendChild(el('span', 'abchip__id', '#' + vehicleName(v)));
-      item.appendChild(el('span', 'abchip__t fig', fmt.clock(v.position_at)));
+        ', last reported ' + fmt.clockSpoken(v.position_at) + '. Show where it is.');
+      btn.appendChild(el('span', 'abchip__id', '#' + vehicleName(v)));
+      btn.appendChild(el('span', 'abchip__t fig', fmt.clock(v.position_at)));
+      btn.addEventListener('click', function () {
+        if (opts.onToggleBus) opts.onToggleBus(v.vehicle_id);
+      });
+      item.appendChild(btn);
+
+      if (isOpen) item.appendChild(busDetail(e, data || {}, opts));
       list.appendChild(item);
     });
     return list;
   }
 
-  function deadheadBand(deadhead) {
+  function deadheadBand(deadhead, data, opts) {
     var band = el('section', 'abband abband--deadhead');
     band.appendChild(sectionHead('Not carrying passengers',
       fmt.plural(deadhead.length, 'bus', 'buses')));
@@ -377,7 +542,7 @@
       if (!group.length) return;
       band.appendChild(sectionHead(m.title,
         fmt.plural(group.length, 'bus', 'buses') + ' · ' + m.note));
-      band.appendChild(deadheadChips(group));
+      band.appendChild(deadheadChips(group, data, opts));
     });
     return band;
   }
@@ -411,7 +576,7 @@
     return adh.view({ adherence: { state: state, seconds: null, reason: null } }, null).glyph;
   }
 
-  function routeGroup(group, data, onSelectRoute) {
+  function routeGroup(group, data, onSelectRoute, opts) {
     var box = el('section', 'abroute');
 
     /* A header that cannot be tapped is not drawn as a tap target. */
@@ -435,7 +600,7 @@
       head.appendChild(caret);
     }
     box.appendChild(head);
-    box.appendChild(rowList(group.entries, data, false));
+    box.appendChild(rowList(group.entries, data, false, opts));
     return box;
   }
 
@@ -473,7 +638,7 @@
 
     var list = el('div', 'abroutes');
     groups.forEach(function (g) {
-      list.appendChild(routeGroup(g, data, opts.onSelectRoute));
+      list.appendChild(routeGroup(g, data, opts.onSelectRoute, opts));
     });
     band.appendChild(list);
     return band;
@@ -539,10 +704,16 @@
     sub.textContent = bits.join(' · ');
 
     var parts = partition(data);
+    /*
+     * Routes first, then the buses nobody can board. There used to be a "Needs
+     * a look" band above these, ranking very-late and unknown buses the way a
+     * dispatcher triages a fleet. Wrong reader: this board is for someone
+     * finding one particular bus, not for someone managing 392 of them. The
+     * count strip already answers "is anything unusual" in four numbers.
+     */
     host.appendChild(strip(sum));
-    host.appendChild(attentionBand(parts.carrying, data, sum.suppressed));
-    host.appendChild(deadheadBand(parts.deadhead));
     host.appendChild(routeBand(parts.carrying, data, opts, sum.suppressed));
+    host.appendChild(deadheadBand(parts.deadhead, data, opts));
   }
 
   global.CMB.allbuses = {
