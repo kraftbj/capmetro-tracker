@@ -61,11 +61,38 @@ const SCENARIOS = {
 
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 
+/*
+ * The schedule documents the stops view needs.
+ *
+ * A stop card cannot fall back to the bundled route fixture: it needs a whole
+ * service day of scheduled departures at one stop, and only this endpoint has
+ * that. Route 4 is served by the turnaround trim, because the turnaround is the
+ * case the view exists for; route 800 by the ordinary mid-route trim, so a
+ * non-turnaround card is on screen next to it.
+ */
+const DEPARTURES = {
+  4: 'departures-4-turnaround.json',
+  800: 'departures-800.json',
+}
+
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const parts = url.pathname.split('/').filter(Boolean)
   const scenario = SCENARIOS[parts[0]] ? parts.shift() : 'fresh'
   const rest = parts.join('/') || 'index.html'
+
+  if (rest.startsWith('api/departures/')) {
+    const id = path.basename(rest, '.json')
+    const file = DEPARTURES[id]
+    if (!file) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end('{"error":"no schedule for that route"}')
+      return
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+    res.end(JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, file)))))
+    return
+  }
 
   if (rest.startsWith('api/route/')) {
     const { status, body } = SCENARIOS[scenario]()

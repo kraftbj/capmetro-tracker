@@ -1,0 +1,511 @@
+/**
+ * plan.js — the stops link.
+ *
+ * A plan entry is a PLACE and a time of day, not a named departure: "the 4
+ * eastbound from Campbell/5th in the afternoons". Which of the afternoon's buses
+ * gets caught is decided on the day, so the card shows the next few rather than
+ * one, and almost everything below is about the two ways that goes wrong.
+ *
+ * The first is the turnaround, which is most of this file. Campbell/5th is where
+ * route 4 turns: westbound arrives there as its LAST stop and eastbound leaves as
+ * its FIRST. A board that looks for an approaching eastbound bus finds nothing and
+ * renders a blank, which is the exact failure the design doc says this project
+ * exists to prevent. The bus is there — it is westbound for another six minutes.
+ * `departures-4-turnaround.json` is four real afternoon pairs, joined by block_id,
+ * and the assertions read the pairing out of the fixture's own `_expected` so the
+ * two cannot drift.
+ *
+ * The second is the link itself. Contract §9 hashes the watch tuple "so a URL or
+ * server log never carries a legible description of a child's daily routine", and
+ * a feature whose whole point is a URL has to answer that rather than inherit it.
+ * The answer is the fragment, which browsers do not send, plus an encoding made of
+ * numeric ids. There are tests here that fail if either property is lost.
+ */
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { all, renderClient, textDeep } from './helpers/client.mjs'
+import { ROOT } from './helpers/optional.mjs'
+
+const client = renderClient(['format.js', 'adherence.js', 'states.js', 'watch.js', 'plan.js'])
+
+const t = (name, fn) =>
+  it(name, (ctx) => {
+    if (!client.cmb) ctx.skip(client.reason)
+    if (!client.cmb.plan) ctx.skip('client scripts loaded but window.CMB.plan is not defined')
+    return fn(client.cmb.plan, client.cmb)
+  })
+
+const fixture = (name) =>
+  JSON.parse(readFileSync(path.join(ROOT, 'tests/fixtures/synthetic', name), 'utf8'))
+
+const DEP = fixture('departures-4-turnaround.json')
+const START = DEP.service_day_start_epoch
+const NOW = DEP._now /* 15:00:00 on the service day */
+const TURN = DEP._expected.turnaround_stop_id
+const PAIRS = DEP._expected.pairs
+
+/* The entry this whole feature was asked for: the afternoon eastbound 4 from the
+ * turnaround at Campbell/5th. */
+const AT_TURNAROUND = { route_id: '4', direction_id: 1, stop_id: TURN, window: 'pm' }
+
+/** The trip that leaves the turnaround at `seconds`, in the boarding direction. */
+const outboundAt = (seconds) => {
+  const row = DEP.departures[TURN].find(
+    ([s, i]) => s === seconds && DEP.trips[i].direction_id === DEP._expected.boarding_direction_id,
+  )
+  return DEP.trips[row[1]]
+}
+
+/** The westbound trip that arrives at the turnaround at `seconds`. */
+const inboundAt = (seconds) => {
+  const row = DEP.departures[TURN].find(
+    ([s, i]) => s === seconds && DEP.trips[i].direction_id === DEP._expected.inbound_direction_id,
+  )
+  return DEP.trips[row[1]]
+}
+
+/** A vehicle object shaped the way the route payload publishes one. */
+const bus = ({ id, trip, seconds = 0, stopId = null, status = 'IN_TRANSIT_TO', nextTripId = null }) => ({
+  vehicle_id: id,
+  label: id,
+  route_id: '4',
+  route_short_name: '4',
+  in_service: true,
+  position: { lat: 30.27, lon: -97.75, bearing: null, speed: null },
+  position_at: NOW,
+  trip: {
+    trip_id: trip.id,
+    start_time: trip.start_time,
+    start_epoch: START,
+    direction_id: trip.direction_id,
+    headsign: trip.headsign,
+    schedule_relationship: 'SCHEDULED',
+  },
+  progress: { current_stop_sequence: 1, current_stop_id: stopId, current_status: status },
+  pattern: { is_baseline: true, is_special: false, trips_in_pattern: 30, adds: [], skips: [] },
+  block: {
+    block_id: trip.block_id,
+    confidence: 'high',
+    next_trip: nextTripId
+      ? {
+          trip_id: nextTripId,
+          direction_id: 1,
+          start_time: '15:09:00',
+          start_epoch: START + 54540,
+          start_stop_id: TURN,
+          start_stop_name: 'Campbell/5th',
+          is_direction_flip: true,
+        }
+      : null,
+  },
+  adherence:
+    seconds === null
+      ? { state: 'unknown', seconds: null, glyph: 'question', reason: 'no_trip_update' }
+      : {
+          state: seconds >= 360 ? 'very_late' : seconds >= 150 ? 'late' : 'ontime',
+          seconds,
+          glyph: seconds >= 360 ? 'square' : seconds >= 150 ? 'up-triangle' : 'circle',
+          reason: null,
+        },
+})
+
+const routeWith = (...vehicles) => ({
+  staleness: { level: 'fresh', suppress_adherence: false },
+  vehicles,
+})
+
+const EMPTY_ROUTE = routeWith()
+
+/* ------------------------------------------------------------------------- */
+
+describe('the link, which is the only part of this feature the server could ever see', () => {
+  const ENTRIES = [
+    { route_id: '800', direction_id: 1, stop_id: '6293', window: 'am' },
+    { route_id: '4', direction_id: 0, stop_id: '3337', window: 'am' },
+    { route_id: '4', direction_id: 1, stop_id: '6243', window: 'pm' },
+  ]
+
+  t('round-trips a plan through encode and decode unchanged', (p) => {
+    expect(p.decode(p.encode(ENTRIES))).toEqual(ENTRIES)
+  })
+
+  t('names no stop, no street and no clock time — only ids the stop table resolves', (p) => {
+    const encoded = p.encode(ENTRIES)
+    expect(encoded).toBe('1;800.1.6293.am;4.0.3337.am;4.1.6243.pm')
+    expect(encoded).not.toMatch(/[Cc]ampbell|[Ss]imond|[Bb]erkman|[Pp]leasant/)
+    expect(encoded).not.toMatch(/\d{1,2}:\d{2}/)
+  })
+
+  t('always builds a fragment, never a query, whatever it is handed', (p) => {
+    const link = p.linkFor(ENTRIES, 'https://bus.dillo.dev/?route=7#plan=stale')
+    /* Readable, because somebody has to look at this in a message and decide
+     * whether to tap it. Escaping the separators again gave '1%3B800%2E1'. */
+    expect(link).toBe('https://bus.dillo.dev/#plan=1;800.1.6293.am;4.0.3337.am;4.1.6243.pm')
+    /*
+     * The one assertion this whole design hangs on. A '?' would put the entries in
+     * the request line, and bus.dillo.dev keeps an access log.
+     */
+    expect(link.split('#')[0]).not.toContain('?')
+    expect(link.split('#')[0]).not.toContain('plan')
+  })
+
+  t('refuses a version it does not know rather than guessing at the fields', (p) => {
+    expect(p.decode('2;4.1.6243.pm')).toBeNull()
+    expect(p.decode('')).toBeNull()
+    expect(p.decode('nonsense')).toBeNull()
+  })
+
+  t('drops only the entries it cannot read, because four of five stops still helps', (p) => {
+    const decoded = p.decode('1;4.1.6243.pm;4.9.1.pm;garbage;800.1.6293.am;4.1.6243.nonsense')
+    expect(decoded).toEqual([
+      { route_id: '4', direction_id: 1, stop_id: '6243', window: 'pm' },
+      { route_id: '800', direction_id: 1, stop_id: '6293', window: 'am' },
+    ])
+  })
+
+  t('defaults a missing window to all day rather than dropping the stop', (p) => {
+    expect(p.decode('1;4.1.6243')).toEqual([
+      { route_id: '4', direction_id: 1, stop_id: '6243', window: 'all' },
+    ])
+  })
+
+  t('percent-encodes the fields, so an id carrying a separator cannot split an entry', (p) => {
+    /* encodeURIComponent leaves '.' alone, and '.' is the field separator here. */
+    const odd = [{ route_id: 'a.b', direction_id: 1, stop_id: 'c;d', window: 'all' }]
+    expect(p.encode(odd)).not.toContain('a.b')
+    expect(p.decode(p.encode(odd))).toEqual(odd)
+  })
+
+  t('still opens a link something in between has escaped into the ugly shape', (p) => {
+    const raw = p.encode(ENTRIES)
+    expect(p.fromLocation({ hash: '#plan=' + encodeURIComponent(raw), search: '' }).entries)
+      .toEqual(ENTRIES)
+  })
+
+  t('prefers the fragment, and reports a query so the caller can move it out of one', (p) => {
+    const viaHash = p.fromLocation({ hash: '#plan=1;4.1.6243.pm', search: '' })
+    expect(viaHash.fromQuery).toBe(false)
+    expect(viaHash.entries).toHaveLength(1)
+
+    const viaQuery = p.fromLocation({ hash: '', search: '?plan=1;800.1.6293.am' })
+    expect(viaQuery.fromQuery).toBe(true)
+    expect(viaQuery.entries[0].stop_id).toBe('6293')
+
+    const both = p.fromLocation({ hash: '#plan=1;4.1.6243.pm', search: '?plan=1;800.1.6293.am' })
+    expect(both.fromQuery).toBe(false)
+    expect(both.entries[0].stop_id).toBe('6243')
+
+    expect(p.fromLocation({ hash: '#dir=both', search: '?route=4' })).toBeNull()
+  })
+
+  t('compares two plans as sets, so a re-ordered link is not a new one to offer', (p) => {
+    expect(p.sameSet(ENTRIES, ENTRIES.slice().reverse())).toBe(true)
+    expect(p.sameSet(ENTRIES, ENTRIES.slice(1))).toBe(false)
+    expect(p.sameSet(ENTRIES, null)).toBe(false)
+  })
+})
+
+describe('time-of-day windows, which decide the section and never the visibility', () => {
+  t('puts the morning stops in the morning and the afternoon ones after noon', (p) => {
+    expect(p.inWindow('am', 7 * 3600 + 50 * 60)).toBe(true)
+    expect(p.inWindow('am', 15 * 3600)).toBe(false)
+    expect(p.inWindow('pm', 15 * 3600)).toBe(true)
+    expect(p.inWindow('pm', 7 * 3600)).toBe(false)
+    expect(p.inWindow('all', 3 * 3600)).toBe(true)
+  })
+
+  t('accepts an explicit range and wraps one that runs past midnight', (p) => {
+    expect(p.inWindow('0700-0900', 8 * 3600)).toBe(true)
+    expect(p.inWindow('0700-0900', 9 * 3600)).toBe(false)
+    /* 22:00-02:00 is 22:00 to 26:00 in service-day seconds, never 22:00 to 02:00
+     * with the ends swapped — the same rule every other clock in this contract
+     * follows, where 25:10 is a real hour and is not wrapped back. */
+    expect(p.windowRange('2200-0200')).toEqual([22 * 3600, 26 * 3600])
+    expect(p.inWindow('2200-0200', 25 * 3600)).toBe(true)
+    expect(p.inWindow('2200-0200', 21 * 3600)).toBe(false)
+  })
+
+  t('rejects a window it cannot parse at decode time rather than showing all day', (p) => {
+    expect(p.windowRange('evening')).toBeNull()
+    expect(p.windowRange('9-5')).toBeNull()
+  })
+})
+
+describe('the turnaround: the bus you catch is going the other way right now', () => {
+  t('the fixture really is a turnaround — every boarding departure starts here', (p) => {
+    const rows = DEP.departures[TURN].filter(
+      ([, i]) => DEP.trips[i].direction_id === DEP._expected.boarding_direction_id,
+    )
+    expect(rows.length).toBeGreaterThan(0)
+    rows.forEach(([seconds, i]) => {
+      expect(p.startsHere(DEP.trips[i], seconds)).toBe(true)
+    })
+  })
+
+  t('an arriving westbound leg does NOT start here, which is what makes it the inbound one', (p) => {
+    DEP.departures[TURN]
+      .filter(([, i]) => DEP.trips[i].direction_id === DEP._expected.inbound_direction_id)
+      .forEach(([seconds, i]) => {
+        expect(p.startsHere(DEP.trips[i], seconds)).toBe(false)
+      })
+  })
+
+  t('pairs each departure with the leg that brings the bus in, by block', (p) => {
+    expect(PAIRS.length).toBe(4)
+    PAIRS.forEach((pair) => {
+      const out = outboundAt(pair.outbound_departure_s)
+      const leg = p.inboundLeg(DEP, TURN, 1, out, pair.outbound_departure_s)
+      expect(leg).not.toBeNull()
+      expect(leg.seconds).toBe(pair.inbound_arrival_s)
+      expect(leg.trip.block_id).toBe(pair.block_id)
+      expect(leg.trip.direction_id).toBe(DEP._expected.inbound_direction_id)
+    })
+  })
+
+  t('never pairs across blocks, because a shared stop and a plausible gap is a guess', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const foreign = { ...out, block_id: 'not-a-real-block' }
+    expect(p.inboundLeg(DEP, TURN, 1, foreign, PAIRS[0].outbound_departure_s)).toBeNull()
+  })
+
+  t('never pairs with a leg that arrives after the departure has already left', (p) => {
+    const out = outboundAt(PAIRS[3].outbound_departure_s)
+    /* Ask as if the departure were an hour before its inbound leg lands. */
+    expect(p.inboundLeg(DEP, TURN, 1, out, PAIRS[3].inbound_arrival_s - 1)).toBeNull()
+  })
+
+  t('a trip with no block_id has no inbound leg to name, and says so by returning null', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    expect(p.inboundLeg(DEP, TURN, 1, { ...out, block_id: null }, PAIRS[0].outbound_departure_s))
+      .toBeNull()
+  })
+
+  t('finds the vehicle the feed says runs this trip next, wherever it is', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const inb = inboundAt(PAIRS[0].inbound_arrival_s)
+    const route = routeWith(bus({ id: '2867', trip: inb, seconds: 35, nextTripId: out.id }))
+    expect(p.vehicleFeeding(route, out.id).vehicle_id).toBe('2867')
+    expect(p.vehicleFeeding(route, 'some-other-trip')).toBeNull()
+    expect(p.vehicleFeeding(EMPTY_ROUTE, out.id)).toBeNull()
+  })
+})
+
+describe('resolving a stop against the schedule and the live feed', () => {
+  t('marks the stop as a turnaround when every departure it offers starts there', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    expect(m.state).toBe('ok')
+    expect(m.is_turnaround).toBe(true)
+    expect(m.stop_name).toBe('Campbell/5th')
+    expect(m.direction_tag).toBe('EB')
+    expect(m.departures.every((d) => d.starts_here)).toBe(true)
+  })
+
+  t('offers the next few departures, not one, because which bus gets caught is decided on the day', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    expect(m.departures).toHaveLength(p.SHOW)
+    expect(m.departures.map((d) => d.scheduled_at - START)).toEqual([54540, 55500, 56460])
+  })
+
+  t('names the inbound leg even with no bus reporting, so the stop is never blank', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    const first = m.departures[0]
+    expect(first.boarding).toBe('scheduled')
+    expect(first.inbound.scheduled_at - START).toBe(PAIRS[0].inbound_arrival_s)
+    expect(first.inbound.direction_tag).toBe('WB')
+    expect(p.boardingText(first, m)).toContain('Comes in on the 3:04p WB')
+  })
+
+  t('reports the westbound bus that becomes the eastbound departure', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const inb = inboundAt(PAIRS[0].inbound_arrival_s)
+    const route = routeWith(bus({ id: '2867', trip: inb, seconds: 400, nextTripId: out.id }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    const first = m.departures[0]
+
+    expect(first.vehicle).toBeNull() /* nothing is on the eastbound trip yet */
+    expect(first.boarding).toBe('inbound')
+    expect(first.inbound.vehicle.vehicle_id).toBe('2867')
+
+    const said = p.boardingText(first, m)
+    expect(said).toContain('Bus 2867')
+    expect(said).toContain('the 3:04p WB')
+    expect(said).toContain('minutes late')
+    /* An earlier draft fell back to the words "the other direction" and printed
+     * "as the the other direction" whenever the leg had no headsign. */
+    expect(said).not.toContain('the the')
+  })
+
+  t('says a bus already standing at the turnaround is standing there', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const inb = inboundAt(PAIRS[0].inbound_arrival_s)
+    const route = routeWith(
+      bus({ id: '2867', trip: inb, seconds: 0, stopId: TURN, status: 'STOPPED_AT', nextTripId: out.id }),
+    )
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    expect(m.departures[0].boarding).toBe('waiting')
+    expect(m.departures[0].inbound.at_stop).toBe(true)
+    expect(p.boardingText(m.departures[0], m)).toContain('already standing at this stop')
+  })
+
+  t('says a bus that has already taken up the outbound trip is at the stop', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const route = routeWith(bus({ id: '2867', trip: out, seconds: 0, stopId: TURN, status: 'STOPPED_AT' }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    expect(m.departures[0].boarding).toBe('here')
+    expect(m.departures[0].at_stop).toBe(true)
+    expect(p.boardingText(m.departures[0], m)).toBe('Bus 2867 is at the stop now.')
+  })
+
+  t('a bus on the outbound trip but not yet at the stop is en route, not waiting', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const route = routeWith(bus({ id: '2867', trip: out, seconds: 60, stopId: '4086' }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    expect(m.departures[0].boarding).toBe('enroute')
+    expect(m.departures[0].at_stop).toBe(false)
+  })
+
+  t('leads with the lateness the feed reports and never derives one for the outbound trip', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const inb = inboundAt(PAIRS[0].inbound_arrival_s)
+    const route = routeWith(bus({ id: '2867', trip: inb, seconds: 540, nextTripId: out.id }))
+    const first = p.resolve(AT_TURNAROUND, DEP, route, NOW).departures[0]
+    /*
+     * The inbound bus is nine minutes late, so this departure will almost
+     * certainly leave late too. The board does not say by how much, because it
+     * would be inventing a number with a plausible face. Both facts are printed;
+     * the subtraction is the reader's.
+     */
+    expect(first.inbound.view.seconds).toBe(540)
+    expect(first.predicted_at).toBeNull()
+    expect(first.due_at).toBe(first.scheduled_at)
+  })
+})
+
+describe('a late bus has not gone', () => {
+  t('still offers a departure whose scheduled time has passed but whose bus has not arrived', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const route = routeWith(bus({ id: '2867', trip: out, seconds: 900 }))
+    /* Ten minutes after it was scheduled, with the bus fifteen minutes late. */
+    const m = p.resolve(AT_TURNAROUND, DEP, route, START + PAIRS[0].outbound_departure_s + 600)
+    expect(m.departures[0].scheduled_at - START).toBe(PAIRS[0].outbound_departure_s)
+    expect(m.departures[0].due_at).toBeGreaterThan(START + PAIRS[0].outbound_departure_s + 600)
+  })
+
+  t('prints the departures in the order they will actually arrive, not in schedule order', (p) => {
+    const late = outboundAt(PAIRS[0].outbound_departure_s)
+    const route = routeWith(bus({ id: '2867', trip: late, seconds: 1500 }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    const dues = m.departures.map((d) => d.due_at)
+    expect(dues).toEqual(dues.slice().sort((a, b) => a - b))
+    /* The 25-minute-late 15:09 now lands behind the on-time 15:25. */
+    expect(m.departures[0].scheduled_at - START).toBe(55500)
+  })
+
+  t('drops one that is properly gone rather than leaving a stale card at the top', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + PAIRS[1].outbound_departure_s)
+    expect(m.departures[0].scheduled_at - START).toBe(PAIRS[1].outbound_departure_s)
+  })
+})
+
+describe('the ways a stop has nothing to show, which are not interchangeable', () => {
+  t('says the schedule has not loaded, in the words the caller supplies', (p) => {
+    const m = p.resolve(AT_TURNAROUND, null, null, NOW, { schedule_detail: 'opened from a file' })
+    expect(m.state).toBe('no-schedule')
+    expect(m.detail).toBe('opened from a file')
+    /* Still identifiable: an unresolvable card must not also be an anonymous one. */
+    expect(m.entry.stop_id).toBe(TURN)
+  })
+
+  t('falls back to its own wording when the caller has no better reason to give', (p) => {
+    expect(p.resolve(AT_TURNAROUND, null, null, NOW).detail).toContain('route 4')
+  })
+
+  t('says a stop is not served in that direction today, which is not the same as no bus', (p) => {
+    const m = p.resolve({ ...AT_TURNAROUND, stop_id: 'not-a-stop' }, DEP, EMPTY_ROUTE, NOW)
+    expect(m.state).toBe('unserved')
+    expect(m.detail).toContain('direction')
+  })
+
+  t('says the last one today has gone, once it has', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + 20 * 3600)
+    expect(m.state).toBe('done')
+    expect(m.departures).toHaveLength(0)
+  })
+
+  t('resolves an out-of-window stop anyway, and marks it rather than hiding it', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + 7 * 3600 + 50 * 60)
+    expect(m.in_window).toBe(false)
+    expect(m.state).toBe('ok')
+    expect(m.departures.length).toBeGreaterThan(0)
+  })
+})
+
+describe('ordering: what is in its window, then what is soonest', () => {
+  t('puts in-window stops above the rest whatever their times', (p) => {
+    const soonButLater = { ...p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW), in_window: false }
+    const later = { ...p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW), in_window: true }
+    later.next = { seconds_until: 99999 }
+    const sorted = p.sortModels([soonButLater, later])
+    expect(sorted[0].in_window).toBe(true)
+  })
+
+  t('sinks a stop with nothing to show below one that has a bus', (p) => {
+    const ok = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    const done = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + 20 * 3600)
+    done.in_window = true
+    const sorted = p.sortModels([done, ok])
+    expect(sorted[0].state).toBe('ok')
+  })
+})
+
+describe('what the cards actually say', () => {
+  const host = () => client.document.createElement('div')
+
+  t('names the stop, the route and the fact that it turns around', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    const node = p.render(host(), [m], {})
+    const text = textDeep(node)
+    expect(text).toContain('Campbell/5th')
+    expect(text).toContain('EB')
+    expect(text).toContain('afternoons')
+    expect(all(node, 'stopcard__turn')).toHaveLength(1)
+  })
+
+  t('speaks the whole card for a screen reader, badge and layout included', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const inb = inboundAt(PAIRS[0].inbound_arrival_s)
+    const route = routeWith(bus({ id: '2867', trip: inb, seconds: 400, nextTripId: out.id }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    const spoken = textDeep(all(p.render(host(), [m], {}), 'sr-only')[0])
+    expect(spoken).toContain('route 4 EB from Campbell/5th')
+    expect(spoken).toContain('Next bus due')
+    expect(spoken).toContain('Bus 2867')
+  })
+
+  t('offers to keep a link, and offers to share one it already has', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    const node = p.render(host(), [m], {
+      offer: [AT_TURNAROUND],
+      link: 'https://bus.dillo.dev/#plan=1;4.1.6243.pm',
+      onKeep() {},
+      onDismiss() {},
+    })
+    expect(all(node, 'offer')).toHaveLength(1)
+    expect(textDeep(all(node, 'offer')[0])).toContain('1 stop')
+    expect(all(node, 'share__field')[0].value).toContain('#plan=')
+  })
+
+  t('says what a stops link is when there are none, rather than showing a blank tab', (p) => {
+    const text = textDeep(p.render(host(), [], {}))
+    expect(text).toContain('No stops on this phone yet')
+    expect(text).toContain('link')
+  })
+
+  t('keeps an out-of-window stop on the page under its own heading', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + 7 * 3600)
+    const node = p.render(host(), p.sortModels([m]), {})
+    expect(textDeep(node)).toContain('Later today')
+    expect(all(node, 'stopcard--later')).toHaveLength(1)
+  })
+})

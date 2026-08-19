@@ -14,7 +14,8 @@
     "route-4-dead-cron.json": "Silent failure 2 / criterion 8: last-good route file served 47 minutes after the cron died; suppress_adherence true, every vehicle unknown/stale_data.",
     "torn-route-4.json": "Section 11: a route file truncated mid-write. Deliberately not valid JSON, so it carries no inline comment. Proves the client survives a torn read and that atomic rename is what prevents it.",
     "all-buses-fleet.json": "The all-buses view: a 19-vehicle trim of the real 2026-08-19 capture carrying every adherence state, deadheads both moving and parked, and two buses sharing a route so route grouping is exercised. counts recomputed for the trim.",
-    "departures-800.json": "Saved trips: the four southbound route 800 trips serving stop 6293 (Simond SB) between 07:30 and 08:30 on 20260819, and every stop they make. 6293 is a MINOR stop, not a timepoint, which is why the route payload alone cannot resolve a watch. Includes trip 3010894_22201 at 07:52:09, the API contract's own watch example."
+    "departures-800.json": "Saved trips: the four southbound route 800 trips serving stop 6293 (Simond SB) between 07:30 and 08:30 on 20260819, and every stop they make. 6293 is a MINOR stop, not a timepoint, which is why the route payload alone cannot resolve a watch. Includes trip 3010894_22201 at 07:52:09, the API contract's own watch example.",
+    "departures-4-turnaround.json": "The stops view at a turnaround: route 4 stop 6243 Campbell/5th on 20260819, where westbound arrives as its last stop and eastbound leaves as its first. Four eastbound departures between 15:00 and 16:00 with the four westbound legs that feed them, paired by block_id. A board that only looks for eastbound vehicles here shows an empty stop, which is the blank this fixture exists to catch."
   },
   "conventions": {
     "_comment": "one-line note naming the failure this fixture encodes",

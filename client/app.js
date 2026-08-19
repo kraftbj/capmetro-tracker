@@ -2,8 +2,9 @@
  * app.js — bootstrap, data loading, header, view switching, and the panel order
  * that was decided and is not open: header, VEHICLE ROWS, LADDER, MAP.
  *
- * Three views share one shell:
+ * Four views share one shell:
  *   board  — one route, the original and the default
+ *   stops  — the places this phone waits at, from a link or from storage
  *   all    — every bus in the system, deadheads included
  *   saved  — trips this browser has saved, resolved locally
  *
@@ -66,7 +67,7 @@
   }
 
   var state = {
-    view: 'board',       /* board | all | saved | saved-edit */
+    view: 'board',       /* board | stops | all | saved | saved-edit */
     routeId: null,
     direction: 'both',   /* 0 | 1 | 'both' */
     data: null,
@@ -87,7 +88,15 @@
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
-    openBuses: {}        /* vehicle_id -> true, for the all-buses detail panels */
+    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
+    /*
+     * The stops view. `entries` is what is on screen, whatever its source;
+     * `saved` says whether those entries are the ones in localStorage, which is
+     * what decides between offering to keep them and offering to forget them.
+     * `offer` is the set a link is proposing and is null once it is answered
+     * either way, so the banner does not come back on every repaint.
+     */
+    plan: { entries: null, saved: false, offer: null, fromQuery: false, fromLink: false }
   };
 
   var dom = {};
@@ -182,7 +191,20 @@
   function loadRouteData(routeId) {
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
-    if (state.routeStatus[routeId] === 'loading') return;
+    /*
+     * Only an idle route is fetchable, and 'idle' is what the refresh timer sets.
+     *
+     * This used to block 'loading' alone, which reads as harmless and is not: the
+     * callbacks below both call render(), and the views that need this call it
+     * from inside paint. So a route that had already resolved was re-fetched by
+     * the very paint its own response triggered — an unbounded fetch/render loop
+     * that made the offer button on this view unclickable, because it was being
+     * detached and rebuilt faster than a tap could land. A failed fetch spun the
+     * same loop harder, and from a file:// URL, where the rejection is immediate,
+     * hardest of all.
+     */
+    var status = state.routeStatus[routeId];
+    if (status && status !== 'idle') return;
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
@@ -212,12 +234,14 @@
     if (!routeId) return;
     if (state.departures[routeId]) return;
     /*
-     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
-     * called render, and render asked again - a fetch-and-repaint loop that
-     * hammered the server and rebuilt the DOM every frame. The 60s refresh
-     * clears the status so a transient failure still recovers.
+     * 'error' is a stop, not a pause, and so is 'ok'. Without that a failed
+     * fetch set the status, called render, and render asked again - a
+     * fetch-and-repaint loop that hammered the server and rebuilt the DOM every
+     * frame. Same rule, same loop, same reason as loadRouteData: only an idle
+     * status is fetchable, and the 60s refresh is what sets it.
      */
-    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
+    var status = state.depStatus[routeId];
+    if (status && status !== 'idle') return;
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
@@ -229,6 +253,101 @@
         state.depStatus[routeId] = 'error';
         render();
       });
+  }
+
+  /* ---- the stops plan -------------------------------------------------- */
+
+  /*
+   * Preload, which is half of what a stops link is for.
+   *
+   * Every route the plan names needs two documents before a card can say
+   * anything: the service day's schedule and the live vehicles. Fetching them
+   * when the link opens rather than when the tab is tapped is the difference
+   * between a board that is already answering and one that spends two seconds
+   * saying "loading" at somebody already late for a bus. Both loaders are
+   * idempotent, so calling this on boot, on tab change and on every refresh is
+   * free.
+   */
+  function loadPlanRoutes() {
+    var entries = state.plan.entries;
+    if (!entries || !entries.length) return;
+    global.CMB.plan.routesIn(entries).forEach(function (id) {
+      loadDepartures(id);
+      loadRouteData(id);
+    });
+  }
+
+  /*
+   * What the location bar is proposing, if anything.
+   *
+   * A '?plan=' query is accepted and then moved into the fragment, because the
+   * fragment is the half of a URL browsers never send to the server. That does
+   * not un-send the request that just arrived — the entries are in the access log
+   * already and the banner says so — but it stops the leak repeating on every
+   * reload and on every re-share of whatever is in the address bar.
+   */
+  function planFromLocation() {
+    var found = global.CMB.plan.fromLocation(global.location);
+    if (!found) return null;
+    if (found.fromQuery) rewriteQueryToFragment(found.raw);
+    return found;
+  }
+
+  function rewriteQueryToFragment(raw) {
+    if (!global.history || typeof global.history.replaceState !== 'function') return;
+    var search = (global.location.search || '').replace(/^\?/, '')
+      .split('&')
+      .filter(function (kv) { return kv && kv.split('=')[0] !== 'plan'; })
+      .join('&');
+    try {
+      global.history.replaceState(null, '',
+        global.location.pathname + (search ? '?' + search : '') + '#plan=' + raw);
+    } catch (e) {
+      /* Some browsers refuse replaceState on a file:// URL. The plan still
+       * renders; only the tidy-up is lost. */
+    }
+  }
+
+  /*
+   * Decide what the stops view is looking at, from the link and from storage.
+   *
+   * A link always wins the screen — someone who just opened one is asking to see
+   * it — but it only wins the STORE when they say so. A link that matches what is
+   * already kept is not an offer at all, which is the ordinary case of opening a
+   * bookmark twice.
+   */
+  function adoptPlan() {
+    var saved = global.CMB.plan.stored();
+    var link = planFromLocation();
+
+    if (link) {
+      state.plan.entries = link.entries;
+      state.plan.fromQuery = link.fromQuery;
+      state.plan.saved = !!(saved && global.CMB.plan.sameSet(saved, link.entries));
+      state.plan.offer = state.plan.saved ? null : link.entries;
+    } else if (saved) {
+      state.plan.entries = saved;
+      state.plan.saved = true;
+      state.plan.offer = null;
+      state.plan.fromQuery = false;
+    } else {
+      state.plan.entries = null;
+      state.plan.saved = false;
+      state.plan.offer = null;
+      state.plan.fromQuery = false;
+    }
+    loadPlanRoutes();
+  }
+
+  /*
+   * Let a schedule that failed to fetch be asked for once more.
+   *
+   * The document itself changes about three times a year, so this is not a poll:
+   * it is the only way back from a fetch that failed while the phone was in a
+   * tunnel, on a view that would otherwise stay blank until the tab is closed.
+   */
+  function retryDepartures(routeId) {
+    if (state.depStatus[routeId] === 'error') state.depStatus[routeId] = 'idle';
   }
 
   function load(routeId) {
@@ -351,6 +470,7 @@
     dom.viewbuttons = [];
     [
       { id: 'board', label: 'Route' },
+      { id: 'stops', label: 'Stops' },
       { id: 'all', label: 'All buses' },
       { id: 'saved', label: 'Saved' }
     ].forEach(function (v) {
@@ -376,6 +496,7 @@
     state.pickerOpen = false;
     store('view', id);
     if (id === 'all' && !state.all) loadAll();
+    if (id === 'stops') loadPlanRoutes();
     if (id === 'saved') {
       /* A saved trip cannot be resolved without its route's schedule. Fetch every
        * route a saved trip names, not just the one on screen. */
@@ -603,6 +724,7 @@
       }
     }
 
+    if (state.view === 'stops') { paintStops(); return; }
     if (state.view === 'all') { paintAll(); return; }
     if (state.view === 'saved') { paintSaved(); return; }
     if (state.view === 'saved-edit') { paintSavedEdit(); return; }
@@ -666,7 +788,89 @@
     dom.main.appendChild(footer(d));
   }
 
-  /* ---- the other two views --------------------------------------------- */
+  /* ---- the three views that are not the route board --------------------- */
+
+  /*
+   * Why a route's schedule is missing, in the only place that knows.
+   *
+   * The stops view is the one screen that cannot fall back to the bundled
+   * fixture: the fixture is a route payload, and a stop card needs the whole
+   * service day of scheduled departures, which only exists as a fetched
+   * document. From a file:// URL that is a permanent condition and saying "not
+   * loaded yet" would be a lie with a spinner attached.
+   */
+  function scheduleDetail(routeId) {
+    if (global.location.protocol === 'file:') {
+      return 'A stop card needs the day’s schedule, which is fetched rather than ' +
+        'bundled — so this view needs the board to be served, not opened from a file.';
+    }
+    if (state.depStatus[routeId] === 'error') {
+      return 'The schedule for route ' + routeId + ' could not be fetched. The next ' +
+        'refresh will try again.';
+    }
+    return null;
+  }
+
+  function paintStops() {
+    var band = el('section', 'band band--stops');
+    band.setAttribute('aria-label', 'Stops');
+    dom.main.appendChild(band);
+
+    var entries = state.plan.entries || [];
+    var now = nowEpoch();
+    var models = entries.map(function (e) {
+      /* Resolving here rather than only in selectView covers a link opened while
+       * the view is already showing. Both loaders are idempotent. */
+      loadDepartures(e.route_id);
+      loadRouteData(e.route_id);
+      return global.CMB.plan.resolve(
+        e,
+        state.departures[e.route_id] || null,
+        liveRoute(e.route_id),
+        now,
+        { schedule_detail: scheduleDetail(e.route_id) }
+      );
+    });
+
+    global.CMB.plan.render(band, global.CMB.plan.sortModels(models), {
+      offer: state.plan.offer,
+      cameFromQuery: state.plan.fromQuery,
+      saved: state.plan.saved,
+      link: entries.length
+        ? global.CMB.plan.linkFor(entries, global.location.href)
+        : null,
+      onKeep: function () {
+        global.CMB.plan.save(state.plan.entries);
+        state.plan.saved = true;
+        state.plan.offer = null;
+        announce('Kept ' + fmt.plural(state.plan.entries.length, 'stop', 'stops') +
+          ' on this phone.');
+        render();
+      },
+      onDismiss: function () {
+        state.plan.offer = null;
+        render();
+      },
+      onForget: function () {
+        global.CMB.plan.clear();
+        state.plan.saved = false;
+        /* The link, if there is one, is still on screen: forgetting is about the
+         * store, not about what is being looked at. */
+        if (!global.CMB.plan.fromLocation(global.location)) state.plan.entries = null;
+        announce('These stops are no longer kept on this phone.');
+        render();
+      },
+      onRemove: function (key) {
+        state.plan.entries = (state.plan.entries || []).filter(function (e) {
+          return global.CMB.plan.keyFor(e) !== key;
+        });
+        if (state.plan.saved) global.CMB.plan.save(state.plan.entries);
+        if (state.plan.offer) state.plan.offer = state.plan.entries;
+        render();
+      }
+    });
+    dom.main.appendChild(footer(state.data));
+  }
 
   function paintAll() {
     var band = el('section', 'band band--all');
@@ -845,8 +1049,15 @@
     loadDepartures(routeId);
     loadCatalog();
 
+    adoptPlan();
+
     var view = q.view || recall('view');
-    if (view === 'all' || view === 'saved') selectView(view);
+    if (view === 'all' || view === 'saved' || view === 'stops') selectView(view);
+    /*
+     * A link beats a remembered view. Someone who has just opened a stops link is
+     * asking for the stops, whatever tab they happened to leave the board on.
+     */
+    if (state.plan.offer) selectView('stops');
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
@@ -863,11 +1074,32 @@
           /* A frozen saved trip is worse than none: it reads as a live prediction. */
           global.CMB.watch.list().forEach(function (w) {
             state.routeStatus[w.route_id] = 'idle';
+            retryDepartures(w.route_id);
             loadRouteData(w.route_id);
+          });
+        }
+        if (state.view === 'stops') {
+          /* Same rule, and it bites harder here: a stops card names the bus that
+           * is bringing your trip in, and a frozen one puts it eight minutes away
+           * for as long as the tab stays open. */
+          global.CMB.plan.routesIn(state.plan.entries || []).forEach(function (id) {
+            state.routeStatus[id] = 'idle';
+            retryDepartures(id);
+            loadRouteData(id);
           });
         }
       }, REFRESH_MS);
     }
+
+    /*
+     * Pasting a second stops link into the same tab only changes the fragment, so
+     * nothing reloads and nothing would repaint without this.
+     */
+    global.addEventListener('hashchange', function () {
+      adoptPlan();
+      if (state.plan.entries) selectView('stops');
+      else render();
+    });
 
     var resizeTimer = null;
     global.addEventListener('resize', function () {

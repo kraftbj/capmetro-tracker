@@ -41,12 +41,132 @@ because a state table that cannot be looked at does not get verified:
 | `?state=all-states` | Synthetic adherence covering all six states (grayscale check) |
 | `?state=ladder-probe` | Synthetic 8+9 timepoint route: the BOTH-mode layout ruler |
 
-Also `?route=4` and `?dir=0|1|both`. The last route and direction persist in
-`localStorage`.
+Also `?route=4` and `?dir=0|1|both`, and `?view=board|stops|all|saved`. The last
+route, direction and view persist in `localStorage`.
+
+There is no `?state=` scenario for the stops view, and there cannot be a useful
+one yet: a stop card needs `api/departures/{route}.json`, the scenarios rewrite
+the bundled route fixture, and no departures document is bundled. The view is
+covered end to end instead, in `tests/e2e/stops.spec.mjs`, against fixtures the
+e2e server serves over HTTP.
 
 The `all-states` and `ladder-probe` scenarios rewrite the fixture and are labelled
 on screen as synthetic. They are instruments, not data — nothing in the shipped
 board invents a value.
+
+---
+
+## The stops link (`#plan=`)
+
+The fourth view. A **saved trip** is one named departure — "the 7:50a 800 SB from
+Simond/Berkman". A **stop** is a place and a time of day — "the 4 eastbound from
+Campbell/5th in the afternoons" — and it resolves to the next few departures,
+because which of the afternoon's buses gets caught is decided on the day.
+
+### The grammar
+
+```
+https://bus.dillo.dev/#plan=1;800.1.6293.am;4.0.3337.am;4.1.6243.pm
+                            │ └───────────┘
+                            │  route . direction . stop . window
+                            └ format version
+```
+
+`direction` is the GTFS `direction_id`, `0` or `1` — not a compass letter, since
+which of the two is northbound is a property of the route. `window` is `am`
+(04:00–12:00), `pm` (12:00–20:00), `all`, or an explicit `HHMM-HHMM` whose end may
+run past midnight (`2200-0200` is 22:00 to 26:00 in service-day seconds, the same
+convention every other clock in this contract uses). It is optional and defaults
+to `all`.
+
+A window decides which SECTION a stop lands in, never whether it is on the page.
+An afternoon stop at seven in the morning sits under "Later today" with its next
+departure printed, because "where did my stop go" is a worse question than "why is
+that one greyed out".
+
+Malformed entries are dropped and the rest still open. A plan is not a
+transaction; if four of five stops parse, the reader is standing at one of the
+four.
+
+### Why the fragment, and not the query
+
+Contract §9 hashes the watch tuple for one stated reason: *"so a URL or server log
+never carries a legible description of a child's daily routine."* A feature whose
+whole point is a URL has to answer that rather than inherit it.
+
+It is answered twice. The plan lives in the `#` fragment, which browsers do not
+send — `bus.dillo.dev`'s access log sees `GET /` however many stops the link
+carries. And the encoding is numeric ids: `4.1.6243.pm` names no street, no child
+and no clock time, and reading it needs the stop table, which is the same bar as
+reading the sha256.
+
+A `?plan=` query is still accepted, because a link that has been through three
+messaging apps can arrive in any shape — and is rewritten into the fragment via
+`replaceState` on arrival, with the banner saying so. That does not un-send the
+request that already reached the server; it stops the leak repeating on reload and
+on the next share.
+
+### Turnarounds, which are the reason this is not a list of times
+
+Three of the five stops this was built for are turnaround points: route 4 eastbound
+starts at Campbell/5th and at Veterans/Atlanta, route 837 northbound starts at
+Republic Square. **There is no eastbound bus approaching Campbell/5th, ever.** The
+bus that answers the question is westbound until it gets there, turns its headsign
+round and leaves as the eastbound trip. A board that looks for an approaching
+eastbound vehicle shows a scheduled time and no bus — the exact blank the design
+doc calls the failure this project exists to avoid.
+
+Three published facts answer it, and the card says which one it is using:
+
+| What is known | The card says |
+|---|---|
+| A vehicle is on the outbound trip and `STOPPED_AT` the stop | "Bus 2867 is at the stop now." |
+| A vehicle is on the inbound leg and `STOPPED_AT` the stop | "Bus 2867 is already standing at this stop, in on the 3:04p WB, and goes back out as this trip." |
+| A vehicle is running the inbound leg elsewhere | "Bus 2867 brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds late." |
+| Only the schedule knows | "Comes in on the 3:04p WB. No bus is reporting on that trip yet." |
+
+The live half comes from `vehicle.block.next_trip` (§2), the server's own block
+continuity with `is_direction_flip` already computed, falling back to the vehicle
+running the scheduled inbound leg — route 837 publishes `next_trip` without ever
+setting `is_direction_flip`, so that flag is read as extra information and never as
+a gate. The scheduled half comes from `departures.trips[].block_id`: the latest
+arrival at this stop, on the same block, in the other direction. Block continuity
+is the only honest link. Two trips sharing a stop and a plausible gap is a guess;
+two trips sharing a `block_id` is the agency saying one vehicle runs both.
+
+Whether a stop is a turnaround is **detected, never encoded in the link** — a
+departure is compared against its own trip's published `start_time`, so a schedule
+change three times a year cannot leave a hand-written flag lying about the
+geometry. It is also compared against `start_time` rather than a `stop_sequence`
+of 1, because sequence numbers belong to whichever pattern a trip runs and route 4
+publishes six patterns in one direction.
+
+### What is deliberately not computed
+
+When the inbound bus is nine minutes late, the outbound departure it becomes will
+almost certainly leave late too. The board does not print that number. Both facts
+are shown next to each other and the subtraction — which is one subtraction — is
+left to a reader who can see where it came from. A predicted departure derived from
+another trip's lateness is an invention with a plausible face, and nothing on this
+board invents a value.
+
+### Verified
+
+Rendered at 412×915 against **real generated output** (`.local/test-webroot` from
+`runtime/generate-api.php` over the committed shards), not the golden fixture,
+because CLAUDE.md says so and because the fixture is route 4 only.
+
+- All five stops resolve. Campbell/5th, Veterans/Atlanta and Republic Square are
+  detected as turnarounds; Simond SB and 7th/Pleasant Valley are not.
+- The inbound sentence names a real bus, a real leg and a real lateness on all
+  three turnarounds: "Bus 2867 brings it in on the 10:14a WB — due here in 4
+  minutes, running 35 seconds late."
+- No horizontal overflow at 412px; no console errors.
+- From a `file://` URL the cards say the schedule is fetched rather than bundled
+  and that this view needs the board served — not "loading", which would be a lie
+  with a spinner attached.
+
+Not verified on real hardware.
 
 ---
 

@@ -2,6 +2,52 @@
 
 ## Client
 
+### Let a stops link be built inside the app
+
+**What:** The stops view opens, resolves and keeps a `#plan=` link, and hands one
+back out for sharing. It cannot make a new one. Adding a stop today means editing
+the fragment by hand: `#plan=1;4.1.6243.pm` is route 4, direction 1, stop 6243,
+afternoons.
+
+**Why:** The five stops this shipped for are the five that were asked for, and a
+link covers a second parent's phone. The moment either kid's route changes, or
+anyone wants a sixth stop, it is a hand-edited URL and a lookup in `data/stops.json`
+to find the id.
+
+**Context:** Most of the work exists. `watch.js`'s editor already walks route →
+direction → stop against the departures document, and its first three steps are
+exactly the three fields a plan entry needs; only step 4, the specific departure,
+does not apply — a window control replaces it. The honest shape is probably to
+lift those three steps into something both editors call rather than to fork them,
+since two pickers over one document is the divergence CLAUDE.md keeps warning
+about. `CMB.plan.encode` and `CMB.plan.linkFor` already produce the link.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** None
+
+### Decide what a stops card should do when a bus is cancelled
+
+**What:** A departure whose trip the feed reports `CANCELED` renders like any
+other: a time, and "no bus is reporting on this trip yet". The adherence layer
+knows — `reason: trip_canceled` — but a stop card with no vehicle never reaches a
+vehicle to ask.
+
+**Why:** "No bus reporting yet" is normal and reassuring. "This trip is cancelled"
+is the one thing a parent needs to know before it is due, and today the two look
+identical on the card that exists to answer exactly that.
+
+**Context:** Found while building the stops view on 2026-08-19, deliberately left
+alone rather than guessed at. The route payload only carries vehicles, so a
+cancelled trip with no vehicle assigned is invisible to the client — this may need
+`schedule_relationship` surfaced per scheduled trip, which is an API contract
+question, not a client one. Check whether CapMetro's trip updates actually carry
+cancellations for these routes before costing it.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** An API contract answer
+
 
 
 ### Decide whether the map ever gets streets under it
