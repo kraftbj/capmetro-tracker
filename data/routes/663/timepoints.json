@@ -1,0 +1,505 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"2-172": "663-0-1ce96bf4",
+				"24-172": "663-0-08927950",
+				"25-172": "663-0-08927950",
+				"26-172": "663-0-08927950",
+				"27-172": "663-0-08927950",
+				"28-172": "663-0-08927950",
+				"3-172": "663-0-1ce96bf4",
+				"4-172": "663-0-1ce96bf4",
+				"5-172": "663-0-1ce96bf4"
+			},
+			"baseline_pattern_id": "663-0-08927950",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"663-0-08927950": {
+					"direction_id": 0,
+					"pattern_id": "663-0-08927950",
+					"representative_trip_id": "3009081_19718",
+					"service_ids": [
+						"24-172",
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.283826,
+							"lon": -97.7409,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26939,
+									"lon": -97.7472,
+									"stop_id": "1967",
+									"stop_name": "6th/San Antonio",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271955,
+									"lon": -97.754879,
+									"stop_id": "1971",
+									"stop_name": "6th/Baylor",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273935,
+									"lon": -97.760118,
+									"stop_id": "1973",
+									"stop_name": "6th/Pressler",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276005,
+									"lon": -97.76454,
+									"stop_id": "3519",
+									"stop_name": "6th/Campbell",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277571,
+									"lon": -97.771314,
+									"stop_id": "5824",
+									"stop_name": "Lake Austin/Upson",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279419,
+									"lon": -97.774048,
+									"stop_id": "5825",
+									"stop_name": "Lake Austin/Hearn",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.282319,
+									"lon": -97.776058,
+									"stop_id": "1981",
+									"stop_name": "Lake Austin/7th",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5178",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.288949,
+							"lon": -97.783344,
+							"minor_stops": [],
+							"stop_id": "4985",
+							"stop_name": "Kermit/Lufkin",
+							"stop_name_full": "Kermit/Lufkin",
+							"stop_sequence": 10
+						}
+					]
+				},
+				"663-0-1ce96bf4": {
+					"direction_id": 0,
+					"pattern_id": "663-0-1ce96bf4",
+					"representative_trip_id": "3009182_19625",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 8,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.283826,
+							"lon": -97.7409,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273935,
+									"lon": -97.760118,
+									"stop_id": "1973",
+									"stop_name": "6th/Pressler",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276005,
+									"lon": -97.76454,
+									"stop_id": "3519",
+									"stop_name": "6th/Campbell",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277571,
+									"lon": -97.771314,
+									"stop_id": "5824",
+									"stop_name": "Lake Austin/Upson",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279419,
+									"lon": -97.774048,
+									"stop_id": "5825",
+									"stop_name": "Lake Austin/Hearn",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.282319,
+									"lon": -97.776058,
+									"stop_id": "1981",
+									"stop_name": "Lake Austin/7th",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "5178",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.288949,
+							"lon": -97.783344,
+							"minor_stops": [],
+							"stop_id": "4985",
+							"stop_name": "Kermit/Lufkin",
+							"stop_name_full": "Kermit/Lufkin",
+							"stop_sequence": 8
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"2-172": "663-1-361ccba2",
+				"24-172": "663-1-1af537e0",
+				"25-172": "663-1-1af537e0",
+				"26-172": "663-1-1af537e0",
+				"27-172": "663-1-1af537e0",
+				"28-172": "663-1-1af537e0",
+				"3-172": "663-1-361ccba2",
+				"4-172": "663-1-361ccba2",
+				"5-172": "663-1-361ccba2"
+			},
+			"baseline_pattern_id": "663-1-1af537e0",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"663-1-1af537e0": {
+					"direction_id": 1,
+					"pattern_id": "663-1-1af537e0",
+					"representative_trip_id": "3009232_19487",
+					"service_ids": [
+						"24-172",
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172"
+					],
+					"stop_count": 15,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.288949,
+							"lon": -97.783344,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.287388,
+									"lon": -97.782369,
+									"stop_id": "3520",
+									"stop_name": "Kermit/Jasper",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.287732,
+									"lon": -97.780403,
+									"stop_id": "4838",
+									"stop_name": "Jasper/Lake Austin",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284539,
+									"lon": -97.777864,
+									"stop_id": "4986",
+									"stop_name": "Lake Austin/Jasper",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.282567,
+									"lon": -97.776462,
+									"stop_id": "5626",
+									"stop_name": "Lake Austin/Exposition",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279378,
+									"lon": -97.774279,
+									"stop_id": "4162",
+									"stop_name": "Lake Austin/Dumas",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27738,
+									"lon": -97.77137,
+									"stop_id": "2102",
+									"stop_name": "Lake Austin/Veterans",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273605,
+									"lon": -97.763241,
+									"stop_id": "4086",
+									"stop_name": "5th/West Lynn",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2726,
+									"lon": -97.760749,
+									"stop_id": "2104",
+									"stop_name": "5Th/Pressler",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270977,
+									"lon": -97.756406,
+									"stop_id": "2106",
+									"stop_name": "5th/Baylor",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268672,
+									"lon": -97.748979,
+									"stop_id": "2110",
+									"stop_name": "5th/Nueces",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283593,
+									"lon": -97.739574,
+									"stop_id": "6159",
+									"stop_name": "University/21st",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "4985",
+							"stop_name": "Kermit/Lufkin",
+							"stop_name_full": "Kermit/Lufkin",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.283826,
+							"lon": -97.7409,
+							"minor_stops": [],
+							"stop_id": "5178",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis",
+							"stop_sequence": 15
+						}
+					]
+				},
+				"663-1-361ccba2": {
+					"direction_id": 1,
+					"pattern_id": "663-1-361ccba2",
+					"representative_trip_id": "3009338_19398",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 14,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.288949,
+							"lon": -97.783344,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.287388,
+									"lon": -97.782369,
+									"stop_id": "3520",
+									"stop_name": "Kermit/Jasper",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.287732,
+									"lon": -97.780403,
+									"stop_id": "4838",
+									"stop_name": "Jasper/Lake Austin",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284539,
+									"lon": -97.777864,
+									"stop_id": "4986",
+									"stop_name": "Lake Austin/Jasper",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.282567,
+									"lon": -97.776462,
+									"stop_id": "5626",
+									"stop_name": "Lake Austin/Exposition",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279378,
+									"lon": -97.774279,
+									"stop_id": "4162",
+									"stop_name": "Lake Austin/Dumas",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27738,
+									"lon": -97.77137,
+									"stop_id": "2102",
+									"stop_name": "Lake Austin/Veterans",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273605,
+									"lon": -97.763241,
+									"stop_id": "4086",
+									"stop_name": "5th/West Lynn",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2726,
+									"lon": -97.760749,
+									"stop_id": "2104",
+									"stop_name": "5Th/Pressler",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270977,
+									"lon": -97.756406,
+									"stop_id": "2106",
+									"stop_name": "5th/Baylor",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268672,
+									"lon": -97.748979,
+									"stop_id": "2110",
+									"stop_name": "5th/Nueces",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283593,
+									"lon": -97.739574,
+									"stop_id": "6159",
+									"stop_name": "University/21st",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "4985",
+							"stop_name": "Kermit/Lufkin",
+							"stop_name_full": "Kermit/Lufkin",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.283826,
+							"lon": -97.7409,
+							"minor_stops": [],
+							"stop_id": "5178",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis",
+							"stop_sequence": 14
+						}
+					]
+				}
+			},
+			"stop_count": 15,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "663",
+	"schema": 1
+}

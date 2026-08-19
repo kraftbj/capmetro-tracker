@@ -1,0 +1,63 @@
+{
+  "_comment": "Silent failure 1: a route-4 schedule shard built from an OLDER GTFS feed version, so none of the trip ids the live feed reports today exist in it; the unmatched-trip rate must alarm instead of silently reporting every bus as unknown.",
+  "schema": 1,
+  "route_id": "4",
+  "feed_version": "260601_0900",
+  "built_at": 1780000000,
+  "service_date": "20260819",
+  "trips": {
+    "2900001_15202": {
+      "service_id": "1-165",
+      "direction_id": 1,
+      "block_id": "4004",
+      "start_time": "10:05:00",
+      "stop_times": [
+        {
+          "stop_sequence": 1,
+          "stop_id": "1368",
+          "arrival": "10:05:00",
+          "departure": "10:05:00",
+          "timepoint": 1
+        },
+        {
+          "stop_sequence": 5,
+          "stop_id": "2107",
+          "arrival": "10:11:37",
+          "departure": "10:11:37",
+          "timepoint": 0
+        }
+      ]
+    },
+    "2900002_15201": {
+      "service_id": "1-165",
+      "direction_id": 1,
+      "block_id": "4005",
+      "start_time": "09:45:00",
+      "stop_times": [
+        {
+          "stop_sequence": 1,
+          "stop_id": "1368",
+          "arrival": "09:45:00",
+          "departure": "09:45:00",
+          "timepoint": 1
+        }
+      ]
+    }
+  },
+  "_live_trip_ids_today": [
+    "3014769_15202",
+    "3014707_15609",
+    "3014768_15201",
+    "3014706_15608",
+    "3014708_15610"
+  ],
+  "_expected": {
+    "matched_trips": 0,
+    "unmatched_trips": 5,
+    "unmatched_rate": 1.0,
+    "alarm_threshold": 0.2,
+    "alarms": true,
+    "per_vehicle_adherence_state": "unknown",
+    "per_vehicle_adherence_reason": "trip_not_in_schedule"
+  }
+}

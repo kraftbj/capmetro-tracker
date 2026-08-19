@@ -1,0 +1,70 @@
+{
+  "_comment": "Decision-table row 2: a CANCELED trip carries no stopTimeUpdate at all (11% of the real feed's 912 trip updates), so it must be unknown/trip_canceled and must never be treated as a missing-prediction bug.",
+  "_service_date": "20260819",
+  "_expected": {
+    "adherence_state": "unknown",
+    "adherence_reason": "trip_canceled",
+    "adherence_seconds": null,
+    "glyph": "question",
+    "in_service": true
+  },
+  "positions": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787152239"
+    },
+    "entity": [
+      {
+        "id": "9004",
+        "vehicle": {
+          "trip": {
+            "tripId": "3014750_15300",
+            "startTime": "10:15:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "CANCELED",
+            "routeId": "4",
+            "directionId": 0
+          },
+          "position": {
+            "latitude": 30.2574,
+            "longitude": -97.7106,
+            "bearing": 90.0,
+            "speed": 0.0
+          },
+          "currentStopSequence": 1,
+          "currentStatus": "STOPPED_AT",
+          "timestamp": "1787152234",
+          "stopId": "1368",
+          "vehicle": {
+            "id": "9004",
+            "label": "9004"
+          }
+        }
+      }
+    ]
+  },
+  "trip_updates": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787152196"
+    },
+    "entity": [
+      {
+        "id": "3014750_15300",
+        "tripUpdate": {
+          "trip": {
+            "tripId": "3014750_15300",
+            "startTime": "10:15:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "CANCELED",
+            "routeId": "4",
+            "directionId": 0
+          },
+          "timestamp": "1787152196"
+        }
+      }
+    ]
+  }
+}

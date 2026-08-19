@@ -1,0 +1,145 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"25-172": "661-0-2e718322",
+				"26-172": "661-0-2e718322",
+				"27-172": "661-0-2e718322",
+				"28-172": "661-0-2e718322",
+				"29-172": "661-0-2e718322"
+			},
+			"baseline_pattern_id": "661-0-2e718322",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"661-0-2e718322": {
+					"direction_id": 0,
+					"pattern_id": "661-0-2e718322",
+					"representative_trip_id": "3008571_19267",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 3,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.289553,
+							"lon": -97.739586,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.35077,
+									"lon": -97.75486,
+									"stop_id": "1922",
+									"stop_name": "Wood Hollow/Far West",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "5528",
+							"stop_name": "Dean Keeton/Whitis",
+							"stop_name_full": "203 Dean Keeton/Whitis",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.351595,
+							"lon": -97.756663,
+							"minor_stops": [],
+							"stop_id": "3513",
+							"stop_name": "North Hills/Village…",
+							"stop_name_full": "3600 North Hills/Village Center",
+							"stop_sequence": 3
+						}
+					]
+				}
+			},
+			"stop_count": 3,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"25-172": "661-1-94354667",
+				"26-172": "661-1-94354667",
+				"27-172": "661-1-94354667",
+				"28-172": "661-1-94354667",
+				"29-172": "661-1-94354667"
+			},
+			"baseline_pattern_id": "661-1-94354667",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"661-1-94354667": {
+					"direction_id": 1,
+					"pattern_id": "661-1-94354667",
+					"representative_trip_id": "3008764_19081",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 5,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.351595,
+							"lon": -97.756663,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.357422,
+									"lon": -97.754595,
+									"stop_id": "4983",
+									"stop_name": "Hart/Far West",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.35775,
+									"lon": -97.75079,
+									"stop_id": "1919",
+									"stop_name": "Wood Hollow/Greystone",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.35517,
+									"lon": -97.75214,
+									"stop_id": "1920",
+									"stop_name": "Wood Hollow/Greystone",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "3513",
+							"stop_name": "North Hills/Village…",
+							"stop_name_full": "3600 North Hills/Village Center",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.289553,
+							"lon": -97.739586,
+							"minor_stops": [],
+							"stop_id": "5528",
+							"stop_name": "Dean Keeton/Whitis",
+							"stop_name_full": "203 Dean Keeton/Whitis",
+							"stop_sequence": 5
+						}
+					]
+				}
+			},
+			"stop_count": 5,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "661",
+	"schema": 1
+}

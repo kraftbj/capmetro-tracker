@@ -1,0 +1,15 @@
+{
+    "name": "kraft/capmetro-tracker",
+    "description": "CapMetro dispatch board",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

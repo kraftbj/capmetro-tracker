@@ -1,0 +1,179 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"25-172": "672-0-f819e459",
+				"26-172": "672-0-f819e459",
+				"27-172": "672-0-f819e459",
+				"28-172": "672-0-f819e459",
+				"29-172": "672-0-f819e459"
+			},
+			"baseline_pattern_id": "672-0-f819e459",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"672-0-f819e459": {
+					"direction_id": 0,
+					"pattern_id": "672-0-f819e459",
+					"representative_trip_id": "3009898_20375",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 2,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.284999,
+							"lon": -97.731804,
+							"minor_stops": [],
+							"stop_id": "5176",
+							"stop_name": "23rd/Trinity",
+							"stop_name_full": "601 23rd/Trinity",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.240939,
+							"lon": -97.724233,
+							"minor_stops": [],
+							"stop_id": "6082",
+							"stop_name": "Elmont/Town Lake",
+							"stop_name_full": "2219 Elmont/Town Lake",
+							"stop_sequence": 2
+						}
+					]
+				}
+			},
+			"stop_count": 2,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"25-172": "672-1-3f1014d3",
+				"26-172": "672-1-3f1014d3",
+				"27-172": "672-1-3f1014d3",
+				"28-172": "672-1-3f1014d3",
+				"29-172": "672-1-3f1014d3"
+			},
+			"baseline_pattern_id": "672-1-3f1014d3",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"672-1-3f1014d3": {
+					"direction_id": 1,
+					"pattern_id": "672-1-3f1014d3",
+					"representative_trip_id": "3010018_20247",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.240939,
+							"lon": -97.724233,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.239806,
+									"lon": -97.718797,
+									"stop_id": "4284",
+									"stop_name": "Elmont NB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.242205,
+									"lon": -97.717284,
+									"stop_id": "1364",
+									"stop_name": "Roy G Guerrero NB",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "6082",
+							"stop_name": "Elmont/Town Lake",
+							"stop_name_full": "2219 Elmont/Town Lake",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.257443,
+							"lon": -97.710596,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.280356,
+									"lon": -97.718217,
+									"stop_id": "5492",
+									"stop_name": "Martin Luther…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279307,
+									"lon": -97.73295,
+									"stop_id": "2761",
+									"stop_name": "Martin Luther King/Red…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279666,
+									"lon": -97.734311,
+									"stop_id": "4586",
+									"stop_name": "Martin Luther…",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.281645,
+									"lon": -97.733191,
+									"stop_id": "4135",
+									"stop_name": "San Jacinto/20th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.285019,
+									"lon": -97.73202,
+									"stop_id": "5775",
+									"stop_name": "23rd/Trinity",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "1368",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "501 Pleasant Valley/5th",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.284999,
+							"lon": -97.731804,
+							"minor_stops": [],
+							"stop_id": "5176",
+							"stop_name": "23rd/Trinity",
+							"stop_name_full": "601 23rd/Trinity",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "672",
+	"schema": 1
+}

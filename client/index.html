@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="Live CapMetro bus positions and schedule adherence for one route, on a phone.">
+<title>School Bus Board</title>
+
+<!--
+  Static, no build step, no framework. Open this file from disk and it runs
+  against the committed golden fixture; serve it next to /api/route/*.json and
+  it runs against the live feed instead.
+
+  Scripts load in dependency order and share one `window.CMB` namespace.
+  Classic scripts, not modules, because ES modules are blocked on file:// URLs
+  and being openable from disk is a requirement, not a convenience.
+-->
+<link rel="stylesheet" href="styles.css">
+<!-- No font preload: a crossorigin preload is rejected on file:// URLs, and the
+     board has to open from disk. font-display:swap covers the first paint. -->
+</head>
+<body>
+
+<div id="app">
+  <noscript>
+    <p style="padding:16px">
+      This board renders live vehicle positions in the browser and needs
+      JavaScript. The data itself is a plain JSON file at
+      <code>api/route/4.json</code> if you would rather read it directly.
+    </p>
+  </noscript>
+</div>
+
+<script src="data/route-4-20260819.js"></script>
+<script src="format.js"></script>
+<script src="adherence.js"></script>
+<script src="states.js"></script>
+<script src="rows.js"></script>
+<script src="ladder.js"></script>
+<script src="map.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

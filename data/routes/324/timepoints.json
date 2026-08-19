@@ -1,0 +1,901 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "324-0-901dd74f",
+				"8-172": "324-0-901dd74f",
+				"9-172": "324-0-901dd74f"
+			},
+			"baseline_pattern_id": "324-0-901dd74f",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"324-0-901dd74f": {
+					"direction_id": 0,
+					"pattern_id": "324-0-901dd74f",
+					"representative_trip_id": "3003095_10765",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 33,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.357549,
+							"lon": -97.738037,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.358707,
+									"lon": -97.736521,
+									"stop_id": "5855",
+									"stop_name": "Anderson/Northcross",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.358604,
+									"lon": -97.730093,
+									"stop_id": "5746",
+									"stop_name": "Burnet/Ashdale",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.360508,
+									"lon": -97.729588,
+									"stop_id": "3063",
+									"stop_name": "Burnet/Teakwood",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.362571,
+									"lon": -97.728237,
+									"stop_id": "3120",
+									"stop_name": "Ohlen/Bowling Green",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.360919,
+									"lon": -97.723494,
+									"stop_id": "5662",
+									"stop_name": "Ohlen/Renton",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.36282,
+									"lon": -97.71887,
+									"stop_id": "3123",
+									"stop_name": "Ohlen/Contour",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "6388",
+							"stop_name": "Foster/Rockwood",
+							"stop_name_full": "2751 Foster/Rockwood",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.36357,
+							"lon": -97.71592,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.36617,
+									"lon": -97.715754,
+									"stop_id": "4733",
+									"stop_name": "Galewood/Payton Gin",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.367505,
+									"lon": -97.714901,
+									"stop_id": "4731",
+									"stop_name": "Galewood/Colony Creek",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.369704,
+									"lon": -97.716323,
+									"stop_id": "4728",
+									"stop_name": "Colony Creek/Northgate",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.371653,
+									"lon": -97.715172,
+									"stop_id": "5682",
+									"stop_name": "Rundberg/Northgate",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.371315,
+									"lon": -97.709301,
+									"stop_id": "6255",
+									"stop_name": "Mountain Quail/Rutland",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.375848,
+									"lon": -97.705196,
+									"stop_id": "6252",
+									"stop_name": "Mountain Quail/Mearns…",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.371708,
+									"lon": -97.702935,
+									"stop_id": "6251",
+									"stop_name": "Mearns Meadow/Parkfield",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.369808,
+									"lon": -97.701042,
+									"stop_id": "6257",
+									"stop_name": "Mearns Meadow/Quail",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.366754,
+									"lon": -97.70087,
+									"stop_id": "6258",
+									"stop_name": "Mearns Meadow/Rutland",
+									"stop_sequence": 17
+								}
+							],
+							"stop_id": "3125",
+							"stop_name": "Ohlen/Research",
+							"stop_name_full": "1649 Ohlen/Research",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.3637,
+							"lon": -97.69848,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.362762,
+									"lon": -97.696525,
+									"stop_id": "4539",
+									"stop_name": "Rundberg/Lamar",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.361569,
+									"lon": -97.694541,
+									"stop_id": "2585",
+									"stop_name": "Rundberg/Slayton",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.360445,
+									"lon": -97.693759,
+									"stop_id": "4725",
+									"stop_name": "Georgian/Rundberg",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.358478,
+									"lon": -97.69499,
+									"stop_id": "5406",
+									"stop_name": "Georgian/Fawnridge",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.355832,
+									"lon": -97.696474,
+									"stop_id": "1148",
+									"stop_name": "Georgian/Home Pl.",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.353289,
+									"lon": -97.699042,
+									"stop_id": "1149",
+									"stop_name": "Georgian/Elliott",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.349752,
+									"lon": -97.702016,
+									"stop_id": "1150",
+									"stop_name": "Georgian/Jennifer",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.347697,
+									"lon": -97.703234,
+									"stop_id": "1151",
+									"stop_name": "Georgian/Powell",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.344902,
+									"lon": -97.704659,
+									"stop_id": "1152",
+									"stop_name": "Georgian/Anderson",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.34336,
+									"lon": -97.705878,
+									"stop_id": "1153",
+									"stop_name": "Northcrest/Anderson",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.339681,
+									"lon": -97.711761,
+									"stop_id": "1156",
+									"stop_name": "Crestland/Meadowview",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.337324,
+									"lon": -97.714833,
+									"stop_id": "1158",
+									"stop_name": "Guadalupe/St Johns",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.335705,
+									"lon": -97.715903,
+									"stop_id": "1159",
+									"stop_name": "Guadalupe/Swanee",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.333535,
+									"lon": -97.716863,
+									"stop_id": "5510",
+									"stop_name": "Airport/Guadalupe",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "2583",
+							"stop_name": "Rundberg/Lamar",
+							"stop_name_full": "831 Rundberg/Lamar (Near Side)",
+							"stop_sequence": 18
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.328491,
+							"lon": -97.713603,
+							"minor_stops": [],
+							"stop_id": "1160",
+							"stop_name": "Highland Mall/Jonathan",
+							"stop_name_full": "105 Highland Mall/Jonathan",
+							"stop_sequence": 33
+						}
+					]
+				}
+			},
+			"stop_count": 33,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "324-1-a63e2eea",
+				"2-172": "324-1-45d98dde",
+				"3-172": "324-1-45d98dde",
+				"4-172": "324-1-45d98dde",
+				"5-172": "324-1-45d98dde",
+				"6-172": "324-1-a63e2eea",
+				"7-172": "324-1-45d98dde",
+				"8-172": "324-1-a63e2eea"
+			},
+			"baseline_pattern_id": "324-1-45d98dde",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"324-1-45d98dde": {
+					"direction_id": 1,
+					"pattern_id": "324-1-45d98dde",
+					"representative_trip_id": "3003130_10900",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 32,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.328491,
+							"lon": -97.713603,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.33044,
+									"lon": -97.715281,
+									"stop_id": "3276",
+									"stop_name": "Huntland/Airport",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334694,
+									"lon": -97.716377,
+									"stop_id": "1274",
+									"stop_name": "Guadalupe/Kennistson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337671,
+									"lon": -97.714427,
+									"stop_id": "1275",
+									"stop_name": "Guadalupe/St Johns",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.339996,
+									"lon": -97.712898,
+									"stop_id": "1276",
+									"stop_name": "Guadalupe/Crestland",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.340632,
+									"lon": -97.708421,
+									"stop_id": "1278",
+									"stop_name": "Northcrest/Prairie Dell",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.343527,
+									"lon": -97.705431,
+									"stop_id": "5923",
+									"stop_name": "Georgian/Research",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.345388,
+									"lon": -97.704224,
+									"stop_id": "5922",
+									"stop_name": "Georgian/Wonsley",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.349494,
+									"lon": -97.702006,
+									"stop_id": "1282",
+									"stop_name": "Georgian/Red Oak",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.351297,
+									"lon": -97.700509,
+									"stop_id": "1283",
+									"stop_name": "Georgian/Walnut",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.353431,
+									"lon": -97.698728,
+									"stop_id": "1284",
+									"stop_name": "Georgian/Little Walnut",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.356009,
+									"lon": -97.696169,
+									"stop_id": "1285",
+									"stop_name": "Georgian/Home Place",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.358122,
+									"lon": -97.694809,
+									"stop_id": "1286",
+									"stop_name": "Georgian/Fawnridge",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.361759,
+									"lon": -97.694423,
+									"stop_id": "3147",
+									"stop_name": "Rundberg/Slayton",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "1160",
+							"stop_name": "Highland Mall/Jonathan",
+							"stop_name_full": "105 Highland Mall/Jonathan",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.363939,
+							"lon": -97.698486,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.364972,
+									"lon": -97.700675,
+									"stop_id": "3149",
+									"stop_name": "Rundberg/Mearns Meadow",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.369909,
+									"lon": -97.700949,
+									"stop_id": "6256",
+									"stop_name": "Mearns Meadow/Quail",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371772,
+									"lon": -97.702801,
+									"stop_id": "6250",
+									"stop_name": "Mearns Meadow/Parkfield",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.375732,
+									"lon": -97.705971,
+									"stop_id": "6253",
+									"stop_name": "Mountain Quail/Oak…",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371326,
+									"lon": -97.709486,
+									"stop_id": "6254",
+									"stop_name": "Mountain Quail/Rutland",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371705,
+									"lon": -97.715859,
+									"stop_id": "3155",
+									"stop_name": "Northgate/Rundberg",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.369189,
+									"lon": -97.715046,
+									"stop_id": "4729",
+									"stop_name": "Colony Creek/Northgate",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.36748,
+									"lon": -97.71512,
+									"stop_id": "4730",
+									"stop_name": "Galewood/Colony Creek",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "3148",
+							"stop_name": "Rundberg/Lamar",
+							"stop_name_full": "832 Rundberg/Lamar",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.36371,
+							"lon": -97.71609,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.362927,
+									"lon": -97.71902,
+									"stop_id": "4734",
+									"stop_name": "Ohlen/Research",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.361169,
+									"lon": -97.723184,
+									"stop_id": "5575",
+									"stop_name": "Ohlen/Renton",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.362828,
+									"lon": -97.72843,
+									"stop_id": "3159",
+									"stop_name": "Ohlen/Bowling Green",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.360468,
+									"lon": -97.729812,
+									"stop_id": "3160",
+									"stop_name": "Burnet/Steck",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.358333,
+									"lon": -97.730386,
+									"stop_id": "3060",
+									"stop_name": "Burnet/Ashdale",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354217,
+									"lon": -97.732117,
+									"stop_id": "5849",
+									"stop_name": "Northcross Station",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354986,
+									"lon": -97.73617,
+									"stop_id": "5851",
+									"stop_name": "Northcross/Foster",
+									"stop_sequence": 31
+								}
+							],
+							"stop_id": "3033",
+							"stop_name": "Ohlen/Payton Gin",
+							"stop_name_full": "1624 Ohlen/Payton Gin",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.357549,
+							"lon": -97.738037,
+							"minor_stops": [],
+							"stop_id": "6388",
+							"stop_name": "Foster/Rockwood",
+							"stop_name_full": "2751 Foster/Rockwood",
+							"stop_sequence": 32
+						}
+					]
+				},
+				"324-1-a63e2eea": {
+					"direction_id": 1,
+					"pattern_id": "324-1-a63e2eea",
+					"representative_trip_id": "3003130_10864",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 33,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.328491,
+							"lon": -97.713603,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.33044,
+									"lon": -97.715281,
+									"stop_id": "3276",
+									"stop_name": "Huntland/Airport",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334694,
+									"lon": -97.716377,
+									"stop_id": "1274",
+									"stop_name": "Guadalupe/Kennistson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337671,
+									"lon": -97.714427,
+									"stop_id": "1275",
+									"stop_name": "Guadalupe/St Johns",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.339996,
+									"lon": -97.712898,
+									"stop_id": "1276",
+									"stop_name": "Guadalupe/Crestland",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.340632,
+									"lon": -97.708421,
+									"stop_id": "1278",
+									"stop_name": "Northcrest/Prairie Dell",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.343527,
+									"lon": -97.705431,
+									"stop_id": "5923",
+									"stop_name": "Georgian/Research",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.345388,
+									"lon": -97.704224,
+									"stop_id": "5922",
+									"stop_name": "Georgian/Wonsley",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.349494,
+									"lon": -97.702006,
+									"stop_id": "1282",
+									"stop_name": "Georgian/Red Oak",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.351297,
+									"lon": -97.700509,
+									"stop_id": "1283",
+									"stop_name": "Georgian/Walnut",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.353431,
+									"lon": -97.698728,
+									"stop_id": "1284",
+									"stop_name": "Georgian/Little Walnut",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.356009,
+									"lon": -97.696169,
+									"stop_id": "1285",
+									"stop_name": "Georgian/Home Place",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.358122,
+									"lon": -97.694809,
+									"stop_id": "1286",
+									"stop_name": "Georgian/Fawnridge",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.361759,
+									"lon": -97.694423,
+									"stop_id": "3147",
+									"stop_name": "Rundberg/Slayton",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "1160",
+							"stop_name": "Highland Mall/Jonathan",
+							"stop_name_full": "105 Highland Mall/Jonathan",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.363939,
+							"lon": -97.698486,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.364972,
+									"lon": -97.700675,
+									"stop_id": "3149",
+									"stop_name": "Rundberg/Mearns Meadow",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.369909,
+									"lon": -97.700949,
+									"stop_id": "6256",
+									"stop_name": "Mearns Meadow/Quail",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371772,
+									"lon": -97.702801,
+									"stop_id": "6250",
+									"stop_name": "Mearns Meadow/Parkfield",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.375732,
+									"lon": -97.705971,
+									"stop_id": "6253",
+									"stop_name": "Mountain Quail/Oak…",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371326,
+									"lon": -97.709486,
+									"stop_id": "6254",
+									"stop_name": "Mountain Quail/Rutland",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371705,
+									"lon": -97.715859,
+									"stop_id": "3155",
+									"stop_name": "Northgate/Rundberg",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.369189,
+									"lon": -97.715046,
+									"stop_id": "4729",
+									"stop_name": "Colony Creek/Northgate",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.36748,
+									"lon": -97.71512,
+									"stop_id": "4730",
+									"stop_name": "Galewood/Colony Creek",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.366009,
+									"lon": -97.716055,
+									"stop_id": "4732",
+									"stop_name": "Galewood/Payton Gin",
+									"stop_sequence": 24
+								}
+							],
+							"stop_id": "3148",
+							"stop_name": "Rundberg/Lamar",
+							"stop_name_full": "832 Rundberg/Lamar",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.36371,
+							"lon": -97.71609,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.362927,
+									"lon": -97.71902,
+									"stop_id": "4734",
+									"stop_name": "Ohlen/Research",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.361169,
+									"lon": -97.723184,
+									"stop_id": "5575",
+									"stop_name": "Ohlen/Renton",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.362828,
+									"lon": -97.72843,
+									"stop_id": "3159",
+									"stop_name": "Ohlen/Bowling Green",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.360468,
+									"lon": -97.729812,
+									"stop_id": "3160",
+									"stop_name": "Burnet/Steck",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.358333,
+									"lon": -97.730386,
+									"stop_id": "3060",
+									"stop_name": "Burnet/Ashdale",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354217,
+									"lon": -97.732117,
+									"stop_id": "5849",
+									"stop_name": "Northcross Station",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354986,
+									"lon": -97.73617,
+									"stop_id": "5851",
+									"stop_name": "Northcross/Foster",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "3033",
+							"stop_name": "Ohlen/Payton Gin",
+							"stop_name_full": "1624 Ohlen/Payton Gin",
+							"stop_sequence": 25
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.357549,
+							"lon": -97.738037,
+							"minor_stops": [],
+							"stop_id": "6388",
+							"stop_name": "Foster/Rockwood",
+							"stop_name_full": "2751 Foster/Rockwood",
+							"stop_sequence": 33
+						}
+					]
+				}
+			},
+			"stop_count": 32,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "324",
+	"schema": 1
+}

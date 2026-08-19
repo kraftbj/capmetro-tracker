@@ -1,0 +1,593 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "486-0-2fef6cb9",
+				"2-172": "486-0-2fef6cb9",
+				"3-172": "486-0-2fef6cb9",
+				"4-172": "486-0-2fef6cb9",
+				"5-172": "486-0-2fef6cb9",
+				"6-172": "486-0-2fef6cb9",
+				"7-172": "486-0-2fef6cb9"
+			},
+			"baseline_pattern_id": "486-0-2fef6cb9",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"486-0-2fef6cb9": {
+					"direction_id": 0,
+					"pattern_id": "486-0-2fef6cb9",
+					"representative_trip_id": "3005972_16432",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172"
+					],
+					"stop_count": 33,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258767,
+									"lon": -97.7487,
+									"stop_id": "2763",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.255385,
+									"lon": -97.747685,
+									"stop_id": "517",
+									"stop_name": "Congress/Riverside",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252434,
+									"lon": -97.74878,
+									"stop_id": "5743",
+									"stop_name": "Congress/Nellie",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.248134,
+									"lon": -97.750367,
+									"stop_id": "4029",
+									"stop_name": "Soco Station",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.243058,
+									"lon": -97.752263,
+									"stop_id": "522",
+									"stop_name": "Congress/Crockett",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240333,
+									"lon": -97.752905,
+									"stop_id": "524",
+									"stop_name": "Congress/College",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.238013,
+									"lon": -97.754383,
+									"stop_id": "4046",
+									"stop_name": "Oltorf Station",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235695,
+									"lon": -97.756374,
+									"stop_id": "526",
+									"stop_name": "Congress/Cumberland",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23259,
+									"lon": -97.75853,
+									"stop_id": "527",
+									"stop_name": "Congress/La Vista",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.228933,
+									"lon": -97.760817,
+									"stop_id": "5870",
+									"stop_name": "St Edwards Station",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.226896,
+									"lon": -97.761935,
+									"stop_id": "529",
+									"stop_name": "Congress/Pickle",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.22443,
+									"lon": -97.763196,
+									"stop_id": "4267",
+									"stop_name": "Congress/Dunlap",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.220763,
+									"lon": -97.765411,
+									"stop_id": "531",
+									"stop_name": "Congress/Radam",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216701,
+									"lon": -97.768024,
+									"stop_id": "6356",
+									"stop_name": "St Elmo Station",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.214748,
+									"lon": -97.769232,
+									"stop_id": "543",
+									"stop_name": "Congress/Sheraton",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.212115,
+									"lon": -97.770916,
+									"stop_id": "5489",
+									"stop_name": "Congress/Ramble",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208685,
+									"lon": -97.773108,
+									"stop_id": "545",
+									"stop_name": "Congress/Ramble",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207092,
+									"lon": -97.773971,
+									"stop_id": "5363",
+									"stop_name": "Congress/Mockingbird",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.202521,
+									"lon": -97.775659,
+									"stop_id": "5871",
+									"stop_name": "Little Texas Station",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199041,
+									"lon": -97.776595,
+									"stop_id": "548",
+									"stop_name": "Congress/North Bluff",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.194215,
+									"lon": -97.778449,
+									"stop_id": "4381",
+									"stop_name": "Congress/Eberhart",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.192664,
+									"lon": -97.777841,
+									"stop_id": "550",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.192082,
+									"lon": -97.776037,
+									"stop_id": "551",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.191387,
+									"lon": -97.77353,
+									"stop_id": "552",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.189223,
+									"lon": -97.768461,
+									"stop_id": "5703",
+									"stop_name": "William Cannon/Bluff…",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188349,
+									"lon": -97.765515,
+									"stop_id": "5758",
+									"stop_name": "William Cannon/Bluff…",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.187471,
+									"lon": -97.762532,
+									"stop_id": "4348",
+									"stop_name": "William Cannon/Elm Creek",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.186202,
+									"lon": -97.758733,
+									"stop_id": "4349",
+									"stop_name": "William…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.183639,
+									"lon": -97.754477,
+									"stop_id": "4351",
+									"stop_name": "William…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.180908,
+									"lon": -97.750494,
+									"stop_id": "4948",
+									"stop_name": "William Cannon/Meadow…",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.179893,
+							"lon": -97.747991,
+							"minor_stops": [],
+							"stop_id": "5398",
+							"stop_name": "William Cannon/Pleasant…",
+							"stop_name_full": "5201 William Cannon/Pleasant Valley",
+							"stop_sequence": 33
+						}
+					]
+				}
+			},
+			"stop_count": 33,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "486-1-78edb074",
+				"2-172": "486-1-78edb074",
+				"3-172": "486-1-78edb074",
+				"4-172": "486-1-78edb074",
+				"5-172": "486-1-78edb074",
+				"6-172": "486-1-78edb074",
+				"7-172": "486-1-78edb074"
+			},
+			"baseline_pattern_id": "486-1-78edb074",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"486-1-78edb074": {
+					"direction_id": 1,
+					"pattern_id": "486-1-78edb074",
+					"representative_trip_id": "3005979_16381",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172"
+					],
+					"stop_count": 30,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.179893,
+							"lon": -97.747991,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.18276,
+									"lon": -97.745408,
+									"stop_id": "4342",
+									"stop_name": "Pleasant Valley/Creek…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.185198,
+									"lon": -97.745196,
+									"stop_id": "1219",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.188891,
+									"lon": -97.74529,
+									"stop_id": "1220",
+									"stop_name": "Village Square NB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193919,
+									"lon": -97.747016,
+									"stop_id": "1223",
+									"stop_name": "Stassney/Chaparral",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193714,
+									"lon": -97.750685,
+									"stop_id": "1224",
+									"stop_name": "Stassney/Palo Blanco",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193534,
+									"lon": -97.75552,
+									"stop_id": "2489",
+									"stop_name": "Stassney/Spoke",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.194942,
+									"lon": -97.757865,
+									"stop_id": "2490",
+									"stop_name": "Stassney/Ponciana",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197437,
+									"lon": -97.761644,
+									"stop_id": "2491",
+									"stop_name": "Stassney/IH 35",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.20039,
+									"lon": -97.766394,
+									"stop_id": "4362",
+									"stop_name": "Stassney/IH 35",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.202351,
+									"lon": -97.770825,
+									"stop_id": "4364",
+									"stop_name": "Stassney/Mira",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207107,
+									"lon": -97.773733,
+									"stop_id": "560",
+									"stop_name": "Congress/Mockingbird",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209046,
+									"lon": -97.7726,
+									"stop_id": "6485",
+									"stop_name": "Congress/Ramble",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212003,
+									"lon": -97.77068,
+									"stop_id": "4273",
+									"stop_name": "Congress/Wasson",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.214379,
+									"lon": -97.769146,
+									"stop_id": "4272",
+									"stop_name": "Congress/Sheraton",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.217776,
+									"lon": -97.766955,
+									"stop_id": "6355",
+									"stop_name": "St Elmo Station",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.224457,
+									"lon": -97.762871,
+									"stop_id": "4268",
+									"stop_name": "Congress/Ben White",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228248,
+									"lon": -97.760943,
+									"stop_id": "568",
+									"stop_name": "Congress/Alpine",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230564,
+									"lon": -97.759511,
+									"stop_id": "5869",
+									"stop_name": "St Edwards Station",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232756,
+									"lon": -97.758147,
+									"stop_id": "5354",
+									"stop_name": "Congress/La Vista",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235347,
+									"lon": -97.75633,
+									"stop_id": "571",
+									"stop_name": "Congress/Cumberland",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.239554,
+									"lon": -97.752826,
+									"stop_id": "4039",
+									"stop_name": "Oltorf Station",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.241689,
+									"lon": -97.752423,
+									"stop_id": "573",
+									"stop_name": "Congress/Live Oak",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.245024,
+									"lon": -97.751212,
+									"stop_id": "574",
+									"stop_name": "Congress/Mary",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248772,
+									"lon": -97.749826,
+									"stop_id": "4026",
+									"stop_name": "Soco Station",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.251531,
+									"lon": -97.748789,
+									"stop_id": "576",
+									"stop_name": "Congress/The Circle",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25534,
+									"lon": -97.74739,
+									"stop_id": "577",
+									"stop_name": "Congress/Academy",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259459,
+									"lon": -97.748994,
+									"stop_id": "2767",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 29
+								}
+							],
+							"stop_id": "5398",
+							"stop_name": "William Cannon/Pleasant…",
+							"stop_name_full": "5201 William Cannon/Pleasant Valley",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 30
+						}
+					]
+				}
+			},
+			"stop_count": 30,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "486",
+	"schema": 1
+}

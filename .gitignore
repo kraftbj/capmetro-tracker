@@ -13,6 +13,9 @@ build/data/
 build/.cache/
 /tmp-gtfs/
 
+# Local scratch: schedule shards, generated webroots, cron state. Never committed.
+.local/
+
 # Runtime output: generated every 60s by cron on the server, never committed.
 runtime/out/
 runtime/*.lock
@@ -20,6 +23,7 @@ public/api/
 
 # Test output
 coverage/
+.phpunit.cache/
 .playwright/
 playwright-report/
 test-results/

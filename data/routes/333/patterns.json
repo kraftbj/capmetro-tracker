@@ -1,0 +1,2996 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "333-0-2b90893a",
+				"2-172": "333-0-5a5354c4",
+				"3-172": "333-0-5a5354c4",
+				"4-172": "333-0-5a5354c4",
+				"5-172": "333-0-5a5354c4",
+				"6-172": "333-0-93c1489a",
+				"7-172": "333-0-93c1489a",
+				"8-172": "333-0-93c1489a"
+			},
+			"baseline_pattern_id": "333-0-93c1489a",
+			"baseline_pattern_ids": [
+				"333-0-2b90893a",
+				"333-0-5a5354c4",
+				"333-0-93c1489a"
+			],
+			"baseline_stable": false,
+			"direction_id": 0,
+			"pattern_count": 4,
+			"patterns": [
+				{
+					"deltas": {
+						"333-0-2b90893a": {
+							"adds": [
+								{
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak"
+								},
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie"
+								},
+								{
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield"
+								},
+								{
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno"
+								},
+								{
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander"
+								},
+								{
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John…"
+								},
+								{
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "6392",
+									"stop_name": "Convict Hill/290"
+								},
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								}
+							]
+						},
+						"333-0-5a5354c4": {
+							"adds": [
+								{
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak"
+								},
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie"
+								},
+								{
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield"
+								},
+								{
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno"
+								},
+								{
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander"
+								},
+								{
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John…"
+								},
+								{
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								}
+							]
+						},
+						"333-0-93c1489a": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"is_special": false,
+					"pattern_id": "333-0-93c1489a",
+					"stop_count": 35,
+					"stop_ids": [
+						"6555",
+						"6338",
+						"5699",
+						"6521",
+						"4361",
+						"6482",
+						"5383",
+						"2504",
+						"2505",
+						"5137",
+						"2507",
+						"2508",
+						"4354",
+						"2511",
+						"5704",
+						"555",
+						"556",
+						"3169",
+						"3170",
+						"4398",
+						"3172",
+						"1685",
+						"1686",
+						"3173",
+						"3174",
+						"3175",
+						"3177",
+						"4429",
+						"3178",
+						"4437",
+						"3179",
+						"3180",
+						"3182",
+						"5900",
+						"5902"
+					],
+					"trip_ids": [
+						"3003563_11855",
+						"3003563_11887",
+						"3003563_11919",
+						"3003563_11951",
+						"3003563_11983",
+						"3003565_11856",
+						"3003565_11888",
+						"3003565_11920",
+						"3003565_11952",
+						"3003565_11984",
+						"3003567_11857",
+						"3003567_11889",
+						"3003567_11921",
+						"3003567_11953",
+						"3003567_11985",
+						"3003569_11858",
+						"3003569_11890",
+						"3003569_11922",
+						"3003569_11954",
+						"3003569_11986",
+						"3003571_11859",
+						"3003571_11891",
+						"3003571_11923",
+						"3003571_11955",
+						"3003571_11987",
+						"3003573_11860",
+						"3003573_11892",
+						"3003573_11924",
+						"3003573_11956",
+						"3003573_11988",
+						"3003575_11861",
+						"3003575_11893",
+						"3003575_11925",
+						"3003575_11957",
+						"3003575_11989",
+						"3003577_11862",
+						"3003577_11894",
+						"3003577_11926",
+						"3003577_11958",
+						"3003577_11990",
+						"3003579_11863",
+						"3003579_11895",
+						"3003579_11927",
+						"3003579_11959",
+						"3003579_11991",
+						"3003581_11864",
+						"3003581_11896",
+						"3003581_11928",
+						"3003581_11960",
+						"3003581_11992",
+						"3003583_11865",
+						"3003583_11897",
+						"3003583_11929",
+						"3003583_11961",
+						"3003583_11993",
+						"3003585_11866",
+						"3003585_11898",
+						"3003585_11930",
+						"3003585_11962",
+						"3003585_11994",
+						"3003587_11867",
+						"3003587_11899",
+						"3003587_11931",
+						"3003587_11963",
+						"3003587_11995",
+						"3003589_11868",
+						"3003589_11900",
+						"3003589_11932",
+						"3003589_11964",
+						"3003589_11996",
+						"3003591_11869",
+						"3003591_11901",
+						"3003591_11933",
+						"3003591_11965",
+						"3003591_11997",
+						"3003593_11870",
+						"3003593_11902",
+						"3003593_11934",
+						"3003593_11966",
+						"3003593_11998",
+						"3003595_11871",
+						"3003595_11903",
+						"3003595_11935",
+						"3003595_11967",
+						"3003595_11999",
+						"3003597_11872",
+						"3003597_11904",
+						"3003597_11936",
+						"3003597_11968",
+						"3003597_12000",
+						"3003599_11873",
+						"3003599_11905",
+						"3003599_11937",
+						"3003599_11969",
+						"3003599_12001",
+						"3003601_11874",
+						"3003601_11906",
+						"3003601_11938",
+						"3003601_11970",
+						"3003601_12002",
+						"3003603_11875",
+						"3003603_11907",
+						"3003603_11939",
+						"3003603_11971",
+						"3003603_12003",
+						"3003605_11876",
+						"3003605_11908",
+						"3003605_11940",
+						"3003605_11972",
+						"3003605_12004",
+						"3003607_11877",
+						"3003607_11909",
+						"3003607_11941",
+						"3003607_11973",
+						"3003607_12005",
+						"3003609_11878",
+						"3003609_11910",
+						"3003609_11942",
+						"3003609_11974",
+						"3003609_12006",
+						"3003611_11879",
+						"3003611_11911",
+						"3003611_11943",
+						"3003611_11975",
+						"3003611_12007",
+						"3003613_11880",
+						"3003613_11912",
+						"3003613_11944",
+						"3003613_11976",
+						"3003613_12008",
+						"3003615_11881",
+						"3003615_11913",
+						"3003615_11945",
+						"3003615_11977",
+						"3003615_12009",
+						"3003617_11882",
+						"3003617_11914",
+						"3003617_11946",
+						"3003617_11978",
+						"3003617_12010",
+						"3003619_11883",
+						"3003619_11915",
+						"3003619_11947",
+						"3003619_11979",
+						"3003619_12011",
+						"3003621_11884",
+						"3003621_11916",
+						"3003621_11948",
+						"3003621_11980",
+						"3003621_12012",
+						"3003623_11885",
+						"3003623_11917",
+						"3003623_11949",
+						"3003623_11981",
+						"3003623_12013",
+						"3003625_11886",
+						"3003625_11918",
+						"3003625_11950",
+						"3003625_11982",
+						"3003625_12014",
+						"3003692_12175",
+						"3003692_12196",
+						"3003693_12176",
+						"3003693_12197",
+						"3003694_12177",
+						"3003694_12198",
+						"3003695_12178",
+						"3003695_12199",
+						"3003696_12179",
+						"3003696_12200",
+						"3003697_12180",
+						"3003697_12201",
+						"3003698_12181",
+						"3003698_12202",
+						"3003699_12182",
+						"3003699_12203",
+						"3003700_12183",
+						"3003700_12204",
+						"3003701_12184",
+						"3003701_12205",
+						"3003702_12185",
+						"3003702_12206",
+						"3003703_12186",
+						"3003703_12207",
+						"3003704_12187",
+						"3003704_12208",
+						"3003705_12188",
+						"3003705_12209",
+						"3003706_12189",
+						"3003706_12210",
+						"3003707_12190",
+						"3003707_12211",
+						"3003708_12191",
+						"3003708_12212",
+						"3003709_12192",
+						"3003709_12213",
+						"3003710_12193",
+						"3003710_12214",
+						"3003726_12194",
+						"3003726_12215",
+						"3003727_12195",
+						"3003727_12216",
+						"3003764_12247",
+						"3003765_12248",
+						"3003766_12249",
+						"3003767_12250",
+						"3003768_12251",
+						"3003769_12252",
+						"3003770_12253",
+						"3003771_12254",
+						"3003772_12255",
+						"3003773_12256",
+						"3003774_12257",
+						"3003775_12258",
+						"3003776_12259",
+						"3003777_12260",
+						"3003778_12261",
+						"3003779_12262",
+						"3003780_12263",
+						"3003781_12264",
+						"3003782_12265"
+					],
+					"trips_by_service": {
+						"1-172": 32,
+						"2-172": 32,
+						"3-172": 32,
+						"4-172": 32,
+						"5-172": 32,
+						"6-172": 21,
+						"7-172": 21,
+						"8-172": 19
+					},
+					"trips_in_pattern": 221
+				},
+				{
+					"deltas": {
+						"333-0-2b90893a": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "6392",
+									"stop_name": "Convict Hill/290"
+								}
+							]
+						},
+						"333-0-5a5354c4": {
+							"adds": [],
+							"skips": []
+						},
+						"333-0-93c1489a": {
+							"adds": [
+								{
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie"
+								},
+								{
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield"
+								},
+								{
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno"
+								},
+								{
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander"
+								},
+								{
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John…"
+								},
+								{
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak"
+								},
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"is_special": true,
+					"pattern_id": "333-0-5a5354c4",
+					"stop_count": 50,
+					"stop_ids": [
+						"6555",
+						"6338",
+						"5699",
+						"6521",
+						"4361",
+						"6482",
+						"5383",
+						"2504",
+						"2505",
+						"5137",
+						"2507",
+						"2508",
+						"4354",
+						"2511",
+						"5704",
+						"555",
+						"556",
+						"3169",
+						"3170",
+						"4398",
+						"3172",
+						"1685",
+						"1686",
+						"3173",
+						"3174",
+						"3175",
+						"3177",
+						"4429",
+						"3178",
+						"4437",
+						"3179",
+						"3180",
+						"3182",
+						"3183",
+						"4435",
+						"3185",
+						"3186",
+						"3187",
+						"3188",
+						"4441",
+						"4442",
+						"3193",
+						"5491",
+						"4444",
+						"4447",
+						"5055",
+						"3196",
+						"3197",
+						"6391",
+						"2597"
+					],
+					"trip_ids": [
+						"3003562_12047",
+						"3003562_12079",
+						"3003562_12111",
+						"3003562_12143",
+						"3003564_12048",
+						"3003564_12080",
+						"3003564_12112",
+						"3003564_12144",
+						"3003566_12049",
+						"3003566_12081",
+						"3003566_12113",
+						"3003566_12145",
+						"3003568_12050",
+						"3003568_12082",
+						"3003568_12114",
+						"3003568_12146",
+						"3003570_12051",
+						"3003570_12083",
+						"3003570_12115",
+						"3003570_12147",
+						"3003572_12052",
+						"3003572_12084",
+						"3003572_12116",
+						"3003572_12148",
+						"3003574_12053",
+						"3003574_12085",
+						"3003574_12117",
+						"3003574_12149",
+						"3003576_12054",
+						"3003576_12086",
+						"3003576_12118",
+						"3003576_12150",
+						"3003578_12055",
+						"3003578_12087",
+						"3003578_12119",
+						"3003578_12151",
+						"3003580_12056",
+						"3003580_12088",
+						"3003580_12120",
+						"3003580_12152",
+						"3003582_12057",
+						"3003582_12089",
+						"3003582_12121",
+						"3003582_12153",
+						"3003584_12058",
+						"3003584_12090",
+						"3003584_12122",
+						"3003584_12154",
+						"3003586_12059",
+						"3003586_12091",
+						"3003586_12123",
+						"3003586_12155",
+						"3003588_12060",
+						"3003588_12092",
+						"3003588_12124",
+						"3003588_12156",
+						"3003590_12061",
+						"3003590_12093",
+						"3003590_12125",
+						"3003590_12157",
+						"3003592_12062",
+						"3003592_12094",
+						"3003592_12126",
+						"3003592_12158",
+						"3003594_12063",
+						"3003594_12095",
+						"3003594_12127",
+						"3003594_12159",
+						"3003596_12064",
+						"3003596_12096",
+						"3003596_12128",
+						"3003596_12160",
+						"3003598_12065",
+						"3003598_12097",
+						"3003598_12129",
+						"3003598_12161",
+						"3003600_12066",
+						"3003600_12098",
+						"3003600_12130",
+						"3003600_12162",
+						"3003602_12067",
+						"3003602_12099",
+						"3003602_12131",
+						"3003602_12163",
+						"3003604_12068",
+						"3003604_12100",
+						"3003604_12132",
+						"3003604_12164",
+						"3003606_12069",
+						"3003606_12101",
+						"3003606_12133",
+						"3003606_12165",
+						"3003608_12070",
+						"3003608_12102",
+						"3003608_12134",
+						"3003608_12166",
+						"3003610_12071",
+						"3003610_12103",
+						"3003610_12135",
+						"3003610_12167",
+						"3003612_12072",
+						"3003612_12104",
+						"3003612_12136",
+						"3003612_12168",
+						"3003614_12073",
+						"3003614_12105",
+						"3003614_12137",
+						"3003614_12169",
+						"3003616_12074",
+						"3003616_12106",
+						"3003616_12138",
+						"3003616_12170",
+						"3003618_12075",
+						"3003618_12107",
+						"3003618_12139",
+						"3003618_12171",
+						"3003620_12076",
+						"3003620_12108",
+						"3003620_12140",
+						"3003620_12172",
+						"3003622_12077",
+						"3003622_12109",
+						"3003622_12141",
+						"3003622_12173",
+						"3003624_12078",
+						"3003624_12110",
+						"3003624_12142",
+						"3003624_12174",
+						"3003711_12232",
+						"3003712_12233",
+						"3003713_12234",
+						"3003714_12235",
+						"3003715_12236",
+						"3003716_12237",
+						"3003717_12238",
+						"3003718_12239",
+						"3003719_12240",
+						"3003720_12241",
+						"3003721_12242",
+						"3003722_12243",
+						"3003723_12244",
+						"3003724_12245",
+						"3003725_12246"
+					],
+					"trips_by_service": {
+						"2-172": 32,
+						"3-172": 32,
+						"4-172": 32,
+						"5-172": 32,
+						"7-172": 15
+					},
+					"trips_in_pattern": 143
+				},
+				{
+					"deltas": {
+						"333-0-2b90893a": {
+							"adds": [],
+							"skips": []
+						},
+						"333-0-5a5354c4": {
+							"adds": [
+								{
+									"stop_id": "6392",
+									"stop_name": "Convict Hill/290"
+								}
+							],
+							"skips": []
+						},
+						"333-0-93c1489a": {
+							"adds": [
+								{
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie"
+								},
+								{
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield"
+								},
+								{
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno"
+								},
+								{
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander"
+								},
+								{
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John…"
+								},
+								{
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "6392",
+									"stop_name": "Convict Hill/290"
+								},
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak"
+								},
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"1-172"
+					],
+					"is_special": true,
+					"pattern_id": "333-0-2b90893a",
+					"stop_count": 51,
+					"stop_ids": [
+						"6555",
+						"6338",
+						"5699",
+						"6521",
+						"4361",
+						"6482",
+						"5383",
+						"2504",
+						"2505",
+						"5137",
+						"2507",
+						"2508",
+						"4354",
+						"2511",
+						"5704",
+						"555",
+						"556",
+						"3169",
+						"3170",
+						"4398",
+						"3172",
+						"1685",
+						"1686",
+						"3173",
+						"3174",
+						"3175",
+						"3177",
+						"4429",
+						"3178",
+						"4437",
+						"3179",
+						"3180",
+						"3182",
+						"3183",
+						"4435",
+						"3185",
+						"3186",
+						"3187",
+						"3188",
+						"4441",
+						"4442",
+						"3193",
+						"5491",
+						"4444",
+						"4447",
+						"5055",
+						"3196",
+						"3197",
+						"6391",
+						"6392",
+						"2597"
+					],
+					"trip_ids": [
+						"3003562_12015",
+						"3003564_12016",
+						"3003566_12017",
+						"3003568_12018",
+						"3003570_12019",
+						"3003572_12020",
+						"3003574_12021",
+						"3003576_12022",
+						"3003578_12023",
+						"3003580_12024",
+						"3003582_12025",
+						"3003584_12026",
+						"3003586_12027",
+						"3003588_12028",
+						"3003590_12029",
+						"3003592_12030",
+						"3003594_12031",
+						"3003596_12032",
+						"3003598_12033",
+						"3003600_12034",
+						"3003602_12035",
+						"3003604_12036",
+						"3003606_12037",
+						"3003608_12038",
+						"3003610_12039",
+						"3003612_12040",
+						"3003614_12041",
+						"3003616_12042",
+						"3003618_12043",
+						"3003620_12044",
+						"3003622_12045",
+						"3003624_12046",
+						"3003711_12217",
+						"3003712_12218",
+						"3003713_12219",
+						"3003714_12220",
+						"3003715_12221",
+						"3003716_12222",
+						"3003717_12223",
+						"3003718_12224",
+						"3003719_12225",
+						"3003720_12226",
+						"3003721_12227",
+						"3003722_12228",
+						"3003723_12229",
+						"3003724_12230",
+						"3003725_12231",
+						"3003783_12266",
+						"3003784_12267",
+						"3003785_12268",
+						"3003786_12269",
+						"3003787_12270",
+						"3003788_12271",
+						"3003789_12272",
+						"3003790_12273",
+						"3003791_12274",
+						"3003792_12275",
+						"3003793_12276",
+						"3003794_12277",
+						"3003795_12278",
+						"3003796_12279",
+						"3003797_12280"
+					],
+					"trips_by_service": {
+						"1-172": 32,
+						"6-172": 15,
+						"8-172": 15
+					},
+					"trips_in_pattern": 62
+				},
+				{
+					"deltas": {
+						"333-0-2b90893a": {
+							"adds": [
+								{
+									"stop_id": "6365",
+									"stop_name": "Quicksilver/Pleasant…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "6555",
+									"stop_name": "Goodnight Ranch Bay D"
+								},
+								{
+									"stop_id": "6338",
+									"stop_name": "Vertex/Charles Merle"
+								},
+								{
+									"stop_id": "5699",
+									"stop_name": "Salt Springs/Roseborough"
+								},
+								{
+									"stop_id": "6521",
+									"stop_name": "Salt Springs at Tara"
+								},
+								{
+									"stop_id": "4361",
+									"stop_name": "Salt Springs/Orange…"
+								},
+								{
+									"stop_id": "6482",
+									"stop_name": "William Cannon/Onion…"
+								},
+								{
+									"stop_id": "3169",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3170",
+									"stop_name": "William Cannon/Sunstrip"
+								},
+								{
+									"stop_id": "4398",
+									"stop_name": "William Cannon/Bill…"
+								},
+								{
+									"stop_id": "3172",
+									"stop_name": "William Cannon/1st"
+								},
+								{
+									"stop_id": "1685",
+									"stop_name": "William Cannon/Cooper"
+								},
+								{
+									"stop_id": "1686",
+									"stop_name": "William Cannon/Emerald…"
+								},
+								{
+									"stop_id": "3173",
+									"stop_name": "William Cannon/Mount…"
+								},
+								{
+									"stop_id": "3174",
+									"stop_name": "William Cannon/Woodhue"
+								},
+								{
+									"stop_id": "3175",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier"
+								},
+								{
+									"stop_id": "4429",
+									"stop_name": "William Cannon/West Gate"
+								},
+								{
+									"stop_id": "3178",
+									"stop_name": "William Cannon/Deaton…"
+								},
+								{
+									"stop_id": "4437",
+									"stop_name": "William Cannon/Ranch"
+								},
+								{
+									"stop_id": "3179",
+									"stop_name": "William Cannon/Stage…"
+								},
+								{
+									"stop_id": "3180",
+									"stop_name": "William Cannon/Lost…"
+								},
+								{
+									"stop_id": "3182",
+									"stop_name": "Brodie/Bannockburn"
+								},
+								{
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie"
+								},
+								{
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield"
+								},
+								{
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno"
+								},
+								{
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander"
+								},
+								{
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John…"
+								},
+								{
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "6392",
+									"stop_name": "Convict Hill/290"
+								},
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								}
+							]
+						},
+						"333-0-5a5354c4": {
+							"adds": [
+								{
+									"stop_id": "6365",
+									"stop_name": "Quicksilver/Pleasant…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "6555",
+									"stop_name": "Goodnight Ranch Bay D"
+								},
+								{
+									"stop_id": "6338",
+									"stop_name": "Vertex/Charles Merle"
+								},
+								{
+									"stop_id": "5699",
+									"stop_name": "Salt Springs/Roseborough"
+								},
+								{
+									"stop_id": "6521",
+									"stop_name": "Salt Springs at Tara"
+								},
+								{
+									"stop_id": "4361",
+									"stop_name": "Salt Springs/Orange…"
+								},
+								{
+									"stop_id": "6482",
+									"stop_name": "William Cannon/Onion…"
+								},
+								{
+									"stop_id": "3169",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3170",
+									"stop_name": "William Cannon/Sunstrip"
+								},
+								{
+									"stop_id": "4398",
+									"stop_name": "William Cannon/Bill…"
+								},
+								{
+									"stop_id": "3172",
+									"stop_name": "William Cannon/1st"
+								},
+								{
+									"stop_id": "1685",
+									"stop_name": "William Cannon/Cooper"
+								},
+								{
+									"stop_id": "1686",
+									"stop_name": "William Cannon/Emerald…"
+								},
+								{
+									"stop_id": "3173",
+									"stop_name": "William Cannon/Mount…"
+								},
+								{
+									"stop_id": "3174",
+									"stop_name": "William Cannon/Woodhue"
+								},
+								{
+									"stop_id": "3175",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier"
+								},
+								{
+									"stop_id": "4429",
+									"stop_name": "William Cannon/West Gate"
+								},
+								{
+									"stop_id": "3178",
+									"stop_name": "William Cannon/Deaton…"
+								},
+								{
+									"stop_id": "4437",
+									"stop_name": "William Cannon/Ranch"
+								},
+								{
+									"stop_id": "3179",
+									"stop_name": "William Cannon/Stage…"
+								},
+								{
+									"stop_id": "3180",
+									"stop_name": "William Cannon/Lost…"
+								},
+								{
+									"stop_id": "3182",
+									"stop_name": "Brodie/Bannockburn"
+								},
+								{
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie"
+								},
+								{
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield"
+								},
+								{
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno"
+								},
+								{
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander"
+								},
+								{
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…"
+								},
+								{
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John…"
+								},
+								{
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								}
+							]
+						},
+						"333-0-93c1489a": {
+							"adds": [
+								{
+									"stop_id": "6365",
+									"stop_name": "Quicksilver/Pleasant…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "6555",
+									"stop_name": "Goodnight Ranch Bay D"
+								},
+								{
+									"stop_id": "6338",
+									"stop_name": "Vertex/Charles Merle"
+								},
+								{
+									"stop_id": "5699",
+									"stop_name": "Salt Springs/Roseborough"
+								},
+								{
+									"stop_id": "6521",
+									"stop_name": "Salt Springs at Tara"
+								},
+								{
+									"stop_id": "4361",
+									"stop_name": "Salt Springs/Orange…"
+								},
+								{
+									"stop_id": "6482",
+									"stop_name": "William Cannon/Onion…"
+								},
+								{
+									"stop_id": "3169",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3170",
+									"stop_name": "William Cannon/Sunstrip"
+								},
+								{
+									"stop_id": "4398",
+									"stop_name": "William Cannon/Bill…"
+								},
+								{
+									"stop_id": "3172",
+									"stop_name": "William Cannon/1st"
+								},
+								{
+									"stop_id": "1685",
+									"stop_name": "William Cannon/Cooper"
+								},
+								{
+									"stop_id": "1686",
+									"stop_name": "William Cannon/Emerald…"
+								},
+								{
+									"stop_id": "3173",
+									"stop_name": "William Cannon/Mount…"
+								},
+								{
+									"stop_id": "3174",
+									"stop_name": "William Cannon/Woodhue"
+								},
+								{
+									"stop_id": "3175",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier"
+								},
+								{
+									"stop_id": "4429",
+									"stop_name": "William Cannon/West Gate"
+								},
+								{
+									"stop_id": "3178",
+									"stop_name": "William Cannon/Deaton…"
+								},
+								{
+									"stop_id": "4437",
+									"stop_name": "William Cannon/Ranch"
+								},
+								{
+									"stop_id": "3179",
+									"stop_name": "William Cannon/Stage…"
+								},
+								{
+									"stop_id": "3180",
+									"stop_name": "William Cannon/Lost…"
+								},
+								{
+									"stop_id": "3182",
+									"stop_name": "Brodie/Bannockburn"
+								},
+								{
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak"
+								},
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "333-0-6e5eda37",
+					"stop_count": 12,
+					"stop_ids": [
+						"6365",
+						"5383",
+						"2504",
+						"2505",
+						"5137",
+						"2507",
+						"2508",
+						"4354",
+						"2511",
+						"5704",
+						"555",
+						"556"
+					],
+					"trip_ids": [
+						"3013897_11850",
+						"3013897_11851",
+						"3013897_11852",
+						"3013897_11853",
+						"3013897_11854"
+					],
+					"trips_by_service": {
+						"1-172": 1,
+						"2-172": 1,
+						"3-172": 1,
+						"4-172": 1,
+						"5-172": 1
+					},
+					"trips_in_pattern": 5
+				}
+			],
+			"trip_count": 431
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "333-1-41b006d4",
+				"2-172": "333-1-7d5a9343",
+				"3-172": "333-1-7d5a9343",
+				"4-172": "333-1-7d5a9343",
+				"5-172": "333-1-7d5a9343",
+				"6-172": "333-1-adee6f46",
+				"7-172": "333-1-adee6f46",
+				"8-172": "333-1-adee6f46"
+			},
+			"baseline_pattern_id": "333-1-adee6f46",
+			"baseline_pattern_ids": [
+				"333-1-41b006d4",
+				"333-1-7d5a9343",
+				"333-1-adee6f46"
+			],
+			"baseline_stable": false,
+			"direction_id": 1,
+			"pattern_count": 4,
+			"patterns": [
+				{
+					"deltas": {
+						"333-1-41b006d4": {
+							"adds": [
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								},
+								{
+									"stop_id": "6393",
+									"stop_name": "Convict Hill/290"
+								},
+								{
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…"
+								},
+								{
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "3887",
+									"stop_name": "Convict…"
+								},
+								{
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas"
+								},
+								{
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota"
+								},
+								{
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House"
+								},
+								{
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield"
+								},
+								{
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill"
+								}
+							]
+						},
+						"333-1-7d5a9343": {
+							"adds": [
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								},
+								{
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…"
+								},
+								{
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "3887",
+									"stop_name": "Convict…"
+								},
+								{
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas"
+								},
+								{
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota"
+								},
+								{
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House"
+								},
+								{
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield"
+								},
+								{
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill"
+								}
+							]
+						},
+						"333-1-adee6f46": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"is_special": false,
+					"pattern_id": "333-1-adee6f46",
+					"stop_count": 34,
+					"stop_ids": [
+						"5902",
+						"3223",
+						"3224",
+						"4436",
+						"4428",
+						"3226",
+						"4424",
+						"3228",
+						"3229",
+						"3230",
+						"3231",
+						"2917",
+						"2918",
+						"3234",
+						"4384",
+						"550",
+						"551",
+						"552",
+						"5703",
+						"6520",
+						"2478",
+						"4355",
+						"5121",
+						"5159",
+						"5136",
+						"2482",
+						"2483",
+						"5398",
+						"6481",
+						"4357",
+						"3901",
+						"6522",
+						"6339",
+						"6555"
+					],
+					"trip_ids": [
+						"3003627_11414",
+						"3003627_11447",
+						"3003627_11480",
+						"3003627_11513",
+						"3003627_11546",
+						"3003629_11415",
+						"3003629_11448",
+						"3003629_11481",
+						"3003629_11514",
+						"3003629_11547",
+						"3003631_11416",
+						"3003631_11449",
+						"3003631_11482",
+						"3003631_11515",
+						"3003631_11548",
+						"3003633_11417",
+						"3003633_11450",
+						"3003633_11483",
+						"3003633_11516",
+						"3003633_11549",
+						"3003635_11418",
+						"3003635_11451",
+						"3003635_11484",
+						"3003635_11517",
+						"3003635_11550",
+						"3003637_11419",
+						"3003637_11452",
+						"3003637_11485",
+						"3003637_11518",
+						"3003637_11551",
+						"3003639_11420",
+						"3003639_11453",
+						"3003639_11486",
+						"3003639_11519",
+						"3003639_11552",
+						"3003641_11421",
+						"3003641_11454",
+						"3003641_11487",
+						"3003641_11520",
+						"3003641_11553",
+						"3003643_11422",
+						"3003643_11455",
+						"3003643_11488",
+						"3003643_11521",
+						"3003643_11554",
+						"3003645_11423",
+						"3003645_11456",
+						"3003645_11489",
+						"3003645_11522",
+						"3003645_11555",
+						"3003647_11424",
+						"3003647_11457",
+						"3003647_11490",
+						"3003647_11523",
+						"3003647_11556",
+						"3003649_11425",
+						"3003649_11458",
+						"3003649_11491",
+						"3003649_11524",
+						"3003649_11557",
+						"3003651_11426",
+						"3003651_11459",
+						"3003651_11492",
+						"3003651_11525",
+						"3003651_11558",
+						"3003653_11427",
+						"3003653_11460",
+						"3003653_11493",
+						"3003653_11526",
+						"3003653_11559",
+						"3003655_11428",
+						"3003655_11461",
+						"3003655_11494",
+						"3003655_11527",
+						"3003655_11560",
+						"3003657_11429",
+						"3003657_11462",
+						"3003657_11495",
+						"3003657_11528",
+						"3003657_11561",
+						"3003659_11430",
+						"3003659_11463",
+						"3003659_11496",
+						"3003659_11529",
+						"3003659_11562",
+						"3003661_11431",
+						"3003661_11464",
+						"3003661_11497",
+						"3003661_11530",
+						"3003661_11563",
+						"3003663_11432",
+						"3003663_11465",
+						"3003663_11498",
+						"3003663_11531",
+						"3003663_11564",
+						"3003665_11433",
+						"3003665_11466",
+						"3003665_11499",
+						"3003665_11532",
+						"3003665_11565",
+						"3003667_11434",
+						"3003667_11467",
+						"3003667_11500",
+						"3003667_11533",
+						"3003667_11566",
+						"3003669_11435",
+						"3003669_11468",
+						"3003669_11501",
+						"3003669_11534",
+						"3003669_11567",
+						"3003671_11436",
+						"3003671_11469",
+						"3003671_11502",
+						"3003671_11535",
+						"3003671_11568",
+						"3003673_11437",
+						"3003673_11470",
+						"3003673_11503",
+						"3003673_11536",
+						"3003673_11569",
+						"3003675_11438",
+						"3003675_11471",
+						"3003675_11504",
+						"3003675_11537",
+						"3003675_11570",
+						"3003677_11439",
+						"3003677_11472",
+						"3003677_11505",
+						"3003677_11538",
+						"3003677_11571",
+						"3003679_11440",
+						"3003679_11473",
+						"3003679_11506",
+						"3003679_11539",
+						"3003679_11572",
+						"3003681_11441",
+						"3003681_11474",
+						"3003681_11507",
+						"3003681_11540",
+						"3003681_11573",
+						"3003683_11442",
+						"3003683_11475",
+						"3003683_11508",
+						"3003683_11541",
+						"3003683_11574",
+						"3003685_11443",
+						"3003685_11476",
+						"3003685_11509",
+						"3003685_11542",
+						"3003685_11575",
+						"3003687_11444",
+						"3003687_11477",
+						"3003687_11510",
+						"3003687_11543",
+						"3003687_11576",
+						"3003689_11445",
+						"3003689_11478",
+						"3003689_11511",
+						"3003689_11544",
+						"3003689_11577",
+						"3003691_11446",
+						"3003691_11479",
+						"3003691_11512",
+						"3003691_11545",
+						"3003691_11578",
+						"3003728_11744",
+						"3003728_11764",
+						"3003729_11745",
+						"3003729_11765",
+						"3003730_11746",
+						"3003730_11766",
+						"3003731_11747",
+						"3003731_11767",
+						"3003732_11748",
+						"3003732_11768",
+						"3003733_11749",
+						"3003733_11769",
+						"3003734_11750",
+						"3003734_11770",
+						"3003735_11751",
+						"3003735_11771",
+						"3003736_11752",
+						"3003736_11772",
+						"3003737_11753",
+						"3003737_11773",
+						"3003738_11754",
+						"3003738_11774",
+						"3003739_11755",
+						"3003739_11775",
+						"3003740_11756",
+						"3003740_11776",
+						"3003741_11757",
+						"3003741_11777",
+						"3003742_11758",
+						"3003742_11778",
+						"3003743_11759",
+						"3003743_11779",
+						"3003744_11760",
+						"3003744_11780",
+						"3003745_11761",
+						"3003745_11781",
+						"3003762_11762",
+						"3003762_11782",
+						"3003763_11763",
+						"3003763_11783",
+						"3003798_11816",
+						"3003799_11817",
+						"3003800_11818",
+						"3003801_11819",
+						"3003802_11820",
+						"3003803_11821",
+						"3003804_11822",
+						"3003805_11823",
+						"3003806_11824",
+						"3003807_11825",
+						"3003808_11826",
+						"3003809_11827",
+						"3003810_11828",
+						"3003811_11829",
+						"3003812_11830",
+						"3003813_11831",
+						"3003814_11832",
+						"3003815_11833"
+					],
+					"trips_by_service": {
+						"1-172": 33,
+						"2-172": 33,
+						"3-172": 33,
+						"4-172": 33,
+						"5-172": 33,
+						"6-172": 20,
+						"7-172": 20,
+						"8-172": 18
+					},
+					"trips_in_pattern": 223
+				},
+				{
+					"deltas": {
+						"333-1-41b006d4": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "6393",
+									"stop_name": "Convict Hill/290"
+								}
+							]
+						},
+						"333-1-7d5a9343": {
+							"adds": [],
+							"skips": []
+						},
+						"333-1-adee6f46": {
+							"adds": [
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								},
+								{
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…"
+								},
+								{
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "3887",
+									"stop_name": "Convict…"
+								},
+								{
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas"
+								},
+								{
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota"
+								},
+								{
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House"
+								},
+								{
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield"
+								},
+								{
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"is_special": true,
+					"pattern_id": "333-1-7d5a9343",
+					"stop_count": 50,
+					"stop_ids": [
+						"2597",
+						"6390",
+						"3206",
+						"3207",
+						"3208",
+						"4446",
+						"4445",
+						"3887",
+						"3212",
+						"3213",
+						"3214",
+						"3215",
+						"3216",
+						"3217",
+						"5594",
+						"3220",
+						"3221",
+						"3223",
+						"3224",
+						"4436",
+						"4428",
+						"3226",
+						"4424",
+						"3228",
+						"3229",
+						"3230",
+						"3231",
+						"2917",
+						"2918",
+						"3234",
+						"4384",
+						"550",
+						"551",
+						"552",
+						"5703",
+						"6520",
+						"2478",
+						"4355",
+						"5121",
+						"5159",
+						"5136",
+						"2482",
+						"2483",
+						"5398",
+						"6481",
+						"4357",
+						"3901",
+						"6522",
+						"6339",
+						"6555"
+					],
+					"trip_ids": [
+						"3003626_11612",
+						"3003626_11645",
+						"3003626_11678",
+						"3003626_11711",
+						"3003628_11613",
+						"3003628_11646",
+						"3003628_11679",
+						"3003628_11712",
+						"3003630_11614",
+						"3003630_11647",
+						"3003630_11680",
+						"3003630_11713",
+						"3003632_11615",
+						"3003632_11648",
+						"3003632_11681",
+						"3003632_11714",
+						"3003634_11616",
+						"3003634_11649",
+						"3003634_11682",
+						"3003634_11715",
+						"3003636_11617",
+						"3003636_11650",
+						"3003636_11683",
+						"3003636_11716",
+						"3003638_11618",
+						"3003638_11651",
+						"3003638_11684",
+						"3003638_11717",
+						"3003640_11619",
+						"3003640_11652",
+						"3003640_11685",
+						"3003640_11718",
+						"3003642_11620",
+						"3003642_11653",
+						"3003642_11686",
+						"3003642_11719",
+						"3003644_11621",
+						"3003644_11654",
+						"3003644_11687",
+						"3003644_11720",
+						"3003646_11622",
+						"3003646_11655",
+						"3003646_11688",
+						"3003646_11721",
+						"3003648_11623",
+						"3003648_11656",
+						"3003648_11689",
+						"3003648_11722",
+						"3003650_11624",
+						"3003650_11657",
+						"3003650_11690",
+						"3003650_11723",
+						"3003652_11625",
+						"3003652_11658",
+						"3003652_11691",
+						"3003652_11724",
+						"3003654_11626",
+						"3003654_11659",
+						"3003654_11692",
+						"3003654_11725",
+						"3003656_11627",
+						"3003656_11660",
+						"3003656_11693",
+						"3003656_11726",
+						"3003658_11628",
+						"3003658_11661",
+						"3003658_11694",
+						"3003658_11727",
+						"3003660_11629",
+						"3003660_11662",
+						"3003660_11695",
+						"3003660_11728",
+						"3003662_11630",
+						"3003662_11663",
+						"3003662_11696",
+						"3003662_11729",
+						"3003664_11631",
+						"3003664_11664",
+						"3003664_11697",
+						"3003664_11730",
+						"3003666_11632",
+						"3003666_11665",
+						"3003666_11698",
+						"3003666_11731",
+						"3003668_11633",
+						"3003668_11666",
+						"3003668_11699",
+						"3003668_11732",
+						"3003670_11634",
+						"3003670_11667",
+						"3003670_11700",
+						"3003670_11733",
+						"3003672_11635",
+						"3003672_11668",
+						"3003672_11701",
+						"3003672_11734",
+						"3003674_11636",
+						"3003674_11669",
+						"3003674_11702",
+						"3003674_11735",
+						"3003676_11637",
+						"3003676_11670",
+						"3003676_11703",
+						"3003676_11736",
+						"3003678_11638",
+						"3003678_11671",
+						"3003678_11704",
+						"3003678_11737",
+						"3003680_11639",
+						"3003680_11672",
+						"3003680_11705",
+						"3003680_11738",
+						"3003682_11640",
+						"3003682_11673",
+						"3003682_11706",
+						"3003682_11739",
+						"3003684_11641",
+						"3003684_11674",
+						"3003684_11707",
+						"3003684_11740",
+						"3003686_11642",
+						"3003686_11675",
+						"3003686_11708",
+						"3003686_11741",
+						"3003688_11643",
+						"3003688_11676",
+						"3003688_11709",
+						"3003688_11742",
+						"3003690_11644",
+						"3003690_11677",
+						"3003690_11710",
+						"3003690_11743",
+						"3003746_11800",
+						"3003747_11801",
+						"3003748_11802",
+						"3003749_11803",
+						"3003750_11804",
+						"3003751_11805",
+						"3003752_11806",
+						"3003753_11807",
+						"3003754_11808",
+						"3003755_11809",
+						"3003756_11810",
+						"3003757_11811",
+						"3003758_11812",
+						"3003759_11813",
+						"3003760_11814",
+						"3003761_11815"
+					],
+					"trips_by_service": {
+						"2-172": 33,
+						"3-172": 33,
+						"4-172": 33,
+						"5-172": 33,
+						"7-172": 16
+					},
+					"trips_in_pattern": 148
+				},
+				{
+					"deltas": {
+						"333-1-41b006d4": {
+							"adds": [],
+							"skips": []
+						},
+						"333-1-7d5a9343": {
+							"adds": [
+								{
+									"stop_id": "6393",
+									"stop_name": "Convict Hill/290"
+								}
+							],
+							"skips": []
+						},
+						"333-1-adee6f46": {
+							"adds": [
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								},
+								{
+									"stop_id": "6393",
+									"stop_name": "Convict Hill/290"
+								},
+								{
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…"
+								},
+								{
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "3887",
+									"stop_name": "Convict…"
+								},
+								{
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas"
+								},
+								{
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota"
+								},
+								{
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House"
+								},
+								{
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield"
+								},
+								{
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"1-172"
+					],
+					"is_special": true,
+					"pattern_id": "333-1-41b006d4",
+					"stop_count": 51,
+					"stop_ids": [
+						"2597",
+						"6393",
+						"6390",
+						"3206",
+						"3207",
+						"3208",
+						"4446",
+						"4445",
+						"3887",
+						"3212",
+						"3213",
+						"3214",
+						"3215",
+						"3216",
+						"3217",
+						"5594",
+						"3220",
+						"3221",
+						"3223",
+						"3224",
+						"4436",
+						"4428",
+						"3226",
+						"4424",
+						"3228",
+						"3229",
+						"3230",
+						"3231",
+						"2917",
+						"2918",
+						"3234",
+						"4384",
+						"550",
+						"551",
+						"552",
+						"5703",
+						"6520",
+						"2478",
+						"4355",
+						"5121",
+						"5159",
+						"5136",
+						"2482",
+						"2483",
+						"5398",
+						"6481",
+						"4357",
+						"3901",
+						"6522",
+						"6339",
+						"6555"
+					],
+					"trip_ids": [
+						"3003626_11579",
+						"3003628_11580",
+						"3003630_11581",
+						"3003632_11582",
+						"3003634_11583",
+						"3003636_11584",
+						"3003638_11585",
+						"3003640_11586",
+						"3003642_11587",
+						"3003644_11588",
+						"3003646_11589",
+						"3003648_11590",
+						"3003650_11591",
+						"3003652_11592",
+						"3003654_11593",
+						"3003656_11594",
+						"3003658_11595",
+						"3003660_11596",
+						"3003662_11597",
+						"3003664_11598",
+						"3003666_11599",
+						"3003668_11600",
+						"3003670_11601",
+						"3003672_11602",
+						"3003674_11603",
+						"3003676_11604",
+						"3003678_11605",
+						"3003680_11606",
+						"3003682_11607",
+						"3003684_11608",
+						"3003686_11609",
+						"3003688_11610",
+						"3003690_11611",
+						"3003746_11784",
+						"3003747_11785",
+						"3003748_11786",
+						"3003749_11787",
+						"3003750_11788",
+						"3003751_11789",
+						"3003752_11790",
+						"3003753_11791",
+						"3003754_11792",
+						"3003755_11793",
+						"3003756_11794",
+						"3003757_11795",
+						"3003758_11796",
+						"3003759_11797",
+						"3003760_11798",
+						"3003761_11799",
+						"3003816_11834",
+						"3003817_11835",
+						"3003818_11836",
+						"3003819_11837",
+						"3003820_11838",
+						"3003821_11839",
+						"3003822_11840",
+						"3003823_11841",
+						"3003824_11842",
+						"3003825_11843",
+						"3003826_11844",
+						"3003827_11845",
+						"3003828_11846",
+						"3003829_11847",
+						"3003830_11848",
+						"3003831_11849"
+					],
+					"trips_by_service": {
+						"1-172": 33,
+						"6-172": 16,
+						"8-172": 16
+					},
+					"trips_in_pattern": 65
+				},
+				{
+					"deltas": {
+						"333-1-41b006d4": {
+							"adds": [
+								{
+									"stop_id": "6364",
+									"stop_name": "Quicksilver/Canella"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								},
+								{
+									"stop_id": "6393",
+									"stop_name": "Convict Hill/290"
+								},
+								{
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…"
+								},
+								{
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "3887",
+									"stop_name": "Convict…"
+								},
+								{
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas"
+								},
+								{
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota"
+								},
+								{
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House"
+								},
+								{
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield"
+								},
+								{
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill"
+								},
+								{
+									"stop_id": "3223",
+									"stop_name": "William Cannon/Brodie"
+								},
+								{
+									"stop_id": "3224",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "4436",
+									"stop_name": "William Cannon/Ranch"
+								},
+								{
+									"stop_id": "4428",
+									"stop_name": "William Cannon/Deaton…"
+								},
+								{
+									"stop_id": "3226",
+									"stop_name": "William Cannon/West Gate"
+								},
+								{
+									"stop_id": "4424",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3228",
+									"stop_name": "William Cannon/Menchaca"
+								},
+								{
+									"stop_id": "3229",
+									"stop_name": "William Cannon/Woodhue"
+								},
+								{
+									"stop_id": "3230",
+									"stop_name": "William Cannon/Mount…"
+								},
+								{
+									"stop_id": "3231",
+									"stop_name": "William Cannon/Emerald…"
+								},
+								{
+									"stop_id": "2917",
+									"stop_name": "William Cannon/Cooper"
+								},
+								{
+									"stop_id": "2918",
+									"stop_name": "William Cannon/1st"
+								},
+								{
+									"stop_id": "3234",
+									"stop_name": "William Cannon/Bill…"
+								},
+								{
+									"stop_id": "4384",
+									"stop_name": "William Cannon/Skynook"
+								},
+								{
+									"stop_id": "6481",
+									"stop_name": "William Cannon/Onion…"
+								},
+								{
+									"stop_id": "4357",
+									"stop_name": "Salt Springs/Orange…"
+								},
+								{
+									"stop_id": "3901",
+									"stop_name": "Salt Springs/Tara"
+								},
+								{
+									"stop_id": "6522",
+									"stop_name": "Salt Springs at…"
+								},
+								{
+									"stop_id": "6339",
+									"stop_name": "Vertex/Cattle Baron"
+								},
+								{
+									"stop_id": "6555",
+									"stop_name": "Goodnight Ranch Bay D"
+								}
+							]
+						},
+						"333-1-7d5a9343": {
+							"adds": [
+								{
+									"stop_id": "6364",
+									"stop_name": "Quicksilver/Canella"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2597",
+									"stop_name": "Oak Hill Plaza"
+								},
+								{
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment"
+								},
+								{
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…"
+								},
+								{
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train"
+								},
+								{
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett"
+								},
+								{
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek"
+								},
+								{
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak"
+								},
+								{
+									"stop_id": "3887",
+									"stop_name": "Convict…"
+								},
+								{
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas"
+								},
+								{
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota"
+								},
+								{
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano"
+								},
+								{
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai"
+								},
+								{
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House"
+								},
+								{
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood"
+								},
+								{
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield"
+								},
+								{
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry"
+								},
+								{
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill"
+								},
+								{
+									"stop_id": "3223",
+									"stop_name": "William Cannon/Brodie"
+								},
+								{
+									"stop_id": "3224",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "4436",
+									"stop_name": "William Cannon/Ranch"
+								},
+								{
+									"stop_id": "4428",
+									"stop_name": "William Cannon/Deaton…"
+								},
+								{
+									"stop_id": "3226",
+									"stop_name": "William Cannon/West Gate"
+								},
+								{
+									"stop_id": "4424",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3228",
+									"stop_name": "William Cannon/Menchaca"
+								},
+								{
+									"stop_id": "3229",
+									"stop_name": "William Cannon/Woodhue"
+								},
+								{
+									"stop_id": "3230",
+									"stop_name": "William Cannon/Mount…"
+								},
+								{
+									"stop_id": "3231",
+									"stop_name": "William Cannon/Emerald…"
+								},
+								{
+									"stop_id": "2917",
+									"stop_name": "William Cannon/Cooper"
+								},
+								{
+									"stop_id": "2918",
+									"stop_name": "William Cannon/1st"
+								},
+								{
+									"stop_id": "3234",
+									"stop_name": "William Cannon/Bill…"
+								},
+								{
+									"stop_id": "4384",
+									"stop_name": "William Cannon/Skynook"
+								},
+								{
+									"stop_id": "6481",
+									"stop_name": "William Cannon/Onion…"
+								},
+								{
+									"stop_id": "4357",
+									"stop_name": "Salt Springs/Orange…"
+								},
+								{
+									"stop_id": "3901",
+									"stop_name": "Salt Springs/Tara"
+								},
+								{
+									"stop_id": "6522",
+									"stop_name": "Salt Springs at…"
+								},
+								{
+									"stop_id": "6339",
+									"stop_name": "Vertex/Cattle Baron"
+								},
+								{
+									"stop_id": "6555",
+									"stop_name": "Goodnight Ranch Bay D"
+								}
+							]
+						},
+						"333-1-adee6f46": {
+							"adds": [
+								{
+									"stop_id": "6364",
+									"stop_name": "Quicksilver/Canella"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "5902",
+									"stop_name": "Brush Country/William…"
+								},
+								{
+									"stop_id": "3223",
+									"stop_name": "William Cannon/Brodie"
+								},
+								{
+									"stop_id": "3224",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "4436",
+									"stop_name": "William Cannon/Ranch"
+								},
+								{
+									"stop_id": "4428",
+									"stop_name": "William Cannon/Deaton…"
+								},
+								{
+									"stop_id": "3226",
+									"stop_name": "William Cannon/West Gate"
+								},
+								{
+									"stop_id": "4424",
+									"stop_name": "William…"
+								},
+								{
+									"stop_id": "3228",
+									"stop_name": "William Cannon/Menchaca"
+								},
+								{
+									"stop_id": "3229",
+									"stop_name": "William Cannon/Woodhue"
+								},
+								{
+									"stop_id": "3230",
+									"stop_name": "William Cannon/Mount…"
+								},
+								{
+									"stop_id": "3231",
+									"stop_name": "William Cannon/Emerald…"
+								},
+								{
+									"stop_id": "2917",
+									"stop_name": "William Cannon/Cooper"
+								},
+								{
+									"stop_id": "2918",
+									"stop_name": "William Cannon/1st"
+								},
+								{
+									"stop_id": "3234",
+									"stop_name": "William Cannon/Bill…"
+								},
+								{
+									"stop_id": "4384",
+									"stop_name": "William Cannon/Skynook"
+								},
+								{
+									"stop_id": "6481",
+									"stop_name": "William Cannon/Onion…"
+								},
+								{
+									"stop_id": "4357",
+									"stop_name": "Salt Springs/Orange…"
+								},
+								{
+									"stop_id": "3901",
+									"stop_name": "Salt Springs/Tara"
+								},
+								{
+									"stop_id": "6522",
+									"stop_name": "Salt Springs at…"
+								},
+								{
+									"stop_id": "6339",
+									"stop_name": "Vertex/Cattle Baron"
+								},
+								{
+									"stop_id": "6555",
+									"stop_name": "Goodnight Ranch Bay D"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "333-1-2ef02b6e",
+					"stop_count": 14,
+					"stop_ids": [
+						"550",
+						"551",
+						"552",
+						"5703",
+						"6520",
+						"2478",
+						"4355",
+						"5121",
+						"5159",
+						"5136",
+						"2482",
+						"2483",
+						"5398",
+						"6364"
+					],
+					"trip_ids": [
+						"3013898_11409",
+						"3013898_11410",
+						"3013898_11411",
+						"3013898_11412",
+						"3013898_11413"
+					],
+					"trips_by_service": {
+						"1-172": 1,
+						"2-172": 1,
+						"3-172": 1,
+						"4-172": 1,
+						"5-172": 1
+					},
+					"trips_in_pattern": 5
+				}
+			],
+			"trip_count": 441
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "333",
+	"schema": 1
+}

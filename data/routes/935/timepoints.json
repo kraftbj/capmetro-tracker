@@ -1,0 +1,338 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "935-0-b92b0679"
+			},
+			"baseline_pattern_id": "935-0-b92b0679",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"935-0-b92b0679": {
+					"direction_id": 0,
+					"pattern_id": "935-0-b92b0679",
+					"representative_trip_id": "3013107_24229",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 11,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.41844,
+							"lon": -97.668279,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26835,
+									"lon": -97.74792,
+									"stop_id": "2111",
+									"stop_name": "5th/San Antonio",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7Th/Colorado",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "5274",
+							"stop_name": "Tech Ridge Bay B",
+							"stop_name_full": "Tech Ridge Bay B",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269216,
+							"lon": -97.738446,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "6315",
+							"stop_name": "8th Street NB",
+							"stop_name_full": "8th Street NB (Trinity/8th)",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.289536,
+							"lon": -97.737134,
+							"minor_stops": [],
+							"stop_id": "2079",
+							"stop_name": "Dean Keeton/Speedway NE…",
+							"stop_name_full": "Dean Keeton/Speedway NE Corner",
+							"stop_sequence": 11
+						}
+					]
+				}
+			},
+			"stop_count": 11,
+			"timepoint_count": 3
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "935-1-cb29fa45",
+				"2-172": "935-1-733cc407",
+				"3-172": "935-1-733cc407",
+				"4-172": "935-1-733cc407",
+				"5-172": "935-1-733cc407"
+			},
+			"baseline_pattern_id": "935-1-733cc407",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"935-1-733cc407": {
+					"direction_id": 1,
+					"pattern_id": "935-1-733cc407",
+					"representative_trip_id": "3013109_24221",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 9,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8Th/Lavaca",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5Th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.41844,
+							"lon": -97.668279,
+							"minor_stops": [],
+							"stop_id": "5274",
+							"stop_name": "Tech Ridge Bay B",
+							"stop_name_full": "Tech Ridge Bay B",
+							"stop_sequence": 9
+						}
+					]
+				},
+				"935-1-cb29fa45": {
+					"direction_id": 1,
+					"pattern_id": "935-1-cb29fa45",
+					"representative_trip_id": "3013109_24219",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.28671,
+									"lon": -97.733652,
+									"stop_id": "1178",
+									"stop_name": "San Jacinto/24th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8Th/Lavaca",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5Th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.41844,
+							"lon": -97.668279,
+							"minor_stops": [],
+							"stop_id": "5274",
+							"stop_name": "Tech Ridge Bay B",
+							"stop_name_full": "Tech Ridge Bay B",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 9,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "935",
+	"schema": 1
+}

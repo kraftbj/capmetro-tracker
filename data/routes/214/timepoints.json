@@ -1,0 +1,328 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "214-0-c143809f"
+			},
+			"baseline_pattern_id": "214-0-c143809f",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"214-0-c143809f": {
+					"direction_id": 0,
+					"pattern_id": "214-0-c143809f",
+					"representative_trip_id": "2999966_4333",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.480422,
+							"lon": -97.786505,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.476288,
+									"lon": -97.794455,
+									"stop_id": "5223",
+									"stop_name": "North Lake…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.474728,
+									"lon": -97.795902,
+									"stop_id": "5653",
+									"stop_name": "Lakeline Mall/Lake Creek",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.472378,
+									"lon": -97.801255,
+									"stop_id": "5428",
+									"stop_name": "Lakeline Mall/Pecan Park",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.4727,
+									"lon": -97.802246,
+									"stop_id": "5222",
+									"stop_name": "Pecan Park/Lakeline Mall",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "5228",
+							"stop_name": "Lakeline Station Bay I",
+							"stop_name_full": "Lakeline Station Bay I",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.479477,
+							"lon": -97.834422,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.502724,
+									"lon": -97.914549,
+									"stop_id": "2832",
+									"stop_name": "Bee Street/Main Street",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.505705,
+									"lon": -97.912343,
+									"stop_id": "5220",
+									"stop_name": "Evergreen/Pecan",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5698",
+							"stop_name": "ACC Cypress Creek",
+							"stop_name_full": "ACC Cypress Creek",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.492932,
+							"lon": -97.92296,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.474202,
+									"lon": -97.973709,
+									"stop_id": "4600",
+									"stop_name": "1st/Bronco",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.479306,
+									"lon": -97.974374,
+									"stop_id": "4925",
+									"stop_name": "Bronco/Dodge Trace",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.48075,
+									"lon": -97.978271,
+									"stop_id": "2825",
+									"stop_name": "Bar K Ranch",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "2823",
+							"stop_name": "Park/Crestview Jonestown",
+							"stop_name_full": "Park/Crestview Jonestown",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.47157,
+							"lon": -97.9911,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.46992,
+									"lon": -97.98794,
+									"stop_id": "4927",
+									"stop_name": "Coyote/Camstock Cove",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.4726,
+									"lon": -97.98673,
+									"stop_id": "4928",
+									"stop_name": "Coyote/Camstock Cove",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.474413,
+									"lon": -97.989681,
+									"stop_id": "4926",
+									"stop_name": "Bar K Ranch/Coyote",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.480668,
+									"lon": -97.978167,
+									"stop_id": "2829",
+									"stop_name": "Bar K Ranch",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.47447,
+									"lon": -97.97358,
+									"stop_id": "4924",
+									"stop_name": "Bronco/1st",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.474088,
+									"lon": -97.975103,
+									"stop_id": "6071",
+									"stop_name": "Lohman Ford/FM 1431",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.454746,
+									"lon": -97.980364,
+									"stop_id": "4930",
+									"stop_name": "Dawn/Lohman Ford",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "2827",
+							"stop_name": "Crossbow/Paseo de Vaca",
+							"stop_name_full": "Crossbow/Paseo de Vaca",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.453482,
+							"lon": -97.987134,
+							"minor_stops": [],
+							"stop_id": "2830",
+							"stop_name": "Thunderbird/Dawn",
+							"stop_name_full": "5887 Thunderbird/Dawn",
+							"stop_sequence": 21
+						}
+					]
+				}
+			},
+			"stop_count": 21,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "214-1-8e33656c"
+			},
+			"baseline_pattern_id": "214-1-8e33656c",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"214-1-8e33656c": {
+					"direction_id": 1,
+					"pattern_id": "214-1-8e33656c",
+					"representative_trip_id": "2999980_4310",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.453482,
+							"lon": -97.987134,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.454587,
+									"lon": -97.980005,
+									"stop_id": "4923",
+									"stop_name": "Dawn/Lohman Ford",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "2830",
+							"stop_name": "Thunderbird/Dawn",
+							"stop_name_full": "5887 Thunderbird/Dawn",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.492835,
+							"lon": -97.92283,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.502724,
+									"lon": -97.914549,
+									"stop_id": "2832",
+									"stop_name": "Bee Street/Main Street",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.505705,
+									"lon": -97.912343,
+									"stop_id": "5220",
+									"stop_name": "Evergreen/Pecan",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "2831",
+							"stop_name": "Park/Crestview Jonestown",
+							"stop_name_full": "Park/Crestview Jonestown",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.479477,
+							"lon": -97.834422,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.478414,
+									"lon": -97.804675,
+									"stop_id": "5881",
+									"stop_name": "Lakeline/US 183",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.480007,
+									"lon": -97.800186,
+									"stop_id": "5654",
+									"stop_name": "Lakeline/US 183",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.479846,
+									"lon": -97.79749,
+									"stop_id": "5805",
+									"stop_name": "Lakeline/North Lake…",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5698",
+							"stop_name": "ACC Cypress Creek",
+							"stop_name_full": "ACC Cypress Creek",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.480422,
+							"lon": -97.786505,
+							"minor_stops": [],
+							"stop_id": "5228",
+							"stop_name": "Lakeline Station Bay I",
+							"stop_name_full": "Lakeline Station Bay I",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "214",
+	"schema": 1
+}

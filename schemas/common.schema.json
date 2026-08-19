@@ -800,6 +800,143 @@
           }
         }
       }
+    },
+    "nextDeparture": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "Earliest scheduled trip start on this route for the current service date, strictly after generated_at, across both directions. null when no departure remains today.",
+      "required": [
+        "scheduled_at",
+        "stop_id",
+        "stop_name",
+        "direction_id",
+        "headsign"
+      ],
+      "properties": {
+        "scheduled_at": {
+          "$ref": "#/$defs/epoch"
+        },
+        "stop_id": {
+          "type": "string"
+        },
+        "stop_name": {
+          "type": "string",
+          "maxLength": 25
+        },
+        "direction_id": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "headsign": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "scheduleTripRow": {
+      "type": "array",
+      "description": "[trip_id, start_epoch, offsets] -- offsets[i] is seconds from start_epoch to the scheduled arrival at timepoint_stop_ids[i], or null when this trip does not serve that timepoint.",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/epoch"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      ],
+      "items": false
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Windowed scheduled arrival times at each timepoint, per direction. Enough to draw scheduled trip diagonals on a time axis.",
+      "required": [
+        "window",
+        "directions"
+      ],
+      "properties": {
+        "window": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "until",
+            "before_s",
+            "after_s"
+          ],
+          "properties": {
+            "from": {
+              "$ref": "#/$defs/epoch"
+            },
+            "until": {
+              "$ref": "#/$defs/epoch"
+            },
+            "before_s": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "after_s": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "directions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "direction_id",
+              "timepoint_stop_ids",
+              "trips"
+            ],
+            "properties": {
+              "direction_id": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "timepoint_stop_ids": {
+                "type": "array",
+                "description": "Column order: the timepoints of this direction's baseline pattern, in stop_sequence order. Matches the timepoints[] entries with this direction_id.",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "trips": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/scheduleTripRow"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

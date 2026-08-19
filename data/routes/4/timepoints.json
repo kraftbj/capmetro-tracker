@@ -1,0 +1,622 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "4-0-b8001e33",
+				"2-172": "4-0-9d3a5dfb",
+				"3-172": "4-0-9d3a5dfb",
+				"4-172": "4-0-9d3a5dfb",
+				"5-172": "4-0-9d3a5dfb",
+				"6-172": "4-0-b8001e33",
+				"7-172": "4-0-9d3a5dfb",
+				"8-172": "4-0-b8001e33"
+			},
+			"baseline_pattern_id": "4-0-9d3a5dfb",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"4-0-9d3a5dfb": {
+					"direction_id": 0,
+					"pattern_id": "4-0-9d3a5dfb",
+					"representative_trip_id": "3005585_15848",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 17,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.257443,
+							"lon": -97.710596,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.260388,
+									"lon": -97.710078,
+									"stop_id": "3337",
+									"stop_name": "7th/Pleasant Valley",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.260665,
+									"lon": -97.711521,
+									"stop_id": "847",
+									"stop_name": "7th/Calles",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.260963,
+									"lon": -97.71356,
+									"stop_id": "848",
+									"stop_name": "7th/Pedernales",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.261408,
+									"lon": -97.716495,
+									"stop_id": "4181",
+									"stop_name": "7th/Northwestern",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.262602,
+									"lon": -97.721983,
+									"stop_id": "5119",
+									"stop_name": "7th/Chicon",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26388,
+									"lon": -97.725646,
+									"stop_id": "5120",
+									"stop_name": "7th/Concho",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.265561,
+									"lon": -97.7305,
+									"stop_id": "6460",
+									"stop_name": "7th/Waller",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268997,
+									"lon": -97.738479,
+									"stop_id": "5949",
+									"stop_name": "8th/Trinity",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "1368",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "501 Pleasant Valley/5th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8Th/Lavaca",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270316,
+									"lon": -97.75049,
+									"stop_id": "5499",
+									"stop_name": "6th/West",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270962,
+									"lon": -97.752215,
+									"stop_id": "1970",
+									"stop_name": "6th/Wood",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273061,
+									"lon": -97.757846,
+									"stop_id": "1972",
+									"stop_name": "6th/Harthan",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273935,
+									"lon": -97.760118,
+									"stop_id": "1973",
+									"stop_name": "6th/Pressler",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274836,
+									"lon": -97.762509,
+									"stop_id": "1974",
+									"stop_name": "6th/West Lynn",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.275026,
+							"lon": -97.764825,
+							"minor_stops": [],
+							"stop_id": "6243",
+							"stop_name": "Campbell/5th",
+							"stop_name_full": "504 Campbell/5th",
+							"stop_sequence": 17
+						}
+					]
+				},
+				"4-0-b8001e33": {
+					"direction_id": 0,
+					"pattern_id": "4-0-b8001e33",
+					"representative_trip_id": "3005585_15808",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 19,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.257443,
+							"lon": -97.710596,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.260388,
+									"lon": -97.710078,
+									"stop_id": "3337",
+									"stop_name": "7th/Pleasant Valley",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.260665,
+									"lon": -97.711521,
+									"stop_id": "847",
+									"stop_name": "7th/Calles",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.260963,
+									"lon": -97.71356,
+									"stop_id": "848",
+									"stop_name": "7th/Pedernales",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.261408,
+									"lon": -97.716495,
+									"stop_id": "4181",
+									"stop_name": "7th/Northwestern",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.262602,
+									"lon": -97.721983,
+									"stop_id": "5119",
+									"stop_name": "7th/Chicon",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26388,
+									"lon": -97.725646,
+									"stop_id": "5120",
+									"stop_name": "7th/Concho",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.265561,
+									"lon": -97.7305,
+									"stop_id": "6460",
+									"stop_name": "7th/Waller",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268997,
+									"lon": -97.738479,
+									"stop_id": "5949",
+									"stop_name": "8th/Trinity",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "1368",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "501 Pleasant Valley/5th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8Th/Lavaca",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26939,
+									"lon": -97.7472,
+									"stop_id": "1967",
+									"stop_name": "6th/San Antonio",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270316,
+									"lon": -97.75049,
+									"stop_id": "5499",
+									"stop_name": "6th/West",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270962,
+									"lon": -97.752215,
+									"stop_id": "1970",
+									"stop_name": "6th/Wood",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271955,
+									"lon": -97.754879,
+									"stop_id": "1971",
+									"stop_name": "6th/Baylor",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273061,
+									"lon": -97.757846,
+									"stop_id": "1972",
+									"stop_name": "6th/Harthan",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273935,
+									"lon": -97.760118,
+									"stop_id": "1973",
+									"stop_name": "6th/Pressler",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274836,
+									"lon": -97.762509,
+									"stop_id": "1974",
+									"stop_name": "6th/West Lynn",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.275026,
+							"lon": -97.764825,
+							"minor_stops": [],
+							"stop_id": "6243",
+							"stop_name": "Campbell/5th",
+							"stop_name_full": "504 Campbell/5th",
+							"stop_sequence": 19
+						}
+					]
+				}
+			},
+			"stop_count": 17,
+			"timepoint_count": 3
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "4-1-24ebb662",
+				"2-172": "4-1-24ebb662",
+				"3-172": "4-1-24ebb662",
+				"4-172": "4-1-24ebb662",
+				"5-172": "4-1-24ebb662",
+				"6-172": "4-1-24ebb662",
+				"7-172": "4-1-24ebb662",
+				"8-172": "4-1-24ebb662"
+			},
+			"baseline_pattern_id": "4-1-24ebb662",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"4-1-24ebb662": {
+					"direction_id": 1,
+					"pattern_id": "4-1-24ebb662",
+					"representative_trip_id": "3005622_15372",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"stop_count": 27,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.275026,
+							"lon": -97.764825,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.273605,
+									"lon": -97.763241,
+									"stop_id": "4086",
+									"stop_name": "5th/West Lynn",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2726,
+									"lon": -97.760749,
+									"stop_id": "2104",
+									"stop_name": "5Th/Pressler",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270977,
+									"lon": -97.756406,
+									"stop_id": "2106",
+									"stop_name": "5th/Baylor",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26926,
+									"lon": -97.75113,
+									"stop_id": "2108",
+									"stop_name": "5th/West",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268672,
+									"lon": -97.748979,
+									"stop_id": "2110",
+									"stop_name": "5th/Nueces",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268054,
+									"lon": -97.74679,
+									"stop_id": "2112",
+									"stop_name": "5th/Guadalupe",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7Th/Colorado",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268158,
+									"lon": -97.739822,
+									"stop_id": "6370",
+									"stop_name": "7th/San Jacinto",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267462,
+									"lon": -97.737166,
+									"stop_id": "928",
+									"stop_name": "7th/Red River",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265971,
+									"lon": -97.732268,
+									"stop_id": "929",
+									"stop_name": "7th/San Marcos",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.264972,
+									"lon": -97.729337,
+									"stop_id": "6461",
+									"stop_name": "7th/Attayac",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "6243",
+							"stop_name": "Campbell/5th",
+							"stop_name_full": "504 Campbell/5th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.263763,
+							"lon": -97.725888,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.262511,
+									"lon": -97.722327,
+									"stop_id": "934",
+									"stop_name": "Chicon/East 7th",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.261532,
+									"lon": -97.718195,
+									"stop_id": "935",
+									"stop_name": "7th/Robert T Martinez Jr",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.260851,
+									"lon": -97.713904,
+									"stop_id": "936",
+									"stop_name": "7th/Pedernales",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.260533,
+									"lon": -97.711831,
+									"stop_id": "937",
+									"stop_name": "7th/Calles",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.260049,
+									"lon": -97.709665,
+									"stop_id": "938",
+									"stop_name": "7th/Pleasant Valley",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.257758,
+									"lon": -97.704514,
+									"stop_id": "939",
+									"stop_name": "7th/Allen",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.255952,
+									"lon": -97.701621,
+									"stop_id": "6570",
+									"stop_name": "7th/Springdale",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253397,
+									"lon": -97.697886,
+									"stop_id": "942",
+									"stop_name": "7th/Shady",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.251893,
+									"lon": -97.698021,
+									"stop_id": "6450",
+									"stop_name": "Eastside Bus Plaza Bay J",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.252034,
+									"lon": -97.7047,
+									"stop_id": "6261",
+									"stop_name": "Cesar Chavez/Springdale",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.251738,
+									"lon": -97.708599,
+									"stop_id": "6263",
+									"stop_name": "Cesar Chavez/Tillery",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253005,
+									"lon": -97.712584,
+									"stop_id": "6265",
+									"stop_name": "Cesar Chavez/Pleasant…",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "5610",
+							"stop_name": "7th/Comal",
+							"stop_name_full": "1601 7th/Comal",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.257443,
+							"lon": -97.710596,
+							"minor_stops": [],
+							"stop_id": "1368",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "501 Pleasant Valley/5th",
+							"stop_sequence": 27
+						}
+					]
+				}
+			},
+			"stop_count": 27,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "4",
+	"schema": 1
+}

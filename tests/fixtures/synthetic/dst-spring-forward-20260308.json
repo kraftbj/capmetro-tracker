@@ -1,0 +1,51 @@
+{
+  "_comment": "Silent failure 3: America/Chicago springs forward on 2026-03-08; the service day is 23 hours long and the anchor is noon-minus-12h (23:00 on 03-07), NOT local midnight.",
+  "service_date": "20260308",
+  "timezone": "America/Chicago",
+  "service_day_midnight_epoch": 1772946000,
+  "local_midnight_epoch": 1772949600,
+  "cases": [
+    {
+      "clock": "00:30:00",
+      "expected_epoch": 1772947800,
+      "expected_local_iso": "2026-03-07T23:30:00-06:00",
+      "expected_utc_offset_hours": -6.0,
+      "note": "before the 02:00 jump, CST"
+    },
+    {
+      "clock": "01:30:00",
+      "expected_epoch": 1772951400,
+      "expected_local_iso": "2026-03-08T00:30:00-06:00",
+      "expected_utc_offset_hours": -6.0,
+      "note": "the last half hour of CST"
+    },
+    {
+      "clock": "02:30:00",
+      "expected_epoch": 1772955000,
+      "expected_local_iso": "2026-03-08T01:30:00-06:00",
+      "expected_utc_offset_hours": -6.0,
+      "note": "02:00-02:59 local does not exist on this date; noon-minus-12 arithmetic still yields a unique instant"
+    },
+    {
+      "clock": "03:30:00",
+      "expected_epoch": 1772958600,
+      "expected_local_iso": "2026-03-08T03:30:00-05:00",
+      "expected_utc_offset_hours": -5.0,
+      "note": "first half hour after the jump, CDT"
+    },
+    {
+      "clock": "12:00:00",
+      "expected_epoch": 1772989200,
+      "expected_local_iso": "2026-03-08T12:00:00-05:00",
+      "expected_utc_offset_hours": -5.0,
+      "note": "must land on actual local noon; a midnight-plus-offset anchor lands on 13:00 and is wrong"
+    },
+    {
+      "clock": "25:10:00",
+      "expected_epoch": 1773036600,
+      "expected_local_iso": "2026-03-09T01:10:00-05:00",
+      "expected_utc_offset_hours": -5.0,
+      "note": "after-midnight trip on a 23-hour service day"
+    }
+  ]
+}

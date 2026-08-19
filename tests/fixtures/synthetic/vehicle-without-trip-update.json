@@ -1,0 +1,83 @@
+{
+  "_comment": "Decision-table row 3: a vehicle reporting a trip that has no entry in the trip updates feed must be adherence.state unknown with reason no_trip_update (contract says ~7% of live vehicles; the committed real fixture contains zero, so this case exists only here).",
+  "_service_date": "20260819",
+  "_expected": {
+    "adherence_state": "unknown",
+    "adherence_reason": "no_trip_update",
+    "adherence_seconds": null,
+    "glyph": "question",
+    "in_service": true
+  },
+  "positions": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787152239"
+    },
+    "entity": [
+      {
+        "id": "9002",
+        "vehicle": {
+          "trip": {
+            "tripId": "3014769_15202",
+            "startTime": "10:05:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "SCHEDULED",
+            "routeId": "4",
+            "directionId": 1
+          },
+          "position": {
+            "latitude": 30.270388,
+            "longitude": -97.75505,
+            "bearing": 214.0,
+            "speed": 0.044704
+          },
+          "currentStopSequence": 5,
+          "currentStatus": "IN_TRANSIT_TO",
+          "timestamp": "1787152237",
+          "stopId": "2107",
+          "vehicle": {
+            "id": "9002",
+            "label": "9002"
+          }
+        }
+      }
+    ]
+  },
+  "trip_updates": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787152196"
+    },
+    "entity": [
+      {
+        "id": "3014707_15609",
+        "tripUpdate": {
+          "trip": {
+            "tripId": "3014707_15609",
+            "startTime": "09:45:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "SCHEDULED",
+            "routeId": "4",
+            "directionId": 0
+          },
+          "stopTimeUpdate": [
+            {
+              "stopSequence": 12,
+              "stopId": "5937",
+              "arrival": {
+                "time": "1787152359"
+              },
+              "scheduleRelationship": "SCHEDULED"
+            }
+          ],
+          "vehicle": {
+            "id": "9003"
+          },
+          "timestamp": "1787152194"
+        }
+      }
+    ]
+  }
+}

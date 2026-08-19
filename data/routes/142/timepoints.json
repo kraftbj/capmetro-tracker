@@ -1,0 +1,699 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "142-0-53064afc",
+				"2-172": "142-0-53064afc",
+				"3-172": "142-0-53064afc",
+				"4-172": "142-0-53064afc",
+				"5-172": "142-0-53064afc"
+			},
+			"baseline_pattern_id": "142-0-53064afc",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"142-0-53064afc": {
+					"direction_id": 0,
+					"pattern_id": "142-0-53064afc",
+					"representative_trip_id": "2998646_1524",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 37,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.255868,
+							"lon": -97.74546,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.259459,
+									"lon": -97.748994,
+									"stop_id": "2767",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.265792,
+									"lon": -97.746213,
+									"stop_id": "5944",
+									"stop_name": "Lavaca/3rd",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "1249",
+							"stop_name": "Riverside/Congress",
+							"stop_name_full": "150 Riverside/Congress",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269226,
+							"lon": -97.743548,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269216,
+									"lon": -97.738446,
+									"stop_id": "6315",
+									"stop_name": "8th Street NB",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279262,
+									"lon": -97.733535,
+									"stop_id": "2768",
+									"stop_name": "M L King/Trinity",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.358909,
+									"lon": -97.689299,
+									"stop_id": "5612",
+									"stop_name": "Rundberg at IH 35",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.360045,
+									"lon": -97.691626,
+									"stop_id": "1145",
+									"stop_name": "RUNDBERG/NORTHCREEK",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.361759,
+									"lon": -97.694423,
+									"stop_id": "3147",
+									"stop_name": "Rundberg/Slayton",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "6314",
+							"stop_name": "7Th/Colorado",
+							"stop_name_full": "115 7Th/Colorado",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.363939,
+							"lon": -97.698486,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.364972,
+									"lon": -97.700675,
+									"stop_id": "3149",
+									"stop_name": "Rundberg/Mearns Meadow",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.36657,
+									"lon": -97.70404,
+									"stop_id": "3150",
+									"stop_name": "Rundberg/Quail Wood",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.36768,
+									"lon": -97.70662,
+									"stop_id": "2530",
+									"stop_name": "Rundberg/Parkfield",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.369254,
+									"lon": -97.710359,
+									"stop_id": "3152",
+									"stop_name": "Rundberg/Mountain Quail",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.372478,
+									"lon": -97.711969,
+									"stop_id": "4781",
+									"stop_name": "Rutland/Mountain Quail",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.374452,
+									"lon": -97.711799,
+									"stop_id": "4780",
+									"stop_name": "Rutland/Mountain Quail",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.375881,
+									"lon": -97.710842,
+									"stop_id": "5519",
+									"stop_name": "Rutland/Ledgewood",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.37788,
+									"lon": -97.70795,
+									"stop_id": "2534",
+									"stop_name": "Quail Valley/Quail Hutch",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.37889,
+									"lon": -97.70653,
+									"stop_id": "2535",
+									"stop_name": "Mearns Meadow/Quail…",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.38059,
+									"lon": -97.70824,
+									"stop_id": "2536",
+									"stop_name": "Mearns Meadow/Robinwood",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.38301,
+									"lon": -97.71094,
+									"stop_id": "2537",
+									"stop_name": "Mearns Meadow/Little…",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.385965,
+									"lon": -97.711828,
+									"stop_id": "2539",
+									"stop_name": "Metric/Denton",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.389322,
+									"lon": -97.709956,
+									"stop_id": "2540",
+									"stop_name": "Metric/Kramer",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "3148",
+							"stop_name": "Rundberg/Lamar",
+							"stop_name_full": "832 Rundberg/Lamar",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.392761,
+							"lon": -97.707868,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.395748,
+									"lon": -97.705714,
+									"stop_id": "5752",
+									"stop_name": "Metric/Gold Wing",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.399286,
+									"lon": -97.703643,
+									"stop_id": "3036",
+									"stop_name": "Metric/Sunhillow",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.40113,
+									"lon": -97.702464,
+									"stop_id": "5705",
+									"stop_name": "Metric/Sunhillow",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.403381,
+									"lon": -97.699617,
+									"stop_id": "5615",
+									"stop_name": "Metric/Bittern",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.408111,
+									"lon": -97.696895,
+									"stop_id": "2544",
+									"stop_name": "Metric/Cedar Bend",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.411106,
+									"lon": -97.695672,
+									"stop_id": "2545",
+									"stop_name": "Lamplight Village/Metric",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.413849,
+									"lon": -97.696742,
+									"stop_id": "5732",
+									"stop_name": "Lamplight Village/Parmer",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.421212,
+									"lon": -97.71596,
+									"stop_id": "4875",
+									"stop_name": "Amherst/Adelphi",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.417718,
+									"lon": -97.718153,
+									"stop_id": "4877",
+									"stop_name": "Amherst/Mosley",
+									"stop_sequence": 36
+								}
+							],
+							"stop_id": "2541",
+							"stop_name": "Metric/Braker",
+							"stop_name_full": "11301 Metric/Braker",
+							"stop_sequence": 27
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.413599,
+							"lon": -97.720831,
+							"minor_stops": [],
+							"stop_id": "5577",
+							"stop_name": "Amherst/Eton",
+							"stop_name_full": "12016 Amherst/Eton",
+							"stop_sequence": 37
+						}
+					]
+				}
+			},
+			"stop_count": 37,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "142-1-e6e7208f",
+				"2-172": "142-1-e6e7208f",
+				"3-172": "142-1-e6e7208f",
+				"4-172": "142-1-e6e7208f",
+				"5-172": "142-1-e6e7208f"
+			},
+			"baseline_pattern_id": "142-1-e6e7208f",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"142-1-e6e7208f": {
+					"direction_id": 1,
+					"pattern_id": "142-1-e6e7208f",
+					"representative_trip_id": "2998648_1533",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 38,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.412316,
+							"lon": -97.721527,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.417825,
+									"lon": -97.717878,
+									"stop_id": "4878",
+									"stop_name": "Amherst/Dugan",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.42131,
+									"lon": -97.71561,
+									"stop_id": "4876",
+									"stop_name": "Amherst/Adelphi",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.424353,
+									"lon": -97.713654,
+									"stop_id": "4873",
+									"stop_name": "Amherst/Parmer",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.418592,
+									"lon": -97.701867,
+									"stop_id": "3045",
+									"stop_name": "Parmer/Tomanet",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.415114,
+									"lon": -97.6965,
+									"stop_id": "2564",
+									"stop_name": "Lamplight…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.41085,
+									"lon": -97.695734,
+									"stop_id": "2566",
+									"stop_name": "Lamplight…",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.407779,
+									"lon": -97.697279,
+									"stop_id": "2567",
+									"stop_name": "Metric/Cedar Bend",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.403297,
+									"lon": -97.700246,
+									"stop_id": "5614",
+									"stop_name": "Metric/Bittern",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.400818,
+									"lon": -97.703014,
+									"stop_id": "2751",
+									"stop_name": "ACC Northridge",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.397885,
+									"lon": -97.704866,
+									"stop_id": "5356",
+									"stop_name": "Metric/Gracy Farms",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.39488,
+									"lon": -97.706822,
+									"stop_id": "2568",
+									"stop_name": "Metric/Stonehollow",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "3900",
+							"stop_name": "Amhearst/Duval",
+							"stop_name_full": "12001 Amhearst/Duval",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.391795,
+							"lon": -97.708785,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.386819,
+									"lon": -97.711534,
+									"stop_id": "5734",
+									"stop_name": "Metric/Donley",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.3836,
+									"lon": -97.71304,
+									"stop_id": "2572",
+									"stop_name": "Metric/Boyer",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.38291,
+									"lon": -97.7111,
+									"stop_id": "2573",
+									"stop_name": "Mearns Meadow/Little…",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.37867,
+									"lon": -97.70659,
+									"stop_id": "2575",
+									"stop_name": "Mearns Meadow/Quail…",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.377423,
+									"lon": -97.709544,
+									"stop_id": "4834",
+									"stop_name": "Quail Valley/Rutland",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.376082,
+									"lon": -97.710918,
+									"stop_id": "4782",
+									"stop_name": "Rutland/Quail Valley",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.374408,
+									"lon": -97.71203,
+									"stop_id": "4783",
+									"stop_name": "Rutland/Quail Valley",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371209,
+									"lon": -97.709678,
+									"stop_id": "2578",
+									"stop_name": "Rutland/Mountain Quail",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.368873,
+									"lon": -97.710057,
+									"stop_id": "3129",
+									"stop_name": "Rundberg/Hunters Trace",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.36738,
+									"lon": -97.70647,
+									"stop_id": "3130",
+									"stop_name": "Parkfield/Rundberg",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.366365,
+									"lon": -97.70407,
+									"stop_id": "2581",
+									"stop_name": "Rundberg/Quail Wood",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.365154,
+									"lon": -97.701513,
+									"stop_id": "2582",
+									"stop_name": "Rundberg/Collinfield",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "2569",
+							"stop_name": "Metric/Braker",
+							"stop_name_full": "11212 Metric/Braker",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.3637,
+							"lon": -97.69848,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.362762,
+									"lon": -97.696525,
+									"stop_id": "4539",
+									"stop_name": "Rundberg/Lamar",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.361569,
+									"lon": -97.694541,
+									"stop_id": "2585",
+									"stop_name": "Rundberg/Slayton",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.360039,
+									"lon": -97.692027,
+									"stop_id": "1289",
+									"stop_name": "Rundberg/North Creek",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279307,
+									"lon": -97.73295,
+									"stop_id": "2761",
+									"stop_name": "Martin Luther King/Red…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 33
+								}
+							],
+							"stop_id": "2583",
+							"stop_name": "Rundberg/Lamar",
+							"stop_name_full": "831 Rundberg/Lamar (Near Side)",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8Th/Lavaca",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5Th",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.258767,
+									"lon": -97.7487,
+									"stop_id": "2763",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 37
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 34
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.256196,
+							"lon": -97.746021,
+							"minor_stops": [],
+							"stop_id": "3846",
+							"stop_name": "Riverside/Congress FS",
+							"stop_name_full": "Riverside/Congress FS",
+							"stop_sequence": 38
+						}
+					]
+				}
+			},
+			"stop_count": 38,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "142",
+	"schema": 1
+}

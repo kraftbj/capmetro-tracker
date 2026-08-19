@@ -1,0 +1,221 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"19-172": "493-0-5c33c45a"
+			},
+			"baseline_pattern_id": "493-0-5c33c45a",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"493-0-5c33c45a": {
+					"direction_id": 0,
+					"pattern_id": "493-0-5c33c45a",
+					"representative_trip_id": "3006252_16534",
+					"service_ids": [
+						"19-172"
+					],
+					"stop_count": 9,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.262213,
+							"lon": -97.740639,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.252636,
+									"lon": -97.733165,
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "5633",
+							"stop_name": "Cesar Chavez/Trinity",
+							"stop_name_full": "421 Cesar Chavez/Trinity",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.253346,
+							"lon": -97.735557,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.262511,
+									"lon": -97.722327,
+									"stop_id": "934",
+									"stop_name": "Chicon/East 7th",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "6404",
+							"stop_name": "Waller/Flores",
+							"stop_name_full": "27 Waller/Flores",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.259543,
+							"lon": -97.712031,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.265299,
+									"lon": -97.708781,
+									"stop_id": "1373",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272787,
+									"lon": -97.702321,
+									"stop_id": "667",
+									"stop_name": "Oak Springs/Webberville",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273484,
+									"lon": -97.698127,
+									"stop_id": "668",
+									"stop_name": "Oak Springs/Airport",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6366",
+							"stop_name": "Calles/Diaz",
+							"stop_name_full": "633 Calles/Diaz",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.27252,
+							"lon": -97.69775,
+							"minor_stops": [],
+							"stop_id": "3299",
+							"stop_name": "Airport/Oak Springs",
+							"stop_name_full": "1144 Airport/Oak Springs",
+							"stop_sequence": 9
+						}
+					]
+				}
+			},
+			"stop_count": 9,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"19-172": "493-1-273c404e"
+			},
+			"baseline_pattern_id": "493-1-273c404e",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"493-1-273c404e": {
+					"direction_id": 1,
+					"pattern_id": "493-1-273c404e",
+					"representative_trip_id": "3006258_16530",
+					"service_ids": [
+						"19-172"
+					],
+					"stop_count": 9,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.27252,
+							"lon": -97.69775,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.265299,
+									"lon": -97.708781,
+									"stop_id": "1373",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "3299",
+							"stop_name": "Airport/Oak Springs",
+							"stop_name_full": "1144 Airport/Oak Springs",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.259543,
+							"lon": -97.712031,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.262602,
+									"lon": -97.721983,
+									"stop_id": "5119",
+									"stop_name": "7th/Chicon",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.252636,
+									"lon": -97.733165,
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "6366",
+							"stop_name": "Calles/Diaz",
+							"stop_name_full": "633 Calles/Diaz",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.253346,
+							"lon": -97.735557,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.260578,
+									"lon": -97.73438,
+									"stop_id": "1850",
+									"stop_name": "Cesar Chavez/San Marcos",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26246,
+									"lon": -97.74084,
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6404",
+							"stop_name": "Waller/Flores",
+							"stop_name_full": "27 Waller/Flores",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.262213,
+							"lon": -97.740639,
+							"minor_stops": [],
+							"stop_id": "5633",
+							"stop_name": "Cesar Chavez/Trinity",
+							"stop_name_full": "421 Cesar Chavez/Trinity",
+							"stop_sequence": 9
+						}
+					]
+				}
+			},
+			"stop_count": 9,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "493",
+	"schema": 1
+}

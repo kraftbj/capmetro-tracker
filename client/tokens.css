@@ -1,0 +1,118 @@
+/*
+ * tokens.css — the single source of truth for the board's semantic palette,
+ * type scale, and spacing. Task D4: no adherence hex may appear outside this
+ * file. Dark theme only; a light theme is explicitly out of scope.
+ *
+ * Contrast is measured, not guessed. Every ratio below was computed against
+ * the panel background #0e1117 (or against the chip fill, for chip ink).
+ */
+
+@import url('fonts/plex.css');
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Surface -------------------------------------------------------- */
+  /* One continuous surface. Panels are bands on it, never cards. */
+  --surface: #0b0d12;
+  --surface-panel: #0e1117;
+  --surface-raised: #141821;   /* vehicle rows and watch rows only */
+  --surface-raised-hi: #1b2130;
+  --hairline: #1e242e;         /* the divider between bands */
+  --hairline-soft: #171c24;
+
+  /* ---- Ink ------------------------------------------------------------ */
+  --ink: #e5e7eb;              /* 15.26:1 on panel */
+  --ink-strong: #f8fafc;
+  --ink-muted: #c3cad6;        /* 11.46:1 */
+  --ink-dim: #9aa4b2;          /* 7.49:1  — the floor for body-adjacent text */
+  --ink-chrome: #7d8798;       /* 5.21:1  — axis labels, never body text */
+
+  /* ---- Adherence, from the contract's six states ---------------------- */
+  /* glyph: left-triangle | circle | up-triangle | square | question | ring */
+  --adh-early:   #3b82f6;      /* 5.14:1 vs panel   ◀  running early        */
+  --adh-ontime:  #22c55e;      /* 8.29:1            ●  on time              */
+  --adh-late:    #f59e0b;      /* 8.80:1            ▲  2.5-6 min late       */
+  --adh-vlate:   #ef4444;      /* 5.02:1            ■  6+ min late          */
+  --adh-unknown: #94a3b8;      /* 7.37:1            ?  lateness unknown     */
+  --adh-dead:    #6b7280;      /* 3.91:1            ○  deadhead / no trip   */
+  --adh-special: #8b5cf6;      /* 4.46:1            ◆  special trip pattern */
+
+  /*
+   * Chip ink. Dark ink on the bright fills; white on the deadhead grey.
+   * D5: dark ink on #6b7280 measures 4.02:1 and fails. White measures 4.83:1.
+   */
+  --adh-ink-dark: #0b0d12;
+  --adh-ink-light: #ffffff;
+  --adh-early-ink:   var(--adh-ink-dark);   /* 5.28:1 */
+  --adh-ontime-ink:  var(--adh-ink-dark);   /* 8.53:1 */
+  --adh-late-ink:    var(--adh-ink-dark);   /* 9.05:1 */
+  --adh-vlate-ink:   var(--adh-ink-dark);   /* 5.16:1 */
+  --adh-unknown-ink: var(--adh-ink-dark);   /* 7.58:1 */
+  --adh-dead-ink:    var(--adh-ink-light);  /* 4.83:1 — was 4.02:1, D5 */
+  --adh-special-ink: var(--adh-ink-dark);   /* 4.59:1 */
+
+  /* ---- Status / messaging --------------------------------------------- */
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --accent: #3b82f6;
+  --accent-ink: #0b0d12;
+  --skeleton: #171d27;
+  --skeleton-hi: #212936;
+
+
+  /* ---- Diagram ink (ladder + map) ------------------------------------- */
+  /* Chrome for the drawings. Kept here so no hex is written in styles.css. */
+  --dia-spine: #39414f;
+  --dia-spine-dim: #2a3038;
+  --dia-zero: #454e5e;
+  --dia-grid: #1b212b;
+  --dia-node: #6b7480;
+  --dia-node-minor: #3b434f;
+  --dia-stem: #4b5563;
+  --dia-route: #333c4a;
+
+  /* ---- Banner tints ---------------------------------------------------- */
+  --tint-info: #12161f;
+  --tint-warn: #241a06;
+  --tint-danger: #2a1113;
+
+  /* ---- Type ------------------------------------------------------------ */
+  /* Two faces, one for text and one for figures. Both have tabular numerals. */
+  --font-text: 'IBM Plex Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-figure: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --fs-body: 16px;       /* body text never goes below this */
+  --fs-lead: 17px;
+  --fs-meta: 16px;
+  --fs-chrome: 12px;     /* ladder axis labels and band eyebrows only */
+  --fs-chrome-sm: 11px;
+  --fs-badge: 15px;
+
+  --lh-tight: 1.25;
+  --lh-body: 1.45;
+
+  /* ---- Metrics --------------------------------------------------------- */
+  --tap: 44px;               /* minimum touch target */
+  --pad-band: 14px;          /* horizontal padding inside every band */
+  --badge-col: 74px;         /* the fixed column the lateness badge lives in */
+  --vid-col: 54px;
+  --ladder-pitch: 44px;      /* timepoint row pitch; floor for BOTH mode */
+  --ladder-minor-pitch: 30px;
+  --ladder-label-w: 138px;
+  --radius: 8px;
+  --radius-sm: 5px;
+
+  /* ---- Motion ---------------------------------------------------------- */
+  /* Meaning only: dot movement, stale transitions, row status changes. */
+  --dur-move: 420ms;
+  --dur-state: 200ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-move: 0ms;
+    --dur-state: 0ms;
+  }
+}

@@ -3,6 +3,10 @@
 Status: DRAFT
 Version: schema 1
 Written: 2026-08-19
+Amended: 2026-08-19 — added `route.next_departure` (§1) and the windowed timepoint schedule
+`schedule` (§3.2); made `alerts[].stop_ids` an explicit set (§5); added ordinal normalization as
+§7 rule 4; acceptance criteria 11 to 14. Purely additive: no existing field changed shape, so
+`schema` stays **1**.
 Source task: T6 in `docs/designs/capmetro-dispatch-board.md`
 
 The runtime job writes static JSON into the webroot. The client reads it and renders. This
@@ -57,7 +61,14 @@ The primary endpoint. One file per route, regenerated every cron run.
     "directions": [
       { "id": 0, "headsign": "4 Mopac WB" },
       { "id": 1, "headsign": "4 Shady EB" }
-    ]
+    ],
+    "next_departure": {                 // null when the service day is over; see below
+      "scheduled_at": 1787152860,
+      "stop_id": "1368",
+      "stop_name": "Pleasant Valley/5th",
+      "direction_id": 0,
+      "headsign": "4 Mopac WB"
+    }
   },
   "feeds": {                            // age of each upstream input, for staleness rendering
     "positions_at": 1787152239,
@@ -80,6 +91,7 @@ The primary endpoint. One file per route, regenerated every cron run.
   },
   "vehicles": [ /* Vehicle, see §2 */ ],
   "timepoints": [ /* Timepoint, see §3 — BOTH directions in one flat array */ ],
+  "schedule": { /* windowed timepoint schedule, see §3.2 */ },
   "alerts": [ /* Alert, see §5 */ ]
 }
 ```
@@ -89,6 +101,35 @@ every vehicle on the route and every timepoint for both directions in flat array
 `Timepoint` and each `Vehicle.trip` carries its own `direction_id`. The client filters for the
 A / B / BOTH toggle. This keeps one fetch per route regardless of which direction the user is
 looking at, which matters because the BOTH toggle would otherwise need two round trips.
+
+### `route.next_departure`
+
+So the empty state can say *"No buses on route 350 right now. Next departure 2:14pm from
+Airport/12th."* rather than stopping after the first sentence. Without this field the client
+either invents the second sentence or omits it, and both are worse than the server answering.
+
+It names exactly one trip: **the earliest scheduled trip start on this route, for the current
+service date, strictly after `generated_at`, across both directions.** Precisely:
+
+- *Trip start* is the scheduled arrival time at the trip's **first stop**, resolved to epoch by
+  the service-day rule in §2 — the same value as `Vehicle.trip.start_epoch`.
+- Only trips whose `service_id` is active on the current service date are eligible (§9's
+  `calendar_dates.txt` resolution, same rule).
+- A trip the live trip-updates feed reports as `CANCELED` is **excluded**. A departure the
+  agency has already canceled is not a promise the board should make.
+- Ties — two trips scheduled to the same second — break toward the lower `direction_id`, then
+  the lexicographically smallest `trip_id`, so the value is stable across rebuilds.
+- `direction_id` and `headsign` describe the trip that departs, not the route's default
+  direction. `headsign` is the trip's GTFS `trip_headsign` and may be `null`; `stop_name` is
+  shortened per §7.
+
+`null` means no departure remains today: the service day is over. The key is **always present**
+— `null` and absent are not interchangeable (§0), and a client that has to tell "server did not
+compute this" from "there genuinely is no next bus" has been handed an inference to make.
+
+Computed on every route regardless of whether it currently has vehicles. The empty state is the
+reason it exists, but a route showing five buses can still answer "when does the next one leave".
+
 
 ### Staleness levels
 
@@ -263,6 +304,120 @@ through with the reason. **This is a correctness requirement, not a nicety**: at
 6 stop/route pairs on the six watched routes are scheduled in GTFS but under an active
 `NO_SERVICE` alert, two of them on the route 4 Austin High run.
 
+### 3.2 Windowed timepoint schedule — `schedule`
+
+The ladder can draw where a bus **is**. Drawing where it **should be** — a true time-axis
+string-line, scheduled trips as diagonals with live vehicles plotted against them — needs
+scheduled clock times at more than one stop per bus. Everything above this section gives the
+client exactly one scheduled time per vehicle (`adherence.against.scheduled_at`), which is enough
+for a lateness number and not enough for a diagonal.
+
+`schedule` supplies them: for each direction, the scheduled arrival time at each **timepoint**,
+for every trip whose span overlaps the **schedule window**.
+
+```jsonc
+"schedule": {
+  "window": {
+    "from": 1787151339,      // generated_at - before_s  (09:55:39 CDT)
+    "until": 1787154939,     // generated_at + after_s   (10:55:39 CDT)
+    "before_s": 900,         // 15 minutes back
+    "after_s": 2700          // 45 minutes forward
+  },
+  "directions": [
+    {
+      "direction_id": 0,
+      "timepoint_stop_ids": ["1368", "5937", "6243"],      // the column order
+      "trips": [
+        ["3014707_15609", 1787151900, [0, 900, 1500]],     // [trip_id, start_epoch, offsets]
+        ["3014708_15610", 1787152860, [0, 900, 1500]]
+      ]
+    },
+    { "direction_id": 1, "timepoint_stop_ids": ["6243", "5610", "1368"], "trips": [ /* ... */ ] }
+  ]
+}
+```
+
+**A trip row is `[trip_id, start_epoch, offsets]`** — always exactly three elements, in that
+order.
+
+- `start_epoch` — the trip's scheduled start: the scheduled arrival at its **first stop**, not
+  its first timepoint, resolved by the service-day rule in §2. For a `SCHEDULED` trip this is the
+  same value as `Vehicle.trip.start_epoch`, which is how the client joins a live vehicle to its
+  own diagonal without a second lookup. Verified on the 2026-08-19 fixture: all five in-service
+  route 4 vehicles match their schedule row exactly.
+- `offsets[i]` — seconds from `start_epoch` to the scheduled arrival at `timepoint_stop_ids[i]`.
+  Always an integer ≥ 0. **`null` when this trip does not serve that timepoint**, which happens
+  on special patterns (§3 already models the same fact for the row set). Absolute clock time is
+  `start_epoch + offsets[i]`.
+- A trip serving **none** of the columns is omitted from `trips` entirely rather than carried as
+  an all-null row.
+- Offsets rather than absolute epochs because they are 1–4 digits instead of 10 and repeat across
+  trips, which shrinks the file both raw and gzipped. Array-of-arrays rather than objects for the
+  same reason: the key names would otherwise repeat once per timepoint per trip.
+
+`timepoint_stop_ids` is the column order: the timepoints of that direction's **baseline pattern**
+(§3), in `stop_sequence` order. It is exactly the `stop_id` sequence of the `timepoints[]`
+entries carrying that `direction_id`, in the same order, so the client can index the two together
+with no matching logic. `schedule.directions` carries exactly one entry per entry in
+`route.directions`, in ascending `direction_id`; a direction with no baseline timepoints, or
+with no trip in the window, appears with empty `timepoint_stop_ids` / empty `trips` rather than
+being omitted, so the client never has to distinguish "absent" from "nothing scheduled".
+
+Rows are sorted by `start_epoch` ascending, then `trip_id`, so a diff between two runs is
+readable.
+
+#### The schedule window
+
+**`generated_at - 900` to `generated_at + 2700`** — now minus 15 minutes, now plus 45 minutes.
+Both bounds are restated in the payload as `before_s` and `after_s` so they are a server
+decision, not a client constant; a later widening is a build change and nothing else.
+
+A trip is included when its span **overlaps** the window — `trip_start <= window.until` **and**
+`trip_end >= window.from`, where `trip_end` is the scheduled arrival at its last stop. Overlap,
+not "starts inside the window": the trips already in progress are precisely the ones with buses
+on them, and a start-inside test would drop every one of them.
+
+Why 15 back and 45 forward. Backward is the shorter side because a trip that ended twenty minutes
+ago has no diagonal worth drawing beside a live position; 15 minutes covers the in-progress trips
+whose start is already behind us, which on route 4 at this hour is one full 16-minute headway.
+Forward is the longer side because the question a dispatch board answers is what happens next: 45
+minutes shows two to three following trips per direction, enough for the string-line to read as a
+repeating pattern and enough to answer "when is the next one" without a second fetch. The window
+holds **12** of route 4's **124** trips for this service date.
+
+#### Measured size cost
+
+Route 4, 2026-08-19 fixture, 3 timepoints and 6 in-window trips per direction. Compressed
+figures are `gzip -9 -n` over the serialized bytes.
+
+| | raw | gzipped |
+|---|---|---|
+| `schedule` block alone, compact, as `runtime/` writes it | 750 B | 279 B |
+| whole route file as committed (pretty-printed), **without** `schedule` | 20,302 B | 2,928 B |
+| whole route file as committed (pretty-printed), **with** `schedule` | 21,979 B | 3,204 B |
+| **delta** | **+1,677 B** | **+276 B** |
+
+The two restrictions are what keep that number small, and both were measured rather than assumed
+(same encoding, route 4, same service date, raw bytes):
+
+| Scope | raw |
+|---|---|
+| timepoints only, windowed — **what this contract ships** | 750 B |
+| timepoints only, all 124 trips of the service day | 5,103 B |
+| every stop, all 124 trips of the service day | 15,025 B |
+| every stop, all 834 trips in the GTFS extract | 102,305 B |
+
+Estimated for the widest watched route — route 7, 8 timepoints per direction, ~12 in-window trips
+per direction — the compact block is about **1.9 KB raw**. That estimate is raw bytes only; a
+gzip figure from a synthesized block would flatter itself, because synthetic rows repeat more
+than real ones do.
+
+The route file is regenerated every 60s and served `no-cache` (§11), so this cost is paid per
+poll. Under 300 gzipped bytes on route 4 and an estimated sub-kilobyte on route 7 is the reason
+the window and the timepoints-only restriction are in the contract rather than left to the
+implementation.
+
+
 ---
 
 ## 4. `block.confidence`
@@ -303,13 +458,20 @@ parser.
   "url": "https://www.capmetro.org/alerts",
   "active_from": 1780000000,
   "active_until": null,                 // null means open-ended; 59 of 104 alerts today are null
-  "stop_ids": ["1967"],                 // may be empty: 29 of 175 informedEntities are route-only
+  "stop_ids": ["1967"],                 // a SET: deduplicated, may be empty (29 of 175 are route-only)
   "severity": "high"                    // high for NO_SERVICE, medium for DETOUR/REDUCED, low else
 }
 ```
 
 Only alerts whose active period covers `generated_at` are included. An `active_until` of `null`
 means open-ended and is treated as currently active.
+
+**`stop_ids` is a set: no duplicates, ever.** The upstream `informedEntities` array repeats a stop
+once per informed route, so a stop closure naming routes 4 and 663 arrives as
+`["940", "940"]`. The build job deduplicates, preserving first-seen order. This is a correctness
+requirement, not tidiness: anything that groups or counts by stop double-counts otherwise, and
+the client is forbidden from deduplicating because the client makes no inference. An empty array
+is still valid and means the alert is route-level with no stop named.
 
 ---
 
@@ -334,7 +496,20 @@ clip mid-word on a 412px ladder. The build job emits both `stop_name` (shortened
 2. Drop a leading street number (`"4999 7th/Shady"` becomes `"7th/Shady"`).
 3. Standardize suffixes: `Northbound` to `NB`, `Southbound` to `SB`, `Eastbound` to `EB`,
    `Westbound` to `WB`.
-4. If still over 24 characters, truncate at the last word boundary under 24 and append `…`.
+4. **Normalize intercapped ordinals.** Upstream title-cases every word, so `8Th/Lavaca`,
+   `48Th Half` and `21St` arrive capitalized mid-token. Lowercase an ordinal suffix that
+   immediately follows a digit. Exactly:
+
+   > Replace every match of the regular expression `(?<=[0-9])(St|Nd|Rd|Th)\b` with the
+   > lowercase form of the matched text.
+
+   Case-sensitive; no other flags. The lookbehind requires a digit with **no** intervening
+   space, so `Main St` and `Nd` standing alone are untouched and only `8Th` to `8th`,
+   `2Nd` to `2nd`, `3Rd` to `3rd`, `1St` to `1st` and their multi-digit forms change. The rule
+   never changes a string's length, so it is safe to apply before truncation and it cannot
+   affect rule 5. Any regex flavor works: PHP `preg_replace`, JavaScript `String.replace` with
+   `/(?<=[0-9])(St|Nd|Rd|Th)\b/g`, Python `re.sub`.
+5. If still over 24 characters, truncate at the last word boundary under 24 and append `…`.
    **Never truncate mid-word.**
 
 ---
@@ -448,7 +623,25 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
 9. Resolving the watch tuple `("800", 1, "6293", "07:52:09", "weekday")` returns trip
    `3010894_22201` for service date 20260819 and also resolves for 20260820, which runs a
    different one-off service.
-10. No `stop_name` in any generated file ends mid-word or exceeds 25 characters.
+10. No `stop_name` in any generated file ends mid-word or exceeds 25 characters, and no
+    `stop_name` anywhere matches `[0-9](St|Nd|Rd|Th)\b` — the §7 rule 4 ordinal artefact
+    (`8Th/Lavaca`) is gone from timepoints, minor stops, `adherence.against`, `pattern.adds`,
+    `pattern.skips`, `block.next_trip` and `route.next_departure` alike.
+11. `route.next_departure` is present on every route file, `null` only when no trip remains
+    today. For route 4 on the 2026-08-19 fixture (`generated_at` 1787152239) it reports
+    `scheduled_at: 1787152860` at stop `1368`, `direction_id: 0` — the 10:21 Mopac WB, ten
+    minutes after the 10:10:39 CDT `generated_at`. Forcing the clock past the last trip of the
+    service day makes it `null`, with the key still present.
+12. `timepoints[]` carries at least one entry for **each** direction the route runs. On route 4
+    that is 3 timepoints for direction 0 and 3 for direction 1, in one flat array.
+13. `schedule` is present on every route file and internally consistent with the rest of it:
+    `directions[].timepoint_stop_ids` equals the `stop_id` sequence of the `timepoints[]`
+    entries for that `direction_id` in order; every in-service vehicle whose trip overlaps the
+    window appears as a trip row whose `start_epoch` equals that vehicle's
+    `trip.start_epoch`; every offset is `null` or an integer ≥ 0; every trip row has exactly
+    three elements and an `offsets` array as long as `timepoint_stop_ids`. On the 2026-08-19
+    fixture that is 6 trip rows per direction and all 5 in-service route 4 vehicles matched.
+14. No `alerts[].stop_ids` array in any generated file contains a duplicate.
 
 ## 13. Out of scope
 
@@ -464,3 +657,10 @@ build plus deleting the generated `/api/*.json`, after which the client falls ba
 degraded positions-only mode. Bumping `schema` is the only breaking change vector; the client
 already refuses a `schema` higher than it knows, so an old client degrades rather than
 misrendering.
+
+The 2026-08-19 amendment adds fields without bumping `schema`, which is safe in that direction:
+a client built against the earlier document ignores keys it does not know, and every new field is
+either always present or explicitly nullable. It is **not** safe in the other direction — a route
+file written before the amendment no longer validates, because `next_departure` and `schedule`
+are required. Regenerating is the fix; there is no migration, because every file is rewritten
+every 60 seconds anyway.

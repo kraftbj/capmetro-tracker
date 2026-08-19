@@ -1,0 +1,52 @@
+{
+  "_comment": "Silent failure 5: a GTFS clock time of 25:10:00 must resolve to 01:10 the NEXT calendar day, not be rejected as an invalid hour.",
+  "_service_date": "20260819",
+  "_expected": {
+    "start_time": "25:10:00",
+    "start_epoch": 1787206200,
+    "start_local_iso": "2026-08-20T01:10:00-05:00",
+    "service_day_midnight_epoch": 1787115600
+  },
+  "header": {
+    "gtfsRealtimeVersion": "2.0",
+    "incrementality": "FULL_DATASET",
+    "timestamp": "1787205900"
+  },
+  "entity": [
+    {
+      "id": "9900001_25100",
+      "tripUpdate": {
+        "trip": {
+          "tripId": "9900001_25100",
+          "startTime": "25:10:00",
+          "startDate": "20260819",
+          "scheduleRelationship": "SCHEDULED",
+          "routeId": "4",
+          "directionId": 0
+        },
+        "stopTimeUpdate": [
+          {
+            "stopSequence": 3,
+            "stopId": "1368",
+            "arrival": {
+              "time": "1787206350"
+            },
+            "scheduleRelationship": "SCHEDULED"
+          },
+          {
+            "stopSequence": 4,
+            "stopId": "3337",
+            "arrival": {
+              "time": "1787206500"
+            },
+            "scheduleRelationship": "SCHEDULED"
+          }
+        ],
+        "vehicle": {
+          "id": "9001"
+        },
+        "timestamp": "1787205900"
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "_comment": "Decision-table row 6b: an in-service vehicle whose feed entry omits currentStopSequence has no anchor for the schedule comparison, so it must be unknown/no_progress rather than defaulting to sequence 0 and reporting a fabricated lateness.",
+  "_service_date": "20260819",
+  "_expected": {
+    "progress_current_stop_sequence": null,
+    "adherence_state": "unknown",
+    "adherence_reason": "no_progress",
+    "adherence_seconds": null,
+    "glyph": "question",
+    "in_service": true
+  },
+  "positions": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787152239"
+    },
+    "entity": [
+      {
+        "id": "9005",
+        "vehicle": {
+          "trip": {
+            "tripId": "3014768_15201",
+            "startTime": "09:45:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "SCHEDULED",
+            "routeId": "4",
+            "directionId": 1
+          },
+          "position": {
+            "latitude": 30.2704,
+            "longitude": -97.7551,
+            "bearing": 214.0,
+            "speed": 6.1
+          },
+          "currentStatus": "IN_TRANSIT_TO",
+          "timestamp": "1787152236",
+          "vehicle": {
+            "id": "9005",
+            "label": "9005"
+          }
+        }
+      }
+    ]
+  },
+  "trip_updates": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787152196"
+    },
+    "entity": [
+      {
+        "id": "3014768_15201",
+        "tripUpdate": {
+          "trip": {
+            "tripId": "3014768_15201",
+            "startTime": "09:45:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "SCHEDULED",
+            "routeId": "4",
+            "directionId": 1
+          },
+          "stopTimeUpdate": [
+            {
+              "stopSequence": 9,
+              "stopId": "5937",
+              "arrival": {
+                "time": "1787152539"
+              },
+              "scheduleRelationship": "SCHEDULED"
+            }
+          ],
+          "vehicle": {
+            "id": "9005"
+          },
+          "timestamp": "1787152195"
+        }
+      }
+    ]
+  }
+}

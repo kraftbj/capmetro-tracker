@@ -1,0 +1,425 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "484-0-2c9ea665",
+				"2-172": "484-0-2c9ea665",
+				"3-172": "484-0-2c9ea665",
+				"4-172": "484-0-2c9ea665",
+				"5-172": "484-0-2c9ea665",
+				"6-172": "484-0-2c9ea665",
+				"7-172": "484-0-2c9ea665"
+			},
+			"baseline_pattern_id": "484-0-2c9ea665",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"484-0-2c9ea665": {
+					"direction_id": 0,
+					"pattern_id": "484-0-2c9ea665",
+					"representative_trip_id": "3005878_16261",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270316,
+									"lon": -97.75049,
+									"stop_id": "5499",
+									"stop_name": "6th/West",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270539,
+									"lon": -97.754587,
+									"stop_id": "2321",
+									"stop_name": "Lamar/5th",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268227,
+									"lon": -97.755652,
+									"stop_id": "4082",
+									"stop_name": "Lamar/B R Reynolds",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2631,
+									"lon": -97.757876,
+									"stop_id": "2322",
+									"stop_name": "Lamar/Toomey",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26007,
+									"lon": -97.758952,
+									"stop_id": "4070",
+									"stop_name": "Barton Springs Station",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256342,
+									"lon": -97.761433,
+									"stop_id": "5635",
+									"stop_name": "Lamar/Treadwell",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.254493,
+									"lon": -97.762566,
+									"stop_id": "2324",
+									"stop_name": "Lamar Square Station",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252465,
+									"lon": -97.764114,
+									"stop_id": "722",
+									"stop_name": "Lamar/Collier/SB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.248028,
+									"lon": -97.771756,
+									"stop_id": "2328",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.247258,
+									"lon": -97.776176,
+									"stop_id": "2255",
+									"stop_name": "Lamar/Goodrich",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246766,
+									"lon": -97.777874,
+									"stop_id": "5879",
+									"stop_name": "Bluebonnet Station",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.245471,
+									"lon": -97.779927,
+									"stop_id": "2329",
+									"stop_name": "Lamar/Dickson",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.243035,
+									"lon": -97.781628,
+									"stop_id": "728",
+									"stop_name": "Menchaca/Lightsey",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240345,
+									"lon": -97.782242,
+									"stop_id": "729",
+									"stop_name": "Menchaca/Glen Allen",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.237452,
+									"lon": -97.783568,
+									"stop_id": "730",
+									"stop_name": "Menchaca/Larchmont",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235223,
+									"lon": -97.784979,
+									"stop_id": "2650",
+									"stop_name": "Menchaca/Valley View",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233969,
+									"lon": -97.785765,
+									"stop_id": "732",
+									"stop_name": "Menchaca/Prather",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230504,
+									"lon": -97.788112,
+									"stop_id": "733",
+									"stop_name": "Menchaca/Ben White",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230638,
+									"lon": -97.788524,
+									"stop_id": "4235",
+									"stop_name": "Ben White/Menchaca",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.232805,
+							"lon": -97.7907,
+							"minor_stops": [],
+							"stop_id": "4212",
+							"stop_name": "Victory/Ben White",
+							"stop_name_full": "4205 Victory/Ben White",
+							"stop_sequence": 21
+						}
+					]
+				}
+			},
+			"stop_count": 21,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "484-1-56342596",
+				"2-172": "484-1-56342596",
+				"3-172": "484-1-56342596",
+				"4-172": "484-1-56342596",
+				"5-172": "484-1-56342596",
+				"6-172": "484-1-56342596",
+				"7-172": "484-1-56342596"
+			},
+			"baseline_pattern_id": "484-1-56342596",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"484-1-56342596": {
+					"direction_id": 1,
+					"pattern_id": "484-1-56342596",
+					"representative_trip_id": "3005883_16228",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.232805,
+							"lon": -97.7907,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.23581,
+									"lon": -97.789879,
+									"stop_id": "4234",
+									"stop_name": "Ann Richards School",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238522,
+									"lon": -97.789058,
+									"stop_id": "4216",
+									"stop_name": "Panther/Lamar",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240739,
+									"lon": -97.78607,
+									"stop_id": "6357",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.244014,
+									"lon": -97.781577,
+									"stop_id": "2374",
+									"stop_name": "Lamar/Menchaca",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.245377,
+									"lon": -97.779693,
+									"stop_id": "771",
+									"stop_name": "Lamar/Dickson",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246752,
+									"lon": -97.777395,
+									"stop_id": "772",
+									"stop_name": "Lamar/Bluebonnet",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.247279,
+									"lon": -97.774278,
+									"stop_id": "773",
+									"stop_name": "Lamar/Kinney",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248024,
+									"lon": -97.771014,
+									"stop_id": "2260",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.24956,
+									"lon": -97.767001,
+									"stop_id": "4072",
+									"stop_name": "Lamar/Mary",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.252289,
+									"lon": -97.763972,
+									"stop_id": "776",
+									"stop_name": "Lamar/Collier",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.254034,
+									"lon": -97.762592,
+									"stop_id": "777",
+									"stop_name": "Lamar Square Station",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.256548,
+									"lon": -97.761038,
+									"stop_id": "5396",
+									"stop_name": "Lamar/Treadwell",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.258835,
+									"lon": -97.758983,
+									"stop_id": "4071",
+									"stop_name": "Lamar/Bluff",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.261634,
+									"lon": -97.758053,
+									"stop_id": "781",
+									"stop_name": "Barton Springs Station",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268224,
+									"lon": -97.755414,
+									"stop_id": "4083",
+									"stop_name": "Lamar/Sandra Muraida",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26926,
+									"lon": -97.75113,
+									"stop_id": "2108",
+									"stop_name": "5th/West",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268672,
+									"lon": -97.748979,
+									"stop_id": "2110",
+									"stop_name": "5th/Nueces",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268054,
+									"lon": -97.74679,
+									"stop_id": "2112",
+									"stop_name": "5th/Guadalupe",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "4212",
+							"stop_name": "Victory/Ben White",
+							"stop_name_full": "4205 Victory/Ben White",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 21
+						}
+					]
+				}
+			},
+			"stop_count": 21,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "484",
+	"schema": 1
+}

@@ -1,0 +1,1826 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "318-0-e078bfe0",
+				"2-172": "318-0-10c7d442",
+				"3-172": "318-0-10c7d442",
+				"4-172": "318-0-68c3ff6a",
+				"5-172": "318-0-68c3ff6a",
+				"6-172": "318-0-e078bfe0",
+				"7-172": "318-0-68c3ff6a",
+				"8-172": "318-0-e078bfe0"
+			},
+			"baseline_pattern_id": "318-0-68c3ff6a",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"318-0-10c7d442": {
+					"direction_id": 0,
+					"pattern_id": "318-0-10c7d442",
+					"representative_trip_id": "3002417_9347",
+					"service_ids": [
+						"2-172",
+						"3-172"
+					],
+					"stop_count": 41,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.231403,
+							"lon": -97.790588,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.230411,
+									"lon": -97.793637,
+									"stop_id": "1746",
+									"stop_name": "Western Trails/Pack…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229929,
+									"lon": -97.796179,
+									"stop_id": "1747",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229619,
+									"lon": -97.798883,
+									"stop_id": "1748",
+									"stop_name": "WESTERN TRAILS/Sagebrush",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229104,
+									"lon": -97.8005,
+									"stop_id": "4219",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227305,
+									"lon": -97.802541,
+									"stop_id": "2337",
+									"stop_name": "West Gate/Choctaw Trail",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225819,
+									"lon": -97.803849,
+									"stop_id": "2338",
+									"stop_name": "West Gate/Jones",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.223145,
+									"lon": -97.805582,
+									"stop_id": "2339",
+									"stop_name": "West Gate/Indio",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219202,
+									"lon": -97.807111,
+									"stop_id": "2340",
+									"stop_name": "West Gate/Cherry Creek…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216907,
+									"lon": -97.811046,
+									"stop_id": "2341",
+									"stop_name": "West Gate/Cherry Creek",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.215531,
+									"lon": -97.813866,
+									"stop_id": "4427",
+									"stop_name": "West Gate/Luton",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.21316,
+									"lon": -97.81507,
+									"stop_id": "2342",
+									"stop_name": "West Gate/Dillion Hill",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210896,
+									"lon": -97.814594,
+									"stop_id": "2343",
+									"stop_name": "West Gate/Deaton Hill…",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208321,
+									"lon": -97.814818,
+									"stop_id": "2344",
+									"stop_name": "West Gate/William Cannon",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6379",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - F",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.206749,
+							"lon": -97.815837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.201795,
+									"lon": -97.81873,
+									"stop_id": "5478",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199404,
+									"lon": -97.822116,
+									"stop_id": "2349",
+									"stop_name": "West Gate/Goldbridge",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198861,
+									"lon": -97.82689,
+									"stop_id": "5994",
+									"stop_name": "West Gate/Ranch",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.196581,
+									"lon": -97.829043,
+									"stop_id": "5473",
+									"stop_name": "West Gate/Linnet",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193687,
+									"lon": -97.831489,
+									"stop_id": "5924",
+									"stop_name": "West Gate/Piney Creek",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "4430",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6900 West Gate/William Cannon",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.191273,
+							"lon": -97.833432,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.187372,
+									"lon": -97.836128,
+									"stop_id": "5839",
+									"stop_name": "West Gate/Cohoba",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179113,
+									"lon": -97.840995,
+									"stop_id": "6334",
+									"stop_name": "Slaughter/West Gate",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.177832,
+									"lon": -97.838375,
+									"stop_id": "6469",
+									"stop_name": "Slaughter/Lindshire",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176461,
+									"lon": -97.833718,
+									"stop_id": "6484",
+									"stop_name": "Slaughter/Curlew/EB",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176005,
+									"lon": -97.831107,
+									"stop_id": "2663",
+									"stop_name": "Slaughter/Gail",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173801,
+									"lon": -97.827013,
+									"stop_id": "4412",
+									"stop_name": "Slaughter/Riddle",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.17359,
+									"lon": -97.822771,
+									"stop_id": "4411",
+									"stop_name": "Slaughter/Menchaca",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173696,
+									"lon": -97.816422,
+									"stop_id": "2974",
+									"stop_name": "Slaughter/Bilbrook",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173729,
+									"lon": -97.81402,
+									"stop_id": "2975",
+									"stop_name": "Slaughter/David Moore",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173798,
+									"lon": -97.808881,
+									"stop_id": "2976",
+									"stop_name": "Slaughter/United Kingdom",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173895,
+									"lon": -97.805545,
+									"stop_id": "3767",
+									"stop_name": "Slaughter/Palace",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "5837",
+							"stop_name": "West Gate/Davis",
+							"stop_name_full": "8800 West Gate/Davis",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.171795,
+							"lon": -97.798989,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.168969,
+									"lon": -97.795672,
+									"stop_id": "5380",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167354,
+									"lon": -97.792824,
+									"stop_id": "5623",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.162931,
+									"lon": -97.778341,
+									"stop_id": "6323",
+									"stop_name": "Slaughter/Narrow Glen",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.160354,
+									"lon": -97.776979,
+									"stop_id": "6325",
+									"stop_name": "Slaughter/E Slaughter…",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.152644,
+									"lon": -97.768626,
+									"stop_id": "6328",
+									"stop_name": "Slaughter/Orchard Ridge",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.151602,
+									"lon": -97.764567,
+									"stop_id": "6562",
+									"stop_name": "Slaughter/Old Lockhart",
+									"stop_sequence": 40
+								}
+							],
+							"stop_id": "5999",
+							"stop_name": "Slaughter/1st",
+							"stop_name_full": "509 Slaughter/1st",
+							"stop_sequence": 33
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.151792,
+							"lon": -97.758644,
+							"minor_stops": [],
+							"stop_id": "6560",
+							"stop_name": "Slaughter/Goodnight…",
+							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
+							"stop_sequence": 41
+						}
+					]
+				},
+				"318-0-68c3ff6a": {
+					"direction_id": 0,
+					"pattern_id": "318-0-68c3ff6a",
+					"representative_trip_id": "3002417_9419",
+					"service_ids": [
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 42,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.231403,
+							"lon": -97.790588,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.230411,
+									"lon": -97.793637,
+									"stop_id": "1746",
+									"stop_name": "Western Trails/Pack…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229929,
+									"lon": -97.796179,
+									"stop_id": "1747",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229619,
+									"lon": -97.798883,
+									"stop_id": "1748",
+									"stop_name": "WESTERN TRAILS/Sagebrush",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229104,
+									"lon": -97.8005,
+									"stop_id": "4219",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227305,
+									"lon": -97.802541,
+									"stop_id": "2337",
+									"stop_name": "West Gate/Choctaw Trail",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225819,
+									"lon": -97.803849,
+									"stop_id": "2338",
+									"stop_name": "West Gate/Jones",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.223145,
+									"lon": -97.805582,
+									"stop_id": "2339",
+									"stop_name": "West Gate/Indio",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219202,
+									"lon": -97.807111,
+									"stop_id": "2340",
+									"stop_name": "West Gate/Cherry Creek…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216907,
+									"lon": -97.811046,
+									"stop_id": "2341",
+									"stop_name": "West Gate/Cherry Creek",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.215531,
+									"lon": -97.813866,
+									"stop_id": "4427",
+									"stop_name": "West Gate/Luton",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.21316,
+									"lon": -97.81507,
+									"stop_id": "2342",
+									"stop_name": "West Gate/Dillion Hill",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210896,
+									"lon": -97.814594,
+									"stop_id": "2343",
+									"stop_name": "West Gate/Deaton Hill…",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208321,
+									"lon": -97.814818,
+									"stop_id": "2344",
+									"stop_name": "West Gate/William Cannon",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6379",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - F",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.206749,
+							"lon": -97.815837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.201795,
+									"lon": -97.81873,
+									"stop_id": "5478",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199404,
+									"lon": -97.822116,
+									"stop_id": "2349",
+									"stop_name": "West Gate/Goldbridge",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198861,
+									"lon": -97.82689,
+									"stop_id": "5994",
+									"stop_name": "West Gate/Ranch",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.196581,
+									"lon": -97.829043,
+									"stop_id": "5473",
+									"stop_name": "West Gate/Linnet",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193687,
+									"lon": -97.831489,
+									"stop_id": "5924",
+									"stop_name": "West Gate/Piney Creek",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "4430",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6900 West Gate/William Cannon",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.191273,
+							"lon": -97.833432,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.187372,
+									"lon": -97.836128,
+									"stop_id": "5839",
+									"stop_name": "West Gate/Cohoba",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179113,
+									"lon": -97.840995,
+									"stop_id": "6334",
+									"stop_name": "Slaughter/West Gate",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.177832,
+									"lon": -97.838375,
+									"stop_id": "6469",
+									"stop_name": "Slaughter/Lindshire",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176461,
+									"lon": -97.833718,
+									"stop_id": "6484",
+									"stop_name": "Slaughter/Curlew/EB",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176005,
+									"lon": -97.831107,
+									"stop_id": "2663",
+									"stop_name": "Slaughter/Gail",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173801,
+									"lon": -97.827013,
+									"stop_id": "4412",
+									"stop_name": "Slaughter/Riddle",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.17359,
+									"lon": -97.822771,
+									"stop_id": "4411",
+									"stop_name": "Slaughter/Menchaca",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173696,
+									"lon": -97.816422,
+									"stop_id": "2974",
+									"stop_name": "Slaughter/Bilbrook",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173729,
+									"lon": -97.81402,
+									"stop_id": "2975",
+									"stop_name": "Slaughter/David Moore",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173798,
+									"lon": -97.808881,
+									"stop_id": "2976",
+									"stop_name": "Slaughter/United Kingdom",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173895,
+									"lon": -97.805545,
+									"stop_id": "3767",
+									"stop_name": "Slaughter/Palace",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "5837",
+							"stop_name": "West Gate/Davis",
+							"stop_name_full": "8800 West Gate/Davis",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.171795,
+							"lon": -97.798989,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.168969,
+									"lon": -97.795672,
+									"stop_id": "5380",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167354,
+									"lon": -97.792824,
+									"stop_id": "5623",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166826,
+									"lon": -97.784071,
+									"stop_id": "6319",
+									"stop_name": "Slaughter/35",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.162931,
+									"lon": -97.778341,
+									"stop_id": "6323",
+									"stop_name": "Slaughter/Narrow Glen",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.160354,
+									"lon": -97.776979,
+									"stop_id": "6325",
+									"stop_name": "Slaughter/E Slaughter…",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.152644,
+									"lon": -97.768626,
+									"stop_id": "6328",
+									"stop_name": "Slaughter/Orchard Ridge",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.151602,
+									"lon": -97.764567,
+									"stop_id": "6562",
+									"stop_name": "Slaughter/Old Lockhart",
+									"stop_sequence": 41
+								}
+							],
+							"stop_id": "5999",
+							"stop_name": "Slaughter/1st",
+							"stop_name_full": "509 Slaughter/1st",
+							"stop_sequence": 33
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.151792,
+							"lon": -97.758644,
+							"minor_stops": [],
+							"stop_id": "6560",
+							"stop_name": "Slaughter/Goodnight…",
+							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
+							"stop_sequence": 42
+						}
+					]
+				},
+				"318-0-e078bfe0": {
+					"direction_id": 0,
+					"pattern_id": "318-0-e078bfe0",
+					"representative_trip_id": "3002417_9311",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 43,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.231403,
+							"lon": -97.790588,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.231055,
+									"lon": -97.792199,
+									"stop_id": "4231",
+									"stop_name": "Pack Saddle Pass/Ben…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230411,
+									"lon": -97.793637,
+									"stop_id": "1746",
+									"stop_name": "Western Trails/Pack…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229929,
+									"lon": -97.796179,
+									"stop_id": "1747",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229619,
+									"lon": -97.798883,
+									"stop_id": "1748",
+									"stop_name": "WESTERN TRAILS/Sagebrush",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229104,
+									"lon": -97.8005,
+									"stop_id": "4219",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227305,
+									"lon": -97.802541,
+									"stop_id": "2337",
+									"stop_name": "West Gate/Choctaw Trail",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225819,
+									"lon": -97.803849,
+									"stop_id": "2338",
+									"stop_name": "West Gate/Jones",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.223145,
+									"lon": -97.805582,
+									"stop_id": "2339",
+									"stop_name": "West Gate/Indio",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219202,
+									"lon": -97.807111,
+									"stop_id": "2340",
+									"stop_name": "West Gate/Cherry Creek…",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216907,
+									"lon": -97.811046,
+									"stop_id": "2341",
+									"stop_name": "West Gate/Cherry Creek",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.215531,
+									"lon": -97.813866,
+									"stop_id": "4427",
+									"stop_name": "West Gate/Luton",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.21316,
+									"lon": -97.81507,
+									"stop_id": "2342",
+									"stop_name": "West Gate/Dillion Hill",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210896,
+									"lon": -97.814594,
+									"stop_id": "2343",
+									"stop_name": "West Gate/Deaton Hill…",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208321,
+									"lon": -97.814818,
+									"stop_id": "2344",
+									"stop_name": "West Gate/William Cannon",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "6379",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - F",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.206749,
+							"lon": -97.815837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.201795,
+									"lon": -97.81873,
+									"stop_id": "5478",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199404,
+									"lon": -97.822116,
+									"stop_id": "2349",
+									"stop_name": "West Gate/Goldbridge",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198861,
+									"lon": -97.82689,
+									"stop_id": "5994",
+									"stop_name": "West Gate/Ranch",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.196581,
+									"lon": -97.829043,
+									"stop_id": "5473",
+									"stop_name": "West Gate/Linnet",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193687,
+									"lon": -97.831489,
+									"stop_id": "5924",
+									"stop_name": "West Gate/Piney Creek",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "4430",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6900 West Gate/William Cannon",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.191273,
+							"lon": -97.833432,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.187372,
+									"lon": -97.836128,
+									"stop_id": "5839",
+									"stop_name": "West Gate/Cohoba",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179113,
+									"lon": -97.840995,
+									"stop_id": "6334",
+									"stop_name": "Slaughter/West Gate",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.177832,
+									"lon": -97.838375,
+									"stop_id": "6469",
+									"stop_name": "Slaughter/Lindshire",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176461,
+									"lon": -97.833718,
+									"stop_id": "6484",
+									"stop_name": "Slaughter/Curlew/EB",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176005,
+									"lon": -97.831107,
+									"stop_id": "2663",
+									"stop_name": "Slaughter/Gail",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173801,
+									"lon": -97.827013,
+									"stop_id": "4412",
+									"stop_name": "Slaughter/Riddle",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.17359,
+									"lon": -97.822771,
+									"stop_id": "4411",
+									"stop_name": "Slaughter/Menchaca",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173696,
+									"lon": -97.816422,
+									"stop_id": "2974",
+									"stop_name": "Slaughter/Bilbrook",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173729,
+									"lon": -97.81402,
+									"stop_id": "2975",
+									"stop_name": "Slaughter/David Moore",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173798,
+									"lon": -97.808881,
+									"stop_id": "2976",
+									"stop_name": "Slaughter/United Kingdom",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173895,
+									"lon": -97.805545,
+									"stop_id": "3767",
+									"stop_name": "Slaughter/Palace",
+									"stop_sequence": 33
+								}
+							],
+							"stop_id": "5837",
+							"stop_name": "West Gate/Davis",
+							"stop_name_full": "8800 West Gate/Davis",
+							"stop_sequence": 22
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.171795,
+							"lon": -97.798989,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.168969,
+									"lon": -97.795672,
+									"stop_id": "5380",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167354,
+									"lon": -97.792824,
+									"stop_id": "5623",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166826,
+									"lon": -97.784071,
+									"stop_id": "6319",
+									"stop_name": "Slaughter/35",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.162931,
+									"lon": -97.778341,
+									"stop_id": "6323",
+									"stop_name": "Slaughter/Narrow Glen",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.160354,
+									"lon": -97.776979,
+									"stop_id": "6325",
+									"stop_name": "Slaughter/E Slaughter…",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.152644,
+									"lon": -97.768626,
+									"stop_id": "6328",
+									"stop_name": "Slaughter/Orchard Ridge",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.151602,
+									"lon": -97.764567,
+									"stop_id": "6562",
+									"stop_name": "Slaughter/Old Lockhart",
+									"stop_sequence": 42
+								}
+							],
+							"stop_id": "5999",
+							"stop_name": "Slaughter/1st",
+							"stop_name_full": "509 Slaughter/1st",
+							"stop_sequence": 34
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.151792,
+							"lon": -97.758644,
+							"minor_stops": [],
+							"stop_id": "6560",
+							"stop_name": "Slaughter/Goodnight…",
+							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
+							"stop_sequence": 43
+						}
+					]
+				}
+			},
+			"stop_count": 42,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "318-1-3171d417",
+				"2-172": "318-1-52e9f77a",
+				"3-172": "318-1-52e9f77a",
+				"4-172": "318-1-52e9f77a",
+				"5-172": "318-1-52e9f77a",
+				"6-172": "318-1-3171d417",
+				"7-172": "318-1-52e9f77a",
+				"8-172": "318-1-3171d417"
+			},
+			"baseline_pattern_id": "318-1-52e9f77a",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"318-1-3171d417": {
+					"direction_id": 1,
+					"pattern_id": "318-1-3171d417",
+					"representative_trip_id": "3002453_9591",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 40,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.151792,
+							"lon": -97.758644,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.151913,
+									"lon": -97.764452,
+									"stop_id": "6561",
+									"stop_name": "Slaughter/Old Lockhart",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.153115,
+									"lon": -97.769361,
+									"stop_id": "6329",
+									"stop_name": "Slaughter/Orchard Ridge",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.160628,
+									"lon": -97.776726,
+									"stop_id": "6326",
+									"stop_name": "Slaughter/E Slaughter…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.164163,
+									"lon": -97.778484,
+									"stop_id": "6324",
+									"stop_name": "Slaughter/Narrow Glen",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167111,
+									"lon": -97.783798,
+									"stop_id": "6321",
+									"stop_name": "Slaughter/35",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167294,
+									"lon": -97.789084,
+									"stop_id": "6327",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167797,
+									"lon": -97.79335,
+									"stop_id": "6479",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.169519,
+									"lon": -97.795847,
+									"stop_id": "5968",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "6560",
+							"stop_name": "Slaughter/Goodnight…",
+							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.172829,
+							"lon": -97.799722,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.174173,
+									"lon": -97.804467,
+									"stop_id": "5416",
+									"stop_name": "Slaughter/Simonetti",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.174142,
+									"lon": -97.806358,
+									"stop_id": "3766",
+									"stop_name": "Slaughter/Palace",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.174099,
+									"lon": -97.809607,
+									"stop_id": "2933",
+									"stop_name": "Slaughter/United Kingdom",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173995,
+									"lon": -97.814789,
+									"stop_id": "2934",
+									"stop_name": "Slaughter/Texas Oaks",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173971,
+									"lon": -97.816864,
+									"stop_id": "2935",
+									"stop_name": "Slaughter/Bilbrook",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173996,
+									"lon": -97.826877,
+									"stop_id": "2938",
+									"stop_name": "Slaughter/Riddle",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.176467,
+									"lon": -97.831686,
+									"stop_id": "6480",
+									"stop_name": "Slaughter/Piping Rock",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17668,
+									"lon": -97.83369,
+									"stop_id": "2666",
+									"stop_name": "Slaughter/Curlew",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178173,
+									"lon": -97.838419,
+									"stop_id": "5842",
+									"stop_name": "Slaughter/Lindshire",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "6407",
+							"stop_name": "Slaughter/1st",
+							"stop_name_full": "603 Slaughter/1st",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.18003,
+							"lon": -97.840445,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.187388,
+									"lon": -97.835845,
+									"stop_id": "5840",
+									"stop_name": "West Gate/Cohoba",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.190773,
+									"lon": -97.833402,
+									"stop_id": "5838",
+									"stop_name": "West Gate/Davis",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.194439,
+									"lon": -97.830919,
+									"stop_id": "5962",
+									"stop_name": "West Gate/Cameron",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.196017,
+									"lon": -97.82923,
+									"stop_id": "4431",
+									"stop_name": "West Gate/Siskin",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.198683,
+									"lon": -97.826885,
+									"stop_id": "5476",
+									"stop_name": "West Gate/Ranch",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199081,
+									"lon": -97.823457,
+									"stop_id": "5963",
+									"stop_name": "West Gate/Epping",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.201921,
+									"lon": -97.818402,
+									"stop_id": "2357",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204834,
+									"lon": -97.816514,
+									"stop_id": "2679",
+									"stop_name": "West Gate/Bryonhall",
+									"stop_sequence": 28
+								}
+							],
+							"stop_id": "5843",
+							"stop_name": "West Gate/Aftonshire",
+							"stop_name_full": "West Gate/Aftonshire",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.206976,
+							"lon": -97.815418,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.208626,
+									"lon": -97.814361,
+									"stop_id": "2360",
+									"stop_name": "West Gate/Berkeley SE…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.210706,
+									"lon": -97.814332,
+									"stop_id": "2361",
+									"stop_name": "West Gate/Aldford SE…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212936,
+									"lon": -97.814835,
+									"stop_id": "2362",
+									"stop_name": "West Gate/Cornish SE…",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216251,
+									"lon": -97.812864,
+									"stop_id": "2363",
+									"stop_name": "West Gate/Berkett",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.217388,
+									"lon": -97.809397,
+									"stop_id": "2364",
+									"stop_name": "West Gate/Coatbridge",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.222838,
+									"lon": -97.805563,
+									"stop_id": "3107",
+									"stop_name": "West Gate/Indio",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225438,
+									"lon": -97.803848,
+									"stop_id": "2367",
+									"stop_name": "West Gate/Jones",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229457,
+									"lon": -97.798807,
+									"stop_id": "4218",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229704,
+									"lon": -97.796366,
+									"stop_id": "1754",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.231017,
+									"lon": -97.792022,
+									"stop_id": "2216",
+									"stop_name": "Pack Saddle Pass/Ben…",
+									"stop_sequence": 39
+								}
+							],
+							"stop_id": "2680",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6905 West Gate/William Cannon",
+							"stop_sequence": 29
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.231403,
+							"lon": -97.790588,
+							"minor_stops": [],
+							"stop_id": "6379",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - F",
+							"stop_sequence": 40
+						}
+					]
+				},
+				"318-1-52e9f77a": {
+					"direction_id": 1,
+					"pattern_id": "318-1-52e9f77a",
+					"representative_trip_id": "3002453_9627",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 39,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.151792,
+							"lon": -97.758644,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.151913,
+									"lon": -97.764452,
+									"stop_id": "6561",
+									"stop_name": "Slaughter/Old Lockhart",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.153115,
+									"lon": -97.769361,
+									"stop_id": "6329",
+									"stop_name": "Slaughter/Orchard Ridge",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.160628,
+									"lon": -97.776726,
+									"stop_id": "6326",
+									"stop_name": "Slaughter/E Slaughter…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.164163,
+									"lon": -97.778484,
+									"stop_id": "6324",
+									"stop_name": "Slaughter/Narrow Glen",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167111,
+									"lon": -97.783798,
+									"stop_id": "6321",
+									"stop_name": "Slaughter/35",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167294,
+									"lon": -97.789084,
+									"stop_id": "6327",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167797,
+									"lon": -97.79335,
+									"stop_id": "6479",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.169519,
+									"lon": -97.795847,
+									"stop_id": "5968",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "6560",
+							"stop_name": "Slaughter/Goodnight…",
+							"stop_name_full": "2501 Slaughter/Goodnight Ranch",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.172829,
+							"lon": -97.799722,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.174173,
+									"lon": -97.804467,
+									"stop_id": "5416",
+									"stop_name": "Slaughter/Simonetti",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.174142,
+									"lon": -97.806358,
+									"stop_id": "3766",
+									"stop_name": "Slaughter/Palace",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.174099,
+									"lon": -97.809607,
+									"stop_id": "2933",
+									"stop_name": "Slaughter/United Kingdom",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173995,
+									"lon": -97.814789,
+									"stop_id": "2934",
+									"stop_name": "Slaughter/Texas Oaks",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173971,
+									"lon": -97.816864,
+									"stop_id": "2935",
+									"stop_name": "Slaughter/Bilbrook",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173996,
+									"lon": -97.826877,
+									"stop_id": "2938",
+									"stop_name": "Slaughter/Riddle",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.176467,
+									"lon": -97.831686,
+									"stop_id": "6480",
+									"stop_name": "Slaughter/Piping Rock",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17668,
+									"lon": -97.83369,
+									"stop_id": "2666",
+									"stop_name": "Slaughter/Curlew",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178173,
+									"lon": -97.838419,
+									"stop_id": "5842",
+									"stop_name": "Slaughter/Lindshire",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "6407",
+							"stop_name": "Slaughter/1st",
+							"stop_name_full": "603 Slaughter/1st",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.18003,
+							"lon": -97.840445,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.187388,
+									"lon": -97.835845,
+									"stop_id": "5840",
+									"stop_name": "West Gate/Cohoba",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.190773,
+									"lon": -97.833402,
+									"stop_id": "5838",
+									"stop_name": "West Gate/Davis",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.194439,
+									"lon": -97.830919,
+									"stop_id": "5962",
+									"stop_name": "West Gate/Cameron",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.196017,
+									"lon": -97.82923,
+									"stop_id": "4431",
+									"stop_name": "West Gate/Siskin",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.198683,
+									"lon": -97.826885,
+									"stop_id": "5476",
+									"stop_name": "West Gate/Ranch",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199081,
+									"lon": -97.823457,
+									"stop_id": "5963",
+									"stop_name": "West Gate/Epping",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.201921,
+									"lon": -97.818402,
+									"stop_id": "2357",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204834,
+									"lon": -97.816514,
+									"stop_id": "2679",
+									"stop_name": "West Gate/Bryonhall",
+									"stop_sequence": 28
+								}
+							],
+							"stop_id": "5843",
+							"stop_name": "West Gate/Aftonshire",
+							"stop_name_full": "West Gate/Aftonshire",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.206976,
+							"lon": -97.815418,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.208626,
+									"lon": -97.814361,
+									"stop_id": "2360",
+									"stop_name": "West Gate/Berkeley SE…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.210706,
+									"lon": -97.814332,
+									"stop_id": "2361",
+									"stop_name": "West Gate/Aldford SE…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212936,
+									"lon": -97.814835,
+									"stop_id": "2362",
+									"stop_name": "West Gate/Cornish SE…",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216251,
+									"lon": -97.812864,
+									"stop_id": "2363",
+									"stop_name": "West Gate/Berkett",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.217388,
+									"lon": -97.809397,
+									"stop_id": "2364",
+									"stop_name": "West Gate/Coatbridge",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.222838,
+									"lon": -97.805563,
+									"stop_id": "3107",
+									"stop_name": "West Gate/Indio",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225438,
+									"lon": -97.803848,
+									"stop_id": "2367",
+									"stop_name": "West Gate/Jones",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229457,
+									"lon": -97.798807,
+									"stop_id": "4218",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229704,
+									"lon": -97.796366,
+									"stop_id": "1754",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 38
+								}
+							],
+							"stop_id": "2680",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6905 West Gate/William Cannon",
+							"stop_sequence": 29
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.231403,
+							"lon": -97.790588,
+							"minor_stops": [],
+							"stop_id": "6379",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - F",
+							"stop_sequence": 39
+						}
+					]
+				}
+			},
+			"stop_count": 39,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "318",
+	"schema": 1
+}

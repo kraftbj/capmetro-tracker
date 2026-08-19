@@ -1,0 +1,289 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "243-0-80cce8e4",
+				"8-172": "243-0-80cce8e4",
+				"9-172": "243-0-80cce8e4"
+			},
+			"baseline_pattern_id": "243-0-80cce8e4",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"243-0-80cce8e4": {
+					"direction_id": 0,
+					"pattern_id": "243-0-80cce8e4",
+					"representative_trip_id": "3000416_4887",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.418565,
+							"lon": -97.669112,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.422415,
+									"lon": -97.658839,
+									"stop_id": "5770",
+									"stop_name": "Heatherwilde/Wild Senna",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.433412,
+									"lon": -97.653076,
+									"stop_id": "5769",
+									"stop_name": "Wells…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.438694,
+									"lon": -97.65949,
+									"stop_id": "5766",
+									"stop_name": "Wells Branch/Drusillas",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.441366,
+									"lon": -97.665433,
+									"stop_id": "5764",
+									"stop_name": "Wells Branch/FM 1825",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.43565,
+									"lon": -97.675662,
+									"stop_id": "5976",
+									"stop_name": "Wells Branch/Wells Port",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.434837,
+									"lon": -97.679157,
+									"stop_id": "4818",
+									"stop_name": "Wells Branch/Alex",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.436623,
+									"lon": -97.683609,
+									"stop_id": "4816",
+									"stop_name": "Wells Branch/Surrender",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.439293,
+									"lon": -97.68557,
+									"stop_id": "4814",
+									"stop_name": "Wells Branch/Merrilltown",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.441831,
+									"lon": -97.690286,
+									"stop_id": "5929",
+									"stop_name": "Wells Branch/Double File",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.441493,
+									"lon": -97.692608,
+									"stop_id": "5277",
+									"stop_name": "Wells Branch/Tandem",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.440229,
+									"lon": -97.695602,
+									"stop_id": "5339",
+									"stop_name": "Wells Branch/Howard",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "5301",
+							"stop_name": "Tech Ridge Bay E",
+							"stop_name_full": "Tech Ridge Bay E",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.439972,
+							"lon": -97.70124,
+							"minor_stops": [],
+							"stop_id": "5607",
+							"stop_name": "Howard Station Bus Stop",
+							"stop_name_full": "Howard Station Bus Stop",
+							"stop_sequence": 13
+						}
+					]
+				}
+			},
+			"stop_count": 13,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "243-1-2b18e5c5",
+				"8-172": "243-1-2b18e5c5",
+				"9-172": "243-1-2b18e5c5"
+			},
+			"baseline_pattern_id": "243-1-2b18e5c5",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"243-1-2b18e5c5": {
+					"direction_id": 1,
+					"pattern_id": "243-1-2b18e5c5",
+					"representative_trip_id": "3000447_4789",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 14,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.439972,
+							"lon": -97.70124,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.440104,
+									"lon": -97.695268,
+									"stop_id": "5305",
+									"stop_name": "Wells Branch/Howard",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.44121,
+									"lon": -97.692441,
+									"stop_id": "5278",
+									"stop_name": "Wells Branch/Summit",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.441506,
+									"lon": -97.689979,
+									"stop_id": "4813",
+									"stop_name": "Wells Branch/Double File",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.438537,
+									"lon": -97.685392,
+									"stop_id": "4815",
+									"stop_name": "Wells Branch/Merrilltown",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.436412,
+									"lon": -97.683828,
+									"stop_id": "4817",
+									"stop_name": "Wells Branch/Renaissance",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.434587,
+									"lon": -97.678139,
+									"stop_id": "5342",
+									"stop_name": "Wells Branch/Thermal",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.435736,
+									"lon": -97.67502,
+									"stop_id": "5761",
+									"stop_name": "Wells Branch/Wells Port",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.439132,
+									"lon": -97.671492,
+									"stop_id": "6453",
+									"stop_name": "Wells Branch/Owen Tech",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.441022,
+									"lon": -97.664663,
+									"stop_id": "5765",
+									"stop_name": "Wells Branch/FM 1825",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.437941,
+									"lon": -97.658872,
+									"stop_id": "5767",
+									"stop_name": "Wells Branch/Drusillas",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.432288,
+									"lon": -97.654196,
+									"stop_id": "5768",
+									"stop_name": "Heatherwilde/Wells…",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.422266,
+									"lon": -97.659205,
+									"stop_id": "5771",
+									"stop_name": "Heatherwilde/Wild Senna",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "5607",
+							"stop_name": "Howard Station Bus Stop",
+							"stop_name_full": "Howard Station Bus Stop",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.418565,
+							"lon": -97.669112,
+							"minor_stops": [],
+							"stop_id": "5301",
+							"stop_name": "Tech Ridge Bay E",
+							"stop_name_full": "Tech Ridge Bay E",
+							"stop_sequence": 14
+						}
+					]
+				}
+			},
+			"stop_count": 14,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "243",
+	"schema": 1
+}

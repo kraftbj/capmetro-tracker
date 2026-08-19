@@ -1,0 +1,36 @@
+{
+	"date_count": 4,
+	"dates": {
+		"20260824": {
+			"is_exception_day": false,
+			"service_ids": [
+				"15-172"
+			]
+		},
+		"20260825": {
+			"is_exception_day": false,
+			"service_ids": [
+				"15-172"
+			]
+		},
+		"20260826": {
+			"is_exception_day": false,
+			"service_ids": [
+				"15-172"
+			]
+		},
+		"20260827": {
+			"is_exception_day": false,
+			"service_ids": [
+				"15-172"
+			]
+		}
+	},
+	"exception_dates": [],
+	"feed_version": "260818_1456",
+	"route_id": "454",
+	"schema": 1,
+	"service_ids": [
+		"15-172"
+	]
+}

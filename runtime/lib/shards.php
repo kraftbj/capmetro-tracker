@@ -1,0 +1,326 @@
+<?php
+/*
+ * Schedule shard reader.
+ *
+ * The Linode never parses GTFS. Shards are built by build/ (node-gtfs, GitHub Actions) and
+ * committed to data/; this module only reads them. Layout, per build/NOTES.md:
+ *
+ *   data/manifest.json                  feed version, built_at, per-route index
+ *   data/calendar.json                  service date -> service ids, exception flags
+ *   data/stops.json                     stop_id -> shortened + full name, lat, lon
+ *   data/routes/<dir>/schedule.json     every trip's stop times, interned and compact
+ *   data/routes/<dir>/patterns.json     pattern classification, per-service baselines
+ *   data/routes/<dir>/blocks.json       block chains and continuation grades
+ *   data/routes/<dir>/timepoints.json   one ladder per distinct baseline
+ *   data/routes/<dir>/calendar.json     this route's service dates
+ *
+ * Two things about that layout drive the shape of this file.
+ *
+ * First, baselines are per service date. Route 4 direction 0 runs a 17-stop baseline on
+ * five services and a 19-stop one on three others, so "the baseline" is only meaningful
+ * once today's service is known. Pattern deltas are therefore keyed by baseline pattern id
+ * and there is deliberately no top-level adds/skips to grab by accident.
+ *
+ * Second, schedule.json is by far the largest file (410 KB on route 4, 1.3 MB on route 10)
+ * and is the only one a route without a bus does not need. It is loaded separately by
+ * cm_shard_times() so a run pays for it only where it is used, and the caller frees each
+ * route before loading the next.
+ */
+
+require_once __DIR__ . '/servicetime.php';
+require_once __DIR__ . '/stopnames.php';
+
+function cm_shard_read(string $path): ?array
+{
+    if (!is_file($path)) {
+        return null;
+    }
+    $raw = file_get_contents($path);
+    if ($raw === false) {
+        return null;
+    }
+    $doc = json_decode($raw, true);
+    return is_array($doc) ? $doc : null;
+}
+
+/*
+ * The manifest, calendar and stop table, merged into one index.
+ *
+ * Memoized per directory: generate-api.php would otherwise re-read a 200 KB stop table
+ * once per route. The memo is a read cache of immutable build output, so it changes
+ * nothing observable; pass $fresh to bypass it.
+ */
+function cm_shard_index(string $dir, bool $fresh = false): ?array
+{
+    static $memo = [];
+    $dir = rtrim($dir, '/');
+    if (!$fresh && isset($memo[$dir])) {
+        return $memo[$dir];
+    }
+
+    $manifest = cm_shard_read($dir . '/manifest.json');
+    if ($manifest === null) {
+        return null;
+    }
+    $calendar = cm_shard_read($dir . '/calendar.json') ?? ['dates' => []];
+    $stops_doc = cm_shard_read($dir . '/stops.json') ?? ['stops' => []];
+
+    $routes = [];
+    foreach ($manifest['routes'] ?? [] as $r) {
+        $rid = (string) ($r['route_id'] ?? '');
+        if ($rid === '') {
+            continue;
+        }
+        $directions = [];
+        foreach ($r['directions'] ?? [] as $d) {
+            $directions[] = ['id' => (int) $d['id'], 'headsign' => $d['headsign'] ?? null];
+        }
+        usort($directions, static fn($a, $b) => $a['id'] <=> $b['id']);
+        $routes[$rid] = [
+            'short_name' => (string) ($r['short_name'] ?? $rid),
+            'long_name'  => (string) ($r['long_name'] ?? ''),
+            /* Route directory names are escaped by the build; the manifest records the
+               mapping. No escaping is needed for the current feed, but relying on that
+               would break silently on a route id with a slash in it. */
+            'dir'        => (string) ($r['dir'] ?? $rid),
+            'directions' => $directions === [] ? [['id' => 0, 'headsign' => null]] : $directions,
+        ];
+    }
+
+    /*
+     * Shortened names are re-derived here from the full upstream name rather than taken from
+     * the build's stop_name. Section 7 then has exactly one implementation, in
+     * cm_shorten_stop_name(), and a rule added to the contract takes effect on the next cron
+     * run instead of waiting for a shard rebuild. The transform is deterministic, so when
+     * both sides implement the same rules the two strings are identical.
+     */
+    $stops = [];
+    foreach ($stops_doc['stops'] ?? [] as $sid => $s) {
+        $full = (string) ($s['stop_name_full'] ?? ($s['stop_name'] ?? $sid));
+        $stops[(string) $sid] = [
+            'name'      => cm_shorten_stop_name($full),
+            'name_full' => $full,
+            'lat'       => (float) ($s['lat'] ?? 0),
+            'lon'       => (float) ($s['lon'] ?? 0),
+        ];
+    }
+
+    $index = [
+        'schema'          => 1,
+        'feed_version'    => (string) ($manifest['feed_version'] ?? 'unknown'),
+        'built_at'        => (int) ($manifest['built_at'] ?? 0),
+        'feed_start_date' => (string) ($manifest['feed_start_date'] ?? ''),
+        'feed_end_date'   => (string) ($manifest['feed_end_date'] ?? ''),
+        'routes'          => $routes,
+        'calendar'        => $calendar['dates'] ?? [],
+        'stops'           => $stops,
+    ];
+    $memo[$dir] = $index;
+    return $index;
+}
+
+/*
+ * Service ids running on a GTFS date, as a set. The feed ships no calendar.txt; every
+ * service is expressed through calendar_dates, which the build has already collapsed into
+ * a date -> service ids map.
+ */
+function cm_shard_active_services(?array $index, string $service_date): array
+{
+    $out = [];
+    foreach ($index['calendar'][$service_date]['service_ids'] ?? [] as $sid) {
+        $out[(string) $sid] = true;
+    }
+    return $out;
+}
+
+/*
+ * True when any service active that date runs on exactly one date, per contract section 1.
+ * 8 of the 145 dates in this feed qualify, which is why the fixtures were captured on one.
+ */
+function cm_shard_is_exception_day(?array $index, string $service_date): bool
+{
+    return (bool) ($index['calendar'][$service_date]['is_exception_day'] ?? false);
+}
+
+/*
+ * Everything about a route except its stop times. Roughly 340 KB on route 4.
+ *
+ * Returns null when the route has no shard. $index supplies the stop table and the route
+ * directory name; it is loaded if not passed.
+ */
+function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?array
+{
+    $dir = rtrim($dir, '/');
+    $index ??= cm_shard_index($dir);
+    $meta = $index['routes'][$route_id] ?? null;
+    $base = $dir . '/routes/' . ($meta['dir'] ?? $route_id);
+
+    $patterns_doc = cm_shard_read($base . '/patterns.json');
+    if ($patterns_doc === null) {
+        return null;
+    }
+    $blocks_doc = cm_shard_read($base . '/blocks.json') ?? ['trips' => []];
+    $tp_doc     = cm_shard_read($base . '/timepoints.json') ?? ['directions' => []];
+    $cal_doc    = cm_shard_read($base . '/calendar.json') ?? ['dates' => [], 'service_ids' => []];
+
+    $patterns = [];
+    $baseline_by_service = [];
+    $baseline_default = [];
+    foreach ($patterns_doc['directions'] ?? [] as $d) {
+        $dir_key = (string) $d['direction_id'];
+        $baseline_default[$dir_key] = (string) ($d['baseline_pattern_id'] ?? '');
+        foreach ($d['baseline_by_service'] ?? [] as $sid => $pid) {
+            $baseline_by_service[$dir_key][(string) $sid] = (string) $pid;
+        }
+        foreach ($d['patterns'] ?? [] as $p) {
+            $patterns[(string) $p['pattern_id']] = $p;
+        }
+    }
+
+    $ladders = [];
+    foreach ($tp_doc['directions'] ?? [] as $d) {
+        $ladders[(string) $d['direction_id']] = $d['ladders'] ?? [];
+    }
+
+    /*
+     * A trip index that does not need schedule.json: blocks.json names every trip with its
+     * service and continuation, and patterns.json names every trip's pattern. Headsign and
+     * start time do need schedule.json and are picked up in the join.
+     */
+    $trips = [];
+    foreach ($blocks_doc['trips'] ?? [] as $tid => $b) {
+        $trips[(string) $tid] = [
+            'service_id'       => (string) ($b['service_id'] ?? ''),
+            'block_id'         => $b['block_id'] ?? null,
+            'block_confidence' => (string) ($b['confidence'] ?? 'low'),
+            'next_trip'        => is_array($b['next_trip'] ?? null) ? $b['next_trip'] : null,
+            'pattern'          => null,
+            'direction_id'     => 0,
+        ];
+    }
+    foreach ($patterns as $pid => $p) {
+        foreach ($p['trip_ids'] ?? [] as $tid) {
+            $tid = (string) $tid;
+            if (!isset($trips[$tid])) {
+                $trips[$tid] = [
+                    'service_id' => '', 'block_id' => null, 'block_confidence' => 'low',
+                    'next_trip' => null, 'pattern' => null, 'direction_id' => 0,
+                ];
+            }
+            $trips[$tid]['pattern'] = (string) $pid;
+            $trips[$tid]['direction_id'] = (int) $p['direction_id'];
+        }
+    }
+
+    return [
+        'route_id'            => $route_id,
+        'route'               => [
+            'id'         => $route_id,
+            'short_name' => (string) ($meta['short_name'] ?? $route_id),
+            'long_name'  => (string) ($meta['long_name'] ?? ''),
+            'directions' => $meta['directions'] ?? [['id' => 0, 'headsign' => null]],
+        ],
+        'stops'               => $index['stops'] ?? [],
+        'patterns'            => $patterns,
+        'baseline_by_service' => $baseline_by_service,
+        'baseline_pattern_id' => $baseline_default,
+        'ladders'             => $ladders,
+        'trips'               => $trips,
+        'calendar'            => $cal_doc['dates'] ?? [],
+        'service_ids'         => array_map('strval', $cal_doc['service_ids'] ?? []),
+    ];
+}
+
+/*
+ * A route's stop times: schedule.json as emitted, with `stop_ids` as the interning table
+ * and each trip's `stops` an array of [stop_sequence, stop_index, arrival_s, timepoint].
+ * Times are integer seconds after service-day midnight, so 25:10:00 needs no special case.
+ */
+function cm_shard_times(string $dir, string $route_id, ?array $index = null): ?array
+{
+    $dir = rtrim($dir, '/');
+    $index ??= cm_shard_index($dir);
+    $route_dir = (string) ($index['routes'][$route_id]['dir'] ?? $route_id);
+    return cm_shard_read($dir . '/routes/' . $route_dir . '/schedule.json');
+}
+
+/*
+ * The baseline pattern in force for a direction on a given service.
+ * Falls back to the feed-wide default when the service is unknown to the shard.
+ */
+function cm_shard_baseline_pattern(array $route_shard, int $direction_id, string $service_id): ?string
+{
+    $dir = (string) $direction_id;
+    $pid = $route_shard['baseline_by_service'][$dir][$service_id]
+        ?? $route_shard['baseline_pattern_id'][$dir]
+        ?? null;
+    return $pid === null || $pid === '' ? null : (string) $pid;
+}
+
+/*
+ * The scheduled-arrival map for one trip: stop_sequence => [stop_id, stop_name,
+ * scheduled_at]. This is the right-hand side of the lateness subtraction.
+ *
+ * Only arrival_time is stored upstream, which is correct for this contract: adherence
+ * compares against arrival and arrival wins wherever both exist.
+ * Returns [] when the trip is absent, which the decision table reads as
+ * trip_not_in_schedule.
+ */
+function cm_shard_scheduled_map(
+    array $route_shard,
+    ?array $times,
+    string $trip_id,
+    string $service_date
+): array {
+    $trip = $times['trips'][$trip_id] ?? null;
+    if (!is_array($trip) || !is_array($trip['stops'] ?? null)) {
+        return [];
+    }
+    $midnight = cm_service_day_midnight($service_date);
+    if ($midnight === null) {
+        return [];
+    }
+    $table = $times['stop_ids'] ?? [];
+    $stops = $route_shard['stops'] ?? [];
+    $out = [];
+    foreach ($trip['stops'] as $row) {
+        [$seq, $idx, $arrival_s] = [(int) $row[0], (int) $row[1], $row[2]];
+        if ($arrival_s === null || !isset($table[$idx])) {
+            continue;
+        }
+        $sid = (string) $table[$idx];
+        $out[$seq] = [
+            'stop_id'      => $sid,
+            'stop_name'    => (string) ($stops[$sid]['name'] ?? $sid),
+            'scheduled_at' => $midnight + (int) $arrival_s,
+        ];
+    }
+    return $out;
+}
+
+/*
+ * Silent failure 1: shards stale after a GTFS reset.
+ *
+ * CapMetro republishes roughly three times a year and every trip id changes. If the shard
+ * build stops running, the shards still parse and the join still completes -- every bus
+ * just reports adherence unknown, forever, with nothing thrown and nothing logged. The
+ * only thing that catches it is the rate at which live trip ids fail to resolve, so the
+ * rate is measured and health.json alarms on it.
+ *
+ * Returns 0.0 when there are no live trips to resolve; an empty road is not a failure.
+ */
+const CM_UNMATCHED_TRIP_ALARM = 0.20;
+
+function cm_unmatched_trip_rate(array $route_shard, array $live_trip_ids): float
+{
+    $trips = $route_shard['trips'] ?? [];
+    $total = 0;
+    $unmatched = 0;
+    foreach ($live_trip_ids as $tid) {
+        $total++;
+        if (!isset($trips[(string) $tid])) {
+            $unmatched++;
+        }
+    }
+    return $total === 0 ? 0.0 : $unmatched / $total;
+}

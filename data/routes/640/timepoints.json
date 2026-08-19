@@ -1,0 +1,247 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"2-172": "640-0-ebd29436",
+				"24-172": "640-0-ebd29436",
+				"25-172": "640-0-ebd29436",
+				"26-172": "640-0-ebd29436",
+				"27-172": "640-0-ebd29436",
+				"28-172": "640-0-ebd29436",
+				"3-172": "640-0-ebd29436",
+				"4-172": "640-0-ebd29436",
+				"5-172": "640-0-ebd29436"
+			},
+			"baseline_pattern_id": "640-0-ebd29436",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"640-0-ebd29436": {
+					"direction_id": 0,
+					"pattern_id": "640-0-ebd29436",
+					"representative_trip_id": "3007216_17755",
+					"service_ids": [
+						"2-172",
+						"24-172",
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 6,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.280784,
+							"lon": -97.725615,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.279195,
+									"lon": -97.727256,
+									"stop_id": "3529",
+									"stop_name": "Disch-Falk Field",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279666,
+									"lon": -97.734311,
+									"stop_id": "4586",
+									"stop_name": "Martin Luther…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.280545,
+									"lon": -97.737318,
+									"stop_id": "5992",
+									"stop_name": "Martin Luther King…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283593,
+									"lon": -97.739574,
+									"stop_id": "6159",
+									"stop_name": "University/21st",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "4184",
+							"stop_name": "Comal/21st",
+							"stop_name_full": "Comal/21st",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.283844,
+							"lon": -97.741124,
+							"minor_stops": [],
+							"stop_id": "2780",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis (Midblock)",
+							"stop_sequence": 6
+						}
+					]
+				}
+			},
+			"stop_count": 6,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"2-172": "640-1-89971c6f",
+				"24-172": "640-1-16c32f20",
+				"25-172": "640-1-16c32f20",
+				"26-172": "640-1-16c32f20",
+				"27-172": "640-1-16c32f20",
+				"28-172": "640-1-16c32f20",
+				"3-172": "640-1-89971c6f",
+				"4-172": "640-1-89971c6f",
+				"5-172": "640-1-89971c6f"
+			},
+			"baseline_pattern_id": "640-1-16c32f20",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"640-1-16c32f20": {
+					"direction_id": 1,
+					"pattern_id": "640-1-16c32f20",
+					"representative_trip_id": "3007419_17565",
+					"service_ids": [
+						"24-172",
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172"
+					],
+					"stop_count": 7,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.283844,
+							"lon": -97.741124,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289534,
+									"lon": -97.739302,
+									"stop_id": "3512",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28922,
+									"lon": -97.735182,
+									"stop_id": "5438",
+									"stop_name": "Dean Keeton/San Jacinto",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28671,
+									"lon": -97.733652,
+									"stop_id": "1178",
+									"stop_name": "San Jacinto/24th",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284999,
+									"lon": -97.731804,
+									"stop_id": "5176",
+									"stop_name": "23rd/Trinity",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2780",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis (Midblock)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.284984,
+							"lon": -97.731602,
+							"minor_stops": [],
+							"stop_id": "5177",
+							"stop_name": "23rd/Robert Dedman",
+							"stop_name_full": "701 23rd/Robert Dedman",
+							"stop_sequence": 7
+						}
+					]
+				},
+				"640-1-89971c6f": {
+					"direction_id": 1,
+					"pattern_id": "640-1-89971c6f",
+					"representative_trip_id": "3007528_17390",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 4,
+					"timepoint_count": 1,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.283844,
+							"lon": -97.741124,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289534,
+									"lon": -97.739302,
+									"stop_id": "3512",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28922,
+									"lon": -97.735182,
+									"stop_id": "5438",
+									"stop_name": "Dean Keeton/San Jacinto",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "2780",
+							"stop_name": "21st/Whitis",
+							"stop_name_full": "21st/Whitis (Midblock)",
+							"stop_sequence": 1
+						}
+					]
+				}
+			},
+			"stop_count": 7,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "640",
+	"schema": 1
+}

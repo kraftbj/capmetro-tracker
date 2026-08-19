@@ -1,0 +1,1261 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "383-0-c8b1883f",
+				"13-172": "383-0-507c0db8",
+				"14-172": "383-0-507c0db8",
+				"8-172": "383-0-c8b1883f",
+				"9-172": "383-0-c8b1883f"
+			},
+			"baseline_pattern_id": "383-0-c8b1883f",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"383-0-507c0db8": {
+					"direction_id": 0,
+					"pattern_id": "383-0-507c0db8",
+					"representative_trip_id": "3004935_14558",
+					"service_ids": [
+						"13-172",
+						"14-172"
+					],
+					"stop_count": 26,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.350016,
+							"lon": -97.71196,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.350323,
+									"lon": -97.713047,
+									"stop_id": "5071",
+									"stop_name": "Research/Lamar",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.355308,
+									"lon": -97.714862,
+									"stop_id": "3795",
+									"stop_name": "Research/Jamestown",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.357316,
+									"lon": -97.715514,
+									"stop_id": "3796",
+									"stop_name": "Research/Clearfield",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.359988,
+									"lon": -97.716313,
+									"stop_id": "3797",
+									"stop_name": "Research/Fairfield",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.362273,
+									"lon": -97.716941,
+									"stop_id": "3798",
+									"stop_name": "Research/Ohlen",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.368858,
+									"lon": -97.718513,
+									"stop_id": "3799",
+									"stop_name": "Research/Northgate",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.374709,
+									"lon": -97.725908,
+									"stop_id": "4753",
+									"stop_name": "Burnet/Research",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5225",
+							"stop_name": "North Lamar Bay 1",
+							"stop_name_full": "North Lamar Bay 1",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.379497,
+							"lon": -97.724857,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.385221,
+									"lon": -97.723575,
+									"stop_id": "6427",
+									"stop_name": "Burnet/Mc Hale",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.388634,
+									"lon": -97.72256,
+									"stop_id": "6456",
+									"stop_name": "Burnet/Bright Verde",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.391483,
+									"lon": -97.722548,
+									"stop_id": "4682",
+									"stop_name": "Braker/Burnet Stadium…",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.392667,
+									"lon": -97.725958,
+									"stop_id": "3014",
+									"stop_name": "Braker/IBM",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.391198,
+									"lon": -97.739283,
+									"stop_id": "5916",
+									"stop_name": "Stonelake/Capital of…",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.393703,
+									"lon": -97.743884,
+									"stop_id": "3016",
+									"stop_name": "Great Hills/Research",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "4757",
+							"stop_name": "Rutland Rapid Station",
+							"stop_name_full": "Rutland Rapid Station (NB)",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.394273,
+							"lon": -97.748666,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.395978,
+									"lon": -97.749877,
+									"stop_id": "3804",
+									"stop_name": "Jollyville/Great Hills",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.400576,
+									"lon": -97.748014,
+									"stop_id": "3806",
+									"stop_name": "Braker/Jollyville",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.401655,
+									"lon": -97.745247,
+									"stop_id": "4688",
+									"stop_name": "Research/Hamilton",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.404485,
+									"lon": -97.744959,
+									"stop_id": "5290",
+									"stop_name": "Research/Seton Center",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.408812,
+									"lon": -97.744632,
+									"stop_id": "3809",
+									"stop_name": "Research/Balcones Woods",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.412532,
+									"lon": -97.745139,
+									"stop_id": "3810",
+									"stop_name": "Research/Windriver Apts",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.417953,
+									"lon": -97.746152,
+									"stop_id": "3811",
+									"stop_name": "Research/Duval",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.425929,
+									"lon": -97.75164,
+									"stop_id": "5432",
+									"stop_name": "Research/Riata Trace",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.42702,
+									"lon": -97.75387,
+									"stop_id": "3812",
+									"stop_name": "Research/Riata Apts",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "2726",
+							"stop_name": "Great Hills/Research",
+							"stop_name_full": "9828 Great Hills/Research",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 26
+						}
+					]
+				},
+				"383-0-c8b1883f": {
+					"direction_id": 0,
+					"pattern_id": "383-0-c8b1883f",
+					"representative_trip_id": "3004899_14442",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 50,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.350016,
+							"lon": -97.71196,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.350323,
+									"lon": -97.713047,
+									"stop_id": "5071",
+									"stop_name": "Research/Lamar",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.355308,
+									"lon": -97.714862,
+									"stop_id": "3795",
+									"stop_name": "Research/Jamestown",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.357316,
+									"lon": -97.715514,
+									"stop_id": "3796",
+									"stop_name": "Research/Clearfield",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.359988,
+									"lon": -97.716313,
+									"stop_id": "3797",
+									"stop_name": "Research/Fairfield",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.362273,
+									"lon": -97.716941,
+									"stop_id": "3798",
+									"stop_name": "Research/Ohlen",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.368858,
+									"lon": -97.718513,
+									"stop_id": "3799",
+									"stop_name": "Research/Northgate",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.374709,
+									"lon": -97.725908,
+									"stop_id": "4753",
+									"stop_name": "Burnet/Research",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5225",
+							"stop_name": "North Lamar Bay 1",
+							"stop_name_full": "North Lamar Bay 1",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.379497,
+							"lon": -97.724857,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.385221,
+									"lon": -97.723575,
+									"stop_id": "6427",
+									"stop_name": "Burnet/Mc Hale",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.388634,
+									"lon": -97.72256,
+									"stop_id": "6456",
+									"stop_name": "Burnet/Bright Verde",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.391483,
+									"lon": -97.722548,
+									"stop_id": "4682",
+									"stop_name": "Braker/Burnet Stadium…",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.392667,
+									"lon": -97.725958,
+									"stop_id": "3014",
+									"stop_name": "Braker/IBM",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.391198,
+									"lon": -97.739283,
+									"stop_id": "5916",
+									"stop_name": "Stonelake/Capital of…",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.393703,
+									"lon": -97.743884,
+									"stop_id": "3016",
+									"stop_name": "Great Hills/Research",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "4757",
+							"stop_name": "Rutland Rapid Station",
+							"stop_name_full": "Rutland Rapid Station (NB)",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.394273,
+							"lon": -97.748666,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.395978,
+									"lon": -97.749877,
+									"stop_id": "3804",
+									"stop_name": "Jollyville/Great Hills",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.400576,
+									"lon": -97.748014,
+									"stop_id": "3806",
+									"stop_name": "Braker/Jollyville",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.401655,
+									"lon": -97.745247,
+									"stop_id": "4688",
+									"stop_name": "Research/Hamilton",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.404485,
+									"lon": -97.744959,
+									"stop_id": "5290",
+									"stop_name": "Research/Seton Center",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.408812,
+									"lon": -97.744632,
+									"stop_id": "3809",
+									"stop_name": "Research/Balcones Woods",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.412532,
+									"lon": -97.745139,
+									"stop_id": "3810",
+									"stop_name": "Research/Windriver Apts",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.417953,
+									"lon": -97.746152,
+									"stop_id": "3811",
+									"stop_name": "Research/Duval",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.425929,
+									"lon": -97.75164,
+									"stop_id": "5432",
+									"stop_name": "Research/Riata Trace",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.42702,
+									"lon": -97.75387,
+									"stop_id": "3812",
+									"stop_name": "Research/Riata Apts",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "2726",
+							"stop_name": "Great Hills/Research",
+							"stop_name_full": "9828 Great Hills/Research",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.425929,
+									"lon": -97.75164,
+									"stop_id": "5432",
+									"stop_name": "Research/Riata Trace",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.42702,
+									"lon": -97.75387,
+									"stop_id": "3812",
+									"stop_name": "Research/Riata Apts",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.43024,
+									"lon": -97.76044,
+									"stop_id": "3813",
+									"stop_name": "Research/Oak Knoll",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.43266,
+									"lon": -97.76536,
+									"stop_id": "4690",
+									"stop_name": "Research/Technology",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.434391,
+									"lon": -97.768725,
+									"stop_id": "5671",
+									"stop_name": "Research/Mc Neil",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.444876,
+									"lon": -97.777674,
+									"stop_id": "5649",
+									"stop_name": "Pond Springs/Turtle Rock",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.449535,
+									"lon": -97.788219,
+									"stop_id": "5673",
+									"stop_name": "Anderson Mill/US 183",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.448048,
+									"lon": -97.79324,
+									"stop_id": "4952",
+									"stop_name": "Anderson Mill/US 183",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.447549,
+									"lon": -97.803914,
+									"stop_id": "4953",
+									"stop_name": "Millwright/Missel Thrush",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.452086,
+									"lon": -97.802828,
+									"stop_id": "4954",
+									"stop_name": "Millwright/Old Stage…",
+									"stop_sequence": 36
+								}
+							],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.455338,
+							"lon": -97.80375,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.457116,
+									"lon": -97.803597,
+									"stop_id": "4956",
+									"stop_name": "Lake Creek/Millwright",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.458877,
+									"lon": -97.799056,
+									"stop_id": "4957",
+									"stop_name": "Lake Creek/Hickory Stick",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.46064,
+									"lon": -97.79704,
+									"stop_id": "3818",
+									"stop_name": "Lake Creek/Mellow…",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.462312,
+									"lon": -97.791684,
+									"stop_id": "4654",
+									"stop_name": "Lake Creek/US 183",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.463646,
+									"lon": -97.789238,
+									"stop_id": "5785",
+									"stop_name": "Lake Creek/Hymeadow",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.467978,
+									"lon": -97.787873,
+									"stop_id": "4655",
+									"stop_name": "Lake Creek/Pecan Park",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.474728,
+									"lon": -97.795902,
+									"stop_id": "5653",
+									"stop_name": "Lakeline Mall/Lake Creek",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.472378,
+									"lon": -97.801255,
+									"stop_id": "5428",
+									"stop_name": "Lakeline Mall/Pecan Park",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.4727,
+									"lon": -97.802246,
+									"stop_id": "5222",
+									"stop_name": "Pecan Park/Lakeline Mall",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.478414,
+									"lon": -97.804675,
+									"stop_id": "5881",
+									"stop_name": "Lakeline/US 183",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.480007,
+									"lon": -97.800186,
+									"stop_id": "5654",
+									"stop_name": "Lakeline/US 183",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.479846,
+									"lon": -97.79749,
+									"stop_id": "5805",
+									"stop_name": "Lakeline/North Lake…",
+									"stop_sequence": 49
+								}
+							],
+							"stop_id": "4955",
+							"stop_name": "Millwright/Wendts Way",
+							"stop_name_full": "12221 Millwright/Wendts Way",
+							"stop_sequence": 37
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.480562,
+							"lon": -97.786668,
+							"minor_stops": [],
+							"stop_id": "5229",
+							"stop_name": "Lakeline Station Bay H",
+							"stop_name_full": "Lakeline Station Bay H",
+							"stop_sequence": 50
+						}
+					]
+				}
+			},
+			"stop_count": 50,
+			"timepoint_count": 6
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "383-1-77f3ad7f",
+				"13-172": "383-1-4c0c7ff4",
+				"14-172": "383-1-4c0c7ff4",
+				"8-172": "383-1-77f3ad7f",
+				"9-172": "383-1-77f3ad7f"
+			},
+			"baseline_pattern_id": "383-1-77f3ad7f",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"383-1-4c0c7ff4": {
+					"direction_id": 1,
+					"pattern_id": "383-1-4c0c7ff4",
+					"representative_trip_id": "3004980_14684",
+					"service_ids": [
+						"13-172",
+						"14-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.41999,
+									"lon": -97.747572,
+									"stop_id": "3831",
+									"stop_name": "Research/Duval",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.41492,
+									"lon": -97.746612,
+									"stop_id": "3832",
+									"stop_name": "Research/Thunder Creek",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.406858,
+									"lon": -97.745727,
+									"stop_id": "3833",
+									"stop_name": "Research/Balcones Woods",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.400813,
+									"lon": -97.74724,
+									"stop_id": "3834",
+									"stop_name": "Braker/Research NW…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.396981,
+									"lon": -97.750138,
+									"stop_id": "6093",
+									"stop_name": "Jollyville/Great Hills",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.394037,
+							"lon": -97.74835,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.393337,
+									"lon": -97.743545,
+									"stop_id": "3837",
+									"stop_name": "Great Hills/Research",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.390475,
+									"lon": -97.738894,
+									"stop_id": "3838",
+									"stop_name": "Capital of…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.393962,
+									"lon": -97.732447,
+									"stop_id": "5920",
+									"stop_name": "Mopac/Braker",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.392361,
+									"lon": -97.725994,
+									"stop_id": "5718",
+									"stop_name": "Braker/Road A",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391127,
+									"lon": -97.722228,
+									"stop_id": "3020",
+									"stop_name": "Braker/Burnet SW Corner",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.387908,
+									"lon": -97.723039,
+									"stop_id": "6457",
+									"stop_name": "Burnet/Bright Verde",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.3836,
+									"lon": -97.72419,
+									"stop_id": "4756",
+									"stop_name": "Rutland Rapid Station",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "2732",
+							"stop_name": "Great Hills/Jollyville",
+							"stop_name_full": "9829 Great Hills/Jollyville",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.379659,
+							"lon": -97.725088,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.375734,
+									"lon": -97.725963,
+									"stop_id": "4754",
+									"stop_name": "Burnet/Waterford Center",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.37228,
+									"lon": -97.72535,
+									"stop_id": "4691",
+									"stop_name": "Research/Burnet",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.364075,
+									"lon": -97.718149,
+									"stop_id": "3839",
+									"stop_name": "Research/Ohlen",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.359635,
+									"lon": -97.716748,
+									"stop_id": "3840",
+									"stop_name": "Research/Fairfield",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.353034,
+									"lon": -97.714976,
+									"stop_id": "5969",
+									"stop_name": "Research/Anderson",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "5784",
+							"stop_name": "Burnet/Longhorn",
+							"stop_name_full": "9600 Burnet/Longhorn",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.350016,
+							"lon": -97.71196,
+							"minor_stops": [],
+							"stop_id": "5225",
+							"stop_name": "North Lamar Bay 1",
+							"stop_name_full": "North Lamar Bay 1",
+							"stop_sequence": 21
+						}
+					]
+				},
+				"383-1-77f3ad7f": {
+					"direction_id": 1,
+					"pattern_id": "383-1-77f3ad7f",
+					"representative_trip_id": "3004943_14566",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 42,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.480562,
+							"lon": -97.786668,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.480141,
+									"lon": -97.797375,
+									"stop_id": "5413",
+									"stop_name": "Lakeline/North Lake…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.478246,
+									"lon": -97.805568,
+									"stop_id": "6517",
+									"stop_name": "Lakeline/N 183 Hwy SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.472972,
+									"lon": -97.802673,
+									"stop_id": "5411",
+									"stop_name": "Pecan Park/Lakeline Mall",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.472089,
+									"lon": -97.801043,
+									"stop_id": "3820",
+									"stop_name": "Lakeline Mall/Pecan Park",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.473343,
+									"lon": -97.797676,
+									"stop_id": "4465",
+									"stop_name": "Lakeline Mall/US 183",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.474983,
+									"lon": -97.794127,
+									"stop_id": "4466",
+									"stop_name": "Lakeline Mall/Lake Creek",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.468862,
+									"lon": -97.789255,
+									"stop_id": "4656",
+									"stop_name": "Lake Creek/FM 620",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.464031,
+									"lon": -97.789223,
+									"stop_id": "5514",
+									"stop_name": "Lake Creek/Pecan Park",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.462437,
+									"lon": -97.792001,
+									"stop_id": "3823",
+									"stop_name": "Lake Creek/Pecan Park",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.46091,
+									"lon": -97.79649,
+									"stop_id": "3824",
+									"stop_name": "Lake Creek/US 183",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.458885,
+									"lon": -97.799333,
+									"stop_id": "4958",
+									"stop_name": "Lake Creek/Mellow…",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.456924,
+									"lon": -97.804141,
+									"stop_id": "4959",
+									"stop_name": "Lake Creek/School House",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "5229",
+							"stop_name": "Lakeline Station Bay H",
+							"stop_name_full": "Lakeline Station Bay H",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.455334,
+							"lon": -97.803932,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.453237,
+									"lon": -97.803326,
+									"stop_id": "5792",
+									"stop_name": "Millwright/Timbercrest",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.447986,
+									"lon": -97.803995,
+									"stop_id": "4962",
+									"stop_name": "Millwright/Anderson Mill",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.447933,
+									"lon": -97.793006,
+									"stop_id": "5515",
+									"stop_name": "Anderson Mill/US 183",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.449417,
+									"lon": -97.787707,
+									"stop_id": "5672",
+									"stop_name": "Anderson Mill/US 183",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.441581,
+									"lon": -97.773724,
+									"stop_id": "5650",
+									"stop_name": "Pond Springs/Hunters…",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.432985,
+									"lon": -97.768027,
+									"stop_id": "3829",
+									"stop_name": "Research Blvd/Barrington",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.429237,
+									"lon": -97.760501,
+									"stop_id": "3830",
+									"stop_name": "Research/Jollyville",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "4960",
+							"stop_name": "Millwright/Salt Mill",
+							"stop_name_full": "12220 Millwright/Salt Mill",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.41999,
+									"lon": -97.747572,
+									"stop_id": "3831",
+									"stop_name": "Research/Duval",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.41492,
+									"lon": -97.746612,
+									"stop_id": "3832",
+									"stop_name": "Research/Thunder Creek",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.406858,
+									"lon": -97.745727,
+									"stop_id": "3833",
+									"stop_name": "Research/Balcones Woods",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.400813,
+									"lon": -97.74724,
+									"stop_id": "3834",
+									"stop_name": "Braker/Research NW…",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.396981,
+									"lon": -97.750138,
+									"stop_id": "6093",
+									"stop_name": "Jollyville/Great Hills",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 22
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.394037,
+							"lon": -97.74835,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.393337,
+									"lon": -97.743545,
+									"stop_id": "3837",
+									"stop_name": "Great Hills/Research",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.390475,
+									"lon": -97.738894,
+									"stop_id": "3838",
+									"stop_name": "Capital of…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.393962,
+									"lon": -97.732447,
+									"stop_id": "5920",
+									"stop_name": "Mopac/Braker",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.392361,
+									"lon": -97.725994,
+									"stop_id": "5718",
+									"stop_name": "Braker/Road A",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391127,
+									"lon": -97.722228,
+									"stop_id": "3020",
+									"stop_name": "Braker/Burnet SW Corner",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.387908,
+									"lon": -97.723039,
+									"stop_id": "6457",
+									"stop_name": "Burnet/Bright Verde",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.3836,
+									"lon": -97.72419,
+									"stop_id": "4756",
+									"stop_name": "Rutland Rapid Station",
+									"stop_sequence": 35
+								}
+							],
+							"stop_id": "2732",
+							"stop_name": "Great Hills/Jollyville",
+							"stop_name_full": "9829 Great Hills/Jollyville",
+							"stop_sequence": 28
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.379659,
+							"lon": -97.725088,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.375734,
+									"lon": -97.725963,
+									"stop_id": "4754",
+									"stop_name": "Burnet/Waterford Center",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.37228,
+									"lon": -97.72535,
+									"stop_id": "4691",
+									"stop_name": "Research/Burnet",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.364075,
+									"lon": -97.718149,
+									"stop_id": "3839",
+									"stop_name": "Research/Ohlen",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.359635,
+									"lon": -97.716748,
+									"stop_id": "3840",
+									"stop_name": "Research/Fairfield",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.353034,
+									"lon": -97.714976,
+									"stop_id": "5969",
+									"stop_name": "Research/Anderson",
+									"stop_sequence": 41
+								}
+							],
+							"stop_id": "5784",
+							"stop_name": "Burnet/Longhorn",
+							"stop_name_full": "9600 Burnet/Longhorn",
+							"stop_sequence": 36
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.350016,
+							"lon": -97.71196,
+							"minor_stops": [],
+							"stop_id": "5225",
+							"stop_name": "North Lamar Bay 1",
+							"stop_name_full": "North Lamar Bay 1",
+							"stop_sequence": 42
+						}
+					]
+				}
+			},
+			"stop_count": 42,
+			"timepoint_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "383",
+	"schema": 1
+}

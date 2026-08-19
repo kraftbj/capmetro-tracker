@@ -1,0 +1,2366 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "300-0-84720883",
+				"11-172": "300-0-84720883",
+				"12-172": "300-0-84720883",
+				"2-172": "300-0-066333e5",
+				"3-172": "300-0-066333e5",
+				"4-172": "300-0-066333e5",
+				"5-172": "300-0-066333e5",
+				"6-172": "300-0-84720883",
+				"7-172": "300-0-066333e5"
+			},
+			"baseline_pattern_id": "300-0-066333e5",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"300-0-066333e5": {
+					"direction_id": 0,
+					"pattern_id": "300-0-066333e5",
+					"representative_trip_id": "3001182_6952",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 67,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.338721,
+							"lon": -97.719548,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.339109,
+									"lon": -97.717454,
+									"stop_id": "5605",
+									"stop_name": "St Johns/Lamar",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33781,
+									"lon": -97.714621,
+									"stop_id": "2880",
+									"stop_name": "St Johns/Guadalupe",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33382,
+									"lon": -97.706498,
+									"stop_id": "6307",
+									"stop_name": "St Johns/Roland Johnson",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.332158,
+									"lon": -97.702924,
+									"stop_id": "5104",
+									"stop_name": "St Johns/IH 35",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33112,
+									"lon": -97.7006,
+									"stop_id": "4713",
+									"stop_name": "St Johns/Bennett",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3301,
+									"lon": -97.69847,
+									"stop_id": "2886",
+									"stop_name": "St Johns/Bethune",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.328322,
+									"lon": -97.694846,
+									"stop_id": "1308",
+									"stop_name": "St Johns/Grand Canyon",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.325799,
+									"lon": -97.692672,
+									"stop_id": "2871",
+									"stop_name": "Cameron/St Johns",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.323777,
+									"lon": -97.693885,
+									"stop_id": "6431",
+									"stop_name": "Cameron/Camino La Costa",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.319537,
+									"lon": -97.697311,
+									"stop_id": "5782",
+									"stop_name": "Cameron/Glencrest",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.317046,
+									"lon": -97.700104,
+									"stop_id": "2306",
+									"stop_name": "Cameron/Clayton",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.315549,
+									"lon": -97.701918,
+									"stop_id": "2307",
+									"stop_name": "Cameron/Reinli",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "5604",
+							"stop_name": "Crestview Station Bus…",
+							"stop_name_full": "Crestview Station Bus Stop",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.312939,
+							"lon": -97.705293,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.31124,
+									"lon": -97.707439,
+									"stop_id": "5783",
+									"stop_name": "Cameron/Broadmoor",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308132,
+									"lon": -97.708046,
+									"stop_id": "5613",
+									"stop_name": "51st/Cameron",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306715,
+									"lon": -97.70507,
+									"stop_id": "5683",
+									"stop_name": "51st/Lancaster",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302821,
+									"lon": -97.698114,
+									"stop_id": "6303",
+									"stop_name": "51st/HEB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301332,
+									"lon": -97.691719,
+									"stop_id": "6463",
+									"stop_name": "51st/Tilley",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298024,
+									"lon": -97.686908,
+									"stop_id": "6300",
+									"stop_name": "51st/Manor",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.295511,
+									"lon": -97.681993,
+									"stop_id": "6299",
+									"stop_name": "51st/Pecan Springs",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.293146,
+									"lon": -97.67813,
+									"stop_id": "6297",
+									"stop_name": "Springdale/51st",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289603,
+									"lon": -97.680296,
+									"stop_id": "1330",
+									"stop_name": "Springdale/Touchstone",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.281879,
+									"lon": -97.685305,
+									"stop_id": "1334",
+									"stop_name": "Springdale/Glomar",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279234,
+									"lon": -97.686965,
+									"stop_id": "1335",
+									"stop_name": "Springdale/12th",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276735,
+									"lon": -97.688489,
+									"stop_id": "1336",
+									"stop_name": "Springdale/Webberville",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274303,
+									"lon": -97.69009,
+									"stop_id": "1337",
+									"stop_name": "Springdale/Ledesma",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270901,
+									"lon": -97.692225,
+									"stop_id": "1338",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267579,
+									"lon": -97.694349,
+									"stop_id": "1339",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266136,
+									"lon": -97.695276,
+									"stop_id": "1340",
+									"stop_name": "Springdale/Airport",
+									"stop_sequence": 30
+								}
+							],
+							"stop_id": "2308",
+							"stop_name": "Cameron/Corona",
+							"stop_name_full": "5420 Cameron/Corona",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.265076,
+							"lon": -97.699351,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.26602,
+									"lon": -97.70202,
+									"stop_id": "1342",
+									"stop_name": "Govalle/Tillery",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26774,
+									"lon": -97.706989,
+									"stop_id": "1344",
+									"stop_name": "Govalle/Webberville",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26517,
+									"lon": -97.708825,
+									"stop_id": "1346",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.263658,
+									"lon": -97.708344,
+									"stop_id": "1347",
+									"stop_name": "Pleasant Valley/Lyons",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259748,
+									"lon": -97.709736,
+									"stop_id": "1349",
+									"stop_name": "7th Street SB",
+									"stop_sequence": 36
+								}
+							],
+							"stop_id": "1341",
+							"stop_name": "Govalle/Gunter",
+							"stop_name_full": "3600 Govalle/Gunter",
+							"stop_sequence": 31
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.257219,
+							"lon": -97.710922,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.25282,
+									"lon": -97.713,
+									"stop_id": "6516",
+									"stop_name": "Cesar Chavez SB",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246213,
+									"lon": -97.714935,
+									"stop_id": "5032",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2422,
+									"lon": -97.717511,
+									"stop_id": "1353",
+									"stop_name": "Roy G Guerrero SB",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240131,
+									"lon": -97.718817,
+									"stop_id": "4283",
+									"stop_name": "Elmont SB",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23524,
+									"lon": -97.721977,
+									"stop_id": "4288",
+									"stop_name": "Riverside SB",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233458,
+									"lon": -97.724063,
+									"stop_id": "6428",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230883,
+									"lon": -97.725761,
+									"stop_id": "4298",
+									"stop_name": "Sheringham SB",
+									"stop_sequence": 44
+								}
+							],
+							"stop_id": "2803",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "500 Pleasant Valley/5th",
+							"stop_sequence": 37
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.227843,
+							"lon": -97.728279,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.228981,
+									"lon": -97.729647,
+									"stop_id": "2238",
+									"stop_name": "Oltorf/Pleasant Valley",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23021,
+									"lon": -97.731749,
+									"stop_id": "1358",
+									"stop_name": "Oltorf/Willow Creek",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23107,
+									"lon": -97.734031,
+									"stop_id": "6512",
+									"stop_name": "Oltorf at Burton SB",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233502,
+									"lon": -97.739665,
+									"stop_id": "2242",
+									"stop_name": "E Oltorf",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23465,
+									"lon": -97.74353,
+									"stop_id": "2243",
+									"stop_name": "Oltorf/Schriber",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235895,
+									"lon": -97.745863,
+									"stop_id": "2244",
+									"stop_name": "Oltorf/Schriber",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23677,
+									"lon": -97.748611,
+									"stop_id": "1494",
+									"stop_name": "Oltorf/East Side",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.237484,
+									"lon": -97.751288,
+									"stop_id": "2246",
+									"stop_name": "Oltorf/Rebel",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240124,
+									"lon": -97.75551,
+									"stop_id": "5674",
+									"stop_name": "Oltorf/Euclid",
+									"stop_sequence": 54
+								}
+							],
+							"stop_id": "1356",
+							"stop_name": "Oltorf East SB",
+							"stop_name_full": "Oltorf East SB (Oltorf/Pleasant Valley)",
+							"stop_sequence": 45
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.242137,
+							"lon": -97.759362,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.243574,
+									"lon": -97.763748,
+									"stop_id": "2251",
+									"stop_name": "Oltorf/ South 4th",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246909,
+									"lon": -97.769288,
+									"stop_id": "4206",
+									"stop_name": "Oltorf/Thornton",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.248028,
+									"lon": -97.771756,
+									"stop_id": "2328",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.247258,
+									"lon": -97.776176,
+									"stop_id": "2255",
+									"stop_name": "Lamar/Goodrich",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246766,
+									"lon": -97.777874,
+									"stop_id": "5879",
+									"stop_name": "Bluebonnet Station",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.245471,
+									"lon": -97.779927,
+									"stop_id": "2329",
+									"stop_name": "Lamar/Dickson",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.243186,
+									"lon": -97.783077,
+									"stop_id": "2331",
+									"stop_name": "Lamar/Barton Skyway",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.241007,
+									"lon": -97.786179,
+									"stop_id": "6358",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.238133,
+									"lon": -97.788756,
+									"stop_id": "4215",
+									"stop_name": "Panther/Victory",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235811,
+									"lon": -97.790086,
+									"stop_id": "3360",
+									"stop_name": "Victory/Prather",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232792,
+									"lon": -97.790917,
+									"stop_id": "4213",
+									"stop_name": "Victory/Ben White",
+									"stop_sequence": 66
+								}
+							],
+							"stop_id": "2249",
+							"stop_name": "Oltorf/1st",
+							"stop_name_full": "526 Oltorf/1st",
+							"stop_sequence": 55
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.231106,
+							"lon": -97.790843,
+							"minor_stops": [],
+							"stop_id": "6374",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - B",
+							"stop_sequence": 67
+						}
+					]
+				},
+				"300-0-84720883": {
+					"direction_id": 0,
+					"pattern_id": "300-0-84720883",
+					"representative_trip_id": "3001182_6891",
+					"service_ids": [
+						"1-172",
+						"11-172",
+						"12-172",
+						"6-172"
+					],
+					"stop_count": 69,
+					"timepoint_count": 8,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.338721,
+							"lon": -97.719548,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.339109,
+									"lon": -97.717454,
+									"stop_id": "5605",
+									"stop_name": "St Johns/Lamar",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33781,
+									"lon": -97.714621,
+									"stop_id": "2880",
+									"stop_name": "St Johns/Guadalupe",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33382,
+									"lon": -97.706498,
+									"stop_id": "6307",
+									"stop_name": "St Johns/Roland Johnson",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.332158,
+									"lon": -97.702924,
+									"stop_id": "5104",
+									"stop_name": "St Johns/IH 35",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33112,
+									"lon": -97.7006,
+									"stop_id": "4713",
+									"stop_name": "St Johns/Bennett",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3301,
+									"lon": -97.69847,
+									"stop_id": "2886",
+									"stop_name": "St Johns/Bethune",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.328322,
+									"lon": -97.694846,
+									"stop_id": "1308",
+									"stop_name": "St Johns/Grand Canyon",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.325799,
+									"lon": -97.692672,
+									"stop_id": "2871",
+									"stop_name": "Cameron/St Johns",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.323777,
+									"lon": -97.693885,
+									"stop_id": "6431",
+									"stop_name": "Cameron/Camino La Costa",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.319537,
+									"lon": -97.697311,
+									"stop_id": "5782",
+									"stop_name": "Cameron/Glencrest",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.317046,
+									"lon": -97.700104,
+									"stop_id": "2306",
+									"stop_name": "Cameron/Clayton",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.315549,
+									"lon": -97.701918,
+									"stop_id": "2307",
+									"stop_name": "Cameron/Reinli",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "5604",
+							"stop_name": "Crestview Station Bus…",
+							"stop_name_full": "Crestview Station Bus Stop",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.312939,
+							"lon": -97.705293,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.31124,
+									"lon": -97.707439,
+									"stop_id": "5783",
+									"stop_name": "Cameron/Broadmoor",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308132,
+									"lon": -97.708046,
+									"stop_id": "5613",
+									"stop_name": "51st/Cameron",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306715,
+									"lon": -97.70507,
+									"stop_id": "5683",
+									"stop_name": "51st/Lancaster",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302821,
+									"lon": -97.698114,
+									"stop_id": "6303",
+									"stop_name": "51st/HEB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301332,
+									"lon": -97.691719,
+									"stop_id": "6463",
+									"stop_name": "51st/Tilley",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298024,
+									"lon": -97.686908,
+									"stop_id": "6300",
+									"stop_name": "51st/Manor",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.295511,
+									"lon": -97.681993,
+									"stop_id": "6299",
+									"stop_name": "51st/Pecan Springs",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.293146,
+									"lon": -97.67813,
+									"stop_id": "6297",
+									"stop_name": "Springdale/51st",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289603,
+									"lon": -97.680296,
+									"stop_id": "1330",
+									"stop_name": "Springdale/Touchstone",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "2308",
+							"stop_name": "Cameron/Corona",
+							"stop_name_full": "5420 Cameron/Corona",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.286134,
+							"lon": -97.682608,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.281879,
+									"lon": -97.685305,
+									"stop_id": "1334",
+									"stop_name": "Springdale/Glomar",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279234,
+									"lon": -97.686965,
+									"stop_id": "1335",
+									"stop_name": "Springdale/12th",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276735,
+									"lon": -97.688489,
+									"stop_id": "1336",
+									"stop_name": "Springdale/Webberville",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274303,
+									"lon": -97.69009,
+									"stop_id": "1337",
+									"stop_name": "Springdale/Ledesma",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270901,
+									"lon": -97.692225,
+									"stop_id": "1338",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267579,
+									"lon": -97.694349,
+									"stop_id": "1339",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266136,
+									"lon": -97.695276,
+									"stop_id": "1340",
+									"stop_name": "Springdale/Airport",
+									"stop_sequence": 31
+								}
+							],
+							"stop_id": "1331",
+							"stop_name": "Springdale/Martin…",
+							"stop_name_full": "4300 Springdale/Martin Luther King",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.265076,
+							"lon": -97.699351,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.26602,
+									"lon": -97.70202,
+									"stop_id": "1342",
+									"stop_name": "Govalle/Tillery",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26774,
+									"lon": -97.706989,
+									"stop_id": "1344",
+									"stop_name": "Govalle/Webberville",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26517,
+									"lon": -97.708825,
+									"stop_id": "1346",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.263658,
+									"lon": -97.708344,
+									"stop_id": "1347",
+									"stop_name": "Pleasant Valley/Lyons",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259748,
+									"lon": -97.709736,
+									"stop_id": "1349",
+									"stop_name": "7th Street SB",
+									"stop_sequence": 37
+								}
+							],
+							"stop_id": "1341",
+							"stop_name": "Govalle/Gunter",
+							"stop_name_full": "3600 Govalle/Gunter",
+							"stop_sequence": 32
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.257219,
+							"lon": -97.710922,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.25282,
+									"lon": -97.713,
+									"stop_id": "6516",
+									"stop_name": "Cesar Chavez SB",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246213,
+									"lon": -97.714935,
+									"stop_id": "5032",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2422,
+									"lon": -97.717511,
+									"stop_id": "1353",
+									"stop_name": "Roy G Guerrero SB",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240131,
+									"lon": -97.718817,
+									"stop_id": "4283",
+									"stop_name": "Elmont SB",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23524,
+									"lon": -97.721977,
+									"stop_id": "4288",
+									"stop_name": "Riverside SB",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233458,
+									"lon": -97.724063,
+									"stop_id": "6428",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230883,
+									"lon": -97.725761,
+									"stop_id": "4298",
+									"stop_name": "Sheringham SB",
+									"stop_sequence": 45
+								}
+							],
+							"stop_id": "2803",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "500 Pleasant Valley/5th",
+							"stop_sequence": 38
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.227843,
+							"lon": -97.728279,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.228981,
+									"lon": -97.729647,
+									"stop_id": "2238",
+									"stop_name": "Oltorf/Pleasant Valley",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23021,
+									"lon": -97.731749,
+									"stop_id": "1358",
+									"stop_name": "Oltorf/Willow Creek",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23107,
+									"lon": -97.734031,
+									"stop_id": "6512",
+									"stop_name": "Oltorf at Burton SB",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232592,
+									"lon": -97.737362,
+									"stop_id": "2241",
+									"stop_name": "Oltorf/Parker",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233502,
+									"lon": -97.739665,
+									"stop_id": "2242",
+									"stop_name": "E Oltorf",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23465,
+									"lon": -97.74353,
+									"stop_id": "2243",
+									"stop_name": "Oltorf/Schriber",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235895,
+									"lon": -97.745863,
+									"stop_id": "2244",
+									"stop_name": "Oltorf/Schriber",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23677,
+									"lon": -97.748611,
+									"stop_id": "1494",
+									"stop_name": "Oltorf/East Side",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.237484,
+									"lon": -97.751288,
+									"stop_id": "2246",
+									"stop_name": "Oltorf/Rebel",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240124,
+									"lon": -97.75551,
+									"stop_id": "5674",
+									"stop_name": "Oltorf/Euclid",
+									"stop_sequence": 56
+								}
+							],
+							"stop_id": "1356",
+							"stop_name": "Oltorf East SB",
+							"stop_name_full": "Oltorf East SB (Oltorf/Pleasant Valley)",
+							"stop_sequence": 46
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.242137,
+							"lon": -97.759362,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.243574,
+									"lon": -97.763748,
+									"stop_id": "2251",
+									"stop_name": "Oltorf/ South 4th",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246909,
+									"lon": -97.769288,
+									"stop_id": "4206",
+									"stop_name": "Oltorf/Thornton",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.248028,
+									"lon": -97.771756,
+									"stop_id": "2328",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.247258,
+									"lon": -97.776176,
+									"stop_id": "2255",
+									"stop_name": "Lamar/Goodrich",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246766,
+									"lon": -97.777874,
+									"stop_id": "5879",
+									"stop_name": "Bluebonnet Station",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.245471,
+									"lon": -97.779927,
+									"stop_id": "2329",
+									"stop_name": "Lamar/Dickson",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.243186,
+									"lon": -97.783077,
+									"stop_id": "2331",
+									"stop_name": "Lamar/Barton Skyway",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.241007,
+									"lon": -97.786179,
+									"stop_id": "6358",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.238133,
+									"lon": -97.788756,
+									"stop_id": "4215",
+									"stop_name": "Panther/Victory",
+									"stop_sequence": 66
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235811,
+									"lon": -97.790086,
+									"stop_id": "3360",
+									"stop_name": "Victory/Prather",
+									"stop_sequence": 67
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232792,
+									"lon": -97.790917,
+									"stop_id": "4213",
+									"stop_name": "Victory/Ben White",
+									"stop_sequence": 68
+								}
+							],
+							"stop_id": "2249",
+							"stop_name": "Oltorf/1st",
+							"stop_name_full": "526 Oltorf/1st",
+							"stop_sequence": 57
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.231106,
+							"lon": -97.790843,
+							"minor_stops": [],
+							"stop_id": "6374",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - B",
+							"stop_sequence": 69
+						}
+					]
+				}
+			},
+			"stop_count": 67,
+			"timepoint_count": 7
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "300-1-f955eb66",
+				"11-172": "300-1-f955eb66",
+				"12-172": "300-1-f955eb66",
+				"2-172": "300-1-f2f973bb",
+				"3-172": "300-1-f2f973bb",
+				"4-172": "300-1-f2f973bb",
+				"5-172": "300-1-f2f973bb",
+				"6-172": "300-1-f955eb66",
+				"7-172": "300-1-f2f973bb"
+			},
+			"baseline_pattern_id": "300-1-f2f973bb",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"300-1-f2f973bb": {
+					"direction_id": 1,
+					"pattern_id": "300-1-f2f973bb",
+					"representative_trip_id": "3001246_6409",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 67,
+					"timepoint_count": 8,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.231106,
+							"lon": -97.790843,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.232805,
+									"lon": -97.7907,
+									"stop_id": "4212",
+									"stop_name": "Victory/Ben White",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23581,
+									"lon": -97.789879,
+									"stop_id": "4234",
+									"stop_name": "Ann Richards School",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238522,
+									"lon": -97.789058,
+									"stop_id": "4216",
+									"stop_name": "Panther/Lamar",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240739,
+									"lon": -97.78607,
+									"stop_id": "6357",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.244014,
+									"lon": -97.781577,
+									"stop_id": "2374",
+									"stop_name": "Lamar/Menchaca",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.245377,
+									"lon": -97.779693,
+									"stop_id": "771",
+									"stop_name": "Lamar/Dickson",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246752,
+									"lon": -97.777395,
+									"stop_id": "772",
+									"stop_name": "Lamar/Bluebonnet",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.247279,
+									"lon": -97.774278,
+									"stop_id": "773",
+									"stop_name": "Lamar/Kinney",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248024,
+									"lon": -97.771014,
+									"stop_id": "2260",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246668,
+									"lon": -97.769395,
+									"stop_id": "2261",
+									"stop_name": "Oltorf/Thornton",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.24337,
+									"lon": -97.763557,
+									"stop_id": "2262",
+									"stop_name": "Oltorf/ South 5th",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "6374",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - B",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.241847,
+							"lon": -97.759236,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.238551,
+									"lon": -97.753352,
+									"stop_id": "4040",
+									"stop_name": "Oltorf/Congress",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23666,
+									"lon": -97.74904,
+									"stop_id": "2266",
+									"stop_name": "Oltorf/East Side",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23632,
+									"lon": -97.74719,
+									"stop_id": "1465",
+									"stop_name": "Oltorf/Alta Vista",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235651,
+									"lon": -97.745688,
+									"stop_id": "1466",
+									"stop_name": "Oltorf/Alta Vista",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.234202,
+									"lon": -97.743018,
+									"stop_id": "1467",
+									"stop_name": "Oltorf/Schriber",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23322,
+									"lon": -97.739459,
+									"stop_id": "1474",
+									"stop_name": "Oltorf/IH 35",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232279,
+									"lon": -97.737098,
+									"stop_id": "1475",
+									"stop_name": "Oltorf/Parker",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230755,
+									"lon": -97.733322,
+									"stop_id": "6511",
+									"stop_name": "Oltorf at Burton NB",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230048,
+									"lon": -97.731856,
+									"stop_id": "4296",
+									"stop_name": "Oltorf/Willow Creek",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "2263",
+							"stop_name": "Oltorf/1st",
+							"stop_name_full": "539 Oltorf/1st",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.228002,
+							"lon": -97.727295,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.231158,
+									"lon": -97.725309,
+									"stop_id": "1028",
+									"stop_name": "Sheringham NB",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235813,
+									"lon": -97.721325,
+									"stop_id": "5779",
+									"stop_name": "Riverside NB",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.239806,
+									"lon": -97.718797,
+									"stop_id": "4284",
+									"stop_name": "Elmont NB",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.242205,
+									"lon": -97.717284,
+									"stop_id": "1364",
+									"stop_name": "Roy G Guerrero NB",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246284,
+									"lon": -97.71469,
+									"stop_id": "1365",
+									"stop_name": "Pleasant Valley",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253159,
+									"lon": -97.712655,
+									"stop_id": "6515",
+									"stop_name": "Cesar Chavez NB",
+									"stop_sequence": 29
+								}
+							],
+							"stop_id": "1027",
+							"stop_name": "Oltorf East NB",
+							"stop_name_full": "Oltorf East NB (Pleasant Valley/Oltorf)",
+							"stop_sequence": 23
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.257443,
+							"lon": -97.710596,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.25986,
+									"lon": -97.709481,
+									"stop_id": "1369",
+									"stop_name": "7th Street NB",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.263548,
+									"lon": -97.708226,
+									"stop_id": "1372",
+									"stop_name": "Pleasant Valley/Lyons",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265299,
+									"lon": -97.708781,
+									"stop_id": "1373",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267443,
+									"lon": -97.706568,
+									"stop_id": "5150",
+									"stop_name": "Govalle/Webberville",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265835,
+									"lon": -97.701948,
+									"stop_id": "5130",
+									"stop_name": "Govalle/Tillery",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.264616,
+									"lon": -97.698463,
+									"stop_id": "1377",
+									"stop_name": "Govalle/Gunter",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.264033,
+									"lon": -97.696785,
+									"stop_id": "5465",
+									"stop_name": "Govalle/Springdale",
+									"stop_sequence": 37
+								}
+							],
+							"stop_id": "1368",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "501 Pleasant Valley/5th",
+							"stop_sequence": 30
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.264596,
+							"lon": -97.696074,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.267244,
+									"lon": -97.694388,
+									"stop_id": "1379",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27106,
+									"lon": -97.69193,
+									"stop_id": "1381",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.274299,
+									"lon": -97.689894,
+									"stop_id": "1382",
+									"stop_name": "Springdale/Ledesma",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277096,
+									"lon": -97.688064,
+									"stop_id": "1383",
+									"stop_name": "Springdale/Webberville",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279924,
+									"lon": -97.686346,
+									"stop_id": "1384",
+									"stop_name": "Springdale/12th",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.282374,
+									"lon": -97.684815,
+									"stop_id": "1385",
+									"stop_name": "Springdale/Leslie",
+									"stop_sequence": 44
+								}
+							],
+							"stop_id": "4534",
+							"stop_name": "Springdale/Govalle",
+							"stop_name_full": "961 Springdale/Govalle",
+							"stop_sequence": 38
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.286366,
+							"lon": -97.682192,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.289398,
+									"lon": -97.68025,
+									"stop_id": "4743",
+									"stop_name": "Springdale/Touchstone",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.293984,
+									"lon": -97.678299,
+									"stop_id": "6296",
+									"stop_name": "51st/Springdale",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.295848,
+									"lon": -97.682332,
+									"stop_id": "6298",
+									"stop_name": "51st/Pecan Springs",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298344,
+									"lon": -97.687272,
+									"stop_id": "6301",
+									"stop_name": "51st/Manor",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301487,
+									"lon": -97.692365,
+									"stop_id": "6462",
+									"stop_name": "Tilley/51st",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303536,
+									"lon": -97.698581,
+									"stop_id": "6343",
+									"stop_name": "51st/Bartholomew Pool",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306564,
+									"lon": -97.704286,
+									"stop_id": "5932",
+									"stop_name": "51st/Mueller",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308232,
+									"lon": -97.707768,
+									"stop_id": "5455",
+									"stop_name": "51st/Lancaster",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.309887,
+									"lon": -97.708858,
+									"stop_id": "2388",
+									"stop_name": "Cameron/52nd",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.311881,
+									"lon": -97.706361,
+									"stop_id": "2389",
+									"stop_name": "Cameron/Broadmoor",
+									"stop_sequence": 55
+								}
+							],
+							"stop_id": "4742",
+							"stop_name": "Springdale/Martin…",
+							"stop_name_full": "4311 Springdale/Martin Luther King",
+							"stop_sequence": 45
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.313185,
+							"lon": -97.704679,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.315645,
+									"lon": -97.701544,
+									"stop_id": "4609",
+									"stop_name": "Cameron/Northridge",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.317126,
+									"lon": -97.699679,
+									"stop_id": "2392",
+									"stop_name": "Cameron/Briarcliff",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.319114,
+									"lon": -97.69749,
+									"stop_id": "4592",
+									"stop_name": "Cameron/Glencrest",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32283,
+									"lon": -97.69413,
+									"stop_id": "2870",
+									"stop_name": "Cameron/Athletic",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32636,
+									"lon": -97.692703,
+									"stop_id": "4711",
+									"stop_name": "St Johns/Cameron",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.328921,
+									"lon": -97.695629,
+									"stop_id": "5505",
+									"stop_name": "St Johns/Blessing",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33032,
+									"lon": -97.69854,
+									"stop_id": "1409",
+									"stop_name": "St Johns/Bethune",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.331594,
+									"lon": -97.701247,
+									"stop_id": "1410",
+									"stop_name": "St Johns/Bennett",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334122,
+									"lon": -97.706753,
+									"stop_id": "6306",
+									"stop_name": "St Johns/Duval",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337813,
+									"lon": -97.714297,
+									"stop_id": "2874",
+									"stop_name": "St Johns/Guadalupe",
+									"stop_sequence": 66
+								}
+							],
+							"stop_id": "2390",
+							"stop_name": "Cameron/Corona",
+							"stop_name_full": "Cameron/Corona",
+							"stop_sequence": 56
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.338721,
+							"lon": -97.719548,
+							"minor_stops": [],
+							"stop_id": "5604",
+							"stop_name": "Crestview Station Bus…",
+							"stop_name_full": "Crestview Station Bus Stop",
+							"stop_sequence": 67
+						}
+					]
+				},
+				"300-1-f955eb66": {
+					"direction_id": 1,
+					"pattern_id": "300-1-f955eb66",
+					"representative_trip_id": "3001246_6348",
+					"service_ids": [
+						"1-172",
+						"11-172",
+						"12-172",
+						"6-172"
+					],
+					"stop_count": 68,
+					"timepoint_count": 8,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.231106,
+							"lon": -97.790843,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.232805,
+									"lon": -97.7907,
+									"stop_id": "4212",
+									"stop_name": "Victory/Ben White",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23581,
+									"lon": -97.789879,
+									"stop_id": "4234",
+									"stop_name": "Ann Richards School",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238522,
+									"lon": -97.789058,
+									"stop_id": "4216",
+									"stop_name": "Panther/Lamar",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240739,
+									"lon": -97.78607,
+									"stop_id": "6357",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.244014,
+									"lon": -97.781577,
+									"stop_id": "2374",
+									"stop_name": "Lamar/Menchaca",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.245377,
+									"lon": -97.779693,
+									"stop_id": "771",
+									"stop_name": "Lamar/Dickson",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246752,
+									"lon": -97.777395,
+									"stop_id": "772",
+									"stop_name": "Lamar/Bluebonnet",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.247279,
+									"lon": -97.774278,
+									"stop_id": "773",
+									"stop_name": "Lamar/Kinney",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248024,
+									"lon": -97.771014,
+									"stop_id": "2260",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246668,
+									"lon": -97.769395,
+									"stop_id": "2261",
+									"stop_name": "Oltorf/Thornton",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.24337,
+									"lon": -97.763557,
+									"stop_id": "2262",
+									"stop_name": "Oltorf/ South 5th",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "6374",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - B",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.241847,
+							"lon": -97.759236,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.239387,
+									"lon": -97.754655,
+									"stop_id": "4044",
+									"stop_name": "Oltorf/Euclid",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238551,
+									"lon": -97.753352,
+									"stop_id": "4040",
+									"stop_name": "Oltorf/Congress",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23666,
+									"lon": -97.74904,
+									"stop_id": "2266",
+									"stop_name": "Oltorf/East Side",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23632,
+									"lon": -97.74719,
+									"stop_id": "1465",
+									"stop_name": "Oltorf/Alta Vista",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235651,
+									"lon": -97.745688,
+									"stop_id": "1466",
+									"stop_name": "Oltorf/Alta Vista",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.234202,
+									"lon": -97.743018,
+									"stop_id": "1467",
+									"stop_name": "Oltorf/Schriber",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23322,
+									"lon": -97.739459,
+									"stop_id": "1474",
+									"stop_name": "Oltorf/IH 35",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232279,
+									"lon": -97.737098,
+									"stop_id": "1475",
+									"stop_name": "Oltorf/Parker",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230755,
+									"lon": -97.733322,
+									"stop_id": "6511",
+									"stop_name": "Oltorf at Burton NB",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230048,
+									"lon": -97.731856,
+									"stop_id": "4296",
+									"stop_name": "Oltorf/Willow Creek",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "2263",
+							"stop_name": "Oltorf/1st",
+							"stop_name_full": "539 Oltorf/1st",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.228002,
+							"lon": -97.727295,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.231158,
+									"lon": -97.725309,
+									"stop_id": "1028",
+									"stop_name": "Sheringham NB",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235813,
+									"lon": -97.721325,
+									"stop_id": "5779",
+									"stop_name": "Riverside NB",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.239806,
+									"lon": -97.718797,
+									"stop_id": "4284",
+									"stop_name": "Elmont NB",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.242205,
+									"lon": -97.717284,
+									"stop_id": "1364",
+									"stop_name": "Roy G Guerrero NB",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246284,
+									"lon": -97.71469,
+									"stop_id": "1365",
+									"stop_name": "Pleasant Valley",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253159,
+									"lon": -97.712655,
+									"stop_id": "6515",
+									"stop_name": "Cesar Chavez NB",
+									"stop_sequence": 30
+								}
+							],
+							"stop_id": "1027",
+							"stop_name": "Oltorf East NB",
+							"stop_name_full": "Oltorf East NB (Pleasant Valley/Oltorf)",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.257443,
+							"lon": -97.710596,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.25986,
+									"lon": -97.709481,
+									"stop_id": "1369",
+									"stop_name": "7th Street NB",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.263548,
+									"lon": -97.708226,
+									"stop_id": "1372",
+									"stop_name": "Pleasant Valley/Lyons",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265299,
+									"lon": -97.708781,
+									"stop_id": "1373",
+									"stop_name": "Pleasant…",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267443,
+									"lon": -97.706568,
+									"stop_id": "5150",
+									"stop_name": "Govalle/Webberville",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265835,
+									"lon": -97.701948,
+									"stop_id": "5130",
+									"stop_name": "Govalle/Tillery",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.264616,
+									"lon": -97.698463,
+									"stop_id": "1377",
+									"stop_name": "Govalle/Gunter",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.264033,
+									"lon": -97.696785,
+									"stop_id": "5465",
+									"stop_name": "Govalle/Springdale",
+									"stop_sequence": 38
+								}
+							],
+							"stop_id": "1368",
+							"stop_name": "Pleasant Valley/5th",
+							"stop_name_full": "501 Pleasant Valley/5th",
+							"stop_sequence": 31
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.264596,
+							"lon": -97.696074,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.267244,
+									"lon": -97.694388,
+									"stop_id": "1379",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27106,
+									"lon": -97.69193,
+									"stop_id": "1381",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.274299,
+									"lon": -97.689894,
+									"stop_id": "1382",
+									"stop_name": "Springdale/Ledesma",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277096,
+									"lon": -97.688064,
+									"stop_id": "1383",
+									"stop_name": "Springdale/Webberville",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279924,
+									"lon": -97.686346,
+									"stop_id": "1384",
+									"stop_name": "Springdale/12th",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.282374,
+									"lon": -97.684815,
+									"stop_id": "1385",
+									"stop_name": "Springdale/Leslie",
+									"stop_sequence": 45
+								}
+							],
+							"stop_id": "4534",
+							"stop_name": "Springdale/Govalle",
+							"stop_name_full": "961 Springdale/Govalle",
+							"stop_sequence": 39
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.286366,
+							"lon": -97.682192,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.289398,
+									"lon": -97.68025,
+									"stop_id": "4743",
+									"stop_name": "Springdale/Touchstone",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.293984,
+									"lon": -97.678299,
+									"stop_id": "6296",
+									"stop_name": "51st/Springdale",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.295848,
+									"lon": -97.682332,
+									"stop_id": "6298",
+									"stop_name": "51st/Pecan Springs",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298344,
+									"lon": -97.687272,
+									"stop_id": "6301",
+									"stop_name": "51st/Manor",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301487,
+									"lon": -97.692365,
+									"stop_id": "6462",
+									"stop_name": "Tilley/51st",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303536,
+									"lon": -97.698581,
+									"stop_id": "6343",
+									"stop_name": "51st/Bartholomew Pool",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306564,
+									"lon": -97.704286,
+									"stop_id": "5932",
+									"stop_name": "51st/Mueller",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308232,
+									"lon": -97.707768,
+									"stop_id": "5455",
+									"stop_name": "51st/Lancaster",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.309887,
+									"lon": -97.708858,
+									"stop_id": "2388",
+									"stop_name": "Cameron/52nd",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.311881,
+									"lon": -97.706361,
+									"stop_id": "2389",
+									"stop_name": "Cameron/Broadmoor",
+									"stop_sequence": 56
+								}
+							],
+							"stop_id": "4742",
+							"stop_name": "Springdale/Martin…",
+							"stop_name_full": "4311 Springdale/Martin Luther King",
+							"stop_sequence": 46
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.313185,
+							"lon": -97.704679,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.315645,
+									"lon": -97.701544,
+									"stop_id": "4609",
+									"stop_name": "Cameron/Northridge",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.317126,
+									"lon": -97.699679,
+									"stop_id": "2392",
+									"stop_name": "Cameron/Briarcliff",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.319114,
+									"lon": -97.69749,
+									"stop_id": "4592",
+									"stop_name": "Cameron/Glencrest",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32283,
+									"lon": -97.69413,
+									"stop_id": "2870",
+									"stop_name": "Cameron/Athletic",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32636,
+									"lon": -97.692703,
+									"stop_id": "4711",
+									"stop_name": "St Johns/Cameron",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.328921,
+									"lon": -97.695629,
+									"stop_id": "5505",
+									"stop_name": "St Johns/Blessing",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33032,
+									"lon": -97.69854,
+									"stop_id": "1409",
+									"stop_name": "St Johns/Bethune",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.331594,
+									"lon": -97.701247,
+									"stop_id": "1410",
+									"stop_name": "St Johns/Bennett",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334122,
+									"lon": -97.706753,
+									"stop_id": "6306",
+									"stop_name": "St Johns/Duval",
+									"stop_sequence": 66
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337813,
+									"lon": -97.714297,
+									"stop_id": "2874",
+									"stop_name": "St Johns/Guadalupe",
+									"stop_sequence": 67
+								}
+							],
+							"stop_id": "2390",
+							"stop_name": "Cameron/Corona",
+							"stop_name_full": "Cameron/Corona",
+							"stop_sequence": 57
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.338721,
+							"lon": -97.719548,
+							"minor_stops": [],
+							"stop_id": "5604",
+							"stop_name": "Crestview Station Bus…",
+							"stop_name_full": "Crestview Station Bus Stop",
+							"stop_sequence": 68
+						}
+					]
+				}
+			},
+			"stop_count": 67,
+			"timepoint_count": 8
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "300",
+	"schema": 1
+}

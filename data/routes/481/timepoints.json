@@ -1,0 +1,1291 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "481-0-57cf4571",
+				"2-172": "481-0-eceaa6eb",
+				"3-172": "481-0-eceaa6eb",
+				"4-172": "481-0-eceaa6eb",
+				"5-172": "481-0-eceaa6eb",
+				"6-172": "481-0-57cf4571",
+				"7-172": "481-0-eceaa6eb"
+			},
+			"baseline_pattern_id": "481-0-eceaa6eb",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"481-0-57cf4571": {
+					"direction_id": 0,
+					"pattern_id": "481-0-57cf4571",
+					"representative_trip_id": "3005814_16007",
+					"service_ids": [
+						"1-172",
+						"6-172"
+					],
+					"stop_count": 41,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270952,
+									"lon": -97.744272,
+									"stop_id": "5965",
+									"stop_name": "Lavaca/8th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275587,
+									"lon": -97.742558,
+									"stop_id": "591",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.293075,
+									"lon": -97.741584,
+									"stop_id": "5353",
+									"stop_name": "Guadalupe/27th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294774,
+									"lon": -97.742432,
+									"stop_id": "5634",
+									"stop_name": "Guadalupe/29th",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.297767,
+									"lon": -97.741167,
+									"stop_id": "603",
+									"stop_name": "31st Street Rapid…",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300774,
+									"lon": -97.739282,
+									"stop_id": "604",
+									"stop_name": "Guadalupe/34th",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302541,
+									"lon": -97.738161,
+									"stop_id": "605",
+									"stop_name": "Guadalupe/38th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304422,
+									"lon": -97.736957,
+									"stop_id": "606",
+									"stop_name": "Hyde Park Station",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306259,
+									"lon": -97.735785,
+									"stop_id": "607",
+									"stop_name": "Guadalupe/41st",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308471,
+									"lon": -97.734366,
+									"stop_id": "608",
+									"stop_name": "Guadalupe/43rd",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.310684,
+									"lon": -97.732962,
+									"stop_id": "609",
+									"stop_name": "Guadalupe/45th",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314796,
+									"lon": -97.732266,
+									"stop_id": "610",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 17
+								}
+							],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.318461,
+							"lon": -97.730908,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.321317,
+									"lon": -97.729114,
+									"stop_id": "612",
+									"stop_name": "North Loop East Rapid…",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.32278,
+									"lon": -97.72821,
+									"stop_id": "613",
+									"stop_name": "Lamar/Nelray",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.324163,
+									"lon": -97.727339,
+									"stop_id": "614",
+									"stop_name": "Lamar/Nelray",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.326325,
+									"lon": -97.725966,
+									"stop_id": "5862",
+									"stop_name": "Brentwood Station",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.330183,
+									"lon": -97.723541,
+									"stop_id": "617",
+									"stop_name": "Lamar/Denson",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.333864,
+									"lon": -97.7212,
+									"stop_id": "618",
+									"stop_name": "Lamar/Brentwood",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.336889,
+									"lon": -97.719305,
+									"stop_id": "5860",
+									"stop_name": "Crestview Station",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.339477,
+									"lon": -97.717637,
+									"stop_id": "2878",
+									"stop_name": "Lamar/St Johns",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.341113,
+									"lon": -97.716607,
+									"stop_id": "1417",
+									"stop_name": "Lamar/St Johns",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.34385,
+									"lon": -97.71492,
+									"stop_id": "622",
+									"stop_name": "Lamar/Morrow",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.350323,
+									"lon": -97.713047,
+									"stop_id": "5071",
+									"stop_name": "Research/Lamar",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.355308,
+									"lon": -97.714862,
+									"stop_id": "3795",
+									"stop_name": "Research/Jamestown",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.357316,
+									"lon": -97.715514,
+									"stop_id": "3796",
+									"stop_name": "Research/Clearfield",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.359988,
+									"lon": -97.716313,
+									"stop_id": "3797",
+									"stop_name": "Research/Fairfield",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.362273,
+									"lon": -97.716941,
+									"stop_id": "3798",
+									"stop_name": "Research/Ohlen",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.368637,
+									"lon": -97.71763,
+									"stop_id": "5070",
+									"stop_name": "Northgate/Research",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.371653,
+									"lon": -97.715172,
+									"stop_id": "5682",
+									"stop_name": "Rundberg/Northgate",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.368873,
+									"lon": -97.710057,
+									"stop_id": "3129",
+									"stop_name": "Rundberg/Hunters Trace",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.36738,
+									"lon": -97.70647,
+									"stop_id": "3130",
+									"stop_name": "Parkfield/Rundberg",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.366365,
+									"lon": -97.70407,
+									"stop_id": "2581",
+									"stop_name": "Rundberg/Quail Wood",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.365154,
+									"lon": -97.701513,
+									"stop_id": "2582",
+									"stop_name": "Rundberg/Collinfield",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3637,
+									"lon": -97.69848,
+									"stop_id": "2583",
+									"stop_name": "Rundberg/Lamar",
+									"stop_sequence": 40
+								}
+							],
+							"stop_id": "611",
+							"stop_name": "Lamar/51st",
+							"stop_name_full": "5007 Lamar/51st",
+							"stop_sequence": 18
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.361758,
+							"lon": -97.697927,
+							"minor_stops": [],
+							"stop_id": "5445",
+							"stop_name": "Lamar/Rundberg",
+							"stop_name_full": "9302 Lamar/Rundberg",
+							"stop_sequence": 41
+						}
+					]
+				},
+				"481-0-eceaa6eb": {
+					"direction_id": 0,
+					"pattern_id": "481-0-eceaa6eb",
+					"representative_trip_id": "3005814_16016",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 40,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270952,
+									"lon": -97.744272,
+									"stop_id": "5965",
+									"stop_name": "Lavaca/8th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275587,
+									"lon": -97.742558,
+									"stop_id": "591",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.293075,
+									"lon": -97.741584,
+									"stop_id": "5353",
+									"stop_name": "Guadalupe/27th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294774,
+									"lon": -97.742432,
+									"stop_id": "5634",
+									"stop_name": "Guadalupe/29th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.297767,
+									"lon": -97.741167,
+									"stop_id": "603",
+									"stop_name": "31st Street Rapid…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300774,
+									"lon": -97.739282,
+									"stop_id": "604",
+									"stop_name": "Guadalupe/34th",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302541,
+									"lon": -97.738161,
+									"stop_id": "605",
+									"stop_name": "Guadalupe/38th",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304422,
+									"lon": -97.736957,
+									"stop_id": "606",
+									"stop_name": "Hyde Park Station",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306259,
+									"lon": -97.735785,
+									"stop_id": "607",
+									"stop_name": "Guadalupe/41st",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308471,
+									"lon": -97.734366,
+									"stop_id": "608",
+									"stop_name": "Guadalupe/43rd",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.310684,
+									"lon": -97.732962,
+									"stop_id": "609",
+									"stop_name": "Guadalupe/45th",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314796,
+									"lon": -97.732266,
+									"stop_id": "610",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.318461,
+							"lon": -97.730908,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.321317,
+									"lon": -97.729114,
+									"stop_id": "612",
+									"stop_name": "North Loop East Rapid…",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.32278,
+									"lon": -97.72821,
+									"stop_id": "613",
+									"stop_name": "Lamar/Nelray",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.324163,
+									"lon": -97.727339,
+									"stop_id": "614",
+									"stop_name": "Lamar/Nelray",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.326325,
+									"lon": -97.725966,
+									"stop_id": "5862",
+									"stop_name": "Brentwood Station",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.330183,
+									"lon": -97.723541,
+									"stop_id": "617",
+									"stop_name": "Lamar/Denson",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.333864,
+									"lon": -97.7212,
+									"stop_id": "618",
+									"stop_name": "Lamar/Brentwood",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.336889,
+									"lon": -97.719305,
+									"stop_id": "5860",
+									"stop_name": "Crestview Station",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.339477,
+									"lon": -97.717637,
+									"stop_id": "2878",
+									"stop_name": "Lamar/St Johns",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.341113,
+									"lon": -97.716607,
+									"stop_id": "1417",
+									"stop_name": "Lamar/St Johns",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.34385,
+									"lon": -97.71492,
+									"stop_id": "622",
+									"stop_name": "Lamar/Morrow",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.350323,
+									"lon": -97.713047,
+									"stop_id": "5071",
+									"stop_name": "Research/Lamar",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.355308,
+									"lon": -97.714862,
+									"stop_id": "3795",
+									"stop_name": "Research/Jamestown",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.357316,
+									"lon": -97.715514,
+									"stop_id": "3796",
+									"stop_name": "Research/Clearfield",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.359988,
+									"lon": -97.716313,
+									"stop_id": "3797",
+									"stop_name": "Research/Fairfield",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.362273,
+									"lon": -97.716941,
+									"stop_id": "3798",
+									"stop_name": "Research/Ohlen",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.368637,
+									"lon": -97.71763,
+									"stop_id": "5070",
+									"stop_name": "Northgate/Research",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.371653,
+									"lon": -97.715172,
+									"stop_id": "5682",
+									"stop_name": "Rundberg/Northgate",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.368873,
+									"lon": -97.710057,
+									"stop_id": "3129",
+									"stop_name": "Rundberg/Hunters Trace",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.36738,
+									"lon": -97.70647,
+									"stop_id": "3130",
+									"stop_name": "Parkfield/Rundberg",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.366365,
+									"lon": -97.70407,
+									"stop_id": "2581",
+									"stop_name": "Rundberg/Quail Wood",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.365154,
+									"lon": -97.701513,
+									"stop_id": "2582",
+									"stop_name": "Rundberg/Collinfield",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3637,
+									"lon": -97.69848,
+									"stop_id": "2583",
+									"stop_name": "Rundberg/Lamar",
+									"stop_sequence": 39
+								}
+							],
+							"stop_id": "611",
+							"stop_name": "Lamar/51st",
+							"stop_name_full": "5007 Lamar/51st",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.361758,
+							"lon": -97.697927,
+							"minor_stops": [],
+							"stop_id": "5445",
+							"stop_name": "Lamar/Rundberg",
+							"stop_name_full": "9302 Lamar/Rundberg",
+							"stop_sequence": 40
+						}
+					]
+				}
+			},
+			"stop_count": 40,
+			"timepoint_count": 3
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "481-1-a7e78b25",
+				"2-172": "481-1-6f0bc242",
+				"3-172": "481-1-6f0bc242",
+				"4-172": "481-1-6f0bc242",
+				"5-172": "481-1-6f0bc242",
+				"6-172": "481-1-a7e78b25",
+				"7-172": "481-1-6f0bc242"
+			},
+			"baseline_pattern_id": "481-1-6f0bc242",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"481-1-6f0bc242": {
+					"direction_id": 1,
+					"pattern_id": "481-1-6f0bc242",
+					"representative_trip_id": "3005823_16081",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 31,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.361758,
+							"lon": -97.697927,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.355296,
+									"lon": -97.703128,
+									"stop_id": "467",
+									"stop_name": "Fairfield Rapid Station",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.353139,
+									"lon": -97.706082,
+									"stop_id": "468",
+									"stop_name": "Lamar/Thurmond",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.350746,
+									"lon": -97.70957,
+									"stop_id": "6452",
+									"stop_name": "Lamar/Powell/SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.349326,
+									"lon": -97.711685,
+									"stop_id": "5859",
+									"stop_name": "North Lamar Transit…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.343739,
+									"lon": -97.715301,
+									"stop_id": "472",
+									"stop_name": "Lamar/Morrow",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.34127,
+									"lon": -97.71682,
+									"stop_id": "1296",
+									"stop_name": "Lamar/Sugaree",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.339956,
+									"lon": -97.71769,
+									"stop_id": "620",
+									"stop_name": "Lamar/St Johns",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337824,
+									"lon": -97.719068,
+									"stop_id": "5606",
+									"stop_name": "Crestview Station",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.336204,
+									"lon": -97.720006,
+									"stop_id": "474",
+									"stop_name": "Lamar/Justin",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334163,
+									"lon": -97.721314,
+									"stop_id": "475",
+									"stop_name": "Lamar/Brentwood",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.330984,
+									"lon": -97.723288,
+									"stop_id": "476",
+									"stop_name": "Lamar/Denson",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32686,
+									"lon": -97.725902,
+									"stop_id": "5861",
+									"stop_name": "Brentwood Station",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324188,
+									"lon": -97.727573,
+									"stop_id": "480",
+									"stop_name": "Lamar/Koenig",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.320787,
+									"lon": -97.729716,
+									"stop_id": "6360",
+									"stop_name": "North Loop East Station",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5445",
+							"stop_name": "Lamar/Rundberg",
+							"stop_name_full": "9302 Lamar/Rundberg",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.319053,
+							"lon": -97.730809,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.311103,
+									"lon": -97.733009,
+									"stop_id": "485",
+									"stop_name": "Guadalupe/45th",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308828,
+									"lon": -97.734406,
+									"stop_id": "486",
+									"stop_name": "Guadalupe/43rd Street",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306695,
+									"lon": -97.735774,
+									"stop_id": "487",
+									"stop_name": "Guadalupe/41st Street",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30358,
+									"lon": -97.737757,
+									"stop_id": "5405",
+									"stop_name": "Hyde Park Station",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301663,
+									"lon": -97.738974,
+									"stop_id": "489",
+									"stop_name": "Guadalupe/Maiden",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.300465,
+									"lon": -97.739714,
+									"stop_id": "490",
+									"stop_name": "Guadalupe/34th Street",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298051,
+									"lon": -97.741261,
+									"stop_id": "5357",
+									"stop_name": "31st Street Station",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.295584,
+									"lon": -97.742804,
+									"stop_id": "2003",
+									"stop_name": "Guadalupe/29th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.292195,
+									"lon": -97.741316,
+									"stop_id": "494",
+									"stop_name": "Guadalupe/27th Street",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.291085,
+									"lon": -97.741379,
+									"stop_id": "5863",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286231,
+									"lon": -97.741771,
+									"stop_id": "497",
+									"stop_name": "UT West Mall Station",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "483",
+							"stop_name": "Lamar/51st",
+							"stop_name_full": "5106 Lamar/51st",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.283384,
+							"lon": -97.742081,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 30
+								}
+							],
+							"stop_id": "498",
+							"stop_name": "Guadalupe/W. 21st Street",
+							"stop_name_full": "Guadalupe/W. 21st Street",
+							"stop_sequence": 28
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 31
+						}
+					]
+				},
+				"481-1-a7e78b25": {
+					"direction_id": 1,
+					"pattern_id": "481-1-a7e78b25",
+					"representative_trip_id": "3005823_16072",
+					"service_ids": [
+						"1-172",
+						"6-172"
+					],
+					"stop_count": 32,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.361758,
+							"lon": -97.697927,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.355296,
+									"lon": -97.703128,
+									"stop_id": "467",
+									"stop_name": "Fairfield Rapid Station",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.353139,
+									"lon": -97.706082,
+									"stop_id": "468",
+									"stop_name": "Lamar/Thurmond",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.350746,
+									"lon": -97.70957,
+									"stop_id": "6452",
+									"stop_name": "Lamar/Powell/SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.349326,
+									"lon": -97.711685,
+									"stop_id": "5859",
+									"stop_name": "North Lamar Transit…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.343739,
+									"lon": -97.715301,
+									"stop_id": "472",
+									"stop_name": "Lamar/Morrow",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.34127,
+									"lon": -97.71682,
+									"stop_id": "1296",
+									"stop_name": "Lamar/Sugaree",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.339956,
+									"lon": -97.71769,
+									"stop_id": "620",
+									"stop_name": "Lamar/St Johns",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337824,
+									"lon": -97.719068,
+									"stop_id": "5606",
+									"stop_name": "Crestview Station",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.336204,
+									"lon": -97.720006,
+									"stop_id": "474",
+									"stop_name": "Lamar/Justin",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334163,
+									"lon": -97.721314,
+									"stop_id": "475",
+									"stop_name": "Lamar/Brentwood",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.330984,
+									"lon": -97.723288,
+									"stop_id": "476",
+									"stop_name": "Lamar/Denson",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32686,
+									"lon": -97.725902,
+									"stop_id": "5861",
+									"stop_name": "Brentwood Station",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324188,
+									"lon": -97.727573,
+									"stop_id": "480",
+									"stop_name": "Lamar/Koenig",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.320787,
+									"lon": -97.729716,
+									"stop_id": "6360",
+									"stop_name": "North Loop East Station",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5445",
+							"stop_name": "Lamar/Rundberg",
+							"stop_name_full": "9302 Lamar/Rundberg",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.319053,
+							"lon": -97.730809,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.314586,
+									"lon": -97.732526,
+									"stop_id": "484",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.311103,
+									"lon": -97.733009,
+									"stop_id": "485",
+									"stop_name": "Guadalupe/45th",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308828,
+									"lon": -97.734406,
+									"stop_id": "486",
+									"stop_name": "Guadalupe/43rd Street",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306695,
+									"lon": -97.735774,
+									"stop_id": "487",
+									"stop_name": "Guadalupe/41st Street",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30358,
+									"lon": -97.737757,
+									"stop_id": "5405",
+									"stop_name": "Hyde Park Station",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301663,
+									"lon": -97.738974,
+									"stop_id": "489",
+									"stop_name": "Guadalupe/Maiden",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.300465,
+									"lon": -97.739714,
+									"stop_id": "490",
+									"stop_name": "Guadalupe/34th Street",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298051,
+									"lon": -97.741261,
+									"stop_id": "5357",
+									"stop_name": "31st Street Station",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.295584,
+									"lon": -97.742804,
+									"stop_id": "2003",
+									"stop_name": "Guadalupe/29th",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.292195,
+									"lon": -97.741316,
+									"stop_id": "494",
+									"stop_name": "Guadalupe/27th Street",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.291085,
+									"lon": -97.741379,
+									"stop_id": "5863",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286231,
+									"lon": -97.741771,
+									"stop_id": "497",
+									"stop_name": "UT West Mall Station",
+									"stop_sequence": 28
+								}
+							],
+							"stop_id": "483",
+							"stop_name": "Lamar/51st",
+							"stop_name_full": "5106 Lamar/51st",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.283384,
+							"lon": -97.742081,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 31
+								}
+							],
+							"stop_id": "498",
+							"stop_name": "Guadalupe/W. 21st Street",
+							"stop_name_full": "Guadalupe/W. 21st Street",
+							"stop_sequence": 29
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 32
+						}
+					]
+				}
+			},
+			"stop_count": 31,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "481",
+	"schema": 1
+}

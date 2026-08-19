@@ -1,0 +1,123 @@
+/*
+ * format.js — display formatting. The server never formats; the client never
+ * computes. Everything here turns a contract value into characters.
+ *
+ * Times arrive as Unix epoch seconds and are rendered in America/Chicago,
+ * because the question is always "what time is it on the route", not "what
+ * time is it on this phone".
+ */
+(function (global) {
+  'use strict';
+
+  var AGENCY_TZ = 'America/Chicago';
+  var MINUS = '−'; /* U+2212, aligns with the tabular digits */
+
+  var timeFmt = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric', minute: '2-digit', timeZone: AGENCY_TZ
+  });
+  var timeSecFmt = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: AGENCY_TZ
+  });
+
+  /* "10:21 AM" -> "10:21a", which is half the width and reads the same. */
+  function compactMeridiem(s) {
+    return s.replace(/ | /g, '').replace(/AM$/, 'a').replace(/PM$/, 'p');
+  }
+
+  function clock(epochSeconds) {
+    if (epochSeconds === null || epochSeconds === undefined) return '—';
+    return compactMeridiem(timeFmt.format(new Date(epochSeconds * 1000)));
+  }
+
+  function clockWithSeconds(epochSeconds) {
+    if (epochSeconds === null || epochSeconds === undefined) return '—';
+    return timeSecFmt.format(new Date(epochSeconds * 1000)) + ' CT';
+  }
+
+  /* Spoken form for screen readers: "10:21 AM". */
+  function clockSpoken(epochSeconds) {
+    if (epochSeconds === null || epochSeconds === undefined) return 'unknown';
+    return timeFmt.format(new Date(epochSeconds * 1000));
+  }
+
+  /*
+   * Signed lateness, rounded to the minute: "+3m", "−2m", "+0m".
+   * Sign is always present so the value reads as a deviation, never a count.
+   */
+  function signedMinutes(seconds) {
+    if (seconds === null || seconds === undefined) return null;
+    var mins = Math.round(Math.abs(seconds) / 60);
+    return (seconds < 0 ? MINUS : '+') + mins + 'm';
+  }
+
+  /* "3 minutes late" / "45 seconds early" / "on time" — for the a11y layer. */
+  function lateSpoken(seconds) {
+    if (seconds === null || seconds === undefined) return 'lateness unknown';
+    var abs = Math.abs(seconds);
+    if (abs < 30) return 'on time to the second';
+    var word = seconds < 0 ? 'early' : 'late';
+    if (abs < 90) return abs + ' seconds ' + word;
+    return Math.round(abs / 60) + ' minutes ' + word;
+  }
+
+  /* Exact deviation for the expanded row: "3 min 3 s late". */
+  function exactLateness(seconds) {
+    if (seconds === null || seconds === undefined) return 'unknown';
+    var abs = Math.abs(seconds);
+    var m = Math.floor(abs / 60);
+    var s = abs % 60;
+    var parts = [];
+    if (m) parts.push(m + ' min');
+    if (s || !m) parts.push(s + ' s');
+    if (abs < 5) return 'exactly on schedule';
+    return parts.join(' ') + (seconds < 0 ? ' early' : ' late');
+  }
+
+  /* Feed age, from the server's own count of seconds. Never recomputed here. */
+  function age(seconds) {
+    if (seconds === null || seconds === undefined) return 'unknown age';
+    if (seconds < 90) return seconds + ' sec old';
+    var m = Math.round(seconds / 60);
+    if (m < 90) return m + ' min old';
+    return Math.round(m / 60) + ' hr old';
+  }
+
+  /* GTFS service-day clock string "10:05:00" -> "10:05a". Hours may exceed 24. */
+  function serviceClock(hhmmss) {
+    if (!hhmmss) return '—';
+    var bits = hhmmss.split(':');
+    var h = parseInt(bits[0], 10);
+    var m = bits[1];
+    var suffix = h % 24 < 12 ? 'a' : 'p';
+    var h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return h12 + ':' + m + suffix;
+  }
+
+  /* "4 Shady EB" -> "EB". Falls back to the letter the toggle needs. */
+  function directionTag(headsign, directionId) {
+    var m = /\b(NB|SB|EB|WB)\b/.exec(headsign || '');
+    if (m) return m[1];
+    return directionId === 0 ? 'A' : 'B';
+  }
+
+  function plural(n, one, many) {
+    return n + ' ' + (n === 1 ? one : many);
+  }
+
+  global.CMB = global.CMB || {};
+  global.CMB.fmt = {
+    AGENCY_TZ: AGENCY_TZ,
+    MINUS: MINUS,
+    clock: clock,
+    clockWithSeconds: clockWithSeconds,
+    clockSpoken: clockSpoken,
+    signedMinutes: signedMinutes,
+    lateSpoken: lateSpoken,
+    exactLateness: exactLateness,
+    age: age,
+    serviceClock: serviceClock,
+    directionTag: directionTag,
+    plural: plural
+  };
+})(window);

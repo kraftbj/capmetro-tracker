@@ -13,6 +13,7 @@
     "service_day",
     "vehicles",
     "timepoints",
+    "schedule",
     "alerts"
   ],
   "properties": {
@@ -29,7 +30,8 @@
         "id",
         "short_name",
         "long_name",
-        "directions"
+        "directions",
+        "next_departure"
       ],
       "properties": {
         "id": {
@@ -67,6 +69,9 @@
               }
             }
           }
+        },
+        "next_departure": {
+          "$ref": "common.schema.json#/$defs/nextDeparture"
         }
       }
     },
@@ -90,6 +95,9 @@
       "items": {
         "$ref": "common.schema.json#/$defs/timepoint"
       }
+    },
+    "schedule": {
+      "$ref": "common.schema.json#/$defs/schedule"
     },
     "alerts": {
       "type": "array",

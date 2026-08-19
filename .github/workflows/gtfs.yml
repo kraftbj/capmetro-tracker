@@ -1,0 +1,132 @@
+name: GTFS shards
+
+# Rebuilds the per-route schedule shards from the CapMetro GTFS static feed.
+#
+# The feed is republished roughly three times a year, so on almost every run this workflow
+# downloads the feed, rebuilds, finds feed_version unchanged, and commits nothing. The build
+# is deterministic (see build/NOTES.md), so an unchanged feed produces a byte-identical tree
+# and the working directory stays clean on its own; the explicit feed_version comparison is
+# the primary gate and the clean-tree check is the backstop.
+
+on:
+  schedule:
+    # 11:20 UTC daily, comfortably after CapMetro's overnight publish window.
+    - cron: '20 11 * * *'
+  workflow_dispatch:
+    inputs:
+      force_commit:
+        description: 'Commit the rebuilt shards even if feed_version is unchanged'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gtfs-shards
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Record the committed feed_version
+        id: before
+        run: |
+          if [ -f data/manifest.json ]; then
+            version="$(node -p "require('./data/manifest.json').feed_version")"
+          else
+            version=""
+          fi
+          echo "Committed feed_version: ${version:-<none>}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build shards from the upstream feed
+        run: npm run build:fresh
+
+      - name: Read the rebuilt feed_version
+        id: after
+        run: |
+          version="$(node -p "require('./data/manifest.json').feed_version")"
+          echo "Upstream feed_version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether to commit
+        id: decide
+        env:
+          BEFORE: ${{ steps.before.outputs.version }}
+          AFTER: ${{ steps.after.outputs.version }}
+          FORCE: ${{ inputs.force_commit }}
+        run: |
+          changed=false
+          if [ "$BEFORE" != "$AFTER" ]; then
+            echo "feed_version changed: ${BEFORE:-<none>} -> $AFTER"
+            changed=true
+          elif [ "$FORCE" = "true" ]; then
+            echo "feed_version unchanged, but force_commit was requested"
+            changed=true
+          else
+            echo "feed_version unchanged at $AFTER; nothing to commit"
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      # A deterministic build over an unchanged feed must leave the tree clean. If it does
+      # not, either the feed changed without bumping feed_version or the build lost its
+      # determinism. Both need a human, so fail loudly rather than committing quietly.
+      - name: Assert an unchanged feed produced no diff
+        if: steps.decide.outputs.changed != 'true'
+        run: |
+          if [ -n "$(git status --porcelain -- data)" ]; then
+            echo "::error::feed_version is unchanged but the rebuilt shards differ from the committed ones."
+            git status --porcelain -- data | head -50
+            git diff --stat -- data | tail -5
+            exit 1
+          fi
+          echo "Tree is clean, as expected."
+
+      - name: Verify the shards
+        if: steps.decide.outputs.changed == 'true'
+        run: npm run verify
+
+      - name: Commit and push
+        if: steps.decide.outputs.changed == 'true'
+        env:
+          BEFORE: ${{ steps.before.outputs.version }}
+          AFTER: ${{ steps.after.outputs.version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data
+          if git diff --cached --quiet; then
+            echo "feed_version moved to $AFTER but the shards are identical; nothing to commit."
+            exit 0
+          fi
+          git commit -m "data: rebuild GTFS shards for feed_version $AFTER" \
+                     -m "Previous feed_version: ${BEFORE:-none}."
+          git push
+
+      - name: Summary
+        if: always()
+        env:
+          BEFORE: ${{ steps.before.outputs.version }}
+          AFTER: ${{ steps.after.outputs.version }}
+          CHANGED: ${{ steps.decide.outputs.changed }}
+        run: |
+          {
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Committed feed_version | \`${BEFORE:-none}\` |"
+            echo "| Upstream feed_version | \`${AFTER:-unknown}\` |"
+            echo "| Committed shards | ${CHANGED:-false} |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,343 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "171-0-aa3d5f2d",
+				"2-172": "171-0-aa3d5f2d",
+				"3-172": "171-0-aa3d5f2d",
+				"4-172": "171-0-aa3d5f2d",
+				"5-172": "171-0-aa3d5f2d"
+			},
+			"baseline_pattern_id": "171-0-aa3d5f2d",
+			"baseline_pattern_ids": [
+				"171-0-aa3d5f2d"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"171-0-aa3d5f2d": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"is_special": false,
+					"pattern_id": "171-0-aa3d5f2d",
+					"stop_count": 21,
+					"stop_ids": [
+						"2595",
+						"4454",
+						"4458",
+						"4461",
+						"4485",
+						"4482",
+						"4474",
+						"5943",
+						"5585",
+						"5498",
+						"5944",
+						"2605",
+						"6314",
+						"6315",
+						"6500",
+						"866",
+						"1253",
+						"3491",
+						"2005",
+						"4144",
+						"2493"
+					],
+					"trip_ids": [
+						"2998787_1572",
+						"2998787_1574",
+						"2998787_1576",
+						"2998787_1578",
+						"2998787_1580",
+						"2998788_1573",
+						"2998788_1575",
+						"2998788_1577",
+						"2998788_1579",
+						"2998788_1581"
+					],
+					"trips_by_service": {
+						"1-172": 2,
+						"2-172": 2,
+						"3-172": 2,
+						"4-172": 2,
+						"5-172": 2
+					},
+					"trips_in_pattern": 10
+				},
+				{
+					"deltas": {
+						"171-0-aa3d5f2d": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "2595",
+									"stop_name": "Silvermine/SH 71"
+								},
+								{
+									"stop_id": "4454",
+									"stop_name": "Red Willow/Smokey Hill"
+								},
+								{
+									"stop_id": "4458",
+									"stop_name": "Red Willow/Selway"
+								},
+								{
+									"stop_id": "4461",
+									"stop_name": "Red Willow/Fenton"
+								},
+								{
+									"stop_id": "4485",
+									"stop_name": "Scenic Brook/Banpass"
+								},
+								{
+									"stop_id": "4482",
+									"stop_name": "Scenic Brook/Kirkham"
+								},
+								{
+									"stop_id": "4474",
+									"stop_name": "Scenic Brook/SH 71"
+								},
+								{
+									"stop_id": "5585",
+									"stop_name": "US 290/Old…"
+								},
+								{
+									"stop_id": "2005",
+									"stop_name": "Dean Keeton/San Jacinto"
+								},
+								{
+									"stop_id": "4144",
+									"stop_name": "Red River/Dean Keeton"
+								},
+								{
+									"stop_id": "2493",
+									"stop_name": "Red River/32nd"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "171-0-0dd4b47d",
+					"stop_count": 10,
+					"stop_ids": [
+						"5943",
+						"5498",
+						"5944",
+						"2605",
+						"6314",
+						"6315",
+						"6500",
+						"866",
+						"1253",
+						"3491"
+					],
+					"trip_ids": [
+						"2998786_1567",
+						"2998786_1568",
+						"2998786_1569",
+						"2998786_1570",
+						"2998786_1571"
+					],
+					"trips_by_service": {
+						"1-172": 1,
+						"2-172": 1,
+						"3-172": 1,
+						"4-172": 1,
+						"5-172": 1
+					},
+					"trips_in_pattern": 5
+				}
+			],
+			"trip_count": 15
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "171-1-33cf23a1",
+				"2-172": "171-1-33cf23a1",
+				"3-172": "171-1-33cf23a1",
+				"4-172": "171-1-33cf23a1",
+				"5-172": "171-1-33cf23a1"
+			},
+			"baseline_pattern_id": "171-1-33cf23a1",
+			"baseline_pattern_ids": [
+				"171-1-33cf23a1"
+			],
+			"baseline_stable": true,
+			"direction_id": 1,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"171-1-33cf23a1": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"is_special": false,
+					"pattern_id": "171-1-33cf23a1",
+					"stop_count": 10,
+					"stop_ids": [
+						"1179",
+						"1180",
+						"916",
+						"919",
+						"6499",
+						"5937",
+						"5938",
+						"2612",
+						"716",
+						"5943"
+					],
+					"trip_ids": [
+						"2998789_1582",
+						"2998789_1584",
+						"2998789_1586",
+						"2998789_1588",
+						"2998789_1590",
+						"2998790_1583",
+						"2998790_1585",
+						"2998790_1587",
+						"2998790_1589",
+						"2998790_1591"
+					],
+					"trips_by_service": {
+						"1-172": 2,
+						"2-172": 2,
+						"3-172": 2,
+						"4-172": 2,
+						"5-172": 2
+					},
+					"trips_in_pattern": 10
+				},
+				{
+					"deltas": {
+						"171-1-33cf23a1": {
+							"adds": [
+								{
+									"stop_id": "1706",
+									"stop_name": "Red River/32nd"
+								},
+								{
+									"stop_id": "2077",
+									"stop_name": "Dean Keeton/Red River"
+								},
+								{
+									"stop_id": "6498",
+									"stop_name": "East Dean Keeton SB"
+								},
+								{
+									"stop_id": "2617",
+									"stop_name": "US 290/Parkwood"
+								},
+								{
+									"stop_id": "4473",
+									"stop_name": "Scenic Brook/SH 71"
+								},
+								{
+									"stop_id": "4481",
+									"stop_name": "Scenic Brook/Hanbridge"
+								},
+								{
+									"stop_id": "2618",
+									"stop_name": "Fenton/Scenic Brook"
+								},
+								{
+									"stop_id": "4462",
+									"stop_name": "Fenton/Red Willow"
+								},
+								{
+									"stop_id": "4457",
+									"stop_name": "Red Willow/Bargamen"
+								},
+								{
+									"stop_id": "4453",
+									"stop_name": "Red Willow/Smokey Hill"
+								},
+								{
+									"stop_id": "4448",
+									"stop_name": "Silvermine/SH 71"
+								}
+							],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "171-1-c3fbd049",
+					"stop_count": 21,
+					"stop_ids": [
+						"1706",
+						"2077",
+						"6498",
+						"1179",
+						"1180",
+						"916",
+						"919",
+						"6499",
+						"5937",
+						"5938",
+						"2612",
+						"716",
+						"2617",
+						"5943",
+						"4473",
+						"4481",
+						"2618",
+						"4462",
+						"4457",
+						"4453",
+						"4448"
+					],
+					"trip_ids": [
+						"2998791_1592",
+						"2998791_1593",
+						"2998791_1594",
+						"2998791_1595",
+						"2998791_1596"
+					],
+					"trips_by_service": {
+						"1-172": 1,
+						"2-172": 1,
+						"3-172": 1,
+						"4-172": 1,
+						"5-172": 1
+					},
+					"trips_in_pattern": 5
+				}
+			],
+			"trip_count": 15
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "171",
+	"schema": 1
+}

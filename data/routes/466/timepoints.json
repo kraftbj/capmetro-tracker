@@ -1,0 +1,122 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "466-0-3564d8b2"
+			},
+			"baseline_pattern_id": "466-0-3564d8b2",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"466-0-3564d8b2": {
+					"direction_id": 0,
+					"pattern_id": "466-0-3564d8b2",
+					"representative_trip_id": "3005777_15974",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.392965,
+							"lon": -97.715786,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.395748,
+									"lon": -97.705714,
+									"stop_id": "5752",
+									"stop_name": "Metric/Gold Wing",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "5580",
+							"stop_name": "Kramer/Brockton",
+							"stop_name_full": "2415 Kramer/Brockton",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.401527,
+							"lon": -97.704398,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.404089,
+									"lon": -97.714035,
+									"stop_id": "5133",
+									"stop_name": "Hobby Horse/Gracy Farms",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.402716,
+									"lon": -97.717565,
+									"stop_id": "2753",
+									"stop_name": "Burnet/Mopac",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.395964,
+									"lon": -97.72032,
+									"stop_id": "2754",
+									"stop_name": "Burnet/Kramer",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.388232,
+									"lon": -97.727049,
+									"stop_id": "5724",
+									"stop_name": "UT Research Campus…",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "5760",
+							"stop_name": "Stonehollow/Metric",
+							"stop_name_full": "11906 Stonehollow/Metric",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.391468,
+							"lon": -97.72598,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.39988,
+									"lon": -97.724385,
+									"stop_id": "5845",
+									"stop_name": "Esperanza…",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5369",
+							"stop_name": "SE Corner Road A/Road B",
+							"stop_name_full": "SE Corner Road A/Road B",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.392965,
+							"lon": -97.715786,
+							"minor_stops": [],
+							"stop_id": "5580",
+							"stop_name": "Kramer/Brockton",
+							"stop_name_full": "2415 Kramer/Brockton",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "466",
+	"schema": 1
+}

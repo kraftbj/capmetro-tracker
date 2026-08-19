@@ -1,0 +1,637 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "800-0-e94c9897",
+				"2-172": "800-0-2e3ecc25",
+				"3-172": "800-0-2e3ecc25",
+				"4-172": "800-0-2e3ecc25",
+				"5-172": "800-0-2e3ecc25",
+				"6-172": "800-0-e94c9897",
+				"7-172": "800-0-2e3ecc25",
+				"8-172": "800-0-e94c9897"
+			},
+			"baseline_pattern_id": "800-0-2e3ecc25",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"800-0-2e3ecc25": {
+					"direction_id": 0,
+					"pattern_id": "800-0-2e3ecc25",
+					"representative_trip_id": "3010740_21605",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 20,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.151526,
+							"lon": -97.759005,
+							"minor_stops": [],
+							"stop_id": "6558",
+							"stop_name": "Goodnight Ranch Bay A",
+							"stop_name_full": "Goodnight Ranch Bay A",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.161429,
+							"lon": -97.726837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.179559,
+									"lon": -97.746488,
+									"stop_id": "6510",
+									"stop_name": "Onion Creek NB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188891,
+									"lon": -97.74529,
+									"stop_id": "1220",
+									"stop_name": "Village Square NB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193732,
+									"lon": -97.744558,
+									"stop_id": "1222",
+									"stop_name": "Dove Springs NB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.204087,
+									"lon": -97.741937,
+									"stop_id": "6490",
+									"stop_name": "Franklin Park NB",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "6530",
+							"stop_name": "Easton Park NB",
+							"stop_name_full": "Easton Park NB (McKinney Falls/William Cannon)",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.230755,
+							"lon": -97.733322,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.228002,
+									"lon": -97.727295,
+									"stop_id": "1027",
+									"stop_name": "Oltorf East NB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231158,
+									"lon": -97.725309,
+									"stop_id": "1028",
+									"stop_name": "Sheringham NB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235813,
+									"lon": -97.721325,
+									"stop_id": "5779",
+									"stop_name": "Riverside NB",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.239806,
+									"lon": -97.718797,
+									"stop_id": "4284",
+									"stop_name": "Elmont NB",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.242205,
+									"lon": -97.717284,
+									"stop_id": "1364",
+									"stop_name": "Roy G Guerrero NB",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.253159,
+									"lon": -97.712655,
+									"stop_id": "6515",
+									"stop_name": "Cesar Chavez NB",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "6511",
+							"stop_name": "Oltorf at Burton NB",
+							"stop_name_full": "Oltorf at Burton NB (Oltorf/Burton)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.25986,
+							"lon": -97.709481,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.268094,
+									"lon": -97.707357,
+									"stop_id": "6489",
+									"stop_name": "ACC Eastview NB",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27388,
+									"lon": -97.697907,
+									"stop_id": "3262",
+									"stop_name": "Oak Springs NB",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286327,
+									"lon": -97.705715,
+									"stop_id": "5616",
+									"stop_name": "Airport Blvd NB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290322,
+									"lon": -97.698669,
+									"stop_id": "6091",
+									"stop_name": "Mueller Tower NB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.296343,
+									"lon": -97.700088,
+									"stop_id": "6292",
+									"stop_name": "Simond NB",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "1369",
+							"stop_name": "7th Street NB",
+							"stop_name_full": "7th Street NB (Pleasant Valley/7th)",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 20
+						}
+					]
+				},
+				"800-0-e94c9897": {
+					"direction_id": 0,
+					"pattern_id": "800-0-e94c9897",
+					"representative_trip_id": "3010740_21507",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 22,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.151526,
+							"lon": -97.759005,
+							"minor_stops": [],
+							"stop_id": "6558",
+							"stop_name": "Goodnight Ranch Bay A",
+							"stop_name_full": "Goodnight Ranch Bay A",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.161429,
+							"lon": -97.726837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.179559,
+									"lon": -97.746488,
+									"stop_id": "6510",
+									"stop_name": "Onion Creek NB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188891,
+									"lon": -97.74529,
+									"stop_id": "1220",
+									"stop_name": "Village Square NB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193732,
+									"lon": -97.744558,
+									"stop_id": "1222",
+									"stop_name": "Dove Springs NB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.204087,
+									"lon": -97.741937,
+									"stop_id": "6490",
+									"stop_name": "Franklin Park NB",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216708,
+									"lon": -97.734133,
+									"stop_id": "6505",
+									"stop_name": "Mission Hill NB",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.228005,
+									"lon": -97.735382,
+									"stop_id": "6507",
+									"stop_name": "Iroquois NB",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6530",
+							"stop_name": "Easton Park NB",
+							"stop_name_full": "Easton Park NB (McKinney Falls/William Cannon)",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.230755,
+							"lon": -97.733322,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.228002,
+									"lon": -97.727295,
+									"stop_id": "1027",
+									"stop_name": "Oltorf East NB",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231158,
+									"lon": -97.725309,
+									"stop_id": "1028",
+									"stop_name": "Sheringham NB",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235813,
+									"lon": -97.721325,
+									"stop_id": "5779",
+									"stop_name": "Riverside NB",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.239806,
+									"lon": -97.718797,
+									"stop_id": "4284",
+									"stop_name": "Elmont NB",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.242205,
+									"lon": -97.717284,
+									"stop_id": "1364",
+									"stop_name": "Roy G Guerrero NB",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.253159,
+									"lon": -97.712655,
+									"stop_id": "6515",
+									"stop_name": "Cesar Chavez NB",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "6511",
+							"stop_name": "Oltorf at Burton NB",
+							"stop_name_full": "Oltorf at Burton NB (Oltorf/Burton)",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.25986,
+							"lon": -97.709481,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.268094,
+									"lon": -97.707357,
+									"stop_id": "6489",
+									"stop_name": "ACC Eastview NB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27388,
+									"lon": -97.697907,
+									"stop_id": "3262",
+									"stop_name": "Oak Springs NB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286327,
+									"lon": -97.705715,
+									"stop_id": "5616",
+									"stop_name": "Airport Blvd NB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290322,
+									"lon": -97.698669,
+									"stop_id": "6091",
+									"stop_name": "Mueller Tower NB",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.296343,
+									"lon": -97.700088,
+									"stop_id": "6292",
+									"stop_name": "Simond NB",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "1369",
+							"stop_name": "7th Street NB",
+							"stop_name_full": "7th Street NB (Pleasant Valley/7th)",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 22
+						}
+					]
+				}
+			},
+			"stop_count": 20,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "800-1-ee8d5680",
+				"8-172": "800-1-ee8d5680",
+				"9-172": "800-1-ee8d5680"
+			},
+			"baseline_pattern_id": "800-1-ee8d5680",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"800-1-ee8d5680": {
+					"direction_id": 1,
+					"pattern_id": "800-1-ee8d5680",
+					"representative_trip_id": "3010838_22188",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 22,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.296149,
+									"lon": -97.700385,
+									"stop_id": "6293",
+									"stop_name": "Simond SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.290214,
+									"lon": -97.699019,
+									"stop_id": "6291",
+									"stop_name": "Mueller Tower Station SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.285952,
+									"lon": -97.706369,
+									"stop_id": "6496",
+									"stop_name": "Airport Blvd SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27361,
+									"lon": -97.69835,
+									"stop_id": "634",
+									"stop_name": "Oak Springs SB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267713,
+									"lon": -97.707739,
+									"stop_id": "6488",
+									"stop_name": "ACC Eastview SB",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.259748,
+							"lon": -97.709736,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.25282,
+									"lon": -97.713,
+									"stop_id": "6516",
+									"stop_name": "Cesar Chavez SB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2422,
+									"lon": -97.717511,
+									"stop_id": "1353",
+									"stop_name": "Roy G Guerrero SB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240131,
+									"lon": -97.718817,
+									"stop_id": "4283",
+									"stop_name": "Elmont SB",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23524,
+									"lon": -97.721977,
+									"stop_id": "4288",
+									"stop_name": "Riverside SB",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230883,
+									"lon": -97.725761,
+									"stop_id": "4298",
+									"stop_name": "Sheringham SB",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.227843,
+									"lon": -97.728279,
+									"stop_id": "1356",
+									"stop_name": "Oltorf East SB",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "1349",
+							"stop_name": "7th Street SB",
+							"stop_name_full": "7th Street SB (Pleasant Valley/7th)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.23107,
+							"lon": -97.734031,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.227672,
+									"lon": -97.735483,
+									"stop_id": "6508",
+									"stop_name": "Iroquois SB",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216742,
+									"lon": -97.734364,
+									"stop_id": "6506",
+									"stop_name": "Mission Hill SB",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204118,
+									"lon": -97.742184,
+									"stop_id": "6491",
+									"stop_name": "Franklin Park SB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193748,
+									"lon": -97.744772,
+									"stop_id": "1212",
+									"stop_name": "Dove Springs SB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.188889,
+									"lon": -97.745545,
+									"stop_id": "1213",
+									"stop_name": "Village Square SB",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "6512",
+							"stop_name": "Oltorf at Burton SB",
+							"stop_name_full": "Oltorf at Burton SB (Oltorf/Burton)",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.17902,
+							"lon": -97.746313,
+							"minor_stops": [],
+							"stop_id": "6509",
+							"stop_name": "Onion Creek SB",
+							"stop_name_full": "Onion Creek SB (William Cannon/Pleasant Valley)",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.16283,
+							"lon": -97.726298,
+							"minor_stops": [],
+							"stop_id": "6441",
+							"stop_name": "Easton Park SB",
+							"stop_name_full": "Easton Park SB (McKinney Falls/William Cannon)",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.151526,
+							"lon": -97.759005,
+							"minor_stops": [],
+							"stop_id": "6558",
+							"stop_name": "Goodnight Ranch Bay A",
+							"stop_name_full": "Goodnight Ranch Bay A",
+							"stop_sequence": 22
+						}
+					]
+				}
+			},
+			"stop_count": 22,
+			"timepoint_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "800",
+	"schema": 1
+}

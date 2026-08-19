@@ -1,0 +1,356 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"25-172": "670-0-84d82f87",
+				"26-172": "670-0-84d82f87",
+				"27-172": "670-0-84d82f87",
+				"28-172": "670-0-84d82f87",
+				"29-172": "670-0-84d82f87"
+			},
+			"baseline_pattern_id": "670-0-84d82f87",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"670-0-84d82f87": {
+					"direction_id": 0,
+					"pattern_id": "670-0-84d82f87",
+					"representative_trip_id": "3009565_20030",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 9,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.285069,
+							"lon": -97.732623,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.240939,
+									"lon": -97.724233,
+									"stop_id": "6082",
+									"stop_name": "Elmont/Town Lake",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.239624,
+									"lon": -97.721486,
+									"stop_id": "1363",
+									"stop_name": "Elmont/Pleasant Valley/1",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.238125,
+									"lon": -97.718348,
+									"stop_id": "4285",
+									"stop_name": "Elmont/Pleasant Valley",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235821,
+									"lon": -97.718624,
+									"stop_id": "4286",
+									"stop_name": "Wickersham/Elmont",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233631,
+									"lon": -97.720092,
+									"stop_id": "3526",
+									"stop_name": "Wickersham/Elmont",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232153,
+									"lon": -97.717055,
+									"stop_id": "4300",
+									"stop_name": "Crossing Place/Riverside",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235016,
+									"lon": -97.714646,
+									"stop_id": "4301",
+									"stop_name": "Crossing Place/Faro",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5175",
+							"stop_name": "23rd/Trinity",
+							"stop_name_full": "501 23rd/Trinity",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.237369,
+							"lon": -97.7135,
+							"minor_stops": [],
+							"stop_id": "3852",
+							"stop_name": "Melrose Place Apt",
+							"stop_name_full": "Melrose Place Apt",
+							"stop_sequence": 9
+						}
+					]
+				}
+			},
+			"stop_count": 9,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"2-172": "670-1-38539f03",
+				"24-172": "670-1-317dd72e",
+				"25-172": "670-1-317dd72e",
+				"26-172": "670-1-317dd72e",
+				"27-172": "670-1-317dd72e",
+				"28-172": "670-1-317dd72e",
+				"3-172": "670-1-38539f03",
+				"4-172": "670-1-38539f03",
+				"5-172": "670-1-38539f03"
+			},
+			"baseline_pattern_id": "670-1-317dd72e",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"670-1-317dd72e": {
+					"direction_id": 1,
+					"pattern_id": "670-1-317dd72e",
+					"representative_trip_id": "3009646_19902",
+					"service_ids": [
+						"24-172",
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172"
+					],
+					"stop_count": 12,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.237369,
+							"lon": -97.7135,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.234887,
+									"lon": -97.71506,
+									"stop_id": "4302",
+									"stop_name": "Crossing Place/Faro",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232408,
+									"lon": -97.717232,
+									"stop_id": "4299",
+									"stop_name": "Crossing Place/Riverside",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232959,
+									"lon": -97.720095,
+									"stop_id": "5079",
+									"stop_name": "Wickersham/Riverside",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235709,
+									"lon": -97.718516,
+									"stop_id": "5078",
+									"stop_name": "Wickersham/Riverside",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238352,
+									"lon": -97.718471,
+									"stop_id": "5077",
+									"stop_name": "Elmont/Wickersham",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.239842,
+									"lon": -97.721572,
+									"stop_id": "6542",
+									"stop_name": "Elmont/Town Lake",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "3852",
+							"stop_name": "Melrose Place Apt",
+							"stop_name_full": "Melrose Place Apt",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.241145,
+							"lon": -97.724319,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.279307,
+									"lon": -97.73295,
+									"stop_id": "2761",
+									"stop_name": "Martin Luther King/Red…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279666,
+									"lon": -97.734311,
+									"stop_id": "4586",
+									"stop_name": "Martin Luther…",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.281645,
+									"lon": -97.733191,
+									"stop_id": "4135",
+									"stop_name": "San Jacinto/20th",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "6534",
+							"stop_name": "Elmont/Town Lake",
+							"stop_name_full": "2220 Elmont/Town Lake",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.285069,
+							"lon": -97.732623,
+							"minor_stops": [],
+							"stop_id": "5175",
+							"stop_name": "23rd/Trinity",
+							"stop_name_full": "501 23rd/Trinity",
+							"stop_sequence": 12
+						}
+					]
+				},
+				"670-1-38539f03": {
+					"direction_id": 1,
+					"pattern_id": "670-1-38539f03",
+					"representative_trip_id": "3009726_19853",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.237369,
+							"lon": -97.7135,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.234887,
+									"lon": -97.71506,
+									"stop_id": "4302",
+									"stop_name": "Crossing Place/Faro",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232408,
+									"lon": -97.717232,
+									"stop_id": "4299",
+									"stop_name": "Crossing Place/Riverside",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232959,
+									"lon": -97.720095,
+									"stop_id": "5079",
+									"stop_name": "Wickersham/Riverside",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235709,
+									"lon": -97.718516,
+									"stop_id": "5078",
+									"stop_name": "Wickersham/Riverside",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238352,
+									"lon": -97.718471,
+									"stop_id": "5077",
+									"stop_name": "Elmont/Wickersham",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279307,
+									"lon": -97.73295,
+									"stop_id": "2761",
+									"stop_name": "Martin Luther King/Red…",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279666,
+									"lon": -97.734311,
+									"stop_id": "4586",
+									"stop_name": "Martin Luther…",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.281645,
+									"lon": -97.733191,
+									"stop_id": "4135",
+									"stop_name": "San Jacinto/20th",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "3852",
+							"stop_name": "Melrose Place Apt",
+							"stop_name_full": "Melrose Place Apt",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.285069,
+							"lon": -97.732623,
+							"minor_stops": [],
+							"stop_id": "5175",
+							"stop_name": "23rd/Trinity",
+							"stop_name_full": "501 23rd/Trinity",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 12,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "670",
+	"schema": 1
+}

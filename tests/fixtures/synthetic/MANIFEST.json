@@ -1,0 +1,23 @@
+{
+  "purpose": "Cases the real 2026-08-19 capture does not contain. Every file also carries the same one-line note inline, except the two whose shape cannot hold an extra key (torn-route-4.json is deliberately unparseable).",
+  "read_only": false,
+  "owned_by": "tests lane",
+  "fixtures": {
+    "after-midnight-tripupdate.json": "Silent failure 5: GTFS clock 25:10:00 must resolve to 01:10 the next calendar day, not be rejected as an invalid hour.",
+    "dst-spring-forward-20260308.json": "Silent failure 3: 23-hour service day; the anchor is noon-minus-12h (23:00 on 03-07), not local midnight.",
+    "dst-fall-back-20261101.json": "Silent failure 3: 25-hour service day; 01:00-01:59 local repeats and the anchor is 01:00 CDT, not local midnight.",
+    "stale-shard-route-4.json": "Silent failure 1: shard built from an older GTFS feed version, so no live trip id matches; the unmatched rate must alarm.",
+    "vehicle-without-trip-update.json": "Decision-table row 3: vehicle with a position but no trip update -> unknown/no_trip_update.",
+    "canceled-trip-no-stop-updates.json": "Decision-table row 2: CANCELED trip with no stopTimeUpdate at all -> unknown/trip_canceled.",
+    "vehicle-null-current-stop-sequence.json": "Decision-table row 6b: in-service vehicle with no currentStopSequence -> unknown/no_progress.",
+    "frozen-feed-response.json": "Silent failure 2: upstream returns HTTP 200 with a header timestamp 4h07m old; freshness must come from the timestamp, not the status code.",
+    "route-4-dead-cron.json": "Silent failure 2 / criterion 8: last-good route file served 47 minutes after the cron died; suppress_adherence true, every vehicle unknown/stale_data.",
+    "torn-route-4.json": "Section 11: a route file truncated mid-write. Deliberately not valid JSON, so it carries no inline comment. Proves the client survives a torn read and that atomic rename is what prevents it."
+  },
+  "conventions": {
+    "_comment": "one-line note naming the failure this fixture encodes",
+    "_expected": "the values an implementation must produce from this fixture; assertions read from here so the fixture and the test cannot drift",
+    "_now": "the observer clock the test should use, so no test depends on the wall clock",
+    "underscore_prefix": "test metadata, not part of any wire format; strip keys beginning with _ before schema validation"
+  }
+}

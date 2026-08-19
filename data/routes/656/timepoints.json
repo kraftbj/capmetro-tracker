@@ -1,0 +1,265 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"25-172": "656-0-46c8f930",
+				"26-172": "656-0-46c8f930",
+				"27-172": "656-0-46c8f930",
+				"28-172": "656-0-46c8f930",
+				"29-172": "656-0-46c8f930"
+			},
+			"baseline_pattern_id": "656-0-46c8f930",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"656-0-46c8f930": {
+					"direction_id": 0,
+					"pattern_id": "656-0-46c8f930",
+					"representative_trip_id": "3008068_18822",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 11,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.289237,
+							"lon": -97.735367,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.294287,
+									"lon": -97.735581,
+									"stop_id": "4117",
+									"stop_name": "31st/Walling",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29722,
+									"lon": -97.735581,
+									"stop_id": "4115",
+									"stop_name": "Speedway/33rd",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.299217,
+									"lon": -97.734341,
+									"stop_id": "1049",
+									"stop_name": "Speedway/35th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301591,
+									"lon": -97.732825,
+									"stop_id": "1051",
+									"stop_name": "Speedway/39th",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303334,
+									"lon": -97.731711,
+									"stop_id": "3515",
+									"stop_name": "Speedway/40th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306616,
+									"lon": -97.729616,
+									"stop_id": "1053",
+									"stop_name": "Speedway/43rd",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308091,
+									"lon": -97.728681,
+									"stop_id": "4113",
+									"stop_name": "Speedway/44th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.310425,
+									"lon": -97.731878,
+									"stop_id": "1055",
+									"stop_name": "45th Street/Avenue A",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314726,
+									"lon": -97.730353,
+									"stop_id": "4516",
+									"stop_name": "Guadalupe/46th",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "5038",
+							"stop_name": "Dean Keeton/San Jacinto",
+							"stop_name_full": "301 Dean Keeton/San Jacinto",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.316531,
+							"lon": -97.72913,
+							"minor_stops": [],
+							"stop_id": "4518",
+							"stop_name": "Guadalupe/46th",
+							"stop_name_full": "4903 Guadalupe/46th",
+							"stop_sequence": 11
+						}
+					]
+				}
+			},
+			"stop_count": 11,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"25-172": "656-1-65d21323",
+				"26-172": "656-1-65d21323",
+				"27-172": "656-1-65d21323",
+				"28-172": "656-1-65d21323",
+				"29-172": "656-1-65d21323"
+			},
+			"baseline_pattern_id": "656-1-65d21323",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"656-1-65d21323": {
+					"direction_id": 1,
+					"pattern_id": "656-1-65d21323",
+					"representative_trip_id": "3008263_18626",
+					"service_ids": [
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"29-172"
+					],
+					"stop_count": 12,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.316531,
+							"lon": -97.72913,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.314586,
+									"lon": -97.732526,
+									"stop_id": "484",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.309535,
+									"lon": -97.730392,
+									"stop_id": "979",
+									"stop_name": "45th/Avenue C",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30835,
+									"lon": -97.728674,
+									"stop_id": "980",
+									"stop_name": "Speedway/45th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306697,
+									"lon": -97.729732,
+									"stop_id": "981",
+									"stop_name": "Speedway/43rd",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303498,
+									"lon": -97.731786,
+									"stop_id": "982",
+									"stop_name": "Speedway/40th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30138,
+									"lon": -97.733132,
+									"stop_id": "983",
+									"stop_name": "Speedway/38th Half",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.299792,
+									"lon": -97.734149,
+									"stop_id": "4114",
+									"stop_name": "Speedway/38th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29713,
+									"lon": -97.735816,
+									"stop_id": "985",
+									"stop_name": "Speedway/33rd",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.294366,
+									"lon": -97.735868,
+									"stop_id": "4116",
+									"stop_name": "31st/Grooms",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29121,
+									"lon": -97.736689,
+									"stop_id": "5543",
+									"stop_name": "Speedway/27th",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "4518",
+							"stop_name": "Guadalupe/46th",
+							"stop_name_full": "4903 Guadalupe/46th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.289237,
+							"lon": -97.735367,
+							"minor_stops": [],
+							"stop_id": "5038",
+							"stop_name": "Dean Keeton/San Jacinto",
+							"stop_name_full": "301 Dean Keeton/San Jacinto",
+							"stop_sequence": 12
+						}
+					]
+				}
+			},
+			"stop_count": 12,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "656",
+	"schema": 1
+}

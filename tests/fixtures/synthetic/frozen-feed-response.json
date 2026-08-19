@@ -1,0 +1,53 @@
+{
+  "_comment": "Silent failure 2: upstream still answers HTTP 200 with well-formed JSON while its header timestamp is 4h07m old, so freshness must be judged from the feed timestamp and generated_at, never from the HTTP status.",
+  "_now": 1787152239,
+  "_expected": {
+    "oldest_feed_age_s": 14820,
+    "staleness_level": "dead",
+    "suppress_adherence": true,
+    "adherence_state": "unknown",
+    "adherence_reason": "stale_data",
+    "health_ok": false
+  },
+  "http_status": 200,
+  "http_headers": {
+    "Content-Type": "application/json",
+    "Content-Encoding": "gzip"
+  },
+  "body": {
+    "header": {
+      "gtfsRealtimeVersion": "2.0",
+      "incrementality": "FULL_DATASET",
+      "timestamp": "1787137419"
+    },
+    "entity": [
+      {
+        "id": "9006",
+        "vehicle": {
+          "trip": {
+            "tripId": "3014769_15202",
+            "startTime": "10:05:00",
+            "startDate": "20260819",
+            "scheduleRelationship": "SCHEDULED",
+            "routeId": "4",
+            "directionId": 1
+          },
+          "position": {
+            "latitude": 30.270388,
+            "longitude": -97.75505,
+            "bearing": 214.0,
+            "speed": 0.0
+          },
+          "currentStopSequence": 5,
+          "currentStatus": "IN_TRANSIT_TO",
+          "timestamp": "1787137419",
+          "stopId": "2107",
+          "vehicle": {
+            "id": "9006",
+            "label": "9006"
+          }
+        }
+      }
+    ]
+  }
+}

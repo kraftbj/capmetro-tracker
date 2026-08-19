@@ -1,0 +1,725 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "315-0-48e29cef",
+				"2-172": "315-0-5be19a3e",
+				"3-172": "315-0-5be19a3e",
+				"4-172": "315-0-5be19a3e",
+				"5-172": "315-0-5be19a3e",
+				"6-172": "315-0-48e29cef",
+				"7-172": "315-0-5be19a3e",
+				"8-172": "315-0-48e29cef"
+			},
+			"baseline_pattern_id": "315-0-5be19a3e",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"315-0-48e29cef": {
+					"direction_id": 0,
+					"pattern_id": "315-0-48e29cef",
+					"representative_trip_id": "3002215_8757",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 17,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.234925,
+									"lon": -97.85363,
+									"stop_id": "5585",
+									"stop_name": "US 290/Old…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235954,
+									"lon": -97.84556,
+									"stop_id": "6396",
+									"stop_name": "290 Hwy/Westcreek",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236059,
+									"lon": -97.838517,
+									"stop_id": "6317",
+									"stop_name": "290 Hwy/Monterey Oaks",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236071,
+									"lon": -97.835177,
+									"stop_id": "6446",
+									"stop_name": "290 Hwy/290",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235685,
+									"lon": -97.828488,
+									"stop_id": "6318",
+									"stop_name": "290 Hwy/Staggerbrush",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.233365,
+							"lon": -97.82142,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.230471,
+									"lon": -97.800924,
+									"stop_id": "2335",
+									"stop_name": "West Gate/Lamar",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229457,
+									"lon": -97.798807,
+									"stop_id": "4218",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229704,
+									"lon": -97.796366,
+									"stop_id": "1754",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231017,
+									"lon": -97.792022,
+									"stop_id": "2216",
+									"stop_name": "Pack Saddle Pass/Ben…",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "1750",
+							"stop_name": "US 290/Mopac",
+							"stop_name_full": "US 290/Mopac (Walmart)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.231527,
+							"lon": -97.791606,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.229072,
+									"lon": -97.787515,
+									"stop_id": "2218",
+									"stop_name": "Ben White/Merle",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227405,
+									"lon": -97.781573,
+									"stop_id": "2220",
+									"stop_name": "Ben White/Gillis",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227363,
+									"lon": -97.779907,
+									"stop_id": "2221",
+									"stop_name": "Ben White/Banister",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225294,
+									"lon": -97.773151,
+									"stop_id": "5655",
+									"stop_name": "Radam/James Casey",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "6377",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - E",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.223212,
+							"lon": -97.766137,
+							"minor_stops": [],
+							"stop_id": "5551",
+							"stop_name": "South Congress Bay I",
+							"stop_name_full": "South Congress Bay I",
+							"stop_sequence": 17
+						}
+					]
+				},
+				"315-0-5be19a3e": {
+					"direction_id": 0,
+					"pattern_id": "315-0-5be19a3e",
+					"representative_trip_id": "3002215_8793",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 16,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.234925,
+									"lon": -97.85363,
+									"stop_id": "5585",
+									"stop_name": "US 290/Old…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235954,
+									"lon": -97.84556,
+									"stop_id": "6396",
+									"stop_name": "290 Hwy/Westcreek",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236059,
+									"lon": -97.838517,
+									"stop_id": "6317",
+									"stop_name": "290 Hwy/Monterey Oaks",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236071,
+									"lon": -97.835177,
+									"stop_id": "6446",
+									"stop_name": "290 Hwy/290",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235685,
+									"lon": -97.828488,
+									"stop_id": "6318",
+									"stop_name": "290 Hwy/Staggerbrush",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.233365,
+							"lon": -97.82142,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.230471,
+									"lon": -97.800924,
+									"stop_id": "2335",
+									"stop_name": "West Gate/Lamar",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229457,
+									"lon": -97.798807,
+									"stop_id": "4218",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229704,
+									"lon": -97.796366,
+									"stop_id": "1754",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "1750",
+							"stop_name": "US 290/Mopac",
+							"stop_name_full": "US 290/Mopac (Walmart)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.231527,
+							"lon": -97.791606,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.229072,
+									"lon": -97.787515,
+									"stop_id": "2218",
+									"stop_name": "Ben White/Merle",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227405,
+									"lon": -97.781573,
+									"stop_id": "2220",
+									"stop_name": "Ben White/Gillis",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227363,
+									"lon": -97.779907,
+									"stop_id": "2221",
+									"stop_name": "Ben White/Banister",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225294,
+									"lon": -97.773151,
+									"stop_id": "5655",
+									"stop_name": "Radam/James Casey",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "6377",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - E",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.223212,
+							"lon": -97.766137,
+							"minor_stops": [],
+							"stop_id": "5551",
+							"stop_name": "South Congress Bay I",
+							"stop_name_full": "South Congress Bay I",
+							"stop_sequence": 16
+						}
+					]
+				}
+			},
+			"stop_count": 16,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "315-1-e81e43e9",
+				"2-172": "315-1-b89407f3",
+				"3-172": "315-1-b89407f3",
+				"4-172": "315-1-b89407f3",
+				"5-172": "315-1-b89407f3",
+				"6-172": "315-1-e81e43e9",
+				"7-172": "315-1-b89407f3",
+				"8-172": "315-1-e81e43e9"
+			},
+			"baseline_pattern_id": "315-1-b89407f3",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"315-1-b89407f3": {
+					"direction_id": 1,
+					"pattern_id": "315-1-b89407f3",
+					"representative_trip_id": "3002251_9085",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 19,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.223212,
+							"lon": -97.766137,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.22712,
+									"lon": -97.769607,
+									"stop_id": "2175",
+									"stop_name": "South 1st/Ben White",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228181,
+									"lon": -97.778886,
+									"stop_id": "2176",
+									"stop_name": "Ben White/Banister",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228725,
+									"lon": -97.783791,
+									"stop_id": "2177",
+									"stop_name": "Ben White/Clawson",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "5551",
+							"stop_name": "South Congress Bay I",
+							"stop_name_full": "South Congress Bay I",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.231527,
+							"lon": -97.791606,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.230638,
+									"lon": -97.788524,
+									"stop_id": "4235",
+									"stop_name": "Ben White/Menchaca",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230411,
+									"lon": -97.793637,
+									"stop_id": "1746",
+									"stop_name": "Western Trails/Pack…",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229929,
+									"lon": -97.796179,
+									"stop_id": "1747",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229619,
+									"lon": -97.798883,
+									"stop_id": "1748",
+									"stop_name": "WESTERN TRAILS/Sagebrush",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229104,
+									"lon": -97.8005,
+									"stop_id": "4219",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229916,
+									"lon": -97.800895,
+									"stop_id": "4220",
+									"stop_name": "West Gate/Western Trails",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232283,
+									"lon": -97.804555,
+									"stop_id": "5449",
+									"stop_name": "Lamar/West Gate",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.233588,
+									"lon": -97.809163,
+									"stop_id": "4470",
+									"stop_name": "Lamar/Dudmar",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "6377",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - E",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.233713,
+							"lon": -97.819058,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.237094,
+									"lon": -97.830782,
+									"stop_id": "6395",
+									"stop_name": "290 Hwy/Boston",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.237159,
+									"lon": -97.840989,
+									"stop_id": "6320",
+									"stop_name": "290 Hwy/Industrial Oaks",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235923,
+									"lon": -97.850974,
+									"stop_id": "6316",
+									"stop_name": "290 Hwy/Harper Park",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235662,
+									"lon": -97.855267,
+									"stop_id": "2617",
+									"stop_name": "US 290/Parkwood",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "4471",
+							"stop_name": "US 290/Brodie",
+							"stop_name_full": "4970 US 290/Brodie",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 19
+						}
+					]
+				},
+				"315-1-e81e43e9": {
+					"direction_id": 1,
+					"pattern_id": "315-1-e81e43e9",
+					"representative_trip_id": "3002251_9050",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 20,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.223212,
+							"lon": -97.766137,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.22712,
+									"lon": -97.769607,
+									"stop_id": "2175",
+									"stop_name": "South 1st/Ben White",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228181,
+									"lon": -97.778886,
+									"stop_id": "2176",
+									"stop_name": "Ben White/Banister",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228725,
+									"lon": -97.783791,
+									"stop_id": "2177",
+									"stop_name": "Ben White/Clawson",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "5551",
+							"stop_name": "South Congress Bay I",
+							"stop_name_full": "South Congress Bay I",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.231527,
+							"lon": -97.791606,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.230638,
+									"lon": -97.788524,
+									"stop_id": "4235",
+									"stop_name": "Ben White/Menchaca",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.231055,
+									"lon": -97.792199,
+									"stop_id": "4231",
+									"stop_name": "Pack Saddle Pass/Ben…",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.230411,
+									"lon": -97.793637,
+									"stop_id": "1746",
+									"stop_name": "Western Trails/Pack…",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229929,
+									"lon": -97.796179,
+									"stop_id": "1747",
+									"stop_name": "Western Trails/Roundup",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229619,
+									"lon": -97.798883,
+									"stop_id": "1748",
+									"stop_name": "WESTERN TRAILS/Sagebrush",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229104,
+									"lon": -97.8005,
+									"stop_id": "4219",
+									"stop_name": "Western Trails/Sagebrush",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229916,
+									"lon": -97.800895,
+									"stop_id": "4220",
+									"stop_name": "West Gate/Western Trails",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232283,
+									"lon": -97.804555,
+									"stop_id": "5449",
+									"stop_name": "Lamar/West Gate",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.233588,
+									"lon": -97.809163,
+									"stop_id": "4470",
+									"stop_name": "Lamar/Dudmar",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6377",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - E",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.233713,
+							"lon": -97.819058,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.237094,
+									"lon": -97.830782,
+									"stop_id": "6395",
+									"stop_name": "290 Hwy/Boston",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.237159,
+									"lon": -97.840989,
+									"stop_id": "6320",
+									"stop_name": "290 Hwy/Industrial Oaks",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235923,
+									"lon": -97.850974,
+									"stop_id": "6316",
+									"stop_name": "290 Hwy/Harper Park",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235662,
+									"lon": -97.855267,
+									"stop_id": "2617",
+									"stop_name": "US 290/Parkwood",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "4471",
+							"stop_name": "US 290/Brodie",
+							"stop_name_full": "4970 US 290/Brodie",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 20
+						}
+					]
+				}
+			},
+			"stop_count": 19,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "315",
+	"schema": 1
+}

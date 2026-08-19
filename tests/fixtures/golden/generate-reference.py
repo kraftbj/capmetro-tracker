@@ -46,7 +46,7 @@ for a in al:
     if un and un<NOW: continue
     ies=a.get('informedEntities') or []
     if not any(ie.get('routeId')==ROUTE for ie in ies): continue
-    sids=[ie['stopId'] for ie in ies if ie.get('stopId')]
+    sids=list(dict.fromkeys(ie['stopId'] for ie in ies if ie.get('stopId')))   # set semantics: no duplicates
     eff=a.get('effect') if a.get('effect') in ("NO_SERVICE","DETOUR","REDUCED_SERVICE","MODIFIED_SERVICE") else "OTHER"
     if eff=='NO_SERVICE': closed.update(sids)
     alerts.append({"id":a['id'],"effect":eff,"cause":a.get('cause') or "UNKNOWN_CAUSE",
@@ -65,6 +65,7 @@ def shorten(n):
     n=re.sub(r'\s*\([^)]*\)\s*$','',n).strip()
     n=re.sub(r'^\d+\s+','',n)
     for a,b in [('Northbound','NB'),('Southbound','SB'),('Eastbound','EB'),('Westbound','WB')]: n=n.replace(a,b)
+    n=re.sub(r'(?<=[0-9])(St|Nd|Rd|Th)\b', lambda m: m.group(1).lower(), n)   # 8Th/Lavaca -> 8th/Lavaca
     if len(n)>24:
         cut=n[:24].rsplit(' ',1)[0]; n=(cut if cut else n[:23])+'…'
     return n
@@ -153,47 +154,104 @@ for e in vp['entity']:
           "adherence":{"state":"deadhead","seconds":None,"glyph":"ring","against":None,"reason":None}})
         break
 
-# timepoints for direction 0
-DIR='0'
-btl=[t for t in rtrips if rtrips[t]['direction_id']==DIR and tuple(s for _,s,_ in seq.get(t,()))==baseline.get(DIR)]
-bt=btl[0]; tps=tpflag[bt]
-rows=seq[bt]; tp_idx=[i for i,(_,s,_) in enumerate(rows) if s in tps]
-timepoints=[]
-for j,i in enumerate(tp_idx):
-    sq,sid,_=rows[i]
-    nxt_i = tp_idx[j+1] if j+1<len(tp_idx) else len(rows)
-    minor=[]
-    for k in range(i+1, nxt_i):
-        msq,msid,_=rows[k]
-        minor.append({"stop_id":msid,"stop_name":shorten(stops[msid]['stop_name']),
-          "stop_sequence":msq,"lat":float(stops[msid]['stop_lat']),"lon":float(stops[msid]['stop_lon']),
-          "service_status":{"served":msid not in closed and msid not in skipped,
-            "source":("realtime_skipped" if msid in skipped else "alert_no_service" if msid in closed else None),
-            "detail":(f"Skipped on {skipped[msid]} trips today" if msid in skipped else "Stop closed by service alert" if msid in closed else None)}})
-    timepoints.append({"stop_id":sid,"stop_name":shorten(stops[sid]['stop_name']),
-      "stop_name_full":stops[sid]['stop_name'],"stop_sequence":sq,"direction_id":int(DIR),
-      "lat":float(stops[sid]['stop_lat']),"lon":float(stops[sid]['stop_lon']),
-      "service_status":{"served":sid not in closed and sid not in skipped,
-        "source":("realtime_skipped" if sid in skipped else "alert_no_service" if sid in closed else None),
-        "detail":(f"Skipped on {skipped[sid]} trips today" if sid in skipped else "Stop closed by service alert" if sid in closed else None)},
-      "minor_stops":minor})
+# timepoints for BOTH directions (contract 1: one flat array, each carrying its own direction_id)
+def status_for(sid):
+    return {"served": sid not in closed and sid not in skipped,
+            "source": ("realtime_skipped" if sid in skipped else "alert_no_service" if sid in closed else None),
+            "detail": (f"Skipped on {skipped[sid]} trips today" if sid in skipped
+                       else "Stop closed by service alert" if sid in closed else None)}
+
+def baseline_trip(DIR):
+    btl=sorted(t for t in rtrips
+               if rtrips[t]['direction_id']==DIR and tuple(x for _,x,_ in seq.get(t,()))==baseline.get(DIR))
+    return btl[0] if btl else None
+
+timepoints=[]; tp_cols={}
+for DIR in ('0','1'):
+    bt=baseline_trip(DIR)
+    tp_cols[DIR]=[]
+    if bt is None: continue
+    tps=tpflag[bt]; rows=seq[bt]
+    tp_idx=[i for i,(_,x,_) in enumerate(rows) if x in tps]
+    tp_cols[DIR]=[rows[i][1] for i in tp_idx]
+    for j,i in enumerate(tp_idx):
+        sq,sid,_=rows[i]
+        nxt_i = tp_idx[j+1] if j+1<len(tp_idx) else len(rows)
+        minor=[]
+        for k in range(i+1, nxt_i):
+            msq,msid,_=rows[k]
+            minor.append({"stop_id":msid,"stop_name":shorten(stops[msid]['stop_name']),
+              "stop_sequence":msq,"lat":float(stops[msid]['stop_lat']),"lon":float(stops[msid]['stop_lon']),
+              "service_status":status_for(msid)})
+        timepoints.append({"stop_id":sid,"stop_name":shorten(stops[sid]['stop_name']),
+          "stop_name_full":stops[sid]['stop_name'],"stop_sequence":sq,"direction_id":int(DIR),
+          "lat":float(stops[sid]['stop_lat']),"lon":float(stops[sid]['stop_lon']),
+          "service_status":status_for(sid),"minor_stops":minor})
 
 cd=collections.defaultdict(set)
 for r in csv.DictReader(open(G+'calendar_dates.txt', encoding='utf-8-sig')): cd[r['service_id']].add(r['date'])
 today='20260819'
 active=sorted({rtrips[t]['service_id'] for t in rtrips if today in cd.get(rtrips[t]['service_id'],())})
 oldest=NOW-min(NOW,int(tu['entity'][0]['tripUpdate']['timestamp']))
+
+# ---- next_departure (contract 1) ----------------------------------------------------------
+# Earliest scheduled trip START on this route, current service date, strictly after
+# generated_at, across BOTH directions. Trips the live feed reports CANCELED are excluded.
+canceled_trips={tid for tid,t in tuidx.items() if (t.get('trip') or {}).get('scheduleRelationship')=='CANCELED'}
+def trip_start(tid): return clock2epoch(seq[tid][0][2])
+def trip_end(tid):   return clock2epoch(seq[tid][-1][2])
+today_trips=[t for t in rtrips if seq.get(t) and rtrips[t]['service_id'] in active]
+cands=sorted((trip_start(t), int(rtrips[t]['direction_id']), t)
+             for t in today_trips if trip_start(t)>NOW and t not in canceled_trips)
+next_departure=None
+if cands:
+    sa,dirn,t=cands[0]; sid=seq[t][0][1]
+    next_departure={"scheduled_at":sa,"stop_id":sid,
+      "stop_name":shorten(stops[sid]['stop_name']),"direction_id":dirn,
+      "headsign":rtrips[t].get('trip_headsign')}
+
+# ---- windowed timepoint schedule (contract 3.2) --------------------------------------------
+# Scheduled arrival at every TIMEPOINT, for every trip whose span overlaps the schedule window.
+WINDOW_BEFORE_S, WINDOW_AFTER_S = 900, 2700          # now-15min .. now+45min
+w_from, w_until = NOW-WINDOW_BEFORE_S, NOW+WINDOW_AFTER_S
+sched_dirs=[]
+for DIR in ('0','1'):
+    cols=tp_cols.get(DIR,[])
+    trips_out=[]
+    if cols:
+        for t in today_trips:
+            if rtrips[t]['direction_id']!=DIR: continue
+            if trip_start(t)>w_until or trip_end(t)<w_from: continue
+            at={sid:clock2epoch(a) for _,sid,a in seq[t]}
+            base=trip_start(t)
+            offs=[(at[c]-base) if c in at else None for c in cols]
+            if all(o is None for o in offs): continue
+            trips_out.append([t, base, offs])
+        trips_out.sort(key=lambda r:(r[1], r[0]))
+    sched_dirs.append({"direction_id":int(DIR),"timepoint_stop_ids":cols,"trips":trips_out})
+schedule={"window":{"from":w_from,"until":w_until,
+                    "before_s":WINDOW_BEFORE_S,"after_s":WINDOW_AFTER_S},
+          "directions":sched_dirs}
+
 doc={"schema":1,"generated_at":NOW,
  "route":{"id":ROUTE,"short_name":routes[ROUTE]['route_short_name'],"long_name":routes[ROUTE]['route_long_name'],
-   "directions":[{"id":0,"headsign":"4 Mopac WB"},{"id":1,"headsign":"4 Shady EB"}]},
+   "directions":[{"id":0,"headsign":"4 Mopac WB"},{"id":1,"headsign":"4 Shady EB"}],
+   "next_departure":next_departure},
  "feeds":{"positions_at":NOW,"trip_updates_at":int(tu['entity'][0]['tripUpdate']['timestamp']),
    "alerts_at":NOW-100,"gtfs_feed_version":"260818_1456","gtfs_built_at":NOW-52000},
  "staleness":{"level":"fresh","oldest_feed_age_s":max(oldest,0),"schedule_age_days":1,
    "suppress_adherence":False,"reason":None},
  "service_day":{"date":today,"service_ids":active,
    "is_exception_day":any(len(cd[s])==1 for s in active)},
- "vehicles":vehicles,"timepoints":timepoints,"alerts":alerts}
-json.dump(doc, open('/tmp/sample-route-4.json','w'), indent=1)
-print(f"generated /tmp/sample-route-4.json  vehicles={len(vehicles)} timepoints={len(timepoints)} alerts={len(alerts)}")
+ "vehicles":vehicles,"timepoints":timepoints,"schedule":schedule,"alerts":alerts}
+OUT=os.environ.get('OUT','tests/fixtures/golden/route-4-20260819.json')
+json.dump(doc, open(OUT,'w'), indent=1)
+print(f"generated {OUT}  vehicles={len(vehicles)} timepoints={len(timepoints)} alerts={len(alerts)}")
+print("timepoints per direction:", dict(collections.Counter(t['direction_id'] for t in timepoints)))
+print("schedule window:", w_from, "..", w_until,
+      "trips:", {d['direction_id']: len(d['trips']) for d in schedule['directions']},
+      "columns:", {d['direction_id']: len(d['timepoint_stop_ids']) for d in schedule['directions']})
+print("next_departure:", next_departure)
+print("duplicate stop_ids in alerts:", any(len(a['stop_ids'])!=len(set(a['stop_ids'])) for a in alerts))
 print("adherence states:", dict(collections.Counter(v['adherence']['state'] for v in vehicles)))
 print("reasons:", dict(collections.Counter(v['adherence'].get('reason') for v in vehicles)))
