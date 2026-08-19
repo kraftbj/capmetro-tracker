@@ -6,6 +6,48 @@
 
 
 
+### Rebuild the all-buses board around buses, not around triage
+
+**What:** Drop the "Needs a look" band. List every route with all of its buses, and make
+any bus tappable for a detail view.
+
+**Why:** Owner's words: *"I don't care about 'needs a look' — I don't actually work at
+capmetro."* The band ranks by what a dispatcher would triage, which is the wrong reader.
+The board is for someone finding a specific bus, not for someone managing a fleet.
+
+**Detail view, and exactly what the payload can back:**
+
+| Field | Source | Notes |
+|---|---|---|
+| Route + headsign | `trip.route_id`, `trip.headsign` | |
+| Next stop | `adherence.against.stop_name` | |
+| Time to next stop | `adherence.against.predicted_at` minus now | already the number the badge is derived from |
+| Scheduled at that stop | `adherence.against.scheduled_at` | the pair is what makes lateness legible |
+| Current location | `position.lat/lon`, `position.speed_mps` | |
+| Status | `progress.current_status` | `IN_TRANSIT_TO` / `STOPPED_AT` / `INCOMING_AT` |
+| What it does next | `block.next_trip` | the direction flip, when confidence allows |
+| Special run | `pattern.is_special`, `adds`, `skips` | |
+
+**Previous stop is NOT directly available and needs a decision.** `progress` gives
+`current_stop_sequence`; the stop one before it has to be looked up in a route-scoped stop
+list, and `api/all.json` carries no stops at all. Three ways: fetch `api/route/{id}.json`
+when a bus is tapped (cheap, one file, already generated); add a `previous_stop` to the
+vehicle in the generator (cleanest for the client, a contract change); or drop the field.
+Fetching on tap is probably right — the detail view is a deliberate action, not a hover.
+
+**Out of service, what actually exists:** `vehicle_id`, `label`, `position` (lat, lon,
+`speed_mps`), `position_at`. No trip, no route, no headsign, nothing else. So the owner's
+instinct is right that there is little to show: location, whether it is moving or parked,
+and how long since it last reported. Anything more would be invented.
+
+**Context:** The current design is in `client/allbuses.js` and its 20 tests. The count
+strip is worth keeping; the triage band is not. 392 vehicles across 48 routes, 143 of them
+out of service.
+
+**Effort:** M
+**Priority:** P1
+**Depends on:** None
+
 ### Decide whether the map ever gets streets under it
 
 **What:** The map now plots every stop at its true position and joins them in order, so
