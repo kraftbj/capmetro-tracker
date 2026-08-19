@@ -99,7 +99,14 @@ describe('a chip says which way its bus is going', () => {
 })
 
 describe('the panel still says what it is', () => {
-  t('labels itself a schematic rather than pretending to be a street map', (cmb, document) => {
-    expect(textDeep(draw(cmb, document, goldenRoute4()))).toMatch(/no basemap|schematic/i)
+  t('captions the legend a reader cannot work out unaided', (cmb, document) => {
+    /*
+     * The caption used to spend three clauses explaining that there are no
+     * streets under the drawing, which is plain from looking at it. What is not
+     * plain is which dots are timepoints, so that is what it says now.
+     */
+    const text = textDeep(draw(cmb, document, goldenRoute4()))
+    expect(text).toMatch(/larger dots are timepoints/i)
+    expect(text).not.toMatch(/no basemap|no streets|not a map of Austin/i)
   })
 })
