@@ -1,9 +1,14 @@
 /*
- * app.js — bootstrap, data loading, header, and the panel order that was
- * decided and is not open: header, VEHICLE ROWS, LADDER, MAP.
+ * app.js — bootstrap, data loading, header, view switching, and the panel order
+ * that was decided and is not open: header, VEHICLE ROWS, LADDER, MAP.
+ *
+ * Three views share one shell:
+ *   board  — one route, the original and the default
+ *   all    — every bus in the system, deadheads included
+ *   saved  — trips this browser has saved, resolved locally
  *
  * Data sources, in order of preference:
- *   1. a real HTTP fetch of api/route/{id}.json, when the board is served
+ *   1. a real HTTP fetch of api/*.json, when the board is served
  *   2. the bundled golden fixture in data/, when it is opened from disk
  * Opening client/index.html straight from the filesystem has to work, because
  * that is how this gets tested with no server running.
@@ -17,23 +22,51 @@
 
   var SUPPORTED_SCHEMA = 1;
   var API_BASE = 'api/route/';
+  var API_ROUTES = 'api/routes.json';
+  var API_ALL = 'api/all.json';
+  var API_DEPARTURES = 'api/departures/';
   var REFRESH_MS = 60000;
 
-  /* The six watched routes. Only route 4 has a generated file so far. */
-  /* Names are never invented here; they come from the payload's route.long_name
-   * once a route's file loads. Until then a route is only its number. */
-  var WATCHED = [
-    { id: '4' }, { id: '7' }, { id: '337' },
-    { id: '350' }, { id: '800' }, { id: '837' }
-  ];
+  /*
+   * The six routes this household actually rides, pinned to the top of the picker.
+   * They are a shortcut, NOT the list: the picker offers every route the catalog
+   * publishes. Hard-coding six while the build generated seventy-one meant the
+   * board was wrong the moment either kid took a different bus, and it is the one
+   * thing the owner asked for by name — "don't hard code one".
+   */
+  var FAVOURITES = ['4', '7', '337', '350', '800', '837'];
+
+  /*
+   * Used only until api/routes.json arrives, and when the board is opened from
+   * disk where there is no catalog to fetch. Names are never invented here; a
+   * route is its number until something authoritative says otherwise.
+   */
+  function fallbackCatalog() {
+    return FAVOURITES.map(function (id) {
+      return { id: id, short_name: id, long_name: '', directions: [], has_service_today: null };
+    });
+  }
+
+  function catalog() {
+    return state.routes && state.routes.length ? state.routes : fallbackCatalog();
+  }
+
+  function cleanName(s) { return String(s || '').replace(/^\d+-/, ''); }
+
+  function catalogEntry(id) {
+    return catalog().filter(function (r) { return r.id === id; })[0] || null;
+  }
 
   function routeName(id) {
+    var r = catalogEntry(id);
+    if (r && r.long_name) return cleanName(r.long_name);
     var d = state.data;
-    if (d && d.route && d.route.id === id) return (d.route.long_name || '').replace(/^\d+-/, '');
+    if (d && d.route && d.route.id === id) return cleanName(d.route.long_name);
     return '';
   }
 
   var state = {
+    view: 'board',       /* board | all | saved | saved-edit */
     routeId: null,
     direction: 'both',   /* 0 | 1 | 'both' */
     data: null,
@@ -42,7 +75,16 @@
     lastGoodAt: null,
     scenario: null,
     usingFixture: false,
-    pickerOpen: false
+    pickerOpen: false,
+    pickerFilter: '',
+    routes: null,        /* the catalog, once api/routes.json lands */
+    all: null,           /* api/all.json, fetched only while the all view is open */
+    allStatus: 'idle',   /* idle | loading | ok | error */
+    departures: {},      /* route id -> api/departures/{id}.json */
+    depStatus: {},       /* route id -> loading | ok | error */
+    routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
+    routeStatus: {},     /* route id -> loading | ok | error */
+    editor: { route_id: null, direction_id: null, stop_id: null }
   };
 
   var dom = {};
@@ -69,14 +111,113 @@
     return f ? deepCopy(f) : null;
   }
 
-  function fetchRoute(routeId) {
+  /*
+   * One fetch. Every endpoint is a static JSON file on the same origin, so there
+   * is nothing to configure and nothing to authenticate. A file:// board has no
+   * origin to fetch from and rejects immediately rather than waiting for a
+   * network error, because from disk the fixture IS the answer, not a fallback
+   * after a timeout.
+   */
+  function getJson(path) {
     if (global.location.protocol === 'file:' || typeof fetch !== 'function') {
       return Promise.reject(new Error('file://'));
     }
-    return fetch(API_BASE + encodeURIComponent(routeId) + '.json', { cache: 'no-cache' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
+    return fetch(path, { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  function fetchRoute(routeId) {
+    return getJson(API_BASE + encodeURIComponent(routeId) + '.json');
+  }
+
+  /*
+   * The catalog, fetched once. A failure here is not an error state: the picker
+   * falls back to the six favourites, which is exactly what it offered before
+   * this endpoint existed. Losing the other sixty-five routes is a smaller
+   * failure than refusing to show a board.
+   */
+  function loadCatalog() {
+    getJson(API_ROUTES)
+      .then(function (d) {
+        if (d && d.routes && d.routes.length) {
+          state.routes = d.routes;
+          render();
+        }
+      })
+      .catch(function () { /* fallbackCatalog() covers it */ });
+  }
+
+  function loadAll() {
+    if (state.allStatus === 'loading') return;
+    state.allStatus = 'loading';
+    render();
+    getJson(API_ALL)
+      .then(function (d) {
+        state.all = d;
+        state.allStatus = 'ok';
+        render();
+      })
+      .catch(function (err) {
+        state.allStatus = state.all ? 'ok' : 'error';
+        state.errorDetail = 'Could not load every-bus data (' + err.message + ').';
+        render();
+      });
+  }
+
+  /*
+   * The live payload for a route that is NOT the one on screen.
+   *
+   * A saved trip is almost never on the board you happen to be looking at — the
+   * whole point is watching the 800 while the 4 is open. Reading the live vehicle
+   * out of `state.data` only worked when the two happened to be the same route,
+   * so every saved trip on any other route reported "no bus is reporting on this
+   * trip yet" no matter how many buses were out. Cached per route and refreshed
+   * on the same interval as the board.
+   */
+  function loadRouteData(routeId) {
+    if (!routeId) return;
+    if (routeId === state.routeId) return;   /* state.data already has it */
+    if (state.routeStatus[routeId] === 'loading') return;
+    state.routeStatus[routeId] = 'loading';
+    fetchRoute(routeId)
+      .then(function (d) {
+        state.routeData[routeId] = d;
+        state.routeStatus[routeId] = 'ok';
+        render();
+      })
+      .catch(function () {
+        state.routeStatus[routeId] = 'error';
+        render();
+      });
+  }
+
+  /* The live payload for a route, wherever it happens to be cached. */
+  function liveRoute(routeId) {
+    if (routeId === state.routeId) return state.data;
+    return state.routeData[routeId] || null;
+  }
+
+  /*
+   * One departures document per route, kept for the session. It is a whole
+   * service day of scheduled stop times — about 17 KB gzipped for route 800 —
+   * so it is worth fetching once and worth not fetching until a saved trip or
+   * the editor actually needs it.
+   */
+  function loadDepartures(routeId) {
+    if (!routeId) return;
+    if (state.departures[routeId] || state.depStatus[routeId] === 'loading') return;
+    state.depStatus[routeId] = 'loading';
+    getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
+      .then(function (d) {
+        state.departures[routeId] = d;
+        state.depStatus[routeId] = 'ok';
+        render();
+      })
+      .catch(function () {
+        state.depStatus[routeId] = 'error';
+        render();
       });
   }
 
@@ -169,6 +310,7 @@
     ctrlRow.appendChild(chip);
 
     var group = el('div', 'dirtoggle');
+    dom.dirgroup = group;
     group.setAttribute('role', 'group');
     group.setAttribute('aria-label', 'Direction');
     dom.dirbuttons = [];
@@ -188,11 +330,51 @@
     ctrlRow.appendChild(group);
     head.appendChild(ctrlRow);
 
+    /*
+     * The view switcher. The route board is the product; the other two are the
+     * secondary screens the owner asked for, and they sit behind a tab rather
+     * than beside the route so that opening the app still lands on one route's
+     * buses without a choice to make.
+     */
+    var views = el('nav', 'viewtabs');
+    views.setAttribute('aria-label', 'View');
+    dom.viewbuttons = [];
+    [
+      { id: 'board', label: 'Route' },
+      { id: 'all', label: 'All buses' },
+      { id: 'saved', label: 'Saved' }
+    ].forEach(function (v) {
+      var b = el('button', 'viewtabs__btn');
+      b.type = 'button';
+      b.dataset.view = v.id;
+      b.textContent = v.label;
+      b.addEventListener('click', function () { selectView(v.id); });
+      views.appendChild(b);
+      dom.viewbuttons.push(b);
+    });
+    head.appendChild(views);
+
     dom.picker = el('div', 'picker');
     dom.picker.hidden = true;
     head.appendChild(dom.picker);
 
     return head;
+  }
+
+  function selectView(id) {
+    state.view = id;
+    state.pickerOpen = false;
+    store('view', id);
+    if (id === 'all' && !state.all) loadAll();
+    if (id === 'saved') {
+      /* A saved trip cannot be resolved without its route's schedule. Fetch every
+       * route a saved trip names, not just the one on screen. */
+      global.CMB.watch.list().forEach(function (w) {
+        loadDepartures(w.route_id);
+        loadRouteData(w.route_id);
+      });
+    }
+    render();
   }
 
   function paintHeader() {
@@ -208,6 +390,22 @@
     dom.routechip.appendChild(el('span', 'routechip__caret', '▾'));
     dom.routechip.setAttribute('aria-label', 'Route ' + routeName + '. Change route.');
     dom.routechip.setAttribute('aria-expanded', state.pickerOpen ? 'true' : 'false');
+
+    dom.viewbuttons.forEach(function (b) {
+      var on = b.dataset.view === (state.view === 'saved-edit' ? 'saved' : state.view);
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-current', on ? 'page' : 'false');
+    });
+
+    /*
+     * The route chip and the direction toggle only mean something on the route
+     * board. Leaving them live on the other two views would offer a control that
+     * changes nothing on screen, which reads as the app being broken.
+     */
+    var onBoard = state.view === 'board';
+    dom.routechip.hidden = !onBoard;
+    dom.dirgroup.hidden = !onBoard;
+    if (!onBoard) { dom.picker.hidden = true; }
 
     dom.dirbuttons.forEach(function (b) {
       var raw = b.dataset.dir;
@@ -242,27 +440,94 @@
     }
 
     dom.picker.hidden = !state.pickerOpen;
-    if (state.pickerOpen) {
-      S.clear(dom.picker);
-      dom.picker.appendChild(el('p', 'picker__head', 'Watched routes'));
-      var grid = el('div', 'routegrid');
-      WATCHED.forEach(function (r) {
-        var b = el('button', 'routegrid__item');
-        b.type = 'button';
-        if (r.id === state.routeId) b.classList.add('is-on');
-        b.appendChild(el('span', 'routegrid__id', r.id));
-        var nm = routeName(r.id);
-        if (nm) b.appendChild(el('span', 'routegrid__name', nm));
-        var have = !!(global.CMB_FIXTURES && global.CMB_FIXTURES[r.id]) ||
-          global.location.protocol !== 'file:';
-        if (!have) b.appendChild(el('span', 'routegrid__note', 'no data yet'));
-        b.addEventListener('click', function () {
-          state.pickerOpen = false;
-          selectRoute(r.id);
-        });
-        grid.appendChild(b);
-      });
-      dom.picker.appendChild(grid);
+    if (state.pickerOpen) paintPicker();
+  }
+
+  /* Route number first, then the name, both case-insensitive. Someone reaching
+   * for the 337 types "337"; someone who only knows where it goes types "lamar". */
+  function matchesFilter(r, q) {
+    if (!q) return true;
+    var hay = ((r.short_name || r.id) + ' ' + (r.long_name || '')).toLowerCase();
+    return hay.indexOf(q.toLowerCase()) !== -1;
+  }
+
+  function routeButton(r) {
+    var b = el('button', 'routegrid__item');
+    b.type = 'button';
+    if (r.id === state.routeId) b.classList.add('is-on');
+    b.appendChild(el('span', 'routegrid__id', r.short_name || r.id));
+    var nm = cleanName(r.long_name) || routeName(r.id);
+    if (nm) b.appendChild(el('span', 'routegrid__name', nm));
+    /*
+     * has_service_today is null on the fallback catalog, which means "unknown",
+     * not "no". Only say a route is not running when something authoritative
+     * said so, or a working route reads as dead on a board opened from disk.
+     */
+    if (r.has_service_today === false) {
+      b.appendChild(el('span', 'routegrid__note', 'no service today'));
+      b.classList.add('is-off');
+    } else if (r.vehicles) {
+      b.appendChild(el('span', 'routegrid__note',
+        r.vehicles.in_service ? fmt.plural(r.vehicles.in_service, 'bus', 'buses') + ' out'
+          : 'none out right now'));
+    }
+    b.addEventListener('click', function () {
+      state.pickerOpen = false;
+      state.pickerFilter = '';
+      selectRoute(r.id);
+    });
+    return b;
+  }
+
+  function paintPicker() {
+    S.clear(dom.picker);
+    var all = catalog();
+
+    var search = el('input', 'picker__search');
+    search.type = 'search';
+    search.placeholder = 'Route number or name';
+    search.setAttribute('aria-label', 'Filter routes');
+    search.value = state.pickerFilter;
+    search.addEventListener('input', function () {
+      state.pickerFilter = search.value;
+      paintPicker();
+      /* Repainting in place would drop focus mid-keystroke. */
+      var again = dom.picker.querySelector('.picker__search');
+      if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+    });
+    dom.picker.appendChild(search);
+
+    var q = state.pickerFilter;
+    var shown = all.filter(function (r) { return matchesFilter(r, q); });
+
+    if (!q) {
+      var favs = shown.filter(function (r) { return FAVOURITES.indexOf(r.id) !== -1; });
+      if (favs.length) {
+        dom.picker.appendChild(el('p', 'picker__head', 'Routes we ride'));
+        var favGrid = el('div', 'routegrid');
+        favs.forEach(function (r) { favGrid.appendChild(routeButton(r)); });
+        dom.picker.appendChild(favGrid);
+      }
+      shown = shown.filter(function (r) { return FAVOURITES.indexOf(r.id) === -1; });
+    }
+
+    dom.picker.appendChild(el('p', 'picker__head',
+      q ? fmt.plural(shown.length, 'match', 'matches') : 'Every route'));
+
+    if (!shown.length) {
+      dom.picker.appendChild(S.notice('empty', 'No route matches “' + q + '”.',
+        'Try the number, or a street the route runs on.'));
+      return;
+    }
+    var grid = el('div', 'routegrid');
+    shown.forEach(function (r) { grid.appendChild(routeButton(r)); });
+    dom.picker.appendChild(grid);
+
+    if (!state.routes) {
+      dom.picker.appendChild(el('p', 'hint',
+        'Showing the routes this board was built around. The full list loads with ' +
+        'the route catalog, which needs the board to be served rather than opened ' +
+        'from a file.'));
     }
   }
 
@@ -299,7 +564,9 @@
       return;
     }
     if (state.status === 'first-run') {
-      dom.main.appendChild(S.firstRun(WATCHED, function (id) {
+      dom.main.appendChild(S.firstRun(catalog().filter(function (r) {
+        return FAVOURITES.indexOf(r.id) !== -1;
+      }).map(function (r) { return { id: r.id, name: cleanName(r.long_name) }; }), function (id) {
         state.status = 'loading';
         state.scenario = null;
         selectRoute(id);
@@ -320,6 +587,10 @@
         dom.main.appendChild(fx);
       }
     }
+
+    if (state.view === 'all') { paintAll(); return; }
+    if (state.view === 'saved') { paintSaved(); return; }
+    if (state.view === 'saved-edit') { paintSavedEdit(); return; }
 
     var opts = {
       direction: state.direction,
@@ -346,14 +617,129 @@
     dom.main.appendChild(mapBand);
     global.CMB.map.render(mapBand, d || {}, opts);
 
+    dom.main.appendChild(footer(d));
+  }
+
+  /* ---- the other two views --------------------------------------------- */
+
+  function paintAll() {
+    var band = el('section', 'band band--all');
+    band.setAttribute('aria-label', 'Every bus');
+    dom.main.appendChild(band);
+
+    if (state.all && state.all.staleness) {
+      var banner = S.stalenessBanner(state.all.staleness, state.all.feeds, loadAll);
+      if (banner) dom.main.insertBefore(banner, band);
+    }
+
+    global.CMB.allbuses.render(band, state.all || {}, {
+      status: state.allStatus === 'ok' ? 'ok'
+        : state.allStatus === 'error' ? 'error' : 'loading',
+      errorDetail: state.errorDetail,
+      onRetry: loadAll,
+      onSelectRoute: function (routeId) {
+        selectView('board');
+        selectRoute(routeId);
+      }
+    });
+    dom.main.appendChild(footer(state.all));
+  }
+
+  function paintSaved() {
+    var band = el('section', 'band band--saved');
+    band.setAttribute('aria-label', 'Saved trips');
+    dom.main.appendChild(band);
+
+    var now = nowEpoch();
+    var models = global.CMB.watch.list().map(function (w) {
+      /* Fetching here rather than only in selectView covers a watch saved while
+       * the view is already open. loadDepartures is idempotent. */
+      loadDepartures(w.route_id);
+      loadRouteData(w.route_id);
+      return global.CMB.watch.resolve(
+        w,
+        state.departures[w.route_id] || null,
+        liveRoute(w.route_id),
+        now
+      );
+    });
+
+    global.CMB.watch.render(band, global.CMB.watch.sortModels(models), {
+      onAdd: function () {
+        state.editor = { route_id: null, direction_id: null, stop_id: null };
+        state.view = 'saved-edit';
+        render();
+      },
+      onChange: render
+    });
+    dom.main.appendChild(footer(state.data));
+  }
+
+  function paintSavedEdit() {
+    var band = el('section', 'band band--saved');
+    band.setAttribute('aria-label', 'Save a trip');
+    dom.main.appendChild(band);
+
+    global.CMB.watch.renderEditor(band, {
+      routes: catalog(),
+      route_id: state.editor.route_id,
+      direction_id: state.editor.direction_id,
+      stop_id: state.editor.stop_id,
+      departures: state.editor.route_id ? (state.departures[state.editor.route_id] || null) : null
+    }, {
+      onPickRoute: function (id) {
+        state.editor = { route_id: id, direction_id: null, stop_id: null };
+        loadDepartures(id);
+        render();
+      },
+      onPickDirection: function (id) {
+        state.editor.direction_id = id;
+        state.editor.stop_id = null;
+        render();
+      },
+      onPickStop: function (id) {
+        state.editor.stop_id = id;
+        render();
+      },
+      onSave: function (w) {
+        global.CMB.watch.add(w);
+        state.view = 'saved';
+        announce('Saved ' + global.CMB.watch.describe(w));
+        render();
+      }
+    });
+
+    var back = el('button', 'btn');
+    back.type = 'button';
+    back.textContent = 'Cancel';
+    back.addEventListener('click', function () { state.view = 'saved'; render(); });
+    band.appendChild(back);
+  }
+
+  /*
+   * The board's clock. It follows the feed rather than the device, so a phone with
+   * a wrong clock reads the same board as a right one, and the seconds-until on a
+   * saved trip stays consistent with the lateness the feed reported.
+   */
+  function nowEpoch() {
+    var d = state.data || state.all;
+    if (!d) {
+      var ids = Object.keys(state.routeData);
+      if (ids.length) d = state.routeData[ids[0]];
+    }
+    if (d && typeof d.generated_at === 'number') return d.generated_at;
+    return Math.floor(Date.now() / 1000);
+  }
+
+  function footer(d) {
     var foot = el('footer', 'foot');
     foot.appendChild(el('span', null,
       d && d.service_day
         ? 'Service day ' + d.service_day.date + (d.service_day.is_exception_day ? ' (exception day)' : '') +
-          ' · GTFS ' + (d.feeds ? d.feeds.gtfs_feed_version : '—')
+          ' \u00b7 GTFS ' + (d.feeds ? d.feeds.gtfs_feed_version : '\u2014')
         : 'No service day loaded'));
     foot.appendChild(el('span', null, 'All times America/Chicago.'));
-    dom.main.appendChild(foot);
+    return foot;
   }
 
   /* ---- boot ----------------------------------------------------------- */
@@ -383,10 +769,24 @@
     var routeId = q.route || recall('route') || '4';
     state.routeId = routeId;
     load(routeId);
+    loadCatalog();
+
+    var view = q.view || recall('view');
+    if (view === 'all' || view === 'saved') selectView(view);
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
-      setInterval(function () { if (state.status !== 'loading') load(state.routeId); }, REFRESH_MS);
+      setInterval(function () {
+        if (state.status !== 'loading') load(state.routeId);
+        if (state.view === 'all') loadAll();
+        if (state.view === 'saved') {
+          /* A frozen saved trip is worse than none: it reads as a live prediction. */
+          global.CMB.watch.list().forEach(function (w) {
+            state.routeStatus[w.route_id] = 'idle';
+            loadRouteData(w.route_id);
+          });
+        }
+      }, REFRESH_MS);
     }
 
     var resizeTimer = null;
@@ -396,12 +796,21 @@
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && state.pickerOpen) { state.pickerOpen = false; render(); }
+      if (e.key !== 'Escape') return;
+      if (state.pickerOpen) { state.pickerOpen = false; render(); return; }
+      if (state.view === 'saved-edit') { state.view = 'saved'; render(); }
     });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
-  global.CMB.app = { state: state, load: load, SUPPORTED_SCHEMA: SUPPORTED_SCHEMA };
+  global.CMB.app = {
+    state: state,
+    load: load,
+    selectView: selectView,
+    matchesFilter: matchesFilter,
+    FAVOURITES: FAVOURITES,
+    SUPPORTED_SCHEMA: SUPPORTED_SCHEMA
+  };
 })(window);
