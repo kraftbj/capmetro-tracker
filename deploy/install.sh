@@ -233,10 +233,19 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
        | grep -q '@[A-Z_]*@'; then
       die "the service unit still has an unsubstituted placeholder; not enabling the timer"
     fi
+    # The second timer is the one that answers "how does a schedule change ever
+    # reach this box". Without it the board serves last season's departures
+    # until a human remembers to pull, and the only symptom is staleness
+    # climbing past seven days on a board nobody is watching that closely.
+    sed -e "s#@UPDATE@#$SRC_DIR/deploy/update.sh#g" \
+      "$SRC_DIR/deploy/capmetro-update.service" > /etc/systemd/system/capmetro-update.service
+    cp "$SRC_DIR/deploy/capmetro-update.timer" /etc/systemd/system/capmetro-update.timer
+
     systemctl daemon-reload
     systemctl enable --now capmetro-generate.timer
+    systemctl enable --now capmetro-update.timer
   fi
-  SCHEDULER="systemd timer capmetro-generate.timer"
+  SCHEDULER="systemd timers capmetro-generate.timer (60s) + capmetro-update.timer (daily)"
 else
   if command -v systemctl >/dev/null 2>&1; then
     warn "systemctl is installed but systemd is not running here; using cron instead"
@@ -245,9 +254,9 @@ else
   # runs once a minute. Say so rather than pretending the flag was honored.
   say "installing a once-a-minute cron entry"
   [ "$INTERVAL_S" != 60 ] && warn "cron cannot run more often than once a minute; --interval $INTERVAL_S ignored"
-  run sh -c "printf '* * * * * %s %s\n' '$RUN_USER' '$GEN' > /etc/cron.d/capmetro"
+  run sh -c "printf '* * * * * %s %s\n#\n# Daily: pull the schedule. CapMetro republishes about three times a year and\n# without this the board serves last season's departures until someone notices.\n17 4 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
   run chmod 0644 /etc/cron.d/capmetro
-  SCHEDULER="cron /etc/cron.d/capmetro"
+  SCHEDULER="cron /etc/cron.d/capmetro (60s generate + daily update)"
 fi
 
 # ---- first run, so a failure surfaces now and not at a bus stop ------------

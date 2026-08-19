@@ -1,0 +1,20 @@
+# Written by deploy/install.sh.
+#
+# Daily. CapMetro republishes the schedule about three times a year and the
+# build job commits only when feed_version changes, so this is a no-op on
+# roughly 362 days out of 365 - and on the other three it is the only thing
+# standing between the board and a whole season of wrong departure times.
+[Unit]
+Description=Pull the CapMetro board's schedule and code daily
+
+[Timer]
+OnCalendar=*-*-* 04:17:00
+# Woken late if the box was off. A schedule update missed because of a reboot
+# is exactly the case this exists for.
+Persistent=true
+# The GTFS job commits at 11:20 UTC; a spread stops every box that ever copies
+# this from hitting GitHub on the same second.
+RandomizedDelaySec=1800
+
+[Install]
+WantedBy=timers.target

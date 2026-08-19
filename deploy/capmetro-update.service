@@ -1,0 +1,19 @@
+# Written by deploy/install.sh, which substitutes the AT-sign tokens below.
+#
+# Pulls trunk and republishes. Separate from capmetro-generate so a schedule
+# update and a sixty-second poll cannot interfere, and so this one can fail
+# loudly without touching the board's own cadence.
+[Unit]
+Description=CapMetro dispatch board: pull trunk and republish
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=@UPDATE@ --quiet
+# Runs as root: it owns the checkout and the job account deliberately does not.
+User=root
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
