@@ -666,6 +666,118 @@ button { font: inherit; color: inherit; }
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
 
+/* ===== transfer chains ================================================== */
+/*
+ * A chain card is one object, not two watch cards stacked. The legs are quiet
+ * rows; the TRANSFER between them is the loud one, because the connection is the
+ * only thing on the card that is genuinely at risk and the only thing the reader
+ * can still do something about.
+ *
+ * The verdict colour is the adherence palette, reused rather than re-invented:
+ * red already means "this has gone wrong" everywhere else on this board, and a
+ * second vocabulary for the same idea would have to be learned twice.
+ */
+.chainlist { display: flex; flex-direction: column; gap: 10px; }
+.chaincard {
+  position: relative; padding: 12px 14px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--dia-spine); border-radius: var(--radius);
+}
+.chaincard--live { border-left-color: var(--accent); }
+.chaincard--passed, .chaincard--not-today { opacity: 0.6; border-left-color: var(--dia-spine-dim); }
+.chaincard--broken, .chaincard--no-schedule { border-left-color: var(--warn); }
+/* A missed connection outranks the card's own state: it is the worst news here. */
+.chaincard--conn-missed { border-left-color: var(--adh-vlate); }
+.chaincard--conn-tight { border-left-color: var(--adh-late); }
+
+.chaincard__head { display: flex; flex-direction: column; gap: 2px; }
+.chaincard__title { display: flex; align-items: baseline; gap: 8px; margin: 0; }
+.chaincard__routes {
+  font-family: var(--font-figure); font-size: 20px; font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.chaincard__legcount { font-size: var(--fs-chrome); color: var(--ink-chrome); }
+.chaincard__from { margin: 0; font-size: var(--fs-meta); color: var(--ink-muted); }
+
+.chaincard__line { display: flex; align-items: baseline; gap: 10px; margin: 10px 0 6px; }
+.chaincard__due { font-family: var(--font-figure); font-size: 26px; font-weight: 700; }
+.chaincard__until { font-size: var(--fs-meta); color: var(--ink-dim); }
+.chaincard__detail { margin: 6px 0 0; font-size: var(--fs-meta); color: var(--ink-dim); }
+.chaincard__bus { margin: 4px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome); }
+.chaincard__note {
+  margin: 8px 0 0; padding-left: 10px;
+  border-left: 2px solid var(--adh-special);
+  font-size: var(--fs-chrome); color: var(--ink-dim);
+}
+
+.chaincard__legs { margin-top: 12px; border-top: 1px solid var(--hairline-soft); }
+.chaincard__leg { padding: 10px 0 2px; }
+.chaincard__legtitle { display: flex; align-items: baseline; gap: 8px; margin: 0; }
+.chaincard__legtime { font-family: var(--font-figure); font-size: var(--fs-lead); font-weight: 600; }
+.chaincard__legroute {
+  font-family: var(--font-figure); font-size: var(--fs-meta); color: var(--ink-muted);
+}
+.chaincard__legdir {
+  font-size: var(--fs-chrome); letter-spacing: 0.06em;
+  padding: 1px 5px; border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  color: var(--ink-dim);
+}
+.chaincard__legstop { margin: 2px 0 0; font-size: var(--fs-meta); color: var(--ink-muted); }
+
+/* The change itself, indented under the leg it follows so the card reads as one
+ * journey rather than as a list of unrelated buses. */
+.chaincard__transfer {
+  margin: 8px 0 8px 10px; padding: 8px 12px;
+  border-left: 3px solid var(--adh-unknown);
+  background: var(--surface-panel); border-radius: 0 var(--radius) var(--radius) 0;
+}
+.chaincard__transfer--made { border-left-color: var(--adh-ontime); }
+.chaincard__transfer--tight { border-left-color: var(--adh-late); }
+.chaincard__transfer--missed { border-left-color: var(--adh-vlate); }
+.chaincard__transfer--broken { border-left-color: var(--warn); }
+.chaincard__verdict { display: flex; align-items: baseline; gap: 8px; margin: 0; flex-wrap: wrap; }
+.chaincard__verdictlabel {
+  font-size: var(--fs-chrome); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.chaincard__transfer--missed .chaincard__verdictlabel { color: var(--adh-vlate); }
+.chaincard__transfer--tight .chaincard__verdictlabel { color: var(--adh-late); }
+.chaincard__transfer--made .chaincard__verdictlabel { color: var(--adh-ontime); }
+.chaincard__slack { font-family: var(--font-figure); font-size: var(--fs-meta); }
+.chaincard__transferdetail { margin: 4px 0 0; font-size: var(--fs-meta); color: var(--ink-dim); }
+.chaincard__transfertimes {
+  margin: 4px 0 0; font-family: var(--font-figure);
+  font-size: var(--fs-chrome); color: var(--ink-chrome);
+}
+
+.chaincard__remove {
+  position: absolute; top: 8px; right: 8px;
+  min-height: 32px; padding: 4px 10px;
+  background: none; border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  color: var(--ink-chrome); font-size: var(--fs-chrome-sm); cursor: pointer;
+}
+.chaincard__remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The connection picker in the chain editor. Each row is one whole answer —
+ * where you get off, how far you walk, what you catch — because a row that only
+ * named the time would need the reader to open it to find out if it is walkable. */
+.connlist { max-height: 46vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.connlist__item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  min-height: var(--tap); padding: 10px 12px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-radius: var(--radius); color: var(--ink); cursor: pointer; text-align: left;
+  width: 100%;
+}
+.connlist__times { display: flex; align-items: baseline; gap: 10px; }
+.connlist__board { font-family: var(--font-figure); font-size: var(--fs-lead); font-weight: 600; }
+.connlist__wait { font-size: var(--fs-chrome); color: var(--ink-chrome); }
+.connlist__where { font-size: var(--fs-meta); color: var(--ink-dim); }
+.connlist__headsign { font-size: var(--fs-chrome); color: var(--ink-chrome); }
+.connlist__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chainsave { margin: 12px 0; }
+
 /* ===== map: the route draws its own basemap ============================= */
 /*
  * There is no tile source and there will not be one — the board has to open

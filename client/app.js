@@ -5,7 +5,7 @@
  * Three views share one shell:
  *   board  — one route, the original and the default
  *   all    — every bus in the system, deadheads included
- *   saved  — trips this browser has saved, resolved locally
+ *   saved  — trips and transfer chains this browser has saved, resolved locally
  *
  * Data sources, in order of preference:
  *   1. a real HTTP fetch of api/*.json, when the board is served
@@ -66,7 +66,7 @@
   }
 
   var state = {
-    view: 'board',       /* board | all | saved | saved-edit */
+    view: 'board',       /* board | all | saved | saved-edit | chain-edit */
     routeId: null,
     direction: 'both',   /* 0 | 1 | 'both' */
     data: null,
@@ -84,7 +84,14 @@
     depStatus: {},       /* route id -> loading | ok | error */
     routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
     routeStatus: {},     /* route id -> loading | ok | error */
-    editor: { route_id: null, direction_id: null, stop_id: null }
+    editor: { route_id: null, direction_id: null, stop_id: null },
+    /*
+     * The chain editor builds forwards: `legs` are the ones already fixed, `start`
+     * is the part-made first leg and `onward` the part-made next one. It is a
+     * separate bag from `editor` because a chain and a saved trip are saved to
+     * different stores and abandoning one must not half-fill the other.
+     */
+    chainEditor: { legs: [], day_type: null, start: {}, onward: {} }
   };
 
   var dom = {};
@@ -180,6 +187,19 @@
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
     if (state.routeStatus[routeId] === 'loading') return;
+    /*
+     * Already have it. This guard is load-bearing, not an optimisation: this
+     * function is called from paint(), and its success handler calls render().
+     * Without it, one fetch repaints, the repaint asks for another fetch, and the
+     * Saved view sits in an unthrottled request loop against the origin for as
+     * long as it is open — one round trip per iteration, forever.
+     *
+     * The refresh interval below deliberately sets the status back to 'idle'
+     * before calling here, which is what makes a re-fetch happen once a minute
+     * instead of never. That handshake is the whole refresh mechanism; changing
+     * either half without the other either freezes the data or restores the loop.
+     */
+    if (state.routeStatus[routeId] === 'ok' && state.routeData[routeId]) return;
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
@@ -361,19 +381,32 @@
     return head;
   }
 
+  /*
+   * Every route the Saved view needs, from both stores.
+   *
+   * A saved trip names one route; a chain names two or three, and none of them is
+   * necessarily the route on screen. Both documents are required before anything
+   * can be resolved — the schedule to find the trip, the live payload to find the
+   * bus — and both loaders are idempotent, so this is safe to call on every paint.
+   */
+  function loadSavedRoutes() {
+    var wanted = {};
+    global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
+    global.CMB.chain.list().forEach(function (c) {
+      global.CMB.chain.routesIn(c).forEach(function (id) { wanted[id] = true; });
+    });
+    Object.keys(wanted).forEach(function (id) {
+      loadDepartures(id);
+      loadRouteData(id);
+    });
+  }
+
   function selectView(id) {
     state.view = id;
     state.pickerOpen = false;
     store('view', id);
     if (id === 'all' && !state.all) loadAll();
-    if (id === 'saved') {
-      /* A saved trip cannot be resolved without its route's schedule. Fetch every
-       * route a saved trip names, not just the one on screen. */
-      global.CMB.watch.list().forEach(function (w) {
-        loadDepartures(w.route_id);
-        loadRouteData(w.route_id);
-      });
-    }
+    if (id === 'saved') loadSavedRoutes();
     render();
   }
 
@@ -392,7 +425,8 @@
     dom.routechip.setAttribute('aria-expanded', state.pickerOpen ? 'true' : 'false');
 
     dom.viewbuttons.forEach(function (b) {
-      var on = b.dataset.view === (state.view === 'saved-edit' ? 'saved' : state.view);
+      var on = b.dataset.view === (state.view === 'saved-edit' || state.view === 'chain-edit'
+        ? 'saved' : state.view);
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-current', on ? 'page' : 'false');
     });
@@ -591,6 +625,7 @@
     if (state.view === 'all') { paintAll(); return; }
     if (state.view === 'saved') { paintSaved(); return; }
     if (state.view === 'saved-edit') { paintSavedEdit(); return; }
+    if (state.view === 'chain-edit') { paintChainEdit(); return; }
 
     var opts = {
       direction: state.direction,
@@ -646,16 +681,39 @@
   }
 
   function paintSaved() {
+    /* Fetching here rather than only in selectView covers anything saved while the
+     * view is already open. Both loaders are idempotent. */
+    loadSavedRoutes();
+    var now = nowEpoch();
+
+    /*
+     * Chains sit above saved trips. A chain is the higher-stakes item on this
+     * screen — a missed connection strands someone, a late bus merely annoys them
+     * — and the ordering inside each band is already worst-news-first, so putting
+     * the band that can carry a missed connection second would bury it.
+     */
+    var chainBand = el('section', 'band band--chains');
+    chainBand.setAttribute('aria-label', 'Transfer chains');
+    dom.main.appendChild(chainBand);
+
+    var live = liveRouteMap();
+    var chains = global.CMB.chain.list().map(function (c) {
+      return global.CMB.chain.resolve(c, state.departures, live, now);
+    });
+    global.CMB.chain.render(chainBand, global.CMB.chain.sortModels(chains), {
+      onAdd: function () {
+        state.chainEditor = { legs: [], day_type: null, start: {}, onward: {} };
+        state.view = 'chain-edit';
+        render();
+      },
+      onChange: render
+    });
+
     var band = el('section', 'band band--saved');
     band.setAttribute('aria-label', 'Saved trips');
     dom.main.appendChild(band);
 
-    var now = nowEpoch();
     var models = global.CMB.watch.list().map(function (w) {
-      /* Fetching here rather than only in selectView covers a watch saved while
-       * the view is already open. loadDepartures is idempotent. */
-      loadDepartures(w.route_id);
-      loadRouteData(w.route_id);
       return global.CMB.watch.resolve(
         w,
         state.departures[w.route_id] || null,
@@ -673,6 +731,86 @@
       onChange: render
     });
     dom.main.appendChild(footer(state.data));
+  }
+
+  /*
+   * Every live route payload this browser currently holds, keyed by route id.
+   * Chain resolution spans routes, so it takes a map rather than one payload; the
+   * route on screen lives in state.data and the rest in state.routeData, and this
+   * is the one place that difference is reconciled.
+   */
+  function liveRouteMap() {
+    var map = {};
+    Object.keys(state.routeData).forEach(function (id) { map[id] = state.routeData[id]; });
+    if (state.routeId && state.data) map[state.routeId] = state.data;
+    return map;
+  }
+
+  function paintChainEdit() {
+    var band = el('section', 'band band--saved');
+    band.setAttribute('aria-label', 'Save a transfer chain');
+    dom.main.appendChild(band);
+
+    var ed = state.chainEditor;
+    global.CMB.chain.renderEditor(band, {
+      routes: catalog(),
+      legs: ed.legs,
+      day_type: ed.day_type,
+      start: ed.start,
+      onward: ed.onward,
+      departures: state.departures,
+      connections: global.CMB.chain.connectionsFor(
+        ed.legs, state.departures, ed.onward.route_id, ed.onward.direction_id)
+    }, {
+      onPickStartRoute: function (id) {
+        ed.start = { route_id: id };
+        loadDepartures(id);
+        render();
+      },
+      onPickStartDirection: function (id) {
+        ed.start.direction_id = id;
+        ed.start.stop_id = null;
+        render();
+      },
+      onPickStartStop: function (id) {
+        ed.start.stop_id = id;
+        render();
+      },
+      onPickStartDeparture: function (leg, dayType) {
+        ed.legs = [leg];
+        ed.day_type = dayType;
+        ed.start = {};
+        ed.onward = {};
+        render();
+      },
+      onPickOnwardRoute: function (id) {
+        ed.onward = { route_id: id };
+        loadDepartures(id);
+        render();
+      },
+      onPickOnwardDirection: function (id) {
+        ed.onward.direction_id = id;
+        render();
+      },
+      onPickConnection: function (leg) {
+        ed.legs = ed.legs.concat([leg]);
+        ed.onward = {};
+        render();
+      },
+      onSave: function (chain) {
+        global.CMB.chain.add(chain);
+        state.view = 'saved';
+        loadSavedRoutes();
+        announce('Saved ' + global.CMB.chain.describe(chain));
+        render();
+      }
+    });
+
+    var back = el('button', 'btn');
+    back.type = 'button';
+    back.textContent = 'Cancel';
+    back.addEventListener('click', function () { state.view = 'saved'; render(); });
+    band.appendChild(back);
   }
 
   function paintSavedEdit() {
@@ -780,10 +918,17 @@
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
         if (state.view === 'saved') {
-          /* A frozen saved trip is worse than none: it reads as a live prediction. */
-          global.CMB.watch.list().forEach(function (w) {
-            state.routeStatus[w.route_id] = 'idle';
-            loadRouteData(w.route_id);
+          /* A frozen saved trip is worse than none: it reads as a live prediction,
+           * and a frozen chain reports a connection that stopped being true. Every
+           * route either store names is re-fetched, not just the watched ones. */
+          var stale = {};
+          global.CMB.watch.list().forEach(function (w) { stale[w.route_id] = true; });
+          global.CMB.chain.list().forEach(function (c) {
+            global.CMB.chain.routesIn(c).forEach(function (id) { stale[id] = true; });
+          });
+          Object.keys(stale).forEach(function (id) {
+            state.routeStatus[id] = 'idle';
+            loadRouteData(id);
           });
         }
       }, REFRESH_MS);
@@ -798,7 +943,10 @@
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
       if (state.pickerOpen) { state.pickerOpen = false; render(); return; }
-      if (state.view === 'saved-edit') { state.view = 'saved'; render(); }
+      if (state.view === 'saved-edit' || state.view === 'chain-edit') {
+        state.view = 'saved';
+        render();
+      }
     });
   }
 

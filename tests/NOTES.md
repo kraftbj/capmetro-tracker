@@ -193,6 +193,7 @@ encodes in a `_comment`, and `MANIFEST.json` lists them all.
 | `frozen-feed-response.json` | Silent failure 2: HTTP 200 with a 4-hour-old timestamp. |
 | `route-4-dead-cron.json` | Silent failure 2 / criterion 8: the last-good file, 47 minutes on. |
 | `torn-route-4.json` | Section 11: a file truncated mid-write. Deliberately unparseable. |
+| `chain-800-to-4.json` | Transfer chains: two routes that share **no** stop ids and connect anyway, across a 27 m walk at Pleasant Valley. |
 
 Conventions: keys beginning with `_` are test metadata, never wire format.
 `_expected` holds the values an implementation must produce, so a fixture and
@@ -204,6 +205,13 @@ validation; `stripTestMetadata()` in `tests/node/helpers/fixtures.mjs` and
 `route-4-dead-cron.json` and `torn-route-4.json` are derived from the golden
 output. If the golden file is regenerated, regenerate these too, or they will
 quietly describe a payload shape that no longer exists.
+
+`chain-800-to-4.json` is derived from **generated output**, not from the golden
+file, because the golden file is route 4 alone and a transfer needs two routes.
+Rebuild it with `node tests/fixtures/synthetic/generate-chain-fixture.mjs
+<webroot>`, committed beside it. The suite asserts the two routes share zero stop
+ids: if a rebuilt feed ever merges them onto shared stops, that assertion fails
+loudly rather than letting the walk-radius tests pass for the wrong reason.
 
 ---
 

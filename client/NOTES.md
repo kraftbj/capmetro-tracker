@@ -142,6 +142,31 @@ unresolved decision.
 - **"Now" is `generated_at`.** The client never uses the device clock to judge
   freshness; every age comes from `staleness.oldest_feed_age_s`.
 
+- **A transfer is a PAIR of stops within a short walk, not a shared stop id.**
+  `chain.js` finds connections geometrically because on this feed the headline
+  example cannot be found any other way: routes 800 and 4 share **zero** stop ids
+  and meet at Pleasant Valley under two ids 27 m apart. Radius 300 m, walking pace
+  1.2 m/s charged against the slack, minimum 2 minutes of slack, maximum 45 minutes
+  of wait. All four numbers are read off this feed rather than off a standard, and
+  all four are exported so a test can assert against them instead of restating them.
+
+- **`chain.js` uses `watch.js` rather than copying it.** Departure matching, the
+  service-day clock and the trip-to-vehicle join are one rule each, and ISSUE-002 is
+  what two copies of one rule cost. It is loaded after `watch.js` and throws on load
+  if that is not there, rather than failing one `undefined` at a time.
+
+- **A chain is over when the last bus is BOARDED, not when it finishes its run.**
+  Nothing records where the rider gets off the final leg, so the last boarding is the
+  only honest end marker. Using the trip's final stop would leave a finished chain on
+  screen for another forty minutes on the 800. The cost is that the card cannot say
+  "she gets in at 8:40" — see `TODOS.md`.
+
+- **A connection's verdict is computed from predicted times, and says which halves
+  are predictions.** A bus that is not reporting contributes its scheduled time and
+  the card prints "the timetable, not a prediction". A suppressed lateness is treated
+  as absent, not as zero — the `adherence.view()` contract already decides when a
+  number may be shown, and this reads that flag rather than re-deciding.
+
 ---
 
 ## Verification performed

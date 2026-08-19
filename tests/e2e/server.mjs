@@ -11,6 +11,10 @@
  *   /missing/ a 500 from the API, with the client files still served
  *   /future/  a payload written for schema 2
  *
+ * `api/departures/{id}.json` is served under every prefix from the chain fixture,
+ * because the saved-trip and transfer-chain editors are built entirely from that
+ * document and neither can be driven without it.
+ *
  * Run standalone with: node tests/e2e/server.mjs
  */
 import { createServer } from 'node:http'
@@ -61,11 +65,32 @@ const SCENARIOS = {
 
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 
+/*
+ * The service-day departure boards, from the committed chain fixture. It carries
+ * routes 800 and 4 — the pair that shares no stop ids — which is exactly what the
+ * chain editor needs to be exercised against something real rather than a stub.
+ */
+function departuresFor(routeId) {
+  const doc = wireFormat(readJson(path.join(SYNTHETIC, 'chain-800-to-4.json')))
+  return doc.departures[routeId] ?? null
+}
+
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const parts = url.pathname.split('/').filter(Boolean)
   const scenario = SCENARIOS[parts[0]] ? parts.shift() : 'fresh'
   const rest = parts.join('/') || 'index.html'
+
+  if (rest.startsWith('api/departures/')) {
+    const id = rest.slice('api/departures/'.length).replace(/\.json$/, '')
+    const doc = departuresFor(id)
+    res.writeHead(doc ? 200 : 404, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache',
+    })
+    res.end(doc ? JSON.stringify(doc) : '{"error":"no such route"}')
+    return
+  }
 
   if (rest.startsWith('api/route/')) {
     const { status, body } = SCENARIOS[scenario]()

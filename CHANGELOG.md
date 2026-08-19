@@ -3,6 +3,46 @@
 All notable changes to the CapMetro dispatch board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
+## [Unreleased]
+
+### Added
+
+- **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
+  the 350, the 337 to the 7 to the 837 — saved and shown as one card instead of two
+  or three route boards to compare by hand. The card leads with when the first bus
+  is actually due and with whether the change holds: **connection holds**, **tight**,
+  or **missed**, computed from predicted times rather than the timetable, so a first
+  bus nine minutes down turns a comfortable eight-minute change into a missed one an
+  hour before anyone reaches the stop. Where a bus is not reporting, its scheduled
+  time stands in and the card says so rather than passing a timetable off as a
+  prediction. Up to three buses per chain. Chains live only in this browser and are
+  never sent anywhere, exactly as saved trips are.
+
+  A transfer is a **pair of stops within a short walk**, not a shared stop id. This
+  is not a refinement: routes 800 and 4 share **zero** stop ids on this feed, so the
+  obvious implementation would have reported "these routes do not connect" about the
+  change this feature was asked for. They meet at Pleasant Valley where the
+  MetroRapid platform and the local kerb are 27 m apart under different ids. The walk
+  is charged against the slack at a deliberately slow 1.2 m/s rather than assumed
+  free.
+
+  The editor only ever offers connections that exist — it walks the real downstream
+  stops of the real trip picked and the real departures of the onward route — so an
+  unresolvable chain cannot be created, which is the same reasoning saved trips use
+  for picking a time from a list rather than typing one.
+
+### Fixed
+
+- **The Saved view was fetching route payloads in an unthrottled loop.**
+  `loadRouteData()` is called from `paint()` and its success handler calls
+  `render()`; its only guard was "am I already fetching", which is false by the time
+  the handler runs. One fetch repainted, the repaint started another fetch, and the
+  view sat in a request loop against the origin — measured at 115 requests in three
+  seconds — for as long as it was open. Nothing looked wrong on screen, which is why
+  it survived: the numbers were right, they were just being re-fetched forever. Found
+  because a transfer-chain card was being rebuilt so fast its Remove button could not
+  be clicked. Regression test asserts at most one fetch per route between refreshes.
+
 ## [0.3.0.0] - 2026-08-19
 
 ### Added
