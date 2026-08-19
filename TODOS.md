@@ -46,7 +46,7 @@ built on top of saved trips, since a chain is a watch with two legs.
 **Priority:** P2
 **Depends on:** Saved trips
 
-### Normalize all-caps stop names (ISSUE-003)
+### Normalize all-caps stop and route names (ISSUE-003)
 
 **What:** 13 of 2,348 stops arrive entirely upper case from upstream
 (`SAN JACINTO/21ST`, `AIRPORT/KOENIG`, `RIVERSIDE/MONTOPOLIS`) and render that way
@@ -62,6 +62,11 @@ Needs an acronym allowlist. Any fix MUST be applied identically in
 `build/lib/stop-names.mjs` and `runtime/lib/stopnames.php` or it reintroduces
 ISSUE-002, the two implementations disagreeing on the same stop. Add cases to both
 regression suites.
+
+**Also two route names, found on 2026-08-19 while building the picker:** route 800 arrives as
+`800 PLEASANT VALLEY` and 837 as `837-EXPO CENTER`. They were always there; a picker listing
+71 routes instead of 6, plus the route chip in the header, makes them visible. 2 of 71. Same
+fix and the same acronym allowlist, applied wherever a route long_name is shortened.
 
 **Effort:** S
 **Priority:** P3
