@@ -1,0 +1,36 @@
+# Node
+node_modules/
+npm-debug.log*
+.npm/
+
+# Build output: generated shards are committed by CI only when feed_version
+# changes (see .github/workflows/gtfs.yml). Local builds stay out of git.
+build/dist/
+build/data/
+build/.cache/
+/tmp-gtfs/
+
+# Runtime output: generated every 60s by cron on the server, never committed.
+runtime/out/
+runtime/*.lock
+public/api/
+
+# Test output
+coverage/
+.playwright/
+playwright-report/
+test-results/
+.pytest_cache/
+__pycache__/
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Secrets. Nothing in this project should need one, but do not let a stray
+# .env become a commit.
+.env
+.env.*
+!.env.example
