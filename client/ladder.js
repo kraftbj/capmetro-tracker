@@ -658,6 +658,20 @@
      */
     var dirs = opts.direction === 'both' ? fmt.directionIds(data) : [opts.direction];
 
+    /*
+     * An empty list means the payload named no directions AND carried no vehicle to infer
+     * one from. Without this the loop below simply runs zero times: no track, no notice,
+     * and a heading over nothing. A board that has nothing to say must say so, or the
+     * reader cannot tell a route with no service from a board that failed to load.
+     */
+    if (!dirs.length) {
+      host.appendChild(S.notice('empty',
+        'No directions in this file.',
+        'The route published no direction list and no vehicle is reporting one, so there ' +
+        'is no ladder to draw. This is a problem with the file, not with the service.'));
+      return;
+    }
+
     sub.textContent = 'Clock time across, route down · tap + to open the stops between two timepoints';
 
     /*
