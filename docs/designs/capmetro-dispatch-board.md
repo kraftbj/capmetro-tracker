@@ -26,7 +26,7 @@ Direct quote that defines the target:
 
 ## What Makes This Cool
 
-Three things, in ascending order of "nobody else builds this":
+Four things, in ascending order of "nobody else builds this":
 
 1. **Schedule adherence per vehicle, stated in plain terms.** Not "arriving in 7 min" but
    "#2641 is the 9:33 trip, running +3, next stop Campbell/5th at 9:36 against a scheduled 9:33."
