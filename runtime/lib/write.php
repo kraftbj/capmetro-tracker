@@ -96,3 +96,45 @@ function cm_atomic_write_json(string $path, $doc): bool
     }
     return cm_atomic_write($path, $json . "\n");
 }
+
+/*
+ * Write a document only when it says something the file on disk does not already say,
+ * ignoring the fields listed in $volatile.
+ *
+ * The schedule endpoints are a pure function of the GTFS publication and the service
+ * date. Their only field that moves between runs is `generated_at`, so writing them on
+ * every poll rewrites 2.8 MB of identical bytes every sixty seconds: 3.9 GB a day, on a
+ * VPS SSD, for data CapMetro changes about three times a year.
+ *
+ * When nothing substantive changed the old file is LEFT ALONE, `generated_at` and all.
+ * That is the honest reading of the field for a schedule document: it is when this
+ * schedule was generated, not when the cron last woke up. `/api/health.json` is where a
+ * reader looks to find out whether the cron is alive, and it is written every run.
+ *
+ * Returns true when the file is correct afterwards, whether or not this call wrote it,
+ * because the caller's question is "is the endpoint right" and not "did I do work".
+ */
+function cm_atomic_write_json_if_changed(string $path, array $doc, array $volatile = ['generated_at']): bool
+{
+    $existing = @file_get_contents($path);
+    if ($existing !== false) {
+        $old = json_decode($existing, true);
+        if (is_array($old)) {
+            $a = $doc;
+            $b = $old;
+            foreach ($volatile as $key) {
+                unset($a[$key], $b[$key]);
+            }
+            /*
+             * Compared as encoded strings rather than with ==, because PHP's loose array
+             * comparison would call 0 and "0" equal and silently skip a real change of
+             * type. A strict === on arrays is order-sensitive for string keys, which is
+             * also wrong here; the encoder gives a canonical form for both.
+             */
+            if (json_encode($a) === json_encode($b)) {
+                return true;
+            }
+        }
+    }
+    return cm_atomic_write_json($path, $doc);
+}

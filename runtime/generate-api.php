@@ -416,7 +416,13 @@ foreach ($route_ids as $rid) {
      * and not a second parse of a 440 KB shard.
      */
     $departures = cm_build_departures($shard, $times, $active_services, $service_date, $feed_version, $now);
-    if (!cm_atomic_write_json($api_dir . '/departures/' . $rid . '.json', $departures)) {
+    /*
+     * Written only when it differs. This document carries no realtime field, so on an
+     * ordinary poll it is byte-identical apart from generated_at, and rewriting all 71
+     * of them every minute is 3.9 GB of pointless disk traffic a day. See
+     * cm_atomic_write_json_if_changed.
+     */
+    if (!cm_atomic_write_json_if_changed($api_dir . '/departures/' . $rid . '.json', $departures)) {
         $errors[] = "write failed for departures $rid";
     }
 
