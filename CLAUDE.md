@@ -42,3 +42,32 @@ Expectations:
   screen. Any change to either needs a differential run over all upstream names, not unit
   tests alone. This has already bitten once: ISSUE-002 in `.gstack/qa-reports/`.
 - Never commit code that makes existing tests fail.
+
+## Deploy Configuration (configured by /setup-deploy)
+- Platform: self-hosted Linode (Ubuntu 24.04), single origin
+- Production URL: https://bus.dillo.dev
+- Deploy workflow: none. `deploy/update.sh` on the box, run over ssh
+- Deploy status command: `systemctl status capmetro-generate.timer`
+- Merge method: merge to `trunk`, then update the box
+- Project type: static client + PHP CLI cron job. No app server, no database
+- Post-deploy health check: `https://bus.dillo.dev/api/health.json` (`"ok":true`)
+
+### Custom deploy hooks
+- Pre-merge: `npm test`
+- Deploy trigger: `ssh <host> 'sudo /srv/capmetro/src/deploy/update.sh'`
+- Deploy status: `curl -sf https://bus.dillo.dev/api/health.json | grep -q '"ok":true'`
+- Health check: `https://bus.dillo.dev/api/health.json`
+
+### Notes
+- Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd
+  timer that writes JSON to disk; there is no PHP handler in the vhost and that
+  is deliberate, not an omission.
+- `update.sh` does not restart anything. The generator is a systemd oneshot, so
+  new code is picked up on the next firing and there is no window where the
+  board is down for a deploy.
+- `/etc/capmetro/config.php` is never overwritten by the installer. It carries
+  the watch list, which is the one file on the box describing somebody's routine.
+- dillo.dev itself is on Pressable behind Automattic's edge cache. The board is
+  a subdomain pointed at the Linode precisely so it does not inherit that cache:
+  `/api/*` must be served `no-cache` or the board shows stale positions while
+  looking current.
