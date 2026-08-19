@@ -106,7 +106,41 @@
   }
 
   global.CMB = global.CMB || {};
+  /*
+   * THE direction list for a payload. Rows, ladder and map all read it, so one bus can
+   * never appear in a panel another panel has no column for. Routes 466 and 642 publish
+   * one direction only; assuming [0, 1] drew a phantom second ladder.
+   *
+   * It lives here rather than in rows.js because ladder.js must not depend on rows.js:
+   * they are loaded independently and a cross-import broke the ladder's own tests.
+   *
+   * The fallback is not decoration. route.directions is required by the contract, but a
+   * payload arriving without it would otherwise silently drop every row while the
+   * vehicles sat plainly in the data. Deriving from the vehicles fails visible, not blank.
+   */
+  function directionsInOrder(data) {
+    var dirs = (data && data.route && data.route.directions) || [];
+    if (dirs.length) {
+      return dirs.slice().sort(function (a, b) { return a.id - b.id; });
+    }
+    var seen = Object.create(null);
+    ((data && data.vehicles) || []).forEach(function (v) {
+      if (v.trip && v.trip.direction_id !== undefined && v.trip.direction_id !== null) {
+        seen[v.trip.direction_id] = v.trip.headsign || null;
+      }
+    });
+    return Object.keys(seen)
+      .map(function (k) { return { id: Number(k), headsign: seen[k] }; })
+      .sort(function (a, b) { return a.id - b.id; });
+  }
+
+  function directionIds(data) {
+    return directionsInOrder(data).map(function (d) { return d.id; });
+  }
+
   global.CMB.fmt = {
+    directionsInOrder: directionsInOrder,
+    directionIds: directionIds,
     AGENCY_TZ: AGENCY_TZ,
     MINUS: MINUS,
     clock: clock,

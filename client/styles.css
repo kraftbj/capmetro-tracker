@@ -240,6 +240,13 @@ button { font: inherit; color: inherit; }
   font-size: var(--fs-body);
 }
 .fact { display: grid; grid-template-columns: 96px 1fr; gap: 8px; padding: 4px 0; }
+
+/*
+ * Phone default: the direction groups stack, in the same order the ladders stack.
+ * The desktop rule above turns them into two columns to match the side-by-side ladders.
+ */
+.dirgroups { display: block; }
+.dirgroup + .dirgroup { margin-top: 4px; }
 .fact__k {
   font-size: var(--fs-chrome); text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--ink-chrome);
@@ -464,7 +471,21 @@ button { font: inherit; color: inherit; }
   .routechip { flex: 0 1 420px; }
   .tracks--both { flex-direction: row; gap: 32px; }
   .tracks--both .track { flex: 1 1 0; min-width: 0; }
+  /*
+   * Single-direction view keeps the two-column grid: the rows are one homogeneous
+   * list and reading order does not matter. BOTH mode does NOT, because its rows are
+   * grouped per direction and a grid would re-flow the groups into columns that no
+   * longer match the ladders. One column per group, full width, in ladder order.
+   */
   .vrows { display: grid; grid-template-columns: repeat(2, 1fr); }
+  /*
+   * BOTH mode: one COLUMN PER DIRECTION, in the same order and orientation as the
+   * .tracks--both ladders below, so the column a bus sits in matches the ladder it is
+   * plotted on. Each group keeps a single internal column; letting .vrows re-flow inside
+   * a group would scramble the pairing again.
+   */
+  .dirgroups { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; align-items: start; }
+  .vrows--dir { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

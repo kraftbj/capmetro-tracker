@@ -46,6 +46,13 @@
     };
   }
 
+  /* Same tag the rows and the ladder use, so one bus reads the same in all three. */
+  function dirTagFor(data, id) {
+    var d = ((data && data.route && data.route.directions) || [])
+      .filter(function (x) { return x.id === id; })[0];
+    return fmt.directionTag(d && d.headsign, id);
+  }
+
   function render(host, data, opts) {
     S.clear(host);
     var head = el('div', 'band__head');
@@ -65,6 +72,7 @@
     }
 
     var dir = opts.direction;
+    var showDirection = dir === 'both';
     var stops = (data.timepoints || []).filter(function (t) {
       return dir === 'both' || t.direction_id === dir;
     });
@@ -142,7 +150,14 @@
       var view = adhLib.view(v, data.staleness);
       var p = project(v.position.lat, v.position.lon);
       var g = svgEl('g', { class: 'map__chip map__chip--' + view.state });
-      var text = view.glyph + ' ' + (v.label || v.vehicle_id) + ' ' + view.value;
+      /*
+       * The direction tag earns its width in BOTH mode: without it a chip says which bus
+       * and how late, but not which way it is heading, which is the one thing the map is
+       * positioned to answer. Omitted in a single-direction view, where every chip on
+       * screen already shares the same heading and the tag would be pure repetition.
+       */
+      var dtag = (v.trip && showDirection) ? ' ' + dirTagFor(data, v.trip.direction_id) : '';
+      var text = view.glyph + ' ' + (v.label || v.vehicle_id) + ' ' + view.value + dtag;
       var wpx = 8 + text.length * 6.1;
       var x = Math.max(2, Math.min(w - wpx - 2, p.x - wpx / 2));
       var y = freeSlot(x, Math.max(2, Math.min(H - 20, p.y - 20)), wpx);

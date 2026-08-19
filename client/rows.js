@@ -62,6 +62,11 @@
     return fmt.directionTag(d && d.headsign, id);
   }
 
+  /* Shared with the ladder and the map; see fmt.directionsInOrder. */
+  function directionsInLadderOrder(data) {
+    return fmt.directionsInOrder(data);
+  }
+
   function continuationText(block, data) {
     if (!block) return null;
     if (!block.next_trip) {
@@ -329,6 +334,32 @@
 
     if (!counts.shown.length) {
       host.appendChild(emptyNotice(data, opts.direction, counts));
+    } else if (opts.direction === 'both') {
+      /*
+       * BOTH mode groups the rows by direction, one block per direction, in the same
+       * order the ladders appear below. Left as a single time-ordered list the rows
+       * flowed into the desktop two-column grid alternating SB, NB, SB, NB, so neither
+       * column matched the ladder sitting under it and the pairing read as noise.
+       * Grouping fixes both widths at once: side by side on desktop, stacked in ladder
+       * order at 412px.
+       */
+      var groups = el('div', 'dirgroups');
+      directionsInLadderOrder(data).forEach(function (dir) {
+        var forDir = counts.shown.filter(function (v) {
+          return v.trip && v.trip.direction_id === dir.id;
+        });
+        if (!forDir.length) return;
+        var group = el('section', 'dirgroup');
+        var head = el('p', 'subband__head');
+        head.appendChild(el('span', 'dirtag', dirTag(data, dir.id)));
+        head.appendChild(el('span', 'subband__note', dir.headsign || ''));
+        group.appendChild(head);
+        var list = el('div', 'vrows vrows--dir');
+        forDir.forEach(function (v, i) { list.appendChild(buildRow(v, data, dir.id + '-' + i)); });
+        group.appendChild(list);
+        groups.appendChild(group);
+      });
+      host.appendChild(groups);
     } else {
       var list = el('div', 'vrows');
       counts.shown.forEach(function (v, i) { list.appendChild(buildRow(v, data, i)); });
@@ -349,5 +380,10 @@
     }
   }
 
-  global.CMB.rows = { render: render, vehiclesFor: vehiclesFor, continuationText: continuationText };
+  global.CMB.rows = {
+    render: render,
+    vehiclesFor: vehiclesFor,
+    continuationText: continuationText,
+    directionsInLadderOrder: directionsInLadderOrder
+  };
 })(window);
