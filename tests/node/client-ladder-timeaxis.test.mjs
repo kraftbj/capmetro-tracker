@@ -440,3 +440,61 @@ describe('the drawn stem is the same fact as the printed badge', () => {
     })
   })
 })
+
+/*
+ * How many ladders BOTH mode draws, which is a question about the payload and not about
+ * the number 2.
+ *
+ * The renderer used to iterate a literal [0, 1]. Routes 466 and 642 publish one direction,
+ * so BOTH drew a second, empty ladder reading "No timepoints published for direction 1"
+ * beside a single group of rows — a panel asserting an absence the route never claimed.
+ *
+ * The opposite edge is worse and was also unhandled: a payload naming no directions at all
+ * put zero ladders on the page under a heading, with nothing saying why. A reader cannot
+ * tell that from a route with no service.
+ */
+describe('BOTH mode draws one ladder per direction the payload publishes', () => {
+  /** Narrow a payload to a single direction, the way route 466 arrives. */
+  const oneDirection = (data, keep = 0) => {
+    data.route.directions = data.route.directions.filter((d) => d.id === keep)
+    data.schedule.directions = data.schedule.directions.filter((d) => d.direction_id === keep)
+    data.vehicles = data.vehicles.filter((v) => !v.trip || v.trip.direction_id === keep)
+    return data
+  }
+
+  t('draws two ladders for a route that publishes two directions', (ns, cmb) => {
+    const host = draw(goldenRoute4(), 'both')
+    expect(all(host, 'track')).toHaveLength(2)
+    expect(all(host, 'tracks--both')).toHaveLength(1)
+  })
+
+  t('draws exactly one, with no both-mode framing, when the route publishes one', (ns, cmb) => {
+    const host = draw(oneDirection(goldenRoute4()), 'both')
+    expect(all(host, 'track')).toHaveLength(1)
+    expect(all(host, 'tracks--both')).toHaveLength(0)
+  })
+
+  t('never prints "no timepoints published" for a direction the route never claimed', (ns, cmb) => {
+    const host = draw(oneDirection(goldenRoute4()), 'both')
+    expect(textDeep(host)).not.toMatch(/No timepoints published for direction 1/i)
+  })
+
+  t('says why it drew nothing when the payload names no directions at all', (ns, cmb) => {
+    const data = goldenRoute4()
+    delete data.route.directions
+    data.vehicles = []
+    const host = draw(data, 'both')
+    expect(all(host, 'track')).toHaveLength(0)
+    expect(all(host, 'notice').length).toBeGreaterThan(0)
+    expect(textDeep(host)).toMatch(/no direction/i)
+  })
+
+  t('still draws the ladder when route.directions is missing but a bus reports one', (ns, cmb) => {
+    /* The fallback exists so a malformed payload fails visible rather than blank. */
+    const data = goldenRoute4()
+    delete data.route.directions
+    const host = draw(data, 'both')
+    expect(all(host, 'track').length).toBeGreaterThan(0)
+    expect(all(host, 'notice')).toHaveLength(0)
+  })
+})
