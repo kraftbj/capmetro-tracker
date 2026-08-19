@@ -1,0 +1,1028 @@
+{
+  "_comment": "Trimmed api/all.json for the all-buses view: every adherence state, deadheads both moving and parked, and two buses sharing one route so the by-route grouping is exercised. .local/ is generated output and not guaranteed present; this is.",
+  "schema": 1,
+  "generated_at": 1787152239,
+  "feeds": {
+    "positions_at": 1787152239,
+    "trip_updates_at": 1787152196,
+    "alerts_at": 1787152239,
+    "gtfs_feed_version": "260818_1456",
+    "gtfs_built_at": 1787082960
+  },
+  "staleness": {
+    "level": "fresh",
+    "oldest_feed_age_s": 43,
+    "schedule_age_days": 1,
+    "suppress_adherence": false,
+    "reason": null
+  },
+  "service_day": {
+    "date": "20260819",
+    "service_ids": [
+      "17-172",
+      "20-172",
+      "29-172",
+      "3-172",
+      "9-172"
+    ],
+    "is_exception_day": true
+  },
+  "counts": {
+    "total": 19,
+    "in_service": 13,
+    "deadhead": 6,
+    "routes_active": 9
+  },
+  "vehicles": [
+    {
+      "vehicle_id": "2214",
+      "label": "2214",
+      "route_id": "350",
+      "route_short_name": "350",
+      "position": {
+        "lat": 30.228518,
+        "lon": -97.70112,
+        "bearing": 28.2,
+        "speed_mps": 8.806688
+      },
+      "position_at": 1787152235,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3004707_13972",
+        "start_time": "10:00:00",
+        "start_epoch": 1787151600,
+        "direction_id": 0,
+        "headsign": "350 North Lamar Transit Center NB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 4,
+        "current_stop_id": "3253",
+        "current_status": "STOPPED_AT"
+      },
+      "adherence": {
+        "state": "very_late",
+        "seconds": 362,
+        "glyph": "square",
+        "against": {
+          "stop_id": "3253",
+          "stop_name": "Montopolis/Santos",
+          "stop_sequence": 4,
+          "scheduled_at": 1787151863,
+          "predicted_at": 1787152225
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 35,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "350002",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3004744_14249",
+          "direction_id": 1,
+          "start_time": "11:00:00",
+          "start_epoch": 1787155200,
+          "start_stop_id": "5226",
+          "start_stop_name": "North Lamar Bay 2",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2253",
+      "label": "2253",
+      "route_id": "18",
+      "route_short_name": "18",
+      "position": {
+        "lat": 30.28557,
+        "lon": -97.68195,
+        "bearing": 119,
+        "speed_mps": 8.04672
+      },
+      "position_at": 1787152236,
+      "in_service": true,
+      "trip": {
+        "trip_id": "2998864_1679",
+        "start_time": "09:35:00",
+        "start_epoch": 1787150100,
+        "direction_id": 0,
+        "headsign": "18 Expo Center EB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 25,
+        "current_stop_id": "5636",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "very_late",
+        "seconds": 444,
+        "glyph": "square",
+        "against": {
+          "stop_id": "5636",
+          "stop_name": "Heflin/Springdale",
+          "stop_sequence": 25,
+          "scheduled_at": 1787151856,
+          "predicted_at": 1787152300
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 37,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "18004",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "2998906_1972",
+          "direction_id": 1,
+          "start_time": "10:54:00",
+          "start_epoch": 1787154840,
+          "start_stop_id": "6554",
+          "start_stop_name": "Expo Center Bay G",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2362",
+      "label": "2362",
+      "route_id": "333",
+      "route_short_name": "333",
+      "position": {
+        "lat": 30.15172,
+        "lon": -97.75931,
+        "bearing": null,
+        "speed_mps": 0.025761498
+      },
+      "position_at": 1787152237,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3003641_11487",
+        "start_time": "09:15:00",
+        "start_epoch": 1787148900,
+        "direction_id": 1,
+        "headsign": "333 Goodnight EB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 34,
+        "current_stop_id": "6555",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "very_late",
+        "seconds": 842,
+        "glyph": "square",
+        "against": {
+          "stop_id": "6555",
+          "stop_name": "Goodnight Ranch Bay D",
+          "stop_sequence": 34,
+          "scheduled_at": 1787151360,
+          "predicted_at": 1787152202
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": false,
+        "is_special": false,
+        "trips_in_pattern": 33,
+        "adds": [
+          {
+            "stop_id": "5902",
+            "stop_name": "Brush Country/William\u2026"
+          }
+        ],
+        "skips": [
+          {
+            "stop_id": "2597",
+            "stop_name": "Oak Hill Plaza"
+          },
+          {
+            "stop_id": "6390",
+            "stop_name": "Convict Hill/Escarpment"
+          },
+          {
+            "stop_id": "3206",
+            "stop_name": "Convict Hill/Cannon\u2026"
+          },
+          {
+            "stop_id": "3207",
+            "stop_name": "Convict Hill/Wagon Train"
+          },
+          {
+            "stop_id": "3208",
+            "stop_name": "Convict Hill/Beckett"
+          },
+          {
+            "stop_id": "4446",
+            "stop_name": "Convict Hill/Woodcreek"
+          },
+          {
+            "stop_id": "4445",
+            "stop_name": "Convict Hill/Flaming Oak"
+          },
+          {
+            "stop_id": "3887",
+            "stop_name": "Convict Hill/Latta/Brush\u2026"
+          },
+          {
+            "stop_id": "3212",
+            "stop_name": "Copano/Copperas"
+          },
+          {
+            "stop_id": "3213",
+            "stop_name": "Copano/Sarasota"
+          },
+          {
+            "stop_id": "3214",
+            "stop_name": "Eskew/Copano"
+          },
+          {
+            "stop_id": "3215",
+            "stop_name": "Eskew/Mauai"
+          },
+          {
+            "stop_id": "3216",
+            "stop_name": "Eskew/Tree House"
+          },
+          {
+            "stop_id": "3217",
+            "stop_name": "Eskew/Croftwood"
+          },
+          {
+            "stop_id": "5594",
+            "stop_name": "Eskew/Leafield"
+          },
+          {
+            "stop_id": "3220",
+            "stop_name": "Brodie/Harpers Ferry"
+          },
+          {
+            "stop_id": "3221",
+            "stop_name": "Brodie/Convict Hill"
+          }
+        ]
+      },
+      "block": {
+        "block_id": "333001",
+        "confidence": "low",
+        "next_trip": {
+          "trip_id": "3003580_12088",
+          "direction_id": 0,
+          "start_time": "10:07:00",
+          "start_epoch": 1787152020,
+          "start_stop_id": "6555",
+          "start_stop_name": "Goodnight Ranch Bay D",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "203",
+      "label": "203",
+      "route_id": "550",
+      "route_short_name": "550",
+      "position": {
+        "lat": 30.262966,
+        "lon": -97.731995,
+        "bearing": 292,
+        "speed_mps": 4.2021756
+      },
+      "position_at": 1787152236,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3006690_17265",
+        "start_time": "09:11:00",
+        "start_epoch": 1787148660,
+        "direction_id": 0,
+        "headsign": "550 Downtown Station SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 10,
+        "current_stop_id": "5534",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "late",
+        "seconds": 322,
+        "glyph": "up-triangle",
+        "against": {
+          "stop_id": "5534",
+          "stop_name": "Downtown Station",
+          "stop_sequence": 10,
+          "scheduled_at": 1787152380,
+          "predicted_at": 1787152702
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 12,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "550001",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3006752_17132",
+          "direction_id": 1,
+          "start_time": "10:20:00",
+          "start_epoch": 1787152800,
+          "start_stop_id": "5534",
+          "start_stop_name": "Downtown Station",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2206",
+      "label": "2206",
+      "route_id": "350",
+      "route_short_name": "350",
+      "position": {
+        "lat": 30.329275,
+        "lon": -97.71584,
+        "bearing": null,
+        "speed_mps": 0
+      },
+      "position_at": 1787152237,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3004742_14247",
+        "start_time": "10:00:00",
+        "start_epoch": 1787151600,
+        "direction_id": 1,
+        "headsign": "350 ACC Riverside SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 7,
+        "current_stop_id": "5603",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "late",
+        "seconds": 185,
+        "glyph": "up-triangle",
+        "against": {
+          "stop_id": "5603",
+          "stop_name": "Airport Blvd",
+          "stop_sequence": 7,
+          "scheduled_at": 1787152046,
+          "predicted_at": 1787152231
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 35,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "350001",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3004709_13974",
+          "direction_id": 0,
+          "start_time": "11:00:00",
+          "start_epoch": 1787155200,
+          "start_stop_id": "6439",
+          "start_stop_name": "ACC Riverside @ Grove",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2211",
+      "label": "2211",
+      "route_id": "300",
+      "route_short_name": "300",
+      "position": {
+        "lat": 30.24307,
+        "lon": -97.76218,
+        "bearing": 289,
+        "speed_mps": 11.176
+      },
+      "position_at": 1787152235,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3001204_7020",
+        "start_time": "08:49:00",
+        "start_epoch": 1787147340,
+        "direction_id": 0,
+        "headsign": "300 Westgate Transit Center SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 56,
+        "current_stop_id": "2251",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "late",
+        "seconds": 297,
+        "glyph": "up-triangle",
+        "against": {
+          "stop_id": "2251",
+          "stop_name": "Oltorf/ South 4th",
+          "stop_sequence": 56,
+          "scheduled_at": 1787151935,
+          "predicted_at": 1787152232
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 61,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "300015",
+        "confidence": "low",
+        "next_trip": {
+          "trip_id": "3001276_6487",
+          "direction_id": 1,
+          "start_time": "10:45:00",
+          "start_epoch": 1787154300,
+          "start_stop_id": "6374",
+          "start_stop_name": "Westgate Transit Center\u2026",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "201",
+      "label": "201",
+      "route_id": "550",
+      "route_short_name": "550",
+      "position": {
+        "lat": 30.338835,
+        "lon": -97.71987,
+        "bearing": 336.2,
+        "speed_mps": 9.432544
+      },
+      "position_at": 1787152237,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3006753_17127",
+        "start_time": "09:52:00",
+        "start_epoch": 1787151120,
+        "direction_id": 1,
+        "headsign": "550 Kramer Station NB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 5,
+        "current_stop_id": "5538",
+        "current_status": "STOPPED_AT"
+      },
+      "adherence": {
+        "state": "early",
+        "seconds": -63,
+        "glyph": "left-triangle",
+        "against": {
+          "stop_id": "5538",
+          "stop_name": "Crestview Station",
+          "stop_sequence": 5,
+          "scheduled_at": 1787152260,
+          "predicted_at": 1787152197
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": false,
+        "is_special": true,
+        "trips_in_pattern": 2,
+        "adds": [],
+        "skips": [
+          {
+            "stop_id": "5540",
+            "stop_name": "Howard Station"
+          },
+          {
+            "stop_id": "5541",
+            "stop_name": "Lakeline Station"
+          },
+          {
+            "stop_id": "5542",
+            "stop_name": "Leander Station"
+          }
+        ]
+      },
+      "block": {
+        "block_id": "550003",
+        "confidence": "high",
+        "next_trip": null
+      }
+    },
+    {
+      "vehicle_id": "2202",
+      "label": "2202",
+      "route_id": "10",
+      "route_short_name": "10",
+      "position": {
+        "lat": 30.317146,
+        "lon": -97.69074,
+        "bearing": 208,
+        "speed_mps": 12.07008
+      },
+      "position_at": 1787152236,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3014964_1082",
+        "start_time": "10:00:00",
+        "start_epoch": 1787151600,
+        "direction_id": 0,
+        "headsign": "10 Southpark Meadows SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 11,
+        "current_stop_id": "1316",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "early",
+        "seconds": -181,
+        "glyph": "left-triangle",
+        "against": {
+          "stop_id": "1316",
+          "stop_name": "Berkman/Glen Valley",
+          "stop_sequence": 11,
+          "scheduled_at": 1787152399,
+          "predicted_at": 1787152218
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 64,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "10011",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3015034_0559",
+          "direction_id": 1,
+          "start_time": "11:57:00",
+          "start_epoch": 1787158620,
+          "start_stop_id": "5263",
+          "start_stop_name": "Turk/Cullen",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "103",
+      "label": "103",
+      "route_id": "550",
+      "route_short_name": "550",
+      "position": {
+        "lat": 30.481188,
+        "lon": -97.78665,
+        "bearing": null,
+        "speed_mps": 0
+      },
+      "position_at": 1787152235,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3006689_17254",
+        "start_time": "10:30:00",
+        "start_epoch": 1787153400,
+        "direction_id": 0,
+        "headsign": "550 Downtown Station SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 1,
+        "current_stop_id": "5541",
+        "current_status": "STOPPED_AT"
+      },
+      "adherence": {
+        "state": "ontime",
+        "seconds": 0,
+        "glyph": "circle",
+        "against": {
+          "stop_id": "5541",
+          "stop_name": "Lakeline Station",
+          "stop_sequence": 1,
+          "scheduled_at": 1787153400,
+          "predicted_at": 1787153400
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": false,
+        "is_special": true,
+        "trips_in_pattern": 4,
+        "adds": [],
+        "skips": [
+          {
+            "stop_id": "5542",
+            "stop_name": "Leander Station"
+          }
+        ]
+      },
+      "block": {
+        "block_id": "550002",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3006751_17129",
+          "direction_id": 1,
+          "start_time": "11:22:00",
+          "start_epoch": 1787156520,
+          "start_stop_id": "5534",
+          "start_stop_name": "Downtown Station",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2116",
+      "label": "2116",
+      "route_id": "803",
+      "route_short_name": "803",
+      "position": {
+        "lat": 30.308073,
+        "lon": -97.74132,
+        "bearing": null,
+        "speed_mps": 0.044704
+      },
+      "position_at": 1787152235,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3011809_23125",
+        "start_time": "09:40:00",
+        "start_epoch": 1787150400,
+        "direction_id": 1,
+        "headsign": "803 Westgate Transit Center SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 12,
+        "current_stop_id": "4831",
+        "current_status": "STOPPED_AT"
+      },
+      "adherence": {
+        "state": "ontime",
+        "seconds": 4,
+        "glyph": "circle",
+        "against": {
+          "stop_id": "4831",
+          "stop_name": "Rosedale Station",
+          "stop_sequence": 12,
+          "scheduled_at": 1787152221,
+          "predicted_at": 1787152225
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 92,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "803013",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3011725_22905",
+          "direction_id": 0,
+          "start_time": "10:59:00",
+          "start_epoch": 1787155140,
+          "start_stop_id": "6373",
+          "start_stop_name": "Westgate Transit Center\u2026",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2201",
+      "label": "2201",
+      "route_id": "311",
+      "route_short_name": "311",
+      "position": {
+        "lat": 30.205036,
+        "lon": -97.77516,
+        "bearing": null,
+        "speed_mps": 0.044704
+      },
+      "position_at": 1787152235,
+      "in_service": true,
+      "trip": {
+        "trip_id": "3014409_7935",
+        "start_time": "09:48:00",
+        "start_epoch": 1787150880,
+        "direction_id": 1,
+        "headsign": "311 ACC RIVERSIDE EB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 19,
+        "current_stop_id": "4276",
+        "current_status": "STOPPED_AT"
+      },
+      "adherence": {
+        "state": "ontime",
+        "seconds": -53,
+        "glyph": "circle",
+        "against": {
+          "stop_id": "4276",
+          "stop_name": "Stassney/Congress",
+          "stop_sequence": 19,
+          "scheduled_at": 1787152260,
+          "predicted_at": 1787152207
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 60,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "311001",
+        "confidence": "high",
+        "next_trip": {
+          "trip_id": "3014353_8418",
+          "direction_id": 0,
+          "start_time": "10:47:00",
+          "start_epoch": 1787154420,
+          "start_stop_id": "6439",
+          "start_stop_name": "ACC Riverside @ Grove",
+          "is_direction_flip": true
+        }
+      }
+    },
+    {
+      "vehicle_id": "2205",
+      "label": "2205",
+      "route_id": "1",
+      "route_short_name": "1",
+      "position": {
+        "lat": 30.418247,
+        "lon": -97.66869,
+        "bearing": null,
+        "speed_mps": 0.043643765
+      },
+      "position_at": 1787152238,
+      "in_service": true,
+      "trip": {
+        "trip_id": "2997847_0310",
+        "start_time": "10:25:00",
+        "start_epoch": 1787153100,
+        "direction_id": 0,
+        "headsign": "1 William Cannon SB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 1,
+        "current_stop_id": "5273",
+        "current_status": "STOPPED_AT"
+      },
+      "adherence": {
+        "state": "ontime",
+        "seconds": 0,
+        "glyph": "circle",
+        "against": {
+          "stop_id": "5273",
+          "stop_name": "Tech Ridge Bay H",
+          "stop_sequence": 1,
+          "scheduled_at": 1787153100,
+          "predicted_at": 1787153100
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 38,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "1006",
+        "confidence": "low",
+        "next_trip": {
+          "trip_id": "2997857_0320",
+          "direction_id": 0,
+          "start_time": "15:26:00",
+          "start_epoch": 1787171160,
+          "start_stop_id": "5273",
+          "start_stop_name": "Tech Ridge Bay H",
+          "is_direction_flip": false
+        }
+      }
+    },
+    {
+      "vehicle_id": "2055",
+      "label": "2055",
+      "route_id": "",
+      "route_short_name": null,
+      "position": {
+        "lat": 30.257746,
+        "lon": -97.70781,
+        "bearing": null,
+        "speed_mps": 0.044704
+      },
+      "position_at": 1787152236,
+      "in_service": false,
+      "adherence": {
+        "state": "deadhead",
+        "seconds": null,
+        "glyph": "ring",
+        "against": null,
+        "reason": null
+      }
+    },
+    {
+      "vehicle_id": "2065",
+      "label": "2065",
+      "route_id": "",
+      "route_short_name": null,
+      "position": {
+        "lat": 30.175846,
+        "lon": -97.780815,
+        "bearing": 209.5,
+        "speed_mps": 15.333471
+      },
+      "position_at": 1787152236,
+      "in_service": false,
+      "adherence": {
+        "state": "deadhead",
+        "seconds": null,
+        "glyph": "ring",
+        "against": null,
+        "reason": null
+      }
+    },
+    {
+      "vehicle_id": "2068",
+      "label": "2068",
+      "route_id": "",
+      "route_short_name": null,
+      "position": {
+        "lat": 30.33438,
+        "lon": -97.68032,
+        "bearing": 172.1,
+        "speed_mps": 11.488928
+      },
+      "position_at": 1787152237,
+      "in_service": false,
+      "adherence": {
+        "state": "deadhead",
+        "seconds": null,
+        "glyph": "ring",
+        "against": null,
+        "reason": null
+      }
+    },
+    {
+      "vehicle_id": "101",
+      "label": "101",
+      "route_id": "",
+      "route_short_name": null,
+      "position": {
+        "lat": 30.37462,
+        "lon": -97.722725,
+        "bearing": null,
+        "speed_mps": 0
+      },
+      "position_at": 1787152237,
+      "in_service": false,
+      "adherence": {
+        "state": "deadhead",
+        "seconds": null,
+        "glyph": "ring",
+        "against": null,
+        "reason": null
+      }
+    },
+    {
+      "vehicle_id": "105",
+      "label": "105",
+      "route_id": "",
+      "route_short_name": null,
+      "position": {
+        "lat": 30.37499,
+        "lon": -97.72256,
+        "bearing": null,
+        "speed_mps": 0
+      },
+      "position_at": 1787152236,
+      "in_service": false,
+      "adherence": {
+        "state": "deadhead",
+        "seconds": null,
+        "glyph": "ring",
+        "against": null,
+        "reason": null
+      }
+    },
+    {
+      "vehicle_id": "202",
+      "label": "202",
+      "route_id": "",
+      "route_short_name": null,
+      "position": {
+        "lat": 30.34291,
+        "lon": -97.721,
+        "bearing": null,
+        "speed_mps": 0
+      },
+      "position_at": 1787152236,
+      "in_service": false,
+      "adherence": {
+        "state": "deadhead",
+        "seconds": null,
+        "glyph": "ring",
+        "against": null,
+        "reason": null
+      }
+    },
+    {
+      "vehicle_id": "2207",
+      "label": "2207",
+      "route_id": "1",
+      "route_short_name": "1",
+      "position": {
+        "lat": 30.38382,
+        "lon": -97.68525,
+        "bearing": 25,
+        "speed_mps": 16.98752
+      },
+      "position_at": 1787152237,
+      "in_service": true,
+      "trip": {
+        "trip_id": "2997869_0085",
+        "start_time": "08:31:00",
+        "start_epoch": 1787146260,
+        "direction_id": 1,
+        "headsign": "1 Tech Ridge Park & Ride NB",
+        "schedule_relationship": "SCHEDULED"
+      },
+      "progress": {
+        "current_stop_sequence": 68,
+        "current_stop_id": "4896",
+        "current_status": "IN_TRANSIT_TO"
+      },
+      "adherence": {
+        "state": "ontime",
+        "seconds": 117,
+        "glyph": "circle",
+        "against": {
+          "stop_id": "4896",
+          "stop_name": "Lamar/Caddo",
+          "stop_sequence": 68,
+          "scheduled_at": 1787152134,
+          "predicted_at": 1787152251
+        },
+        "reason": null
+      },
+      "pattern": {
+        "is_baseline": true,
+        "is_special": false,
+        "trips_in_pattern": 38,
+        "adds": [],
+        "skips": []
+      },
+      "block": {
+        "block_id": "1008",
+        "confidence": "low",
+        "next_trip": {
+          "trip_id": "2997892_0095",
+          "direction_id": 1,
+          "start_time": "13:16:00",
+          "start_epoch": 1787163360,
+          "start_stop_id": "554",
+          "start_stop_name": "Bluff Springs/William\u2026",
+          "is_direction_flip": false
+        }
+      }
+    }
+  ]
+}
