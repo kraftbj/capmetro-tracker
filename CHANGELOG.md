@@ -3,6 +3,54 @@
 All notable changes to the CapMetro dispatch board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.3.0.0] - 2026-08-19
+
+### Added
+
+- **Every route, not six.** The picker offers all 71 routes the build generates,
+  with search by number or street name, live bus counts, and a note on the four
+  routes that are not running today. The six routes this household rides stay
+  pinned at the top as a shortcut. Previously the picker was hard-coded to those
+  six while the backend generated seventy-one, so the board was wrong the moment
+  either kid took a different bus.
+- **An every-bus view, deadheads included.** 392 vehicles right now, 143 of them
+  out of service. It leads with a count strip that answers "is anything unusual
+  happening" without scrolling, then the buses that need a look, then the
+  deadheads explained in plain language and split into moving and parked, then
+  every route in order of worst news. Tapping a route opens its board.
+- **Saved trips.** Save the departure you actually wait for — a route, a
+  direction, a stop and a time chosen from what is really scheduled — and it
+  appears from an hour before it is due until after it has gone, leading with
+  when the bus will actually arrive rather than with how late it is. Saved trips
+  live only in your browser and are never sent anywhere.
+- **A real map of the route.** Every stop is plotted at its true position and
+  joined in order, so the line traces the streets: 48 points on route 4 where
+  the old panel drew 6. North is up, there is a scale bar in miles, and the
+  panel height follows the route's own shape instead of squashing every
+  north-south route into a horizontal band. There is still no basemap under it,
+  and the caption says so.
+- Two new endpoints behind all of this: a route catalog, and a full service day
+  of scheduled stop times per route covering every stop rather than only the
+  timepoints. The stop in the example that motivated saved trips is a minor
+  stop, so the existing schedule data could not answer it.
+
+### Fixed
+
+- The test suite was checking a fraction of what it claimed. Webroot generation
+  was gated on a directory this checkout never had, so every assertion about
+  generated output quietly stood down: schema validation reported 13 passing
+  checks where it should report 305, and the staff-privacy assertion — the most
+  important test in the repo — was among the silent ones. Two PHP suites named
+  the same dead path and a third globbed a shard layout the build abandoned; PHP
+  assertions went from 1,843 to 7,914 once they ran.
+- Three acceptance criteria then failed on first contact, none of them a code
+  regression. Two asserted facts the fixture provably cannot contain, and one
+  still enforced the truncation rule from before the stop-name fix. All three
+  now assert the same substance where the fact actually lives, and the
+  truncation rule is stronger than the one it replaces rather than weaker.
+- A saved trip could not find its bus unless you happened to be looking at that
+  route's board, which is the opposite of the point.
+
 ## [0.2.0.0] - 2026-08-19
 
 ### Added

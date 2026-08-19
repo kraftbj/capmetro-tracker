@@ -2,93 +2,30 @@
 
 ## Client
 
-### Let the route picker reach every route the backend already publishes
 
-**What:** The picker offers six hard-coded routes (4, 7, 337, 350, 800, 837). The
-build generates 71 route files. Drive the list from the generated data instead.
 
-**Why:** "I like the current website's option to pick any route and see the buses
-for that route, so don't hard code one." Six routes covers the two school runs and
-nothing else. The moment either kid takes a different bus, or anyone else opens the
-board, it is the wrong six. The data is already there: `.local/webroot/api/route/`
-holds 71 files and every one of them renders today if you hand it a route id in the
-URL. Only the picker is short.
 
-**Context:** `client/app.js` line 26 has `var WATCHED = [...]` with the six ids and
-a comment saying only route 4 had a generated file, which stopped being true once
-the build lane finished. The fix needs a routes index the client can fetch: either
-add a `routes` array to `api/all.json` (which the client will want anyway for the
-all-buses view) or emit a small `api/routes.json` at build time carrying id,
-short_name, long_name and the directions each route publishes. Keep the six as a
-pinned "favourites" row above the full list; that part of the current design is
-worth keeping.
 
-**Effort:** M
-**Priority:** P0
-**Depends on:** None
+### Decide whether the map ever gets streets under it
 
-### Build the all-buses view
+**What:** The map now plots every stop at its true position and joins them in order, so
+the line traces the streets and the panel carries north-up and a scale bar. There is still
+no basemap beneath it — no street names, no river, no city.
 
-**What:** A second screen showing every vehicle in the system at once, deadheads
-included, not scoped to a route.
+**Why:** The current panel answers "where is she on this route". It does not answer "what
+is she near", which is the question if you are driving to pick her up.
 
-**Why:** "It also had a screen to simply see all buses, which was also nice but
-secondary." Plus, explicitly: "For the all buses view, show the deadhead etc."
-Right now `api/all.json` is generated on every run and nothing reads it. Today's
-file carries 392 vehicles, 143 of them out of service — that is 36% of the fleet
-that the route views deliberately hide and this view is supposed to show.
-
-**Context:** The payload already exists and validates against the schema. It carries
-`counts`, `staleness`, `service_day` and the full `vehicles` array with `in_service`
-set. The work is entirely client-side: a list or map that does not assume a single
-route, and a filter for in-service vs deadhead. `client/rows.js` mostly works
-unmodified; what it lacks is a route label per row, since within one route today
-that is implied.
+**Context:** Deliberately not solved in v0.3.0.0. A tile source is a network dependency and
+the board is required to open from a `file://` URL with no server, so no hosted basemap
+fits as things stand. Three ways out, in rising cost: commit a single pre-rendered static
+image of the service area and put it under the projection (keeps the offline property,
+cheap, ages badly); relax the offline requirement and use a tile provider with attribution
+(easy, adds a runtime dependency and possibly a bill); or render street geometry from GTFS
+`shapes.txt`, which the build does not currently read at all — check whether CapMetro even
+publishes it before costing this.
 
 **Effort:** M
-**Priority:** P1
-**Depends on:** None
-
-### Saved trips: watch a specific stop and time
-
-**What:** Save "the 7:50a 800 SB from Simond/Berkman" and see how that trip is
-looking from about an hour before until after the bus clears the stop.
-
-**Why:** This is the question actually being asked most mornings, and answering it
-today means picking the route, picking the direction, and reading the ladder to find
-which of the several buses is the right one. The backend for this is done and unused.
-
-**Context:** `runtime/lib/watch.php` computes the watch payload, including
-`day_type`, and `watch_id` is a sha256-16 of the semantic tuple specifically so a
-child's routine never lands in a URL or a server log. Watches are client-local by
-design. Missing: the UI to create one (pick route, direction, stop, time), the
-storage (localStorage), and the pre/post window rendering. The `day_type` field is
-already emitted, so the weekday / Saturday / Sunday distinction is available and
-only needs surfacing.
-
-**Effort:** L
-**Priority:** P1
-**Depends on:** None
-
-### Give the map a real basemap
-
-**What:** The position panel is a labelled schematic — real coordinates, real
-relative geometry, no streets. Add actual cartography.
-
-**Why:** "I like 1 - the map so I have the most info." Relative geometry answers
-"which bus is closer"; it does not answer "where is she right now", which is the
-question that made you open the app.
-
-**Context:** `client/map.js` says so in its own header: no basemap ships because a
-tile source is a network dependency and the board must open from disk. That
-constraint is worth re-examining rather than inheriting — the board already fetches
-its own JSON over the network, so the offline-from-disk property is mostly
-theoretical. Options: raster tiles from a free provider with an attribution
-requirement, a vector basemap, or a pre-rendered static image of the service area
-committed once. The last one keeps the no-network property and is much less work.
-
-**Effort:** M
-**Priority:** P2
+**Priority:** P3
 **Depends on:** None
 
 ### Transfer chains
@@ -240,6 +177,107 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### Give the map a real basemap
+
+**What:** The position panel is a labelled schematic — real coordinates, real
+relative geometry, no streets. Add actual cartography.
+
+**Why:** "I like 1 - the map so I have the most info." Relative geometry answers
+"which bus is closer"; it does not answer "where is she right now", which is the
+question that made you open the app.
+
+**Context:** `client/map.js` says so in its own header: no basemap ships because a
+tile source is a network dependency and the board must open from disk. That
+constraint is worth re-examining rather than inheriting — the board already fetches
+its own JSON over the network, so the offline-from-disk property is mostly
+theoretical. Options: raster tiles from a free provider with an attribution
+requirement, a vector basemap, or a pre-rendered static image of the service area
+committed once. The last one keeps the no-network property and is much less work.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** None
+
+**Completed:** v0.3.0.0 (2026-08-19)
+
+
+### Saved trips: watch a specific stop and time
+
+**What:** Save "the 7:50a 800 SB from Simond/Berkman" and see how that trip is
+looking from about an hour before until after the bus clears the stop.
+
+**Why:** This is the question actually being asked most mornings, and answering it
+today means picking the route, picking the direction, and reading the ladder to find
+which of the several buses is the right one. The backend for this is done and unused.
+
+**Context:** `runtime/lib/watch.php` computes the watch payload, including
+`day_type`, and `watch_id` is a sha256-16 of the semantic tuple specifically so a
+child's routine never lands in a URL or a server log. Watches are client-local by
+design. Missing: the UI to create one (pick route, direction, stop, time), the
+storage (localStorage), and the pre/post window rendering. The `day_type` field is
+already emitted, so the weekday / Saturday / Sunday distinction is available and
+only needs surfacing.
+
+**Effort:** L
+**Priority:** P1
+**Depends on:** None
+
+**Completed:** v0.3.0.0 (2026-08-19)
+
+
+### Build the all-buses view
+
+**What:** A second screen showing every vehicle in the system at once, deadheads
+included, not scoped to a route.
+
+**Why:** "It also had a screen to simply see all buses, which was also nice but
+secondary." Plus, explicitly: "For the all buses view, show the deadhead etc."
+Right now `api/all.json` is generated on every run and nothing reads it. Today's
+file carries 392 vehicles, 143 of them out of service — that is 36% of the fleet
+that the route views deliberately hide and this view is supposed to show.
+
+**Context:** The payload already exists and validates against the schema. It carries
+`counts`, `staleness`, `service_day` and the full `vehicles` array with `in_service`
+set. The work is entirely client-side: a list or map that does not assume a single
+route, and a filter for in-service vs deadhead. `client/rows.js` mostly works
+unmodified; what it lacks is a route label per row, since within one route today
+that is implied.
+
+**Effort:** M
+**Priority:** P1
+**Depends on:** None
+
+**Completed:** v0.3.0.0 (2026-08-19)
+
+
+### Let the route picker reach every route the backend already publishes
+
+**What:** The picker offers six hard-coded routes (4, 7, 337, 350, 800, 837). The
+build generates 71 route files. Drive the list from the generated data instead.
+
+**Why:** "I like the current website's option to pick any route and see the buses
+for that route, so don't hard code one." Six routes covers the two school runs and
+nothing else. The moment either kid takes a different bus, or anyone else opens the
+board, it is the wrong six. The data is already there: `.local/webroot/api/route/`
+holds 71 files and every one of them renders today if you hand it a route id in the
+URL. Only the picker is short.
+
+**Context:** `client/app.js` line 26 has `var WATCHED = [...]` with the six ids and
+a comment saying only route 4 had a generated file, which stopped being true once
+the build lane finished. The fix needs a routes index the client can fetch: either
+add a `routes` array to `api/all.json` (which the client will want anyway for the
+all-buses view) or emit a small `api/routes.json` at build time carrying id,
+short_name, long_name and the directions each route publishes. Keep the six as a
+pinned "favourites" row above the full list; that part of the current design is
+worth keeping.
+
+**Effort:** M
+**Priority:** P0
+**Depends on:** None
+
+**Completed:** v0.3.0.0 (2026-08-19)
+
 
 ### Resolve BOTH-direction ladder rendering
 
