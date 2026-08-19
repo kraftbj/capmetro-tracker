@@ -2,132 +2,7 @@
 
 ## Client
 
-### Show cancelled trips. This is the one that stranded a kid.
 
-**What:** A cancelled trip is invisible everywhere in the client. The stop board, the saved
-trips and the ladder all render it as "scheduled · no bus reporting yet", which a reader
-correctly parses as "it hasn't started yet" when it actually means "it is never coming".
-
-**Why:** On 2026-08-19 at 17:20 the owner's daughter waited at the Austin High stop for the
-17:02 EB special on block 4090. That trip was cancelled. The board could not have told her,
-and the stop it serves is the ONLY one that is served once in the morning and once in the
-afternoon, so there was no second bus at that stop all day. She was stranded.
-
-**It is not rare.** Live at 17:28 that same day: **187 cancelled trips system-wide, 17 on
-route 4 alone** — 16:49, 17:02, 17:40, 17:57, 18:14, 18:31, 19:05, 19:22, 19:39, 19:56 and
-more. There was also a route-wide `REDUCED_SERVICE` alert for the day. Cancellation is a
-normal operating condition on this system, not an edge case.
-
-**Where the data already is:** the trip updates feed carries
-`trip.scheduleRelationship: "CANCELED"`, and `runtime/lib/adherence.php` already knows the
-`trip_canceled` reason. But that reason only ever attaches to a VEHICLE, and a cancelled
-trip has no vehicle — so it can never surface through that path. The runtime has to read
-cancellation off the trip updates feed independently of vehicle matching and publish it as
-a property of the TRIP.
-
-**What to build:**
-- Runtime: a `canceled` set from the trip updates feed. Publish it on
-  `api/departures/{route}.json` trips (`"canceled": true`) so the stop board and saved
-  trips can read it, and on the route payload's `schedule.directions[].trips` rows.
-- Client: a cancelled departure must say CANCELED in words, must not be counted as "next",
-  and must never read as merely un-started. In the stop board it should be shown struck
-  through rather than hidden, because "the 5:40 is cancelled" is more useful than the 5:40
-  silently not existing.
-- The ladder should draw a cancelled diagonal differently, or omit it and say how many it
-  omitted.
-
-**Effort:** M
-**Priority:** P0
-**Depends on:** None
-
-### Regenerate the golden route 4 fixture and make the block fields required
-
-**What:** `tests/fixtures/golden/route-4-20260819.json` predates
-`block.spans_routes`, `route_ids`, `is_last_trip` and `next_trip.route_id`, so those five
-fields are in the schemas' `properties` but deliberately not in `required`.
-
-**Why:** Presence on live output is currently enforced only by a PHPUnit sweep. Making the
-fields required in the schema is the stronger guarantee, and it cannot be done while a
-committed fixture would fail it.
-
-**Context:** Left alone by the block-routes lane because the fixture feeds the e2e suite.
-Regenerate it from the 2026-08-19 feeds, confirm the e2e specs still pass against it, then
-promote the five fields to `required` in `schemas/common.schema.json` and drop the
-`$comment` explaining their absence.
-
-**Effort:** S
-**Priority:** P3
-**Depends on:** None
-
-### Order the vehicle rows by position along the route, not by lateness
-
-**What:** `client/rows.js` sorts by adherence severity — worst news first. Order them by
-where each bus actually is along the route instead, so the list reads in running order and
-lines up with the ladder beside it.
-
-**Why:** Owner's words: *"ordered by how late they are makes zero sense... the top one
-should be the one that is the most in that direction (e.g. a SB ladder should have the most
-southbound one at the top)."* Severity order is dispatcher thinking, the same wrong frame
-the all-buses triage band had. A rider is asking "which bus is nearest me", and that is a
-question about position.
-
-**Context:** `progress.current_stop_sequence` is the field; it is already on every
-in-service vehicle. Highest sequence is furthest along the route. The open question is
-whether the list should run furthest-along-first (matching "most southbound at the top") or
-first-stop-first (matching the ladder's own top-to-bottom order). Those disagree, so pick
-one deliberately and say which in the caption. Out-of-service buses have no sequence and
-should stay in their own group at the bottom.
-
-**Effort:** S
-**Priority:** P1
-**Depends on:** None
-
-
-
-
-
-
-### Rebuild the all-buses board around buses, not around triage
-
-**What:** Drop the "Needs a look" band. List every route with all of its buses, and make
-any bus tappable for a detail view.
-
-**Why:** Owner's words: *"I don't care about 'needs a look' — I don't actually work at
-capmetro."* The band ranks by what a dispatcher would triage, which is the wrong reader.
-The board is for someone finding a specific bus, not for someone managing a fleet.
-
-**Detail view, and exactly what the payload can back:**
-
-| Field | Source | Notes |
-|---|---|---|
-| Route + headsign | `trip.route_id`, `trip.headsign` | |
-| Next stop | `adherence.against.stop_name` | |
-| Time to next stop | `adherence.against.predicted_at` minus now | already the number the badge is derived from |
-| Scheduled at that stop | `adherence.against.scheduled_at` | the pair is what makes lateness legible |
-| Current location | `position.lat/lon`, `position.speed_mps` | |
-| Status | `progress.current_status` | `IN_TRANSIT_TO` / `STOPPED_AT` / `INCOMING_AT` |
-| What it does next | `block.next_trip` | the direction flip, when confidence allows |
-| Special run | `pattern.is_special`, `adds`, `skips` | |
-
-**Previous stop is NOT directly available and needs a decision.** `progress` gives
-`current_stop_sequence`; the stop one before it has to be looked up in a route-scoped stop
-list, and `api/all.json` carries no stops at all. Three ways: fetch `api/route/{id}.json`
-when a bus is tapped (cheap, one file, already generated); add a `previous_stop` to the
-vehicle in the generator (cleanest for the client, a contract change); or drop the field.
-Fetching on tap is probably right — the detail view is a deliberate action, not a hover.
-
-**Out of service, what actually exists:** `vehicle_id`, `label`, `position` (lat, lon,
-`speed_mps`), `position_at`. No trip, no route, no headsign, nothing else. So the owner's
-instinct is right that there is little to show: location, whether it is moving or parked,
-and how long since it last reported. Anything more would be invented.
-
-**Context:** The current design is in `client/allbuses.js` and its 20 tests. The count
-strip is worth keeping; the triage band is not. 392 vehicles across 48 routes, 143 of them
-out of service.
-
-**Effort:** M
-**Priority:** P1
-**Depends on:** None
 
 ### Decide whether the map ever gets streets under it
 
@@ -305,6 +180,140 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### Regenerate the golden route 4 fixture and make the block fields required
+
+**What:** `tests/fixtures/golden/route-4-20260819.json` predates
+`block.spans_routes`, `route_ids`, `is_last_trip` and `next_trip.route_id`, so those five
+fields are in the schemas' `properties` but deliberately not in `required`.
+
+**Why:** Presence on live output is currently enforced only by a PHPUnit sweep. Making the
+fields required in the schema is the stronger guarantee, and it cannot be done while a
+committed fixture would fail it.
+
+**Context:** Left alone by the block-routes lane because the fixture feeds the e2e suite.
+Regenerate it from the 2026-08-19 feeds, confirm the e2e specs still pass against it, then
+promote the five fields to `required` in `schemas/common.schema.json` and drop the
+`$comment` explaining their absence.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** None
+
+**Completed:** v0.4.0.0 (2026-08-19)
+
+
+### Rebuild the all-buses board around buses, not around triage
+
+**What:** Drop the "Needs a look" band. List every route with all of its buses, and make
+any bus tappable for a detail view.
+
+**Why:** Owner's words: *"I don't care about 'needs a look' — I don't actually work at
+capmetro."* The band ranks by what a dispatcher would triage, which is the wrong reader.
+The board is for someone finding a specific bus, not for someone managing a fleet.
+
+**Detail view, and exactly what the payload can back:**
+
+| Field | Source | Notes |
+|---|---|---|
+| Route + headsign | `trip.route_id`, `trip.headsign` | |
+| Next stop | `adherence.against.stop_name` | |
+| Time to next stop | `adherence.against.predicted_at` minus now | already the number the badge is derived from |
+| Scheduled at that stop | `adherence.against.scheduled_at` | the pair is what makes lateness legible |
+| Current location | `position.lat/lon`, `position.speed_mps` | |
+| Status | `progress.current_status` | `IN_TRANSIT_TO` / `STOPPED_AT` / `INCOMING_AT` |
+| What it does next | `block.next_trip` | the direction flip, when confidence allows |
+| Special run | `pattern.is_special`, `adds`, `skips` | |
+
+**Previous stop is NOT directly available and needs a decision.** `progress` gives
+`current_stop_sequence`; the stop one before it has to be looked up in a route-scoped stop
+list, and `api/all.json` carries no stops at all. Three ways: fetch `api/route/{id}.json`
+when a bus is tapped (cheap, one file, already generated); add a `previous_stop` to the
+vehicle in the generator (cleanest for the client, a contract change); or drop the field.
+Fetching on tap is probably right — the detail view is a deliberate action, not a hover.
+
+**Out of service, what actually exists:** `vehicle_id`, `label`, `position` (lat, lon,
+`speed_mps`), `position_at`. No trip, no route, no headsign, nothing else. So the owner's
+instinct is right that there is little to show: location, whether it is moving or parked,
+and how long since it last reported. Anything more would be invented.
+
+**Context:** The current design is in `client/allbuses.js` and its 20 tests. The count
+strip is worth keeping; the triage band is not. 392 vehicles across 48 routes, 143 of them
+out of service.
+
+**Effort:** M
+**Priority:** P1
+**Depends on:** None
+
+**Completed:** v0.4.0.0 (2026-08-19)
+
+
+### Order the vehicle rows by position along the route, not by lateness
+
+**What:** `client/rows.js` sorts by adherence severity — worst news first. Order them by
+where each bus actually is along the route instead, so the list reads in running order and
+lines up with the ladder beside it.
+
+**Why:** Owner's words: *"ordered by how late they are makes zero sense... the top one
+should be the one that is the most in that direction (e.g. a SB ladder should have the most
+southbound one at the top)."* Severity order is dispatcher thinking, the same wrong frame
+the all-buses triage band had. A rider is asking "which bus is nearest me", and that is a
+question about position.
+
+**Context:** `progress.current_stop_sequence` is the field; it is already on every
+in-service vehicle. Highest sequence is furthest along the route. The open question is
+whether the list should run furthest-along-first (matching "most southbound at the top") or
+first-stop-first (matching the ladder's own top-to-bottom order). Those disagree, so pick
+one deliberately and say which in the caption. Out-of-service buses have no sequence and
+should stay in their own group at the bottom.
+
+**Effort:** S
+**Priority:** P1
+**Depends on:** None
+
+**Completed:** v0.4.0.0 (2026-08-19)
+
+
+### Show cancelled trips. This is the one that stranded a kid.
+
+**What:** A cancelled trip is invisible everywhere in the client. The stop board, the saved
+trips and the ladder all render it as "scheduled · no bus reporting yet", which a reader
+correctly parses as "it hasn't started yet" when it actually means "it is never coming".
+
+**Why:** On 2026-08-19 at 17:20 the owner's daughter waited at the Austin High stop for the
+17:02 EB special on block 4090. That trip was cancelled. The board could not have told her,
+and the stop it serves is the ONLY one that is served once in the morning and once in the
+afternoon, so there was no second bus at that stop all day. She was stranded.
+
+**It is not rare.** Live at 17:28 that same day: **187 cancelled trips system-wide, 17 on
+route 4 alone** — 16:49, 17:02, 17:40, 17:57, 18:14, 18:31, 19:05, 19:22, 19:39, 19:56 and
+more. There was also a route-wide `REDUCED_SERVICE` alert for the day. Cancellation is a
+normal operating condition on this system, not an edge case.
+
+**Where the data already is:** the trip updates feed carries
+`trip.scheduleRelationship: "CANCELED"`, and `runtime/lib/adherence.php` already knows the
+`trip_canceled` reason. But that reason only ever attaches to a VEHICLE, and a cancelled
+trip has no vehicle — so it can never surface through that path. The runtime has to read
+cancellation off the trip updates feed independently of vehicle matching and publish it as
+a property of the TRIP.
+
+**What to build:**
+- Runtime: a `canceled` set from the trip updates feed. Publish it on
+  `api/departures/{route}.json` trips (`"canceled": true`) so the stop board and saved
+  trips can read it, and on the route payload's `schedule.directions[].trips` rows.
+- Client: a cancelled departure must say CANCELED in words, must not be counted as "next",
+  and must never read as merely un-started. In the stop board it should be shown struck
+  through rather than hidden, because "the 5:40 is cancelled" is more useful than the 5:40
+  silently not existing.
+- The ladder should draw a cancelled diagonal differently, or omit it and say how many it
+  omitted.
+
+**Effort:** M
+**Priority:** P0
+**Depends on:** None
+
+**Completed:** v0.4.0.0 (2026-08-19)
+
 
 ### Give the map a real basemap
 
