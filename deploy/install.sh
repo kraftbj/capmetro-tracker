@@ -16,7 +16,9 @@
 set -euo pipefail
 
 DOMAIN=""
-REPO="git@github.com:kraftbj/capmetro-tracker.git"
+# HTTPS, not SSH: the repo is public, so this needs no key on the box and no
+# deploy key for the job account. --repo takes an SSH URL if you prefer one.
+REPO="https://github.com/kraftbj/capmetro-tracker.git"
 BRANCH="trunk"
 SRC_DIR="/srv/capmetro/src"
 WEBROOT="/var/www/capmetro"

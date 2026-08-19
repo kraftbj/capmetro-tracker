@@ -47,6 +47,7 @@ Expectations:
 - Platform: self-hosted Linode (Ubuntu 24.04), single origin
 - Production URL: https://bus.dillo.dev
 - Deploy workflow: none. `deploy/update.sh` on the box, run over ssh
+- Repo: public, so the box clones over HTTPS with no key and no deploy key
 - Deploy status command: `systemctl status capmetro-generate.timer`
 - Merge method: merge to `trunk`, then update the box
 - Project type: static client + PHP CLI cron job. No app server, no database
@@ -67,6 +68,15 @@ Expectations:
   board is down for a deploy.
 - `/etc/capmetro/config.php` is never overwritten by the installer. It carries
   the watch list, which is the one file on the box describing somebody's routine.
+- The GTFS Action is still required and is also the delivery mechanism: it
+  rebuilds `data/` when CapMetro republishes (~3x/year, gated on `feed_version`)
+  and commits it; the box picks it up on the next `update.sh`. `--src-from`
+  bypasses git and therefore bypasses schedule delivery - it is a fallback for
+  a box with no git, not a recommended path.
+- Serving `data/` from GitHub Pages was considered and rejected: it is 3.1 MB
+  gzipped committed ~3x/year, about 9 MB a year against an 8.8 MB `.git`, and
+  it would buy that back at the cost of a publish step, a fetch-and-extract
+  path in the runtime, and a new failure mode for schedule data.
 - dillo.dev itself is on Pressable behind Automattic's edge cache. The board is
   a subdomain pointed at the Linode precisely so it does not inherit that cache:
   `/api/*` must be served `no-cache` or the board shows stale positions while
