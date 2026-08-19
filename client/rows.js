@@ -32,10 +32,30 @@
     var shown = inService.filter(function (v) {
       return dirFilter === 'both' || v.trip.direction_id === dirFilter;
     });
+    /*
+     * Running order: the bus furthest along the route first, then the one
+     * behind it, and so on back to the one that just started.
+     *
+     * This used to sort by lateness, worst first. That is how a dispatcher
+     * triages a fleet, and the reader here is someone at a stop asking which
+     * bus is nearest them - a question about position, not about severity. It
+     * also meant the row order had no relationship to the ladder sitting right
+     * beside it, so the two panels described the same buses in two unrelated
+     * orders.
+     *
+     * progress.current_stop_sequence is how far along the route a bus is, and
+     * it is per direction, so in BOTH mode each direction's group is ordered
+     * within itself. A bus with no progress reported sorts last rather than
+     * first: an unknown position is not the same as being at the start, and
+     * putting it at the top would claim it is the lead bus.
+     */
     shown.sort(function (a, b) {
-      var sa = adh.view(a, data.staleness).severity;
-      var sb = adh.view(b, data.staleness).severity;
-      if (sa !== sb) return sa - sb;
+      var pa = a.progress && typeof a.progress.current_stop_sequence === 'number'
+        ? a.progress.current_stop_sequence : -1;
+      var pb = b.progress && typeof b.progress.current_stop_sequence === 'number'
+        ? b.progress.current_stop_sequence : -1;
+      if (pa !== pb) return pb - pa;
+      /* Same stop: the earlier trip is the one in front. */
       return (a.trip.start_epoch || 0) - (b.trip.start_epoch || 0);
     });
     outOfService.sort(function (a, b) {

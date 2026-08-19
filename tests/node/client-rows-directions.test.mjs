@@ -146,3 +146,84 @@ describe('single-direction mode is still a flat list', () => {
     expect(all(host, 'vrow').length).toBeGreaterThan(0)
   })
 })
+
+/*
+ * Running order, not triage order.
+ *
+ * The rows used to sort by lateness, worst first. That is how a dispatcher
+ * looks at a fleet; a rider at a stop is asking which bus is nearest, which is
+ * a question about position. It also left the row order unrelated to the ladder
+ * beside it, so two panels described the same buses in two unrelated orders.
+ *
+ * These assert in SINGLE-direction mode. BOTH mode groups by direction first,
+ * so there is no single global order to check and the sort only ever operates
+ * within a group.
+ */
+describe('the rows read in running order', () => {
+  const DIR = 0
+
+  /** The in-service vehicles of one direction, as the panel sees them. */
+  const fleet = (data) =>
+    data.vehicles.filter((v) => v.in_service && v.trip && v.trip.direction_id === DIR)
+
+  const idOf = (v) => String(v.label || v.vehicle_id)
+
+  /** Vehicle ids in the order they are drawn, single-direction. */
+  const drawnOrder = (cmb, document, data) => {
+    const host = document.createElement('section')
+    cmb.rows.render(host, data, { direction: DIR, status: 'ok' })
+    const known = data.vehicles.map(idOf)
+    return all(host, 'vrow')
+      .map((r) => known.find((id) => textDeep(r).includes(id)))
+      .filter(Boolean)
+  }
+
+  t('puts the bus furthest along the route first', (cmb, document) => {
+    const data = goldenRoute4()
+    const inSvc = fleet(data)
+    expect(inSvc.length).toBeGreaterThan(1)
+    /* Later in the array gets a higher sequence, so the array order reverses. */
+    inSvc.forEach((v, i) => {
+      v.progress = Object.assign({}, v.progress, { current_stop_sequence: (i + 1) * 5 })
+    })
+    const expected = inSvc.map(idOf).reverse()
+    const order = drawnOrder(cmb, document, data).filter((id) => expected.includes(id))
+    expect(order).toEqual(expected)
+  })
+
+  t('does not let a very late bus jump the queue', (cmb, document) => {
+    /*
+     * The regression this replaces: severity order put the worst bus on top
+     * however far back down the route it was.
+     */
+    const data = goldenRoute4()
+    const inSvc = fleet(data)
+    const lead = inSvc[0]
+    const trailing = inSvc[1]
+    lead.progress = Object.assign({}, lead.progress, { current_stop_sequence: 40 })
+    trailing.progress = Object.assign({}, trailing.progress, { current_stop_sequence: 5 })
+    trailing.adherence = {
+      state: 'very_late', seconds: 900, glyph: 'square', reason: null,
+      against: trailing.adherence && trailing.adherence.against,
+    }
+    const order = drawnOrder(cmb, document, data)
+    expect(order.indexOf(idOf(lead))).toBeLessThan(order.indexOf(idOf(trailing)))
+  })
+
+  t('sorts a bus with no reported position last among those running', (cmb, document) => {
+    /*
+     * An unknown position is not the same as being at the start of the route.
+     * Sorting it first would claim it is the lead bus.
+     */
+    const data = goldenRoute4()
+    const inSvc = fleet(data)
+    inSvc.forEach((v, i) => {
+      v.progress = Object.assign({}, v.progress, { current_stop_sequence: (i + 1) * 5 })
+    })
+    const lost = inSvc[inSvc.length - 1]   /* would otherwise sort FIRST */
+    delete lost.progress
+    const ids = inSvc.map(idOf)
+    const order = drawnOrder(cmb, document, data).filter((id) => ids.includes(id))
+    expect(order[order.length - 1]).toBe(idOf(lost))
+  })
+})
