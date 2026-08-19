@@ -31,10 +31,12 @@ likely replacement.
   build timestamp so staleness stays detectable.
 - Keep committing but to an orphan branch with a shallow-truncated history, periodically
   squashed. Preserves diffability; bounds growth.
-- Only commit shards when the upstream GTFS `feed_version` changes, rather than daily.
-  CapMetro resets the schedule roughly three times a year, so most daily rebuilds are
-  byte-identical and need no commit at all. **This is the cheapest mitigation and may
-  defer the problem indefinitely.**
+- ~~Only commit shards when the upstream GTFS `feed_version` changes, rather than daily.~~
+  **DONE 2026-08-19.** Implemented in `.github/workflows/gtfs.yml`: the workflow reads
+  `data/manifest.json` feed_version before and after the rebuild and commits nothing when it
+  is unchanged. CapMetro resets the schedule roughly three times a year, so `data/` now grows
+  about three times a year instead of daily. This may defer the problem indefinitely; reassess
+  only if `.git` becomes unwieldy (it was 7.1 MB with the first shard set committed).
 
 **Depends on / blocked by:** Nothing. Can be done any time after the build pipeline works.
 Do the `feed_version` check first, since it is small and may remove the urgency.
