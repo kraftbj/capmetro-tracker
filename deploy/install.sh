@@ -283,18 +283,24 @@ fi
 # behalf, and the substitution is one command you can read before running it.
 say "web server"
 VHOST_DOMAIN="${DOMAIN:-your.domain}"
+# `| sudo tee`, never `sudo sed ... > file`. Redirection is performed by the
+# invoking shell, not by sudo, so the > lands in /etc as the unprivileged user
+# and fails. The first version of these instructions got that wrong and the
+# copy-pasted command returned Permission denied.
 if command -v nginx >/dev/null 2>&1; then
   printf '   nginx found. Install the vhost, then reload:\n'
   printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
-  printf '       %s/deploy/nginx-capmetro.conf > /etc/nginx/sites-available/capmetro\n' "$SRC_DIR"
-  printf '     ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro\n'
-  printf '     nginx -t && systemctl reload nginx\n'
+  printf '       %s/deploy/nginx-capmetro.conf \\\n' "$SRC_DIR"
+  printf '       | sudo tee /etc/nginx/sites-available/capmetro > /dev/null\n'
+  printf '     sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro\n'
+  printf '     sudo nginx -t && sudo systemctl reload nginx\n'
 elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
   printf '   apache found. Install the vhost, then reload:\n'
   printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
-  printf '       %s/deploy/apache-capmetro.conf > /etc/apache2/sites-available/capmetro.conf\n' "$SRC_DIR"
-  printf '     a2enmod headers expires && a2ensite capmetro\n'
-  printf '     apache2ctl configtest && systemctl reload apache2\n'
+  printf '       %s/deploy/apache-capmetro.conf \\\n' "$SRC_DIR"
+  printf '       | sudo tee /etc/apache2/sites-available/capmetro.conf > /dev/null\n'
+  printf '     sudo a2enmod headers expires && sudo a2ensite capmetro\n'
+  printf '     sudo apache2ctl configtest && sudo systemctl reload apache2\n'
 else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
@@ -309,6 +315,6 @@ printf '  scheduler   %s\n' "$SCHEDULER"
 echo
 echo "Next:"
 printf '  1. install the vhost printed above and reload the web server\n'
-printf '  2. get a certificate:  certbot --nginx -d %s\n' "$VHOST_DOMAIN"
+printf '  2. get a certificate:  sudo certbot --nginx -d %s\n' "$VHOST_DOMAIN"
 printf '  3. check it:           curl -s https://%s/api/health.json | head -c 200\n' "$VHOST_DOMAIN"
 printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
