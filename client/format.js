@@ -101,12 +101,97 @@
     return directionId === 0 ? 'A' : 'B';
   }
 
+  /*
+   * The tag for one direction of one payload. rows.js and map.js each carried a verbatim
+   * copy of this lookup, which is the exact shape CLAUDE.md forbids after ISSUE-002: two
+   * implementations of one rule drift, and the first symptom is one bus reading "EB" in
+   * the rows and "B" on the map. One copy, three callers.
+   *
+   * It looks past route.directions to the vehicles, because a direction the route does
+   * not publish still gets a rows group and that group still needs a legible tag.
+   */
+  function directionTagFor(data, id) {
+    var d = directionsForRows(data).filter(function (x) { return x.id === id; })[0];
+    return directionTag(d && d.headsign, id);
+  }
+
   function plural(n, one, many) {
     return n + ' ' + (n === 1 ? one : many);
   }
 
   global.CMB = global.CMB || {};
+  /*
+   * THE direction list for a payload. Rows, ladder and map all read it, so one bus can
+   * never appear in a panel another panel has no column for. Routes 466 and 642 publish
+   * one direction only; assuming [0, 1] drew a phantom second ladder.
+   *
+   * It lives here rather than in rows.js because ladder.js must not depend on rows.js:
+   * they are loaded independently and a cross-import broke the ladder's own tests.
+   *
+   * The fallback is not decoration. route.directions is required by the contract, but a
+   * payload arriving without it would otherwise silently drop every row while the
+   * vehicles sat plainly in the data. Deriving from the vehicles fails visible, not blank.
+   */
+  function directionsInOrder(data) {
+    var dirs = (data && data.route && data.route.directions) || [];
+    if (dirs.length) {
+      return dirs.slice().sort(function (a, b) { return a.id - b.id; });
+    }
+    var seen = Object.create(null);
+    ((data && data.vehicles) || []).forEach(function (v) {
+      if (v.trip && v.trip.direction_id !== undefined && v.trip.direction_id !== null) {
+        seen[v.trip.direction_id] = v.trip.headsign || null;
+      }
+    });
+    return Object.keys(seen)
+      .map(function (k) { return { id: Number(k), headsign: seen[k] }; })
+      .sort(function (a, b) { return a.id - b.id; });
+  }
+
+  function directionIds(data) {
+    return directionsInOrder(data).map(function (d) { return d.id; });
+  }
+
+  /*
+   * THE direction list for panels that draw one entry per VEHICLE, which today means the
+   * rows. It is the published list plus any direction a vehicle actually reports, and the
+   * difference from directionsInOrder is not cosmetic.
+   *
+   * The ladder must use the published list: a direction with no timepoints has no ladder
+   * to draw, and iterating a direction the route does not publish is what drew the phantom
+   * "No timepoints published for direction 1" beside routes 466 and 642.
+   *
+   * The rows must NOT. Grouping the rows by the published list alone means a bus whose
+   * direction_id is missing from route.directions has no group to land in and is dropped
+   * from the page with no trace, while the header keeps counting it. Trimming route 4's
+   * published directions to one made two of its six rows disappear, one of them a bus in
+   * service. A board that hides a bus it was handed is worse than one that draws an
+   * unexpected group, so the rows widen the list and the ladder does not.
+   */
+  function directionsForRows(data) {
+    var published = directionsInOrder(data);
+    var known = Object.create(null);
+    published.forEach(function (d) { known[d.id] = true; });
+
+    var extra = Object.create(null);
+    ((data && data.vehicles) || []).forEach(function (v) {
+      var id = v.trip && v.trip.direction_id;
+      if (id === undefined || id === null || known[id]) { return; }
+      if (!(id in extra)) { extra[id] = (v.trip && v.trip.headsign) || null; }
+    });
+
+    return published
+      .concat(Object.keys(extra).map(function (k) {
+        return { id: Number(k), headsign: extra[k] };
+      }))
+      .sort(function (a, b) { return a.id - b.id; });
+  }
+
   global.CMB.fmt = {
+    directionsInOrder: directionsInOrder,
+    directionIds: directionIds,
+    directionsForRows: directionsForRows,
+    directionTagFor: directionTagFor,
     AGENCY_TZ: AGENCY_TZ,
     MINUS: MINUS,
     clock: clock,

@@ -776,23 +776,23 @@ flagged this and it is the highest-value thing to specify next.
 
 Synthesized from this review's findings. Each task derives from a specific finding above.
 
-- [ ] **T1 (P1, human: ~2 days / CC: ~40min)** — runtime/alerts — Ingest service alerts and join to stops
+- [x] **T1 (P1, human: ~2 days / CC: ~40min)** — runtime/alerts — Ingest service alerts and join to stops  ✅ `runtime/lib/alerts.php`
   - Surfaced by: Architecture — feed `9zu9-jwr2` listed in the data table but never used; 6 scheduled-but-closed stop/route pairs live today, 2 of them on the Austin High special run
   - Files: `runtime/alerts.php`, `build/stop-index.js`
   - Verify: fixture test using `tests/fixtures/feeds-20260819/servicealerts.json` asserts stop 1967 renders as closed on route 4
-- [ ] **T2 (P1, human: ~1h / CC: ~10min)** — runtime/alerts — Strip staff PII at ingest
+- [x] **T2 (P1, human: ~1h / CC: ~10min)** — runtime/alerts — Strip staff PII at ingest  ✅ `runtime/lib/alerts.php` allowlist + schema test
   - Surfaced by: Architecture — alert objects carry `userEmail` and `userFullname` of CapMetro employees
   - Files: `runtime/alerts.php`
   - Verify: assert no alert field reaching the client matches `/user(Email|Fullname)/`
-- [ ] **T3 (P1, human: ~3h / CC: ~20min)** — runtime/io — Atomic writes + flock
+- [x] **T3 (P1, human: ~3h / CC: ~20min)** — runtime/io — Atomic writes + flock  ✅ `runtime/lib/write.php` (temp+fsync+rename, flock)
   - Surfaced by: Architecture / outside voice — cron writes into a webroot a client may be reading
   - Files: `runtime/write.php`
   - Verify: concurrent read loop during 100 write cycles yields zero parse errors
-- [ ] **T4 (P1, human: ~1 day / CC: ~30min)** — runtime/time — Service-day time parsing
+- [x] **T4 (P1, human: ~1 day / CC: ~30min)** — runtime/time — Service-day time parsing  ✅ `runtime/lib/servicetime.php` + `build/lib/time.mjs`
   - Surfaced by: Test review — GTFS allows `>= 24:00:00`; America/Chicago observes DST
   - Files: `runtime/time.php`, `build/time.js`
   - Verify: unit tests for `25:10:00` and both DST transition dates
-- [ ] **T5 (P1, human: ~1 day / CC: ~30min)** — runtime/health — Staleness as rendered state
+- [x] **T5 (P1, human: ~1 day / CC: ~30min)** — runtime/health — Staleness as rendered state  ✅ `runtime/lib/staleness.php` + `client/states.js`
   - Surfaced by: Outside voice — "degrade, do not die" permits confidently stale data with no enforcement rule
   - Files: `runtime/health.php`, `client/staleness.js`
   - Verify: with `generated_at` forced 30 min old, UI shows degraded state and suppresses lateness numbers
@@ -800,23 +800,23 @@ Synthesized from this review's findings. Each task derives from a specific findi
   - Surfaced by: Outside voice / parallelization — hardest logic leaks into the client without it
   - Files: `docs/api-contract.md`
   - Verify: contract covers block continuation, unknown lateness, deadheads, stale feeds, and A/B/BOTH direction semantics
-- [ ] **T7 (P1, human: ~3h / CC: ~20min)** — build — Move GTFS parsing to GitHub Actions
+- [x] **T7 (P1, human: ~3h / CC: ~20min)** — build — Move GTFS parsing to GitHub Actions  ✅ `.github/workflows/gtfs.yml`
   - Surfaced by: Architecture — doc said `gtfs.php` parses GTFS on the Linode; PHP has no maintained GTFS static library
   - Files: `.github/workflows/gtfs.yml`, `build/shards.js`
   - Verify: workflow produces shards; commits only when `feed_version` changes
-- [ ] **T8 (P2, human: ~1 week / CC: ~1.5h)** — tests — Stand up the three test harnesses
+- [x] **T8 (P2, human: ~1 week / CC: ~1.5h)** — tests — Stand up the three test harnesses  ✅ `tests/node` `tests/php` `tests/e2e` `tests/schema`
   - Surfaced by: Test review — zero test infrastructure; 62 paths, 0 covered
   - Files: `phpunit.xml`, `vitest.config.ts`, `playwright.config.ts`
   - Verify: all three runners execute in CI on push
-- [ ] **T9 (P2, human: ~30min / CC: ~5min)** — runtime/fetch — Request feeds with gzip
+- [x] **T9 (P2, human: ~30min / CC: ~5min)** — runtime/fetch — Request feeds with gzip  ✅ `runtime/lib/fetch.php`
   - Surfaced by: Performance — 1.97 MB/poll uncompressed vs 173 MB/day compressed
   - Files: `runtime/fetch.php`
   - Verify: assert `Accept-Encoding: gzip` sent and response decoded
-- [ ] **T10 (P2, human: ~1 day / CC: ~30min)** — build/calendar — Per-route calendar resolution
+- [x] **T10 (P2, human: ~1 day / CC: ~30min)** — build/calendar — Per-route calendar resolution  ✅ `build/lib/calendar.mjs`
   - Surfaced by: Verified data — `1-172` and `9-172` are both weekday services over different route sets; there is no single weekday service
   - Files: `build/calendar.js`, `runtime/watch.php`
   - Verify: resolving a watch on 2026-08-19 (one-off `3-172`) and on 2026-08-24 both return the right trip
-- [ ] **T11 (P3, human: ~1 day / CC: ~30min)** — build/blocks — Block confidence states
+- [x] **T11 (P3, human: ~1 day / CC: ~30min)** — build/blocks — Block confidence states  ✅ `build/lib/blocks.mjs`
   - Surfaced by: Outside voice — block continuity verified on route 4 only; other routes may interline or have dirty `block_id`
   - Files: `build/blocks.js`
   - Verify: block chains computed for all 71 routes; routes with missing or ambiguous `block_id` marked low-confidence rather than silently chained
@@ -841,35 +841,35 @@ Synthesized from this review's findings. Each task derives from a specific findi
 
 ## Implementation Tasks (design review)
 
-- [ ] **D1 (P1, human: ~4h / CC: ~20min)** — client/adherence — Redundant shape + number on every lateness indicator
+- [x] **D1 (P1, human: ~4h / CC: ~20min)** — client/adherence — Redundant shape + number on every lateness indicator  ✅ `client/adherence.js` (shape+sign+number)
   - Surfaced by: Pass 6 — green vs amber measured at 1.06:1 luminance; colour-only encoding collapses in grayscale
   - Files: `client/adherence.js`, `client/ladder.js`, `client/map.js`
   - Verify: grayscale screenshot of the board; every state still distinguishable
-- [ ] **D2 (P1, human: ~1 day / CC: ~30min)** — client/states — Implement the full interaction state table
+- [x] **D2 (P1, human: ~1 day / CC: ~30min)** — client/states — Implement the full interaction state table  ✅ `client/states.js`
   - Surfaced by: Pass 2 — rated 1/10, no state specified for any panel
   - Files: `client/states.js`, all panel components
   - Verify: force each of loading/empty/error/partial/stale/first-run and compare against the table
-- [ ] **D3 (P1, human: ~1 day / CC: ~30min)** — client/ladder — Timepoint ladder with accordion and interpolated bus positions
+- [x] **D3 (P1, human: ~1 day / CC: ~30min)** — client/ladder — Timepoint ladder with accordion and interpolated bus positions  ✅ `client/ladder.js`
   - Surfaced by: Pass 6 — variant A fails at 412px; only 1 of 6 buses appeared in the timepoints render
   - Files: `client/ladder.js`
   - Verify: route 7 at 412px shows all live buses and all 8 timepoints without scrolling
-- [ ] **D4 (P2, human: ~2h / CC: ~10min)** — client/tokens — Define CSS variables for the semantic colour set
+- [x] **D4 (P2, human: ~2h / CC: ~10min)** — client/tokens — Define CSS variables for the semantic colour set  ✅ `client/tokens.css`
   - Surfaced by: Pass 4 — universal rule requires CSS variables; colours are currently hex literals in prose
   - Files: `client/tokens.css`
   - Verify: no hard-coded adherence hex outside `tokens.css`
-- [ ] **D5 (P2, human: ~1h / CC: ~5min)** — client/tokens — Fix the deadhead chip contrast failure
+- [x] **D5 (P2, human: ~1h / CC: ~5min)** — client/tokens — Fix the deadhead chip contrast failure  ✅ `client/tokens.css`
   - Surfaced by: Pass 6 — dark text on `#6b7280` measures 4.02:1, below the 4.5 threshold
   - Files: `client/tokens.css`
   - Verify: contrast checker reports >= 4.5:1
-- [ ] **D6 (P2, human: ~3h / CC: ~15min)** — client/a11y — Screen-reader parity for the ladder
+- [x] **D6 (P2, human: ~3h / CC: ~15min)** — client/a11y — Screen-reader parity for the ladder  ✅ `client/ladder.js` aria + e2e assertion
   - Surfaced by: Pass 6 — the SVG string-line is opaque to screen readers
   - Files: `client/ladder.js`, `client/rows.js`
   - Verify: with the ladder `aria-hidden`, a screen reader still conveys every bus, its lateness, and its next stop from the rows
-- [ ] **D7 (P2, human: ~2h / CC: ~10min)** — client/type — Choose and load a real typeface with tabular figures
+- [x] **D7 (P2, human: ~2h / CC: ~10min)** — client/type — Choose and load a real typeface with tabular figures  ✅ `client/styles.css` tabular figures
   - Surfaced by: Pass 4 — `system-ui` as primary face is AI-slop blacklist item 11
   - Files: `client/tokens.css`, `client/index.html`
   - Verify: figures align in a column across rows; no `system-ui` as primary display face
-- [ ] **D8 (P3, human: ~2h / CC: ~10min)** — build/stops — Intelligent stop-name shortening
+- [x] **D8 (P3, human: ~2h / CC: ~10min)** — build/stops — Intelligent stop-name shortening  ✅ `build/lib/stop-names.mjs` + `runtime/lib/stopnames.php`
   - Surfaced by: Pass 6 — labels clip mid-word in the 412px render
   - Files: `build/stops.js`
   - Verify: no ladder label ends mid-word at 412px on routes 7, 337, and 350

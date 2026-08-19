@@ -1,31 +1,31 @@
 {
-	"name": "capmetro-tracker",
-	"version": "0.1.0",
-	"private": true,
-	"description": "CapMetro bus dispatch board. This package.json covers the build-time GTFS shard job only; the runtime is PHP and the client is static.",
-	"type": "module",
-	"engines": {
-		"node": ">=20"
-	},
-	"scripts": {
-		"build": "node build/build.mjs",
-		"build:fresh": "node build/build.mjs --force",
-		"verify": "node build/verify.mjs",
-		"gtfs": "npm run build && npm run verify",
-		"gtfs:fresh": "npm run build:fresh && npm run verify",
-		"test": "bash tests/run-all.sh",
-		"test:watch": "vitest",
-		"test:node": "vitest run",
-		"test:php": "vendor/bin/phpunit",
-		"test:schema": "python3 tests/schema/validate.py",
-		"test:e2e": "playwright test",
-		"test:e2e:server": "node tests/e2e/server.mjs"
-	},
-	"dependencies": {
-		"gtfs": "^4.20.2"
-	},
-	"devDependencies": {
-		"vitest": "^4.1.11",
-		"@playwright/test": "^1.62.1"
-	}
+  "name": "capmetro-tracker",
+  "version": "0.2.0",
+  "private": true,
+  "description": "CapMetro bus dispatch board. This package.json covers the build-time GTFS shard job only; the runtime is PHP and the client is static.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build/build.mjs",
+    "build:fresh": "node build/build.mjs --force",
+    "verify": "node build/verify.mjs",
+    "gtfs": "npm run build && npm run verify",
+    "gtfs:fresh": "npm run build:fresh && npm run verify",
+    "test": "bash tests/run-all.sh",
+    "test:watch": "vitest",
+    "test:node": "vitest run",
+    "test:php": "vendor/bin/phpunit",
+    "test:schema": "python3 tests/schema/validate.py",
+    "test:e2e": "playwright test",
+    "test:e2e:server": "node tests/e2e/server.mjs"
+  },
+  "dependencies": {
+    "gtfs": "^4.20.2"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11",
+    "@playwright/test": "^1.62.1"
+  }
 }

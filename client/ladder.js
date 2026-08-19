@@ -1,7 +1,7 @@
 /*
  * ladder.js — task D3. The string-line, answering "is the route healthy".
  *
- * Two decisions from the design review are load-bearing here:
+ * Three decisions from the design review are load-bearing here:
  *
  * 1. DEFAULT ROWS ARE TIMEPOINTS, NOT STOPS. Route 7 has 66 stops in one
  *    direction and 8 timepoints. All stops at 412px gives 6px labels and an
@@ -12,12 +12,25 @@
  *    because they sat at non-timepoint stops. A string-line is continuous;
  *    only the labels are sparse.
  *
- * Axis meaning, since the payload carries no per-timepoint schedule times:
+ * 3. THE X AXIS IS CLOCK TIME, NOT SIGNED DEVIATION. A deviation axis puts
+ *    every bus in one column and can therefore never show bunching or a
+ *    headway gap, which is the thing a dispatch board exists to show. With a
+ *    real time axis the scheduled trips are grey diagonals and every live bus
+ *    sits on the NOW line, with a stem drawn back to where it was due. The
+ *    stem anchors on `adherence.against.scheduled_at`, the SAME instant the
+ *    badge computes from, not on where the diagonal crosses the row: those are
+ *    two different measurements and a picture contradicting its own number is
+ *    the failure this board exists to avoid. It also means a trip that started
+ *    before the window, and so has no diagonal at all, still shows its lateness
+ *    — which matters most, because the off-window buses are the very late ones.
+ *
+ * Axis meaning:
  *    y = position along the route (timepoint order, interpolated by
  *        stop_sequence)
- *    x = signed schedule deviation, early to the left, late to the right,
- *        clamped at ±10 min.
- * A healthy route is a column of dots hugging the spine.
+ *    x = clock time, spanning schedule.window.from to schedule.window.until.
+ * The window bounds are read from the payload on every render. §3.2 of the
+ * contract restates them precisely so they stay a server decision; widening
+ * the window must never need a client change.
  *
  * The SVG is aria-hidden. The vehicle rows carry every fact it draws.
  */
@@ -30,13 +43,16 @@
   var el = S.el;
 
   var NS = 'http://www.w3.org/2000/svg';
-  var CLAMP_S = 600;          /* ±10 min is the full width of the deviation axis */
   var PITCH = 44;             /* timepoint row pitch — also the touch-target floor */
   var MINOR_PITCH = 30;
   var PAD_TOP = 26;
   var PAD_BOTTOM = 18;
   var LABEL_W = 138;
+  var GUTTER_R = 8;           /* breathing room at the right edge of the plot */
+  var TICK_MIN_PX = 56;       /* below this two clock labels touch at 9px */
+  var TICK_STEPS = [300, 600, 900, 1800, 3600];
   var expanded = Object.create(null);   /* "dir:segIndex" -> true */
+  var clipSeq = 0;            /* clipPath ids must be unique across both tracks */
 
   function svgEl(name, attrs) {
     var n = document.createElementNS(NS, name);
@@ -48,6 +64,127 @@
     return (data.timepoints || [])
       .filter(function (t) { return t.direction_id === dir; })
       .sort(function (a, b) { return a.stop_sequence - b.stop_sequence; });
+  }
+
+  /*
+   * ---- the time axis ------------------------------------------------------
+   * Everything below reads the window off the payload. There is no 900 or 2700
+   * in this file on purpose: §3.2 restates both bounds so a later widening is a
+   * build change and nothing else.
+   */
+
+  /* The payload's window, or null when this feed carries no schedule block. */
+  function scheduleWindow(data) {
+    var w = data && data.schedule && data.schedule.window;
+    if (!w) return null;
+    if (typeof w.from !== 'number' || typeof w.until !== 'number') return null;
+    if (!(w.until > w.from)) return null;
+    return { from: w.from, until: w.until };
+  }
+
+  /*
+   * The schedule entry for one direction. The contract guarantees one entry per
+   * route.directions entry rather than omitting a direction with nothing in it,
+   * so a miss here means a one-direction route asked for its other direction.
+   */
+  function scheduleDirection(data, dir) {
+    var dirs = (data && data.schedule && data.schedule.directions) || [];
+    for (var i = 0; i < dirs.length; i++) {
+      if (dirs[i].direction_id === dir) return dirs[i];
+    }
+    return null;
+  }
+
+  /* Maps an epoch second onto the plot. Linear, and clamped nowhere: callers clip. */
+  function timeScale(win, left, right) {
+    var span = win.until - win.from;
+    var w = right - left;
+    return {
+      from: win.from,
+      until: win.until,
+      left: left,
+      right: right,
+      x: function (t) { return left + ((t - win.from) / span) * w; }
+    };
+  }
+
+  /*
+   * Clock gridlines on a round step, chosen so two labels never touch. Epoch
+   * multiples of the step land on round local minutes because every US offset
+   * is a whole number of hours.
+   */
+  function axisTicks(from, until, plotW) {
+    var span = until - from;
+    var step = TICK_STEPS[TICK_STEPS.length - 1];
+    for (var i = 0; i < TICK_STEPS.length; i++) {
+      if ((TICK_STEPS[i] / span) * plotW >= TICK_MIN_PX) { step = TICK_STEPS[i]; break; }
+    }
+    var out = [];
+    for (var t = Math.ceil(from / step) * step; t <= until; t += step) out.push(t);
+    return out;
+  }
+
+  /*
+   * One scheduled trip as points. `offsets[i]` is null when the trip does not
+   * serve timepoint i — that vertex is simply omitted, so the diagonal runs
+   * straight past the timepoint instead of opening a gap the schedule does not
+   * claim. A row that keeps fewer than two points is not a line and is dropped
+   * by the caller.
+   */
+  function tripPoints(trip, tpY, scale) {
+    var start = trip[1];
+    var offsets = trip[2] || [];
+    var pts = [];
+    for (var i = 0; i < offsets.length; i++) {
+      var off = offsets[i];
+      if (off === null || off === undefined) continue;
+      if (tpY[i] === undefined || tpY[i] === null) continue;
+      pts.push({ t: start + off, x: scale.x(start + off), y: tpY[i] });
+    }
+    return pts;
+  }
+
+  /*
+   * Where a trip's diagonal crosses a given row height. This is the anchor the
+   * bus stem draws back to, which is what turns lateness into a visible length.
+   * Null when the bus sits outside the part of the route this trip's schedule
+   * covers, because there is then no honest place to put the other end.
+   */
+  function xAtY(points, y) {
+    if (!points || points.length === 0) return null;
+    if (points.length === 1) return points[0].y === y ? points[0].x : null;
+    for (var i = 0; i < points.length - 1; i++) {
+      var a = points[i], b = points[i + 1];
+      var lo = Math.min(a.y, b.y), hi = Math.max(a.y, b.y);
+      if (y >= lo && y <= hi) {
+        var span = b.y - a.y;
+        if (span === 0) return a.x;
+        return a.x + ((y - a.y) / span) * (b.x - a.x);
+      }
+    }
+    return null;
+  }
+
+  /*
+   * Where the stem's far end belongs: the instant this bus was DUE at the stop its
+   * lateness is measured against.
+   *
+   * It deliberately does NOT use where the trip's diagonal crosses this row. That is
+   * "scheduled time at wherever the bus is standing", while the badge is "predicted minus
+   * scheduled at the next stop it has not passed" — two different measurements, and a
+   * picture contradicting its own number is the failure this board exists to avoid.
+   *
+   * It also covers the case that matters most. A trip starting before window.from has no
+   * diagonal at all, so a diagonal-based anchor drew nothing — and off-window buses are
+   * disproportionately the very late ones. `against.scheduled_at` is present regardless.
+   * The diagonal remains the fallback for a bus with no measured stop.
+   */
+  function stemAnchorX(v, scale, ownPoints, y) {
+    var against = v && v.adherence && v.adherence.against;
+    if (against && typeof against.scheduled_at === 'number') {
+      return scale.x(against.scheduled_at);
+    }
+    return ownPoints ? xAtY(ownPoints, y) : null;
   }
 
   /*
@@ -151,14 +288,24 @@
       return { node: host, drawn: 0 };
     }
 
+    var win = scheduleWindow(data);
+    if (!win) {
+      host.appendChild(S.notice('empty',
+        'No schedule window in this file.',
+        'The ladder plots clock time along the bottom and needs the schedule block the ' +
+        'contract requires. Every bus running ' + dirName + ' is still listed in Vehicles above.'));
+      return { node: host, drawn: 0, buses: 0, tps: tps.length };
+    }
+
     var lay = layout(tps, dir);
     var body = el('div', 'track__body');
     body.style.height = lay.height + 'px';
 
-    var trackLeft = LABEL_W;
-    var trackW = Math.max(120, width - LABEL_W - 8);
-    var centre = trackLeft + trackW / 2;
-    var half = trackW / 2 - 26;
+    var plotLeft = LABEL_W;
+    var plotRight = Math.max(plotLeft + 120, width - GUTTER_R);
+    var plotW = plotRight - plotLeft;
+    var scale = timeScale(win, plotLeft, plotRight);
+    var nowAt = typeof data.generated_at === 'number' ? data.generated_at : null;
 
     var svg = svgEl('svg', {
       class: 'track__svg', width: width, height: lay.height,
@@ -166,53 +313,99 @@
     });
 
     /*
-     * Deviation axis. When adherence is suppressed the gridlines stay (they
-     * are structure) but the minute labels go: a scale implies a reading, and
-     * there is no reading to be had.
+     * Diagonals run the whole length of a trip, which is routinely longer than
+     * the window, so the plot is clipped rather than the geometry clamped —
+     * clamping a vertex would bend the line and misstate the slope, and slope
+     * is speed.
      */
-    [[-CLAMP_S, fmt.MINUS + '10'], [-CLAMP_S / 2, fmt.MINUS + '5'], [CLAMP_S / 2, '+5'], [CLAMP_S, '+10']]
-      .forEach(function (t) {
-        var x = centre + (t[0] / CLAMP_S) * half;
-        svg.appendChild(svgEl('line', {
-          x1: x, y1: PAD_TOP - 12, x2: x, y2: lay.height - PAD_BOTTOM + 4, class: 'axis-tick'
-        }));
-        if (opts.suppressed) return;
-        var lab = svgEl('text', { x: x, y: PAD_TOP - 16, class: 'axis-lab' });
-        lab.textContent = t[1];
-        svg.appendChild(lab);
-      });
-
-    var spineTop = lay.rows[0].y;
-    var spineBottom = lay.rows[lay.rows.length - 1].y;
-    svg.appendChild(svgEl('line', {
-      x1: centre, y1: PAD_TOP - 12, x2: centre, y2: lay.height - PAD_BOTTOM + 4,
-      class: 'axis-zero' + (opts.suppressed ? ' is-suppressed' : '')
+    var clipId = 'ladderclip-' + (++clipSeq);
+    var clip = svgEl('clipPath', { id: clipId });
+    clip.appendChild(svgEl('rect', {
+      x: plotLeft, y: 0, width: plotW, height: lay.height
     }));
-    var zlab = svgEl('text', { x: centre, y: PAD_TOP - 16, class: 'axis-lab axis-lab--zero' });
-    zlab.textContent = opts.suppressed ? 'SCHEDULE' : 'ON TIME';
-    svg.appendChild(zlab);
+    svg.appendChild(clip);
 
-    /* the route line itself, plus a node per stop */
-    svg.appendChild(svgEl('line', {
-      x1: centre, y1: spineTop, x2: centre, y2: spineBottom,
-      class: 'spine' + (opts.suppressed ? ' is-suppressed' : '')
-    }));
+    /*
+     * Clock gridlines. When adherence is suppressed these stay, labels and all:
+     * what the old deviation axis had to drop was a ±minute scale, because a
+     * scale implies a reading and there was no reading to be had. A clock label
+     * is a fact about the clock and implies nothing about any bus.
+     */
+    axisTicks(win.from, win.until, plotW).forEach(function (t) {
+      var x = scale.x(t);
+      svg.appendChild(svgEl('line', {
+        x1: x, y1: PAD_TOP - 12, x2: x, y2: lay.height - PAD_BOTTOM + 4, class: 'axis-tick'
+      }));
+      var anchor = x < plotLeft + 20 ? 'start' : (x > plotRight - 20 ? 'end' : 'middle');
+      var lab = svgEl('text', { x: x, y: PAD_TOP - 16, class: 'axis-lab', 'text-anchor': anchor });
+      lab.textContent = fmt.clock(t);
+      svg.appendChild(lab);
+    });
+
+    /* the route itself: one rule per stop, running the width of the plot */
+    lay.rows.forEach(function (r) {
+      if (r.kind !== 'tp' && r.kind !== 'minor') return;
+      svg.appendChild(svgEl('line', {
+        x1: LABEL_W - 6, y1: r.y, x2: plotRight, y2: r.y, class: 'node-rule'
+      }));
+    });
+
+    /* ---- scheduled trips: the grey diagonals -------------------------- */
+    var sched = scheduleDirection(data, dir);
+    var tpY = [];
+    lay.rows.forEach(function (r) { if (r.kind === 'tp') tpY[r.index] = r.y; });
+
+    var diagonals = 0;
+    var byTrip = Object.create(null);
+    var schedG = svgEl('g', { 'clip-path': 'url(#' + clipId + ')' });
+    ((sched && sched.trips) || []).forEach(function (trip) {
+      var pts = tripPoints(trip, tpY, scale);
+      byTrip[trip[0]] = pts;
+      if (pts.length < 2) return;
+      schedG.appendChild(svgEl('polyline', {
+        points: pts.map(function (p) { return p.x + ',' + p.y; }).join(' '),
+        class: 'sched',
+        style: 'fill:none;stroke:var(--dia-' + (opts.suppressed ? 'spine-dim' : 'spine') +
+          ');stroke-width:1.5;stroke-linejoin:round'
+      }));
+      diagonals++;
+    });
+    svg.appendChild(schedG);
 
     lay.rows.forEach(function (r) {
       if (r.kind === 'tp') {
         var served = !r.tp.service_status || r.tp.service_status.served !== false;
         svg.appendChild(svgEl('circle', {
-          cx: centre, cy: r.y, r: 4.5, class: 'node' + (served ? '' : ' node--closed')
-        }));
-        svg.appendChild(svgEl('line', {
-          x1: LABEL_W - 6, y1: r.y, x2: centre - 8, y2: r.y, class: 'node-rule'
+          cx: plotLeft, cy: r.y, r: 4.5, class: 'node' + (served ? '' : ' node--closed')
         }));
       } else if (r.kind === 'minor') {
-        svg.appendChild(svgEl('circle', { cx: centre, cy: r.y, r: 2.4, class: 'node node--minor' }));
+        svg.appendChild(svgEl('circle', { cx: plotLeft, cy: r.y, r: 2.4, class: 'node node--minor' }));
       }
     });
 
-    /* ---- buses ------------------------------------------------------- */
+    /* ---- NOW ---------------------------------------------------------- */
+    var nowX = null;
+    if (nowAt !== null) {
+      nowX = Math.max(plotLeft, Math.min(plotRight, scale.x(nowAt)));
+      svg.appendChild(svgEl('line', {
+        x1: nowX, y1: PAD_TOP - 12, x2: nowX, y2: lay.height - PAD_BOTTOM + 4,
+        class: 'axis-zero' + (opts.suppressed ? ' is-suppressed' : '')
+      }));
+      /*
+       * NOW is labelled at the foot rather than the head of the axis: the line
+       * lands wherever generated_at falls, which is usually a few pixels from a
+       * clock label, and two labels fighting for the same 30px is worse than
+       * one extra glance downward.
+       */
+      var nlab = svgEl('text', {
+        x: nowX, y: lay.height - 4, class: 'axis-lab axis-lab--zero',
+        'text-anchor': nowX > plotRight - 24 ? 'end' : (nowX < plotLeft + 24 ? 'start' : 'middle')
+      });
+      nlab.textContent = 'NOW ' + fmt.clock(nowAt);
+      svg.appendChild(nlab);
+    }
+
+    /* ---- buses -------------------------------------------------------- */
     var buses = (data.vehicles || []).filter(function (v) {
       return v.in_service && v.trip && v.trip.direction_id === dir &&
         v.progress && v.progress.current_stop_sequence !== null &&
@@ -236,27 +429,66 @@
     buses.sort(function (a, b) {
       return a.progress.current_stop_sequence - b.progress.current_stop_sequence;
     }).forEach(function (v) {
+      if (nowX === null) return;
       var view = adhLib.view(v, data.staleness);
       var y = yForSequence(lay.anchors, v.progress.current_stop_sequence);
       if (y === null) return;
-      var dev = view.seconds === null ? 0 : Math.max(-CLAMP_S, Math.min(CLAMP_S, view.seconds));
-      var x = centre + (dev / CLAMP_S) * half;
+      var x = nowX;
       var g = svgEl('g', { class: 'bus bus--' + view.state });
-      /* a stem back to the spine makes the deviation itself readable */
-      g.appendChild(svgEl('line', { x1: centre, y1: y, x2: x, y2: y, class: 'bus__stem' }));
+
+      /*
+       * The stem runs from the bus to its own diagonal at the same row height,
+       * so its length IS the lateness. Two cases get no stem:
+       *
+       * - Suppressed. A drawn gap between "scheduled" and "here" is a lateness
+       *   reading whether or not a number is printed beside it.
+       * - A trip that has not started yet. A bus parked at its terminal waiting
+       *   for a 10:30 departure sits twenty minutes left of its own diagonal,
+       *   and that distance is layover, not lateness. The diagonal still starts
+       *   to the right of the dot, which says "this one leaves later" without
+       *   claiming the bus is early.
+       */
+      var started = nowAt !== null && typeof v.trip.start_epoch === 'number' &&
+        nowAt >= v.trip.start_epoch;
+      if (!opts.suppressed && started) {
+        /*
+         * The stem anchors on `adherence.against.scheduled_at` — the SAME instant the
+         * badge computes its number from — not on where this trip's diagonal happens to
+         * cross this row. The two are different measurements: the diagonal crossing is
+         * "scheduled time at wherever the bus is standing", while the badge is
+         * "predicted minus scheduled at the next stop it has not passed". They usually
+         * agree closely and sometimes do not, and a board whose picture contradicts its
+         * own number is the failure this project exists to avoid.
+         *
+         * It also fixes the case that mattered most. A trip that started before
+         * `schedule.window.from` has no diagonal at all, so the old anchor produced no
+         * stem — and the buses most likely to be off-window are the very late ones. Two
+         * of today's 65 late buses were in exactly that state, one of them 29 minutes
+         * down, drawn with no visible lateness whatsoever. `against.scheduled_at` is
+         * present whether or not the trip made the window.
+         */
+        var sx = stemAnchorX(v, scale, byTrip[v.trip.trip_id], y);
+        if (sx !== null && sx !== undefined && isFinite(sx)) {
+          var clamped = Math.max(plotLeft, Math.min(plotRight, sx));
+          g.appendChild(svgEl('line', { x1: clamped, y1: y, x2: x, y2: y, class: 'bus__stem' }));
+        }
+      }
+
       g.appendChild(dotShape(glyphNameFor(view, v), x, y, 7, 'dot'));
       if (view.state === 'unknown') {
         var q = svgEl('text', { x: x, y: y + 3.4, class: 'dot__q' });
         q.textContent = '?';
         g.appendChild(q);
       }
-      var right = x < centre + half * 0.45;
+      var text = '#' + (v.label || v.vehicle_id) + ' ' + view.value;
+      /* 11px figures measure about 6.4px a character; keep the run inside the plot. */
+      var right = x + 11 + text.length * 6.4 <= plotRight;
       var ly = labelY(y);
       var t = svgEl('text', {
         x: right ? x + 11 : x - 11, y: ly + 3.6,
         class: 'bus__label' + (right ? '' : ' bus__label--left')
       });
-      t.textContent = '#' + (v.label || v.vehicle_id) + ' ' + view.value;
+      t.textContent = text;
       if (Math.abs(ly - y) > 1) {
         g.appendChild(svgEl('line', {
           x1: right ? x + 7 : x - 7, y1: y, x2: right ? x + 10 : x - 10, y2: ly,
@@ -322,21 +554,41 @@
     body.appendChild(labels);
     host.appendChild(body);
 
-    /* caption: never leave the absence of dots unexplained */
+    /* caption: never leave the absence of dots, or of diagonals, unexplained */
+    var span = fmt.clock(win.from) + ' to ' + fmt.clock(win.until);
+    var inWindow = ((sched && sched.trips) || []).length;
     var cap = el('p', 'track__cap');
     if (opts.suppressed) {
-      cap.textContent = 'Lateness suppressed — dots sit on the spine and are hollow until the feed catches up.';
+      cap.textContent = 'Lateness suppressed — buses sit on the NOW line and are hollow until the ' +
+        'feed catches up. The axis still runs ' + span + '.';
       cap.className += ' is-warn';
-    } else if (!buses.length) {
-      cap.textContent = 'No buses in service ' + dirName + ' right now. The line is the schedule, drawn from ' +
-        tps.length + ' timepoints.';
     } else {
-      cap.textContent = 'Left of the line is early, right is late, ±10 min full scale. ' +
-        placed + ' of ' + buses.length + ' buses placed by interpolated stop sequence.';
+      /*
+       * "Scheduled" and "drawable" are not the same count. A direction with one
+       * timepoint has trips in the window and no diagonal to draw, and saying
+       * "nothing scheduled" there would be false.
+       */
+      var schedLine;
+      if (diagonals) {
+        schedLine = 'Time runs left to right, ' + span + '. The grey diagonals are the ' +
+          fmt.plural(diagonals, 'scheduled trip', 'scheduled trips') +
+          '; the stem on each bus is its lateness, drawn to the same scale as the clock.';
+      } else if (inWindow) {
+        schedLine = 'Time runs left to right, ' + span + '. ' +
+          fmt.plural(inWindow, 'trip is', 'trips are') + ' scheduled in that hour, but ' +
+          dirName + ' publishes only ' + fmt.plural(tps.length, 'timepoint', 'timepoints') +
+          ', so there is no diagonal to draw.';
+      } else {
+        schedLine = 'Time runs left to right, ' + span + '. Nothing is scheduled ' + dirName +
+          ' in that hour.';
+      }
+      cap.textContent = schedLine + ' ' + (buses.length
+        ? placed + ' of ' + fmt.plural(buses.length, 'bus', 'buses') + ' placed by interpolated stop sequence.'
+        : 'No buses in service ' + dirName + ' right now.');
     }
     host.appendChild(cap);
 
-    return { node: host, drawn: placed, buses: buses.length, tps: tps.length };
+    return { node: host, drawn: placed, buses: buses.length, tps: tps.length, diagonals: diagonals };
   }
 
   function alertsDisclosure(alerts) {
@@ -397,15 +649,41 @@
 
     var suppressed = !!(data.staleness && data.staleness.suppress_adherence);
     var width = Math.max(300, host.clientWidth || 384);
-    var dirs = opts.direction === 'both' ? [0, 1] : [opts.direction];
+    /*
+     * The directions the PAYLOAD publishes, never a hard-coded [0, 1]. Routes 466 and 642
+     * run one direction only, and assuming two drew a phantom second ladder reading "No
+     * timepoints published for direction 1" beside a single row group. Rows already derive
+     * from route.directions, so sharing the source is also what keeps the two panels
+     * column-aligned in BOTH mode.
+     */
+    var dirs = opts.direction === 'both' ? fmt.directionIds(data) : [opts.direction];
 
-    sub.textContent = 'Timepoints only · tap + to open the stops between two timepoints';
+    /*
+     * An empty list means the payload named no directions AND carried no vehicle to infer
+     * one from. Without this the loop below simply runs zero times: no track, no notice,
+     * and a heading over nothing. A board that has nothing to say must say so, or the
+     * reader cannot tell a route with no service from a board that failed to load.
+     */
+    if (!dirs.length) {
+      host.appendChild(S.notice('empty',
+        'No directions in this file.',
+        'The route published no direction list and no vehicle is reporting one, so there ' +
+        'is no ladder to draw. This is a problem with the file, not with the service.'));
+      return;
+    }
+
+    sub.textContent = 'Clock time across, route down · tap + to open the stops between two timepoints';
 
     /*
      * Two passes on purpose. Side by side on a wide screen, each track is only
      * half the band wide, and the SVG has to be drawn to the width the track
      * actually got — not the width of the band. So: put the empty containers
      * in the document, measure them, then draw.
+     *
+     * BOTH stays two stacked ladders, each with its own axis. Mirroring them
+     * around one shared axis was measured at 412px and rejected: on route 7 it
+     * collapses 17 rows into a 15-row union at ~27px pitch, under the touch
+     * target, and it makes the two directions' diagonals cross.
      */
     var wrap = el('div', 'tracks' + (dirs.length > 1 ? ' tracks--both' : ''));
     var slots = dirs.map(function (d) {
@@ -415,21 +693,23 @@
     });
     host.appendChild(wrap);
 
-    var totals = { drawn: 0, buses: 0, tps: 0 };
+    var totals = { drawn: 0, buses: 0, tps: 0, diagonals: 0 };
     slots.forEach(function (slot) {
       var w = Math.max(280, slot.node.clientWidth || width);
       var t = buildTrack(data, slot.dir, w, { suppressed: suppressed, onToggle: opts.onToggle });
       totals.drawn += t.drawn || 0;
       totals.buses += t.buses || 0;
       totals.tps += t.tps || 0;
+      totals.diagonals += t.diagonals || 0;
       while (t.node.firstChild) slot.node.appendChild(t.node.firstChild);
     });
 
     /* The SVG is opaque to screen readers; this is its text equivalent. */
     var sr = el('p', 'sr-only');
-    sr.textContent = 'Ladder diagram, described in text: ' + totals.tps + ' timepoints and ' +
-      totals.drawn + ' buses positioned by stop sequence. Each bus, its lateness and its next ' +
-      'stop are listed in the Vehicles panel above, which carries the same facts.';
+    sr.textContent = 'String-line diagram, described in text: clock time runs left to right and the ' +
+      'route runs top to bottom, over ' + totals.tps + ' timepoints, ' + totals.diagonals +
+      ' scheduled trips and ' + totals.drawn + ' buses positioned by stop sequence. Each bus, its ' +
+      'lateness and its next stop are listed in the Vehicles panel above, which carries the same facts.';
     host.appendChild(sr);
 
     var al = alertsDisclosure(data.alerts);
@@ -441,7 +721,15 @@
     yForSequence: yForSequence,
     layout: layout,
     timepointsFor: timepointsFor,
+    scheduleWindow: scheduleWindow,
+    scheduleDirection: scheduleDirection,
+    timeScale: timeScale,
+    axisTicks: axisTicks,
+    tripPoints: tripPoints,
+    xAtY: xAtY,
+    stemAnchorX: stemAnchorX,
     PITCH: PITCH,
+    LABEL_W: LABEL_W,
     _expanded: expanded
   };
 })(window);
