@@ -184,7 +184,7 @@ enforcement rule the engineering review required: staleness is a rendered state,
     "glyph": "up-triangle",             // left-triangle|circle|up-triangle|square|question|ring
     "against": {                        // null when state is unknown or deadhead
       "stop_id": "6243",
-      "stop_name": "504 Campbell/5th",
+      "stop_name": "Campbell/5th",
       "stop_sequence": 43,
       "scheduled_at": 1787152380,
       "predicted_at": 1787152563
@@ -197,7 +197,7 @@ enforcement rule the engineering review required: staleness is a rendered state,
     "is_special": true,
     "trips_in_pattern": 2,              // how many trips share this stop signature today
     "adds": [ { "stop_id": "1977", "stop_name": "Veterans/Atlanta" } ],
-    "skips": [ { "stop_id": "6243", "stop_name": "504 Campbell/5th" } ]
+    "skips": [ { "stop_id": "6243", "stop_name": "Campbell/5th" } ]
   },
 
   "block": {                            // absent when in_service is false
@@ -209,7 +209,7 @@ enforcement rule the engineering review required: staleness is a rendered state,
       "start_time": "10:21:00",
       "start_epoch": 1787155260,
       "start_stop_id": "6243",
-      "start_stop_name": "504 Campbell/5th",
+      "start_stop_name": "Campbell/5th",
       "is_direction_flip": true         // the whole point: this bus becomes the other direction
     }
   }
@@ -500,6 +500,13 @@ clip mid-word on a 412px ladder. The build job emits both `stop_name` (shortened
 
 1. Drop a trailing parenthetical group.
 2. Drop a leading street number (`"4999 7th/Shady"` becomes `"7th/Shady"`).
+
+   > Every example in this document shows the SHORTENED value in `stop_name`, because that
+   > is the field this section defines. The upstream string, street number and all, is
+   > always available beside it in `stop_name_full`. Three examples in §2 and §3 used to
+   > print `504 Campbell/5th` in `stop_name`, contradicting this rule; the build and the
+   > runtime both emit `Campbell/5th`, and it was the examples that were wrong. A client
+   > author coding against them would have matched on a value the API never sends.
 3. Standardize suffixes: `Northbound` to `NB`, `Southbound` to `SB`, `Eastbound` to `EB`,
    `Westbound` to `WB`.
 4. **Normalize intercapped ordinals.** Upstream title-cases every word, so `8Th/Lavaca`,
@@ -646,7 +653,7 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
    least one `deadhead`, one `unknown` with `reason: "no_trip_update"`, and one `unknown` with
    `reason: "trip_canceled"`.
 3. A route 4 vehicle on the 08:15 or 16:15 trip has `pattern.is_special: true` and names
-   Veterans/Atlanta in `adds` and 504 Campbell/5th in `skips`.
+   Veterans/Atlanta in `adds` and Campbell/5th in `skips`.
 4. At least one route 4 vehicle has `block.next_trip.is_direction_flip: true`.
 5. Stop `1222` on route 800 has `service_status.source == "realtime_skipped"` and `served: false`.
 6. Stop `1967` on route 4 has `service_status.source == "alert_no_service"` and `served: false`.

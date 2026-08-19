@@ -114,11 +114,18 @@ describe('criterion 3: the route 4 special run names its added and skipped stops
       .filter((p) => p.is_special)
     expect(specials.length, 'route 4 publishes no special pattern at all').toBeGreaterThan(0)
 
+    /*
+     * Exact names, not substrings. A `.includes('Campbell')` check passes against both
+     * "Campbell/5th" and "504 Campbell/5th", and the contract's own examples printed the
+     * second one in a field section 7 says must carry the first. The build and the runtime
+     * both emit the shortened form, so this is what pins that they agree with the rule and
+     * not merely with each other.
+     */
     const named = specials.find((p) =>
       Object.values(p.deltas || {}).some(
         (delta) =>
-          (delta.adds || []).some((st) => st.stop_name.includes('Veterans')) &&
-          (delta.skips || []).some((st) => st.stop_name.includes('Campbell')),
+          (delta.adds || []).some((st) => st.stop_name === 'Veterans/Atlanta') &&
+          (delta.skips || []).some((st) => st.stop_name === 'Campbell/5th'),
       ),
     )
     expect(named, 'no special pattern both adds Veterans/Atlanta and skips Campbell/5th').toBeDefined()
@@ -128,6 +135,29 @@ describe('criterion 3: the route 4 special run names its added and skipped stops
      * large share of the route's trips would be the baseline, not a special run.
      */
     expect(named.trips_in_pattern).toBeLessThan(20)
+  })
+
+  it('keeps the street number in stop_name_full while stop_name drops it', (ctx) => {
+    /*
+     * Section 7 rule 2 drops a leading street number, and stop_name_full is the escape
+     * hatch for a reader who needs to be sure which shelter they are standing at. If the
+     * number vanished from both, the board would have lost information the feed gave it.
+     */
+    requireGenerated(ctx)
+    const route4 = routeFile('4')
+    const found = []
+    const walk = (node) => {
+      if (Array.isArray(node)) return node.forEach(walk)
+      if (!node || typeof node !== 'object') return
+      if (node.stop_id === '6243' && node.stop_name_full) found.push(node)
+      Object.values(node).forEach(walk)
+    }
+    walk(route4)
+    if (!found.length) ctx.skip('stop 6243 carries no stop_name_full anywhere in this payload')
+    for (const stop of found) {
+      expect(stop.stop_name).toBe('Campbell/5th')
+      expect(stop.stop_name_full).toBe('504 Campbell/5th')
+    }
   })
 
   it('marks those trips special in the generated departures board', (ctx) => {
