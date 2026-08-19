@@ -162,6 +162,39 @@ asserted. A rendered sketch using this data is at `/tmp/gstack-sketch.png` (rege
 - Direction matters on the string-line board. A westbound ladder correctly shows no eastbound
   vehicles; the UI must make the active direction obvious to avoid reading as "no buses."
 
+### Verified during /plan-eng-review (2026-08-19)
+
+- **Block continuity works at runtime, not just in static data.** 249 of 249 live trip IDs
+  resolved to a static trip and therefore a `block_id`. Three of five live route 4 vehicles had a
+  direction flip in their next block trip. Example: vehicle `#2867` on trip `3014706_15608`
+  (block `1010`, dir 0) becomes the 10:21 dir-1 departure from Campbell/5th.
+- **Service alerts feed is not GTFS-Realtime.** `9zu9-jwr2` returns a bespoke Socrata array:
+  camelCase keys, `informedEntities` (plural), `activePeriods`, no `header`/`entity` envelope.
+  It needs its own parser. 104 alerts at capture time: 55 DETOUR, 39 NO_SERVICE, 8
+  REDUCED_SERVICE, 1 MODIFIED_SERVICE, spanning 50 routes and 86 stops.
+- **Alerts carry CapMetro staff PII.** Every alert object includes `userEmail` and
+  `userFullname` for the employee who filed it. Must be stripped at ingest.
+- **22 active alerts touch the six routes in play.** 38 stops systemwide have an active
+  `NO_SERVICE` alert, and **6 of those are still scheduled on these routes**: route 4 stops
+  `1967` and `1971`, route 7 stops `1034` and `1188`, route 350 stops `3298` and `6368`.
+  Stops `1967` and `1971` are two of the three stops the Austin High special pattern *adds*.
+  Without alert handling the board would promise a bus at a closed stop.
+- **One-off service days are rare and clustered: 8 of 145 dates (6%).** They are
+  20260818-20260822 (first week of school, each a full 2,388-trip system schedule across 46
+  routes), plus 20261031, 20261212, and 20261231. Between 20260823 and 20270109 only three dates
+  have one.
+- **There is no single "weekday" service.** `1-172` covers 95 weekdays over 42 routes; `9-172`
+  covers 99 weekdays over 32 routes. Calendar resolution must be per route, not per feed.
+  Route 800's saved-watch trip `3010894_22201` belongs to `9-172` and *does* run on 20260820,
+  contradicting an outside-voice claim that it would not.
+- **Conditional requests do not work.** The feeds return an ETag but answer `If-None-Match` with
+  a full 200 and the entire body, not a 304.
+- **gzip works and is the win.** Trip Updates 1,854,274 B identity vs 158,052 B gzip. Positions
+  120,079 B vs 15,170 B. Alerts 67,761 B vs 10,232 B. Protobuf variants gzip to 127,809 B and
+  12,741 B respectively, only ~19% better than gzipped JSON.
+- **Fixtures captured** at `tests/fixtures/feeds-20260819/` on a one-off service date
+  (`3-172`): 392 vehicles, 249 with trips, 912 trip updates, 104 alerts.
+
 ## Cross-Model Perspective
 
 Codex ran a cold read with no access to the conversation, receiving only a written summary.
@@ -247,24 +280,49 @@ threat to this project:
 
 ## Architecture Sketch
 
-The "worker" is a **PHP script on the existing Linode**, run on a cadence, writing plain JSON
-files into the webroot. There is no long-lived process and no new service. Apache/nginx serves the
-generated JSON as static files, which is fast, cacheable, and cannot crash.
+Two jobs, split by where the work naturally belongs. Heavy GTFS parsing runs at **build time in
+GitHub Actions** using `node-gtfs`, because PHP has no maintained GTFS static parsing library.
+The Linode never parses GTFS; it only consumes prebuilt shards.
 
 ```
-cron (Linode)                                       webroot (static JSON, served by existing httpd)
-  build.php  every ~30-60s                     ──>  /api/route/{id}.json   compact route state
-    fetch cuc7-ywmd  positions                      /api/all.json          all vehicles + deadheads
-    fetch mqtr-wwpy  trip updates                   /api/watch/{id}.json   saved-trip status
+BUILD TIME  — GitHub Actions, daily, free
+  fetch r4v4-vz24 (66 MB GTFS)
+    node-gtfs ──> per-route schedules      ──┐
+              ──> trip-pattern classification │  committed to the repo
+              ──> block chains (trip→next)    │  (versioned, diffable, revertable)
+              ──> calendar index (date→svc)   │
+              ──> stops lookup              ──┘
+  Commit only when feed_info.feed_version changes (~3x/year), not daily.
+
+RUNTIME     — Linode, plain cron, every 60s, PHP, zero libraries
+  git pull (shards)          [daily, separate cron]
+  fetch cuc7-ywmd positions  ──┐  Accept-Encoding: gzip
+  fetch mqtr-wwpy tripupdates ─┤  (173 KB/poll vs 1.97 MB uncompressed)
+  fetch 9zu9-jwr2 alerts     ──┘
     join on tripId + stopSequence
-    + trip-pattern classify, + block chain
-    + lateness math
-  gtfs.php   daily
-    fetch r4v4-vz24, rebuild schedule shards   ──>  /data/route-{id}.json  schedules + patterns
-                                                    /data/stops.json
+    + lateness = predicted - scheduled
+    + block-chain lookup, + pattern flag
+    + alert suppression (closed stops)
+    + strip staff PII from alerts
+  write temp → fsync → rename (atomic)  ──> /api/route/{id}.json
+  flock to prevent overlapping runs     ──> /api/all.json
+  stamp generated_at + feed ages        ──> /api/health.json
+
+CLIENT      — static bundle, GitHub Pages
+  route picker │ direction toggle (A / B / BOTH) │ watchlist │ all-buses
+  map panel · ladder panel · vehicle rows
+  degrades to positions-only if /api is stale or unreachable
 ```
 
-Client is a static bundle, deployable to GitHub Pages or the same Linode.
+**Runtime model is plain 60-second cron.** No daemon, no systemd unit, nothing to restart after a
+reboot. Writes are atomic (temp file, fsync, rename on the same filesystem) so a client fetching
+mid-write gets either the previous complete file or the new complete file, never a torn one. A
+lockfile prevents a slow run from stacking on the next.
+
+**Feed transport is JSON with gzip, not protobuf.** Measured: Trip Updates gzip 158 KB vs
+protobuf gzip 128 KB; Positions gzip 15 KB vs protobuf 13 KB. Protobuf saves ~19% and costs a PHP
+dependency whose official bindings are deprecated. Conditional requests do not help: the feed
+returns an ETag but answers `If-None-Match` with a full 200, not a 304 (verified).
 
 client (mobile web)
   route picker (live) │ direction toggle │ watchlist │ all-buses tab
@@ -287,10 +345,12 @@ deadhead, purple special pattern.
 2. **Ladder legibility on a phone.** The rendered sketch is 1180px wide. A route with 20+ stops
    over a 60-minute window on a 390px screen is unproven. May need horizontal scroll, a stop
    subset, or a rotated layout. This is the biggest unvalidated design risk.
-3. **How to draw both directions on one ladder.** Now a requirement, not an option. Options:
-   mirror the two directions around a shared time axis, fold the route into an out-and-back
-   loop so the turnaround sits at the fold, or overlay with distinct line styles. Unresolved,
-   and it interacts badly with question 2 on a narrow screen.
+3. **How to draw both directions on one ladder.** Partially resolved: the control is a
+   **three-way toggle per route — direction A, direction B, or BOTH**, not a separate view mode.
+   What remains open is the BOTH rendering itself: mirror the directions around a shared time
+   axis, fold the route into an out-and-back loop so the turnaround sits at the fold, or overlay
+   with distinct line styles. This interacts badly with question 2 on a narrow screen, since BOTH
+   roughly doubles the vertical extent.
 4. **Transfer chains.** The kids' trips are 800→4 and 337→7→837. Does the board model a chain
    explicitly (does the connection hold?), or just show a watchlist of routes side by side?
    Chains are the more useful answer and the much harder build.
@@ -331,12 +391,18 @@ deadhead, purple special pattern.
 
 ## Next Steps
 
-1. **Worker skeleton.** Poll `cuc7-ywmd` and `mqtr-wwpy`, cache in memory, serve
-   `/api/route/{id}` with the join already done. The joining logic is already proven; port the
-   throwaway script.
-2. **GTFS ingest + shard build.** Download `r4v4-vz24`, emit per-route schedules, stop lookups,
-   precomputed trip-pattern classifications (baseline vs special, with adds/skips), **block
-   chains (trip → next trip in block)**, and a day-type → service-ID index from `calendar_dates`.
+1. **Runtime skeleton.** Poll `cuc7-ywmd` and `mqtr-wwpy` with gzip, join, write
+   `/api/route/{id}.json` atomically. No in-process cache: cron starts a fresh process each run,
+   so state lives only in the written files. The joining logic is already proven against live
+   data; port the throwaway script from the design session.
+2. **GTFS ingest + shard build (GitHub Actions, Node, `node-gtfs`).** Download `r4v4-vz24`, emit
+   per-route schedules, stop lookups, precomputed trip-pattern classifications (baseline vs
+   special, with adds/skips), **block chains (trip → next trip in block)**, and a
+   date → service-ID index from `calendar_dates`. Commit only on `feed_version` change.
+2b. **Service alerts.** Parse `9zu9-jwr2` (bespoke Socrata shape, not GTFS-RT), join
+   `informedEntities` to routes and stops, suppress or flag stops under an active `NO_SERVICE`
+   alert, badge routes under `DETOUR` / `REDUCED_SERVICE`, and **strip `userEmail` /
+   `userFullname` at ingest** so CapMetro staff PII never reaches the client, a cache, or a log.
 3. **Client shell.** Route picker from live data, direction toggle with a both-directions option,
    vehicle rows with lateness badges. This alone is already more useful for the stated purpose
    than the app being replaced.
@@ -350,6 +416,42 @@ deadhead, purple special pattern.
    `calendar_dates.txt` for the current service day. Start with the 7:50a 800 SB at Simond.
 8. **All-buses view** including the ~142 deadheads.
 9. **Deferred:** transfer chains, notifications, history, accounts, the second kid's profile.
+
+## Test Strategy
+
+Added during `/plan-eng-review`. The doc previously had none, which was its largest gap: the core
+output is arithmetic on joined data, and a confidently wrong "+3 min" is indistinguishable from a
+correct one.
+
+**Frameworks:** PHPUnit for the runtime join. Vitest for the Node build job and shared client
+logic. Playwright for end-to-end flows. Nothing existed before this; all three are new.
+
+**Fixtures.** Real feed responses captured 2026-08-19 at 10:10 CT live in
+`tests/fixtures/feeds-20260819/` with a `MANIFEST.json`: 392 vehicles (249 with trips), 912 trip
+updates, 104 alerts, plus `calendar_dates.txt` and `feed_info.txt`. This date was deliberately
+chosen: it runs **one-off service `3-172`**, and only 8 of 145 dates in the feed have a one-off
+service. Capturing on a stable weekday would have produced a fixture that hides the trip-ID
+instability entirely.
+
+Synthetic fixtures still needed: a `25:10:00` after-midnight trip, both DST transition days, a
+stale-shard scenario where a live trip ID is absent, and a torn-write scenario.
+
+**Coverage target: every branch.** 62 code paths and user flows were enumerated during review;
+all are currently gaps. The five that fail *silently* are the priority, because nothing else will
+ever surface them:
+
+| # | Silent failure | Test that catches it |
+|---|---|---|
+| 1 | Shards stale after a GTFS reset; trip IDs no longer match | Assert unmatched-trip rate; alarm above a threshold |
+| 2 | Cron dies; webroot serves last JSON forever | Assert `generated_at` age drives a visible stale state |
+| 3 | DST transition mis-converts service-day times | Fixture tests on both transition dates |
+| 4 | Alert-closed stop still rendered as served | Fixture test using the real 2026-08-19 alerts |
+| 5 | GTFS time `>= 24:00:00` parsed as invalid | Unit test on the time parser |
+
+**Staleness is a first-class output, not a log line.** Every rendered lateness value is tied to
+two ages: realtime feed age and GTFS `feed_version` age. If either exceeds its threshold, the UI
+shows the degraded state rather than a number. `/api/health.json` exposes both so failure is
+checkable without reading the app.
 
 ## The Assignment
 
@@ -385,3 +487,178 @@ decides whether to keep waiting or start walking. Her heuristic is the product s
   the eastbound ladder." That is a bug report about someone else's product, and it turned into the
   block-continuity feature that is the strongest reason this app should exist. Watching a real
   person fail is worth more than asking them what they want, and you had already done it.
+
+## NOT in scope
+
+Considered during `/plan-eng-review` and explicitly deferred.
+
+- **Transfer chains ("will she make the connection?").** The kids' real trips are 800→4 and
+  337→7→837, so this is arguably the true problem. Deferred because a per-route board is a
+  prerequisite for a chain view, and chains multiply every open UI question. Flagged by the
+  outside voice as a possible strategic miscalibration; accepted with eyes open.
+- **Notifications / push alerts.** Requires a server-side subscription store, which contradicts
+  the "no new services, nothing to keep alive" constraint.
+- **History and analytics.** No on-time-performance charting, no trend data. Storage growth on a
+  shared Linode with no cleanup story.
+- **Accounts and profiles.** Two kids, but saved watches stay an unstructured client-local list.
+  No login, no server-side personal data.
+- **Home-grown arrival prediction.** CapMetro's own predictions are used as-is. Building a better
+  predictor is a different project.
+- **Fixing or forking realtimebustracker.com.** Its breakage is diagnosed well enough to avoid
+  repeating, and that is all the value it has here.
+- **Protobuf feed support.** Measured as ~19% smaller than gzipped JSON and not worth a
+  deprecated PHP dependency. JSON + gzip only.
+- **A non-git shard transport.** Committed shards are good enough for v1. Captured in
+  `TODOS.md` with a `feed_version`-gated commit as the cheapest mitigation.
+
+## What already exists
+
+- **`node-gtfs`** already does GTFS static ingestion, per-route queries, and geoJSON conversion.
+  The build job **reuses** it rather than hand-rolling a parser. This is the single largest
+  reuse win in the plan and it is what makes the PHP-side work small.
+- **CapMetro's own predictions** (Trip Updates feed) are **reused** as the source of predicted
+  arrival times. Nothing is predicted locally.
+- **The existing Linode + httpd** are **reused**; no new hosting is provisioned.
+- **The verified join logic from the design session** exists as a working throwaway script and is
+  **ported**, not rewritten. It already produced correct lateness against live data.
+- **Instabus** (2018, unmaintained) is reference-only. Not reused; it predates these feeds' JSON
+  variants and has no schedule adherence.
+- **`OneBusAway`** was proposed by the outside voice and **rejected**: an agency-scale Java
+  platform oriented around arrival prediction, which is explicitly not the goal.
+- Nothing in this repo is rebuilt, because nothing exists yet.
+
+## Failure modes
+
+For each new codepath, one realistic production failure and whether it is covered.
+
+| Codepath | Realistic failure | Test? | Handled? | User sees |
+|---|---|---|---|---|
+| `buildRouteShards` | CapMetro republishes mid-period; trip IDs rotate | planned | planned | stale-schedule banner |
+| `fetchFeeds` | Socrata 5xx or connection timeout at 7:48am | planned | planned | last-good data + age |
+| `fetchFeeds` | 200 OK but feed timestamp hours old (upstream frozen) | planned | planned | stale banner |
+| `joinVehicles` | Live trip ID absent from shards | planned | planned | position, lateness "unknown" |
+| `joinVehicles` | 7% of vehicles have no trip update | planned | planned | position, lateness "unknown" |
+| `computeLateness` | Service-day time `>= 24:00:00` | planned | planned | correct after-midnight time |
+| `computeLateness` | DST transition day | planned | planned | correct offset |
+| `applyAlerts` | Stop closed but still scheduled (live today, 6 pairs) | planned | planned | stop struck through |
+| `applyAlerts` | Alert with `activePeriods.end == null` | planned | planned | treated as open-ended |
+| `writeJson` | Client fetches mid-write | planned | planned | previous complete file |
+| `writeJson` | Disk full | planned | planned | previous file + health alarm |
+| cron | Job dies entirely | planned | planned | stale banner via `generated_at` |
+| `git pull` | Shard pull fails for weeks | planned | planned | `feed_version` age banner |
+
+**Critical gaps: 0 remaining.** Five were flagged during review (stale shards, dead cron, DST,
+alert-closed stops, `>= 24:00:00` times); all five now have both a planned test and a planned
+handler, and none fails silently, because staleness is a rendered state rather than a log line.
+
+## Parallelization strategy
+
+| Step | Modules touched | Depends on |
+|------|----------------|------------|
+| Shard build | `build/` | — |
+| Alerts ingest | `runtime/`, `build/` (stop index) | Shard build (stop lookup) |
+| Runtime join | `runtime/` | Shard build (shard format) |
+| Client shell + rows | `client/` | Runtime join (API contract) |
+| Map panel | `client/` | Client shell |
+| Ladder panel | `client/` | Client shell |
+| Saved watches | `client/`, `build/` (calendar index) | Shard build |
+| Test harness | `tests/` | — |
+
+```
+Lane A: Shard build → Alerts ingest → Runtime join   (sequential, shared build/ + runtime/)
+Lane B: Test harness + fixtures                      (independent, start immediately)
+Lane C: Client shell → { Map | Ladder }              (waits on Lane A's API contract)
+```
+
+Launch **A and B in parallel** immediately. C waits on the API contract from A, after which Map
+and Ladder can split into separate worktrees since they touch different components under
+`client/`.
+
+**Conflict flag:** Alerts ingest and Shard build both touch `build/` (the stop index). Keep them
+in the same lane rather than parallel worktrees.
+
+**Sequencing dependency the plan did not previously state:** the route-state **API contract must
+be written down before Lane C starts**. Without it, block continuation, unknown-lateness,
+deadhead, stale-feed, and both-direction semantics all leak into the client. The outside voice
+flagged this and it is the highest-value thing to specify next.
+
+## Implementation Tasks
+
+Synthesized from this review's findings. Each task derives from a specific finding above.
+
+- [ ] **T1 (P1, human: ~2 days / CC: ~40min)** — runtime/alerts — Ingest service alerts and join to stops
+  - Surfaced by: Architecture — feed `9zu9-jwr2` listed in the data table but never used; 6 scheduled-but-closed stop/route pairs live today, 2 of them on the Austin High special run
+  - Files: `runtime/alerts.php`, `build/stop-index.js`
+  - Verify: fixture test using `tests/fixtures/feeds-20260819/servicealerts.json` asserts stop 1967 renders as closed on route 4
+- [ ] **T2 (P1, human: ~1h / CC: ~10min)** — runtime/alerts — Strip staff PII at ingest
+  - Surfaced by: Architecture — alert objects carry `userEmail` and `userFullname` of CapMetro employees
+  - Files: `runtime/alerts.php`
+  - Verify: assert no alert field reaching the client matches `/user(Email|Fullname)/`
+- [ ] **T3 (P1, human: ~3h / CC: ~20min)** — runtime/io — Atomic writes + flock
+  - Surfaced by: Architecture / outside voice — cron writes into a webroot a client may be reading
+  - Files: `runtime/write.php`
+  - Verify: concurrent read loop during 100 write cycles yields zero parse errors
+- [ ] **T4 (P1, human: ~1 day / CC: ~30min)** — runtime/time — Service-day time parsing
+  - Surfaced by: Test review — GTFS allows `>= 24:00:00`; America/Chicago observes DST
+  - Files: `runtime/time.php`, `build/time.js`
+  - Verify: unit tests for `25:10:00` and both DST transition dates
+- [ ] **T5 (P1, human: ~1 day / CC: ~30min)** — runtime/health — Staleness as rendered state
+  - Surfaced by: Outside voice — "degrade, do not die" permits confidently stale data with no enforcement rule
+  - Files: `runtime/health.php`, `client/staleness.js`
+  - Verify: with `generated_at` forced 30 min old, UI shows degraded state and suppresses lateness numbers
+- [ ] **T6 (P1, human: ~4h / CC: ~30min)** — docs — Write the route-state API contract
+  - Surfaced by: Outside voice / parallelization — hardest logic leaks into the client without it
+  - Files: `docs/api-contract.md`
+  - Verify: contract covers block continuation, unknown lateness, deadheads, stale feeds, and A/B/BOTH direction semantics
+- [ ] **T7 (P1, human: ~3h / CC: ~20min)** — build — Move GTFS parsing to GitHub Actions
+  - Surfaced by: Architecture — doc said `gtfs.php` parses GTFS on the Linode; PHP has no maintained GTFS static library
+  - Files: `.github/workflows/gtfs.yml`, `build/shards.js`
+  - Verify: workflow produces shards; commits only when `feed_version` changes
+- [ ] **T8 (P2, human: ~1 week / CC: ~1.5h)** — tests — Stand up the three test harnesses
+  - Surfaced by: Test review — zero test infrastructure; 62 paths, 0 covered
+  - Files: `phpunit.xml`, `vitest.config.ts`, `playwright.config.ts`
+  - Verify: all three runners execute in CI on push
+- [ ] **T9 (P2, human: ~30min / CC: ~5min)** — runtime/fetch — Request feeds with gzip
+  - Surfaced by: Performance — 1.97 MB/poll uncompressed vs 173 MB/day compressed
+  - Files: `runtime/fetch.php`
+  - Verify: assert `Accept-Encoding: gzip` sent and response decoded
+- [ ] **T10 (P2, human: ~1 day / CC: ~30min)** — build/calendar — Per-route calendar resolution
+  - Surfaced by: Verified data — `1-172` and `9-172` are both weekday services over different route sets; there is no single weekday service
+  - Files: `build/calendar.js`, `runtime/watch.php`
+  - Verify: resolving a watch on 2026-08-19 (one-off `3-172`) and on 2026-08-24 both return the right trip
+- [ ] **T11 (P3, human: ~1 day / CC: ~30min)** — build/blocks — Block confidence states
+  - Surfaced by: Outside voice — block continuity verified on route 4 only; other routes may interline or have dirty `block_id`
+  - Files: `build/blocks.js`
+  - Verify: block chains computed for all 71 routes; routes with missing or ambiguous `block_id` marked low-confidence rather than silently chained
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
+| Codex Review | `/codex review` | Independent 2nd opinion | 1 | issues_found | 21 raised, 5 material, 1 falsified |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | clean | 5 issues, 0 critical gaps |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+| DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
+
+**CODEX:** Outside voice raised 21 points. Five were material and are folded in: the
+build-time/runtime contradiction, "cache in memory" under cron, non-atomic writes, the missing
+route-state API contract, and service alerts being absent from the product. One claim was
+falsified by direct check: it argued the saved-watch trip would not run on 2026-08-20, but
+`3010894_22201` belongs to service `9-172`, which covers 99 dates including that one. Its
+underlying concern produced a better rule than either reviewer started with: calendar resolution
+is per route, not per feed.
+
+**CROSS-MODEL:** Both reviewers independently reached the same conclusion on three points: heavy
+GTFS parsing does not belong in PHP, writes into a served webroot must be atomic, and staleness
+must be an enforced rendered state rather than a log line. Codex uniquely caught service alerts,
+which turned out to be a live correctness bug affecting 6 stop/route pairs. This review uniquely
+caught the alerts feed's non-GTFS shape, its embedded staff PII, the gzip-versus-protobuf
+measurement, and the one-off-service-day frequency. Neither caught the per-route calendar split
+before it was probed directly. Scope reduction was proposed and **rejected by the user**; the full
+plan stands and was not re-argued.
+
+**VERDICT:** ENG CLEARED — ready to implement. CEO and Design reviews not run and not required
+for this change.
+
+NO UNRESOLVED DECISIONS

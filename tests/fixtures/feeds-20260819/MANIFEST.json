@@ -1,0 +1,23 @@
+{
+  "captured_at_utc": "2026-08-19T15:10:42.051078+00:00",
+  "feed_timestamp_ct": "2026-08-19T10:10:39-05:00",
+  "service_date": "20260819",
+  "service_ids_active_today": [
+    "17-172",
+    "20-172",
+    "29-172",
+    "3-172",
+    "9-172"
+  ],
+  "why_this_date_matters": "20260819 runs one-off service 3-172 (a single-date, full-system schedule of 2388 trips across 46 routes). Only 8 of 145 dates in this feed have a one-off service; the next after 20260822 is 20261031. Any saved-watch or trip-id-stability test needs a fixture from a date like this.",
+  "vehicle_count": 392,
+  "vehicles_with_trip": 249,
+  "trip_update_count": 912,
+  "alert_count": 104,
+  "gtfs_feed_version": "\"Capital Metro\",https://www.capmetro.org,en,20260818,20270109,260818_1456,http://www.capmetro.org",
+  "notes": [
+    "servicealerts.json is NOT GTFS-Realtime: bespoke Socrata array, camelCase, informedEntities (plural), activePeriods.",
+    "servicealerts.json contains CapMetro staff PII (userEmail, userFullname). Strip before rendering, caching, or logging.",
+    "Trip Updates carry predicted times only; there is no delay field. Lateness requires GTFS stop_times."
+  ]
+}
