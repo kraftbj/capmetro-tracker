@@ -48,8 +48,9 @@
  *        └───────────────────────────────────────────────┘           │
  *              │                                                     │
  *              v  temp file in same dir -> fflush -> fsync -> rename  │
- *        /api/route/{id}.json   /api/all.json                        │
- *        /api/watch/{id}.json   /api/health.json                     │
+ *        /api/route/{id}.json        /api/all.json                   │
+ *        /api/departures/{id}.json   /api/routes.json                │
+ *        /api/watch/{id}.json        /api/health.json                │
  *       ────────────────────────────────────────────────────────────-┘
  *
  * Usage:
@@ -78,6 +79,8 @@ require_once __DIR__ . '/lib/staleness.php';
 require_once __DIR__ . '/lib/adherence.php';
 require_once __DIR__ . '/lib/stopstatus.php';
 require_once __DIR__ . '/lib/join.php';
+require_once __DIR__ . '/lib/catalog.php';
+require_once __DIR__ . '/lib/departures.php';
 require_once __DIR__ . '/lib/watch.php';
 require_once __DIR__ . '/lib/health.php';
 
@@ -292,6 +295,7 @@ $envelope_feeds = [
 ];
 
 $all_vehicles = [];
+$catalog = [];
 $routes_written = 0;
 $routes_active = [];
 $watch_targets = [];
@@ -405,6 +409,23 @@ foreach ($route_ids as $rid) {
     } else {
         $routes_written++;
     }
+
+    /*
+     * The service day's scheduled departures, every stop, no window. Written from the
+     * same $times that is already in memory for this route, so it costs a serialization
+     * and not a second parse of a 440 KB shard.
+     */
+    $departures = cm_build_departures($shard, $times, $active_services, $service_date, $feed_version, $now);
+    if (!cm_atomic_write_json($api_dir . '/departures/' . $rid . '.json', $departures)) {
+        $errors[] = "write failed for departures $rid";
+    }
+
+    /*
+     * has_service_today is the departures document's own trip count, not a second reading
+     * of the calendar. A route whose calendar names a service that has no trips today
+     * would otherwise be advertised in the picker and then open on an empty board.
+     */
+    $catalog[] = cm_catalog_entry($doc['route'], $vehicles, $departures['trips'] !== []);
     if ($vehicles !== []) {
         $routes_active[$rid] = true;
     }
@@ -446,7 +467,7 @@ foreach ($route_ids as $rid) {
         ];
     }
 
-    unset($shard, $times, $route_tus, $vehicles, $timepoints, $schedule, $doc);
+    unset($shard, $times, $route_tus, $vehicles, $timepoints, $schedule, $doc, $departures);
 }
 
 /* Deadheads: 143 of 392 in the capture. No trip, no route, no lateness. */
@@ -491,6 +512,21 @@ $all_doc = [
 ];
 if (!cm_atomic_write_json($api_dir . '/all.json', $all_doc)) {
     $errors[] = 'write failed for all.json';
+}
+
+/* ---- route catalog --------------------------------------------------------------- */
+
+/*
+ * The picker's index. It carries the SYSTEM service day, the same block all.json carries,
+ * because it is a system document; each row answers "does this route run today" for
+ * itself. Written after the loop so every row's vehicle counts come from the vehicles the
+ * route files actually published.
+ */
+if (!cm_atomic_write_json(
+    $api_dir . '/routes.json',
+    cm_build_route_catalog($now, $all_doc['service_day'], $catalog)
+)) {
+    $errors[] = 'write failed for routes.json';
 }
 
 /* ---- watches --------------------------------------------------------------------- */
@@ -564,8 +600,9 @@ cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
 ));
 
 $log(sprintf(
-    'wrote %d route files, %d vehicles (%d in service, %d deadhead), %d watches%s',
+    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s',
     $routes_written,
+    count($catalog),
     count($all_vehicles),
     $in_service,
     count($all_vehicles) - $in_service,

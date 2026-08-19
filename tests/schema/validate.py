@@ -27,7 +27,7 @@ except ImportError:  # pragma: no cover
     sys.exit(2)
 
 ROOT = Path(__file__).resolve().parents[2]
-SCHEMA_NAMES = ["common", "route-state", "all", "watch", "health"]
+SCHEMA_NAMES = ["common", "route-state", "all", "watch", "health", "routes", "departures"]
 
 # Where the runtime job is expected to write. Overridable so CI can point at a
 # staging webroot. Absent directory is not a failure yet; see NOTES.md.
@@ -157,12 +157,19 @@ def main() -> int:
             "Set CAPMETRO_WEBROOT to point at one.",
         )
     else:
-        seen = 0
+        seen: set[str] = set()
         for path in sorted(api.rglob("*.json")):
             rel = path.relative_to(WEBROOT)
             parts = rel.parts
-            if parts[:2] == ("api", "route"):
+            # routes.json sits directly under api/, so it must be matched by name
+            # before the api/route/ directory test -- the prefix would otherwise
+            # never see it, but a future api/routes/ directory would collide.
+            if rel.name == "routes.json" and len(parts) == 2:
+                key = "routes.schema.json"
+            elif parts[:2] == ("api", "route"):
                 key = "route-state.schema.json"
+            elif parts[:2] == ("api", "departures"):
+                key = "departures.schema.json"
             elif parts[:2] == ("api", "watch"):
                 key = "watch.schema.json"
             elif rel.name == "all.json":
@@ -171,14 +178,25 @@ def main() -> int:
                 key = "health.schema.json"
             else:
                 continue
-            seen += 1
+            seen.add(key)
             text = path.read_text()
             validate(str(rel), json.loads(text), key, store, reg)
             scan_for_pii(str(rel), text, pii_values)
+        # Six endpoint kinds now: the four originals plus the route catalog and
+        # the per-route departure boards. Counting kinds rather than files is
+        # what gives this teeth -- 71 route files would satisfy any file count.
+        expected_kinds = {
+            "route-state.schema.json",
+            "all.schema.json",
+            "watch.schema.json",
+            "health.schema.json",
+            "routes.schema.json",
+            "departures.schema.json",
+        }
         check(
-            "the generated webroot carries all four endpoint kinds",
-            seen >= 4,
-            f"only {seen} recognised endpoint files under {api}",
+            "the generated webroot carries all six endpoint kinds",
+            seen >= expected_kinds,
+            f"missing under {api}: {sorted(expected_kinds - seen)}",
         )
 
     failed = [r for r in results if not r[0]]

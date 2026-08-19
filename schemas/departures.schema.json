@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capmetro-tracker.local/schemas/departures.schema.json",
+  "title": "GET /api/departures/{route_id}.json",
+  "description": "One service day of scheduled departures for one route: every stop, every active trip, no window. api-contract.md section 16.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "route_id",
+    "service_date",
+    "service_day_start_epoch",
+    "day_type",
+    "feed_version",
+    "stops",
+    "trips",
+    "departures"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/epoch"
+    },
+    "route_id": {
+      "type": "string"
+    },
+    "service_date": {
+      "type": "string",
+      "pattern": "^[0-9]{8}$",
+      "description": "The GTFS service date every arrival_s in this document is relative to."
+    },
+    "service_day_start_epoch": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Epoch seconds of service-day midnight for service_date, resolved server-side as noon in America/Chicago minus 12 hours. service_day_start_epoch + arrival_seconds is the absolute time a stop is scheduled, and equals the start_epoch the route payload publishes for the same trip. Null only when service_date is not a valid YYYYMMDD, which the cron job cannot produce."
+    },
+    "day_type": {
+      "enum": [
+        "weekday",
+        "saturday",
+        "sunday",
+        null
+      ],
+      "description": "The day type of service_date, spelled exactly as the section 9 watch tuple spells it, so a client can tell whether a saved watch applies today. Null only when service_date is not a valid YYYYMMDD."
+    },
+    "feed_version": {
+      "type": "string",
+      "description": "The schedule shard's feed version, so a cached copy can be told from a current one without diffing."
+    },
+    "stops": {
+      "type": "array",
+      "description": "One entry per (stop, direction). A stop serving both directions appears twice.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stop_id",
+          "stop_name",
+          "stop_name_full",
+          "direction_id",
+          "stop_sequence",
+          "lat",
+          "lon",
+          "is_timepoint"
+        ],
+        "properties": {
+          "stop_id": {
+            "type": "string"
+          },
+          "stop_name": {
+            "type": "string",
+            "maxLength": 25
+          },
+          "stop_name_full": {
+            "type": "string"
+          },
+          "direction_id": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "stop_sequence": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lon": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "is_timepoint": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "trips": {
+      "type": "array",
+      "description": "Only trips whose service_id is active for service_date, ordered by scheduled start then trip id. departures[] indexes into this array.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "direction_id",
+          "headsign",
+          "start_time",
+          "block_id",
+          "is_special"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "direction_id": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "headsign": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_time": {
+            "$ref": "common.schema.json#/$defs/serviceClock"
+          },
+          "block_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_special": {
+            "type": "boolean",
+            "description": "The same flag as vehicle.pattern.is_special in section 2, computed by the same function."
+          }
+        }
+      }
+    },
+    "departures": {
+      "type": "object",
+      "description": "stop_id -> [[arrival_s, trip_index], ...], ascending by arrival_s. Keyed by stop id alone; filter by direction through trips[trip_index].direction_id.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Seconds since the START of the service day. Values past 86400 are legal and are never wrapped."
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Index into trips[]."
+            }
+          ],
+          "items": false
+        }
+      }
+    }
+  }
+}

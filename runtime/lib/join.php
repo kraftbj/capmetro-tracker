@@ -11,6 +11,7 @@
 require_once __DIR__ . '/servicetime.php';
 require_once __DIR__ . '/adherence.php';
 require_once __DIR__ . '/stopstatus.php';
+require_once __DIR__ . '/shards.php';
 
 /*
  * Index the trip updates feed by trip id.
@@ -254,8 +255,15 @@ function cm_build_vehicle(
         $out['pattern'] = [
             'is_baseline'      => $is_baseline,
             /* A pattern the build calls special is still the normal run on the days it is
-               the baseline, so is_special never fires on today's baseline. */
-            'is_special'       => !$is_baseline && (bool) ($pattern['is_special'] ?? false),
+               the baseline, so is_special never fires on today's baseline. That rule lives
+               in cm_trip_is_special() because the departures document (§15) publishes the
+               same flag per trip and the two must not drift apart. */
+            'is_special'       => cm_trip_is_special(
+                $route_shard,
+                (string) $pattern_id,
+                (int) $out['trip']['direction_id'],
+                $service_id
+            ),
             /* Contract section 2: "how many trips share this stop signature today". */
             'trips_in_pattern' => max(1, (int) (
                 $pattern['trips_by_service'][$service_id]

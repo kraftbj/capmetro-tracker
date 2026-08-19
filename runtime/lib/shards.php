@@ -258,6 +258,39 @@ function cm_shard_baseline_pattern(array $route_shard, int $direction_id, string
 }
 
 /*
+ * Is this trip's pattern a special run TODAY?
+ *
+ * "Special" is not a property of a pattern on its own. The Austin High run is special on
+ * the days a normal pattern is in force and is the ordinary service on the days it is
+ * itself the baseline, so the answer depends on which baseline the trip's own service_id
+ * puts in force. This is the single definition of that rule: the vehicle join (§2
+ * pattern.is_special) and the departures document (§15 trips[].is_special) both call it,
+ * so the two can never drift into disagreeing about the same trip.
+ *
+ * Returns false when the pattern is unknown, which is the least-committal answer: an
+ * unclassifiable trip is not evidence of a special run.
+ */
+function cm_trip_is_special(
+    array $route_shard,
+    ?string $pattern_id,
+    int $direction_id,
+    string $service_id
+): bool {
+    if ($pattern_id === null || $pattern_id === '') {
+        return false;
+    }
+    $pattern = $route_shard['patterns'][$pattern_id] ?? null;
+    if ($pattern === null) {
+        return false;
+    }
+    $baseline_id = cm_shard_baseline_pattern($route_shard, $direction_id, $service_id);
+    if ($baseline_id !== null && $baseline_id === $pattern_id) {
+        return false;
+    }
+    return (bool) ($pattern['is_special'] ?? false);
+}
+
+/*
  * The scheduled-arrival map for one trip: stop_sequence => [stop_id, stop_name,
  * scheduled_at]. This is the right-hand side of the lateness subtraction.
  *
