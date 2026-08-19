@@ -12,7 +12,9 @@
     "vehicle-null-current-stop-sequence.json": "Decision-table row 6b: in-service vehicle with no currentStopSequence -> unknown/no_progress.",
     "frozen-feed-response.json": "Silent failure 2: upstream returns HTTP 200 with a header timestamp 4h07m old; freshness must come from the timestamp, not the status code.",
     "route-4-dead-cron.json": "Silent failure 2 / criterion 8: last-good route file served 47 minutes after the cron died; suppress_adherence true, every vehicle unknown/stale_data.",
-    "torn-route-4.json": "Section 11: a route file truncated mid-write. Deliberately not valid JSON, so it carries no inline comment. Proves the client survives a torn read and that atomic rename is what prevents it."
+    "torn-route-4.json": "Section 11: a route file truncated mid-write. Deliberately not valid JSON, so it carries no inline comment. Proves the client survives a torn read and that atomic rename is what prevents it.",
+    "all-buses-fleet.json": "The all-buses view: a 19-vehicle trim of the real 2026-08-19 capture carrying every adherence state, deadheads both moving and parked, and two buses sharing a route so route grouping is exercised. counts recomputed for the trim.",
+    "departures-800.json": "Saved trips: the four southbound route 800 trips serving stop 6293 (Simond SB) between 07:30 and 08:30 on 20260819, and every stop they make. 6293 is a MINOR stop, not a timepoint, which is why the route payload alone cannot resolve a watch. Includes trip 3010894_22201 at 07:52:09, the API contract's own watch example."
   },
   "conventions": {
     "_comment": "one-line note naming the failure this fixture encodes",

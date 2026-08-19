@@ -1,0 +1,664 @@
+{
+ "_comment": "Trimmed from the real route 800 build shard on service day 20260819: the four southbound trips that serve stop 6293 (Simond SB) between 07:30 and 08:30, and every stop those trips make. Stop 6293 is a MINOR stop, not a timepoint, which is the whole reason the departures endpoint exists - the route payload only carries scheduled times for timepoints.",
+ "day_type": "weekday",
+ "departures": {
+  "1212": [
+   [
+    29434,
+    0
+   ],
+   [
+    30034,
+    1
+   ],
+   [
+    30634,
+    2
+   ],
+   [
+    31234,
+    3
+   ]
+  ],
+  "1213": [
+   [
+    29518,
+    0
+   ],
+   [
+    30118,
+    1
+   ],
+   [
+    30718,
+    2
+   ],
+   [
+    31318,
+    3
+   ]
+  ],
+  "1349": [
+   [
+    28020,
+    0
+   ],
+   [
+    28620,
+    1
+   ],
+   [
+    29220,
+    2
+   ],
+   [
+    29820,
+    3
+   ]
+  ],
+  "1353": [
+   [
+    28335,
+    0
+   ],
+   [
+    28935,
+    1
+   ],
+   [
+    29535,
+    2
+   ],
+   [
+    30135,
+    3
+   ]
+  ],
+  "1356": [
+   [
+    28640,
+    0
+   ],
+   [
+    29240,
+    1
+   ],
+   [
+    29840,
+    2
+   ],
+   [
+    30440,
+    3
+   ]
+  ],
+  "4283": [
+   [
+    28379,
+    0
+   ],
+   [
+    28979,
+    1
+   ],
+   [
+    29579,
+    2
+   ],
+   [
+    30179,
+    3
+   ]
+  ],
+  "4288": [
+   [
+    28467,
+    0
+   ],
+   [
+    29067,
+    1
+   ],
+   [
+    29667,
+    2
+   ],
+   [
+    30267,
+    3
+   ]
+  ],
+  "4298": [
+   [
+    28565,
+    0
+   ],
+   [
+    29165,
+    1
+   ],
+   [
+    29765,
+    2
+   ],
+   [
+    30365,
+    3
+   ]
+  ],
+  "5926": [
+   [
+    27000,
+    0
+   ],
+   [
+    27600,
+    1
+   ],
+   [
+    28200,
+    2
+   ],
+   [
+    28800,
+    3
+   ]
+  ],
+  "6291": [
+   [
+    27239,
+    0
+   ],
+   [
+    27839,
+    1
+   ],
+   [
+    28439,
+    2
+   ],
+   [
+    29039,
+    3
+   ]
+  ],
+  "6293": [
+   [
+    27129,
+    0
+   ],
+   [
+    27729,
+    1
+   ],
+   [
+    28329,
+    2
+   ],
+   [
+    28929,
+    3
+   ]
+  ],
+  "634": [
+   [
+    27673,
+    0
+   ],
+   [
+    28273,
+    1
+   ],
+   [
+    28873,
+    2
+   ],
+   [
+    29473,
+    3
+   ]
+  ],
+  "6441": [
+   [
+    30000,
+    0
+   ],
+   [
+    30600,
+    1
+   ],
+   [
+    31200,
+    2
+   ],
+   [
+    31800,
+    3
+   ]
+  ],
+  "6488": [
+   [
+    27868,
+    0
+   ],
+   [
+    28468,
+    1
+   ],
+   [
+    29068,
+    2
+   ],
+   [
+    29668,
+    3
+   ]
+  ],
+  "6491": [
+   [
+    29256,
+    0
+   ],
+   [
+    29856,
+    1
+   ],
+   [
+    30456,
+    2
+   ],
+   [
+    31056,
+    3
+   ]
+  ],
+  "6496": [
+   [
+    27419,
+    0
+   ],
+   [
+    28019,
+    1
+   ],
+   [
+    28619,
+    2
+   ],
+   [
+    29219,
+    3
+   ]
+  ],
+  "6506": [
+   [
+    29015,
+    0
+   ],
+   [
+    29615,
+    1
+   ],
+   [
+    30215,
+    2
+   ],
+   [
+    30815,
+    3
+   ]
+  ],
+  "6508": [
+   [
+    28829,
+    0
+   ],
+   [
+    29429,
+    1
+   ],
+   [
+    30029,
+    2
+   ],
+   [
+    30629,
+    3
+   ]
+  ],
+  "6509": [
+   [
+    29700,
+    0
+   ],
+   [
+    30300,
+    1
+   ],
+   [
+    30900,
+    2
+   ],
+   [
+    31500,
+    3
+   ]
+  ],
+  "6512": [
+   [
+    28740,
+    0
+   ],
+   [
+    29340,
+    1
+   ],
+   [
+    29940,
+    2
+   ],
+   [
+    30540,
+    3
+   ]
+  ],
+  "6516": [
+   [
+    28146,
+    0
+   ],
+   [
+    28746,
+    1
+   ],
+   [
+    29346,
+    2
+   ],
+   [
+    29946,
+    3
+   ]
+  ],
+  "6558": [
+   [
+    30600,
+    0
+   ],
+   [
+    31200,
+    1
+   ],
+   [
+    31800,
+    2
+   ],
+   [
+    32400,
+    3
+   ]
+  ]
+ },
+ "feed_version": "260818_1456",
+ "generated_at": 1787152239,
+ "route_id": "800",
+ "schema": 1,
+ "service_date": "20260819",
+ "service_day_start_epoch": 1787115600,
+ "stops": [
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.302693,
+   "lon": -97.699868,
+   "stop_id": "5926",
+   "stop_name": "Barbara Jordan SB",
+   "stop_name_full": null,
+   "stop_sequence": 1
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.296149,
+   "lon": -97.700385,
+   "stop_id": "6293",
+   "stop_name": "Simond SB",
+   "stop_name_full": null,
+   "stop_sequence": 2
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.290214,
+   "lon": -97.699019,
+   "stop_id": "6291",
+   "stop_name": "Mueller Tower Station SB",
+   "stop_name_full": null,
+   "stop_sequence": 3
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.285952,
+   "lon": -97.706369,
+   "stop_id": "6496",
+   "stop_name": "Airport Blvd SB",
+   "stop_name_full": null,
+   "stop_sequence": 4
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.27361,
+   "lon": -97.69835,
+   "stop_id": "634",
+   "stop_name": "Oak Springs SB",
+   "stop_name_full": null,
+   "stop_sequence": 5
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.267713,
+   "lon": -97.707739,
+   "stop_id": "6488",
+   "stop_name": "ACC Eastview SB",
+   "stop_name_full": null,
+   "stop_sequence": 6
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.259748,
+   "lon": -97.709736,
+   "stop_id": "1349",
+   "stop_name": "7th Street SB",
+   "stop_name_full": null,
+   "stop_sequence": 7
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.25282,
+   "lon": -97.713,
+   "stop_id": "6516",
+   "stop_name": "Cesar Chavez SB",
+   "stop_name_full": null,
+   "stop_sequence": 8
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.2422,
+   "lon": -97.717511,
+   "stop_id": "1353",
+   "stop_name": "Roy G Guerrero SB",
+   "stop_name_full": null,
+   "stop_sequence": 9
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.240131,
+   "lon": -97.718817,
+   "stop_id": "4283",
+   "stop_name": "Elmont SB",
+   "stop_name_full": null,
+   "stop_sequence": 10
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.23524,
+   "lon": -97.721977,
+   "stop_id": "4288",
+   "stop_name": "Riverside SB",
+   "stop_name_full": null,
+   "stop_sequence": 11
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.230883,
+   "lon": -97.725761,
+   "stop_id": "4298",
+   "stop_name": "Sheringham SB",
+   "stop_name_full": null,
+   "stop_sequence": 12
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.227843,
+   "lon": -97.728279,
+   "stop_id": "1356",
+   "stop_name": "Oltorf East SB",
+   "stop_name_full": null,
+   "stop_sequence": 13
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.23107,
+   "lon": -97.734031,
+   "stop_id": "6512",
+   "stop_name": "Oltorf at Burton SB",
+   "stop_name_full": null,
+   "stop_sequence": 14
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.227672,
+   "lon": -97.735483,
+   "stop_id": "6508",
+   "stop_name": "Iroquois SB",
+   "stop_name_full": null,
+   "stop_sequence": 15
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.216742,
+   "lon": -97.734364,
+   "stop_id": "6506",
+   "stop_name": "Mission Hill SB",
+   "stop_name_full": null,
+   "stop_sequence": 16
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.204118,
+   "lon": -97.742184,
+   "stop_id": "6491",
+   "stop_name": "Franklin Park SB",
+   "stop_name_full": null,
+   "stop_sequence": 17
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.193748,
+   "lon": -97.744772,
+   "stop_id": "1212",
+   "stop_name": "Dove Springs SB",
+   "stop_name_full": null,
+   "stop_sequence": 18
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.188889,
+   "lon": -97.745545,
+   "stop_id": "1213",
+   "stop_name": "Village Square SB",
+   "stop_name_full": null,
+   "stop_sequence": 19
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.17902,
+   "lon": -97.746313,
+   "stop_id": "6509",
+   "stop_name": "Onion Creek SB",
+   "stop_name_full": null,
+   "stop_sequence": 20
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.16283,
+   "lon": -97.726298,
+   "stop_id": "6441",
+   "stop_name": "Easton Park SB",
+   "stop_name_full": null,
+   "stop_sequence": 21
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.151526,
+   "lon": -97.759005,
+   "stop_id": "6558",
+   "stop_name": "Goodnight Ranch Bay A",
+   "stop_name_full": null,
+   "stop_sequence": 22
+  }
+ ],
+ "trips": [
+  {
+   "block_id": "800030",
+   "direction_id": 1,
+   "headsign": "800 Goodnight SB",
+   "id": "3010893_22199",
+   "is_special": false,
+   "start_time": "07:30:00"
+  },
+  {
+   "block_id": "800002",
+   "direction_id": 1,
+   "headsign": "800 Goodnight SB",
+   "id": "3010846_22200",
+   "is_special": false,
+   "start_time": "07:40:00"
+  },
+  {
+   "block_id": "800005",
+   "direction_id": 1,
+   "headsign": "800 Goodnight SB",
+   "id": "3010894_22201",
+   "is_special": false,
+   "start_time": "07:50:00"
+  },
+  {
+   "block_id": "800013",
+   "direction_id": 1,
+   "headsign": "800 Goodnight SB",
+   "id": "3010847_22202",
+   "is_special": false,
+   "start_time": "08:00:00"
+  }
+ ]
+}
