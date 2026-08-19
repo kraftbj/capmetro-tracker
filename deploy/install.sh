@@ -37,11 +37,15 @@ Options:
   --src <path>        where the checkout lives       (default: $SRC_DIR)
   --user <name>       system user to run the cron as (default: $RUN_USER)
   --interval <sec>    how often to poll the feeds    (default: $INTERVAL_S)
+  --src-from <path>   deploy from a directory already on this box instead of
+                      cloning. Use this when the repo is private and the box
+                      has no GitHub credentials: rsync the tree up first.
   --dry-run           print what would happen, change nothing
 EOF
 }
 
 DRY_RUN=0
+SRC_FROM=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --domain)   DOMAIN="$2"; shift 2 ;;
@@ -51,6 +55,7 @@ while [ $# -gt 0 ]; do
     --src)      SRC_DIR="$2"; shift 2 ;;
     --user)     RUN_USER="$2"; shift 2 ;;
     --interval) INTERVAL_S="$2"; shift 2 ;;
+    --src-from) SRC_FROM="$2"; shift 2 ;;
     --dry-run)  DRY_RUN=1; shift ;;
     -h|--help)  usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage; exit 2 ;;
@@ -82,9 +87,15 @@ run()  { if [ "$DRY_RUN" = 1 ]; then printf '   would run: %s\n' "$*"; else "$@"
 
 # ---- preflight -------------------------------------------------------------
 say "checking prerequisites"
+# git is required only when we are going to use it. --src-from exists precisely
+# so a box with no GitHub credentials, and no git at all, can still be deployed
+# to, and demanding git there would defeat the option.
 MISSING=""
-for c in php git rsync; do command -v "$c" >/dev/null 2>&1 || MISSING="$MISSING $c"; done
-[ -n "$MISSING" ] && die "missing:$MISSING — install them first (apt install php-cli git rsync)"
+for c in php rsync; do command -v "$c" >/dev/null 2>&1 || MISSING="$MISSING $c"; done
+if [ -z "$SRC_FROM" ] && ! command -v git >/dev/null 2>&1; then
+  MISSING="$MISSING git"
+fi
+[ -n "$MISSING" ] && die "missing:$MISSING — install them first (apt install php-cli rsync git)"
 
 # 8.2 because composer.json declares php>=8.2. Gating lower here would let the
 # install succeed on a box the code does not actually support, and the failure
@@ -108,19 +119,46 @@ fi
 for d in "$SRC_DIR" "$WEBROOT" "$STATE_DIR" "$CONF_DIR"; do
   [ -d "$d" ] || { say "creating $d"; run mkdir -p "$d"; }
 done
-run chown -R "$RUN_USER:$RUN_USER" "$SRC_DIR" "$WEBROOT" "$STATE_DIR"
+
+# The job writes the webroot and its state, and READS the source. It does not
+# own the source, deliberately: this process talks to the public internet every
+# sixty seconds, and a compromised one should not be able to rewrite the code it
+# runs a minute later. Owning src as root also means git never needs credentials
+# for a nologin system account.
+run chown -R "$RUN_USER:$RUN_USER" "$WEBROOT" "$STATE_DIR"
 
 # ---- source ----------------------------------------------------------------
-if [ -d "$SRC_DIR/.git" ]; then
+if [ -n "$SRC_FROM" ]; then
+  [ -d "$SRC_FROM" ] || die "--src-from $SRC_FROM is not a directory"
+  [ -f "$SRC_FROM/runtime/generate-api.php" ] || die "--src-from $SRC_FROM does not look like this repo"
+  say "copying the source from $SRC_FROM"
+  # --delete so a file deleted upstream actually disappears here. Safe because
+  # this path is the source tree only; the webroot is a different directory.
+  run rsync -a --delete --exclude '.git' "$SRC_FROM/" "$SRC_DIR/"
+elif [ -d "$SRC_DIR/.git" ]; then
   say "updating checkout in $SRC_DIR"
-  run as_user "$RUN_USER" git -C "$SRC_DIR" fetch --quiet origin "$BRANCH"
-  run as_user "$RUN_USER" git -C "$SRC_DIR" checkout --quiet "$BRANCH"
-  run as_user "$RUN_USER" git -C "$SRC_DIR" merge --ff-only --quiet "origin/$BRANCH"
+  run git -C "$SRC_DIR" fetch --quiet origin "$BRANCH"
+  run git -C "$SRC_DIR" checkout --quiet "$BRANCH"
+  run git -C "$SRC_DIR" merge --ff-only --quiet "origin/$BRANCH"
+elif [ -d "$SRC_DIR" ] && [ -f "$SRC_DIR/runtime/generate-api.php" ]; then
+  say "using the source already in $SRC_DIR (no git checkout)"
 else
   say "cloning $REPO into $SRC_DIR"
-  run as_user "$RUN_USER" git clone --quiet --branch "$BRANCH" "$REPO" "$SRC_DIR" \
-    || die "clone failed. The repo is private: give $RUN_USER a deploy key, or clone it yourself and re-run."
+  run git clone --quiet --branch "$BRANCH" "$REPO" "$SRC_DIR" || die \
+"clone failed, and on a private repo that is expected: git ran as root here, so
+   it used /root/.ssh and not your key. Two ways forward, neither needing a key
+   for the $RUN_USER account:
+
+     a) copy the tree up from your laptop, then re-run:
+          rsync -a --exclude .git ./ root@thisbox:/srv/capmetro/tree/
+          $0 --src-from /srv/capmetro/tree --domain ${DOMAIN:-your.domain}
+
+     b) put a read-only GitHub deploy key in /root/.ssh/ and re-run this script."
 fi
+
+# root owns the source; everyone can read it. The job needs no more than that.
+run chown -R root:root "$SRC_DIR"
+run chmod -R a+rX "$SRC_DIR"
 
 # ---- config ----------------------------------------------------------------
 # Never overwritten. It carries the watch list, which is the one file on the box

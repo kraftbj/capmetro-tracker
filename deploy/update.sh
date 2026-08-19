@@ -30,12 +30,17 @@ say() { printf '\033[1m==\033[0m %s\n' "$*"; }
 die() { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ "$(id -u)" = 0 ] || die "run as root"
-[ -d "$SRC_DIR/.git" ] || die "no checkout at $SRC_DIR"
+if [ ! -d "$SRC_DIR/.git" ]; then
+  die "no git checkout at $SRC_DIR. If you deployed with --src-from, update the
+     same way: rsync the tree up again and re-run install.sh --src-from <path>."
+fi
 
+# git runs as root, matching who owns the source. The job account is nologin,
+# has no credentials and cannot write here, which is the point.
 BEFORE=$(git -C "$SRC_DIR" rev-parse --short HEAD)
 say "updating $SRC_DIR from origin/$BRANCH (at $BEFORE)"
-as_user "$RUN_USER" git -C "$SRC_DIR" fetch --quiet origin "$BRANCH"
-as_user "$RUN_USER" git -C "$SRC_DIR" merge --ff-only --quiet "origin/$BRANCH" \
+git -C "$SRC_DIR" fetch --quiet origin "$BRANCH"
+git -C "$SRC_DIR" merge --ff-only --quiet "origin/$BRANCH" \
   || die "not a fast-forward. Someone committed on the box, or the branch was rewritten. Resolve by hand."
 AFTER=$(git -C "$SRC_DIR" rev-parse --short HEAD)
 

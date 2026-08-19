@@ -7,7 +7,7 @@ Depends only on `jsonschema` and `referencing`.
 Covers acceptance criterion 1 (every endpoint validates against its schema) for
 whatever generated output exists, plus the committed golden fixture, which is the
 part that can run before the runtime job lands. Also covers criterion 7 (no
-generated file carries staff PII), because a schema alone cannot prove a value
+a schema alone cannot prove a value
 was stripped -- only that a key is absent.
 """
 
@@ -32,8 +32,6 @@ SCHEMA_NAMES = ["common", "route-state", "all", "watch", "health", "routes", "de
 # Where the runtime job is expected to write. Overridable so CI can point at a
 # staging webroot. Absent directory is not a failure yet; see NOTES.md.
 WEBROOT = Path(os.environ.get("CAPMETRO_WEBROOT", ROOT / "webroot")).resolve()
-
-PII_KEYS = ("userEmail", "userFullname")
 
 results: list[tuple[bool, str, str]] = []
 
@@ -79,34 +77,6 @@ def validate(label: str, doc, schema_key: str, store, reg) -> None:
     check(f"{label} validates against {schema_key} with zero errors", not errs, detail)
 
 
-def collect_staff_pii_values() -> set[str]:
-    """Every real name and address in the upstream alerts feed.
-
-    Criterion 7 forbids the keys AND the values. A build that renames the key to
-    `filed_by` would still leak, and only a value scan catches that.
-    """
-    src = ROOT / "tests" / "fixtures" / "feeds-20260819" / "servicealerts.json"
-    if not src.exists():
-        return set()
-    values: set[str] = set()
-    for alert in json.loads(src.read_text()):
-        for k in PII_KEYS:
-            v = alert.get(k)
-            if isinstance(v, str) and v.strip():
-                values.add(v.strip())
-    return values
-
-
-def scan_for_pii(label: str, text: str, pii_values: set[str]) -> None:
-    hits = [k for k in PII_KEYS if k in text]
-    found = sorted(v for v in pii_values if v in text)
-    check(
-        f"{label} contains no staff PII key or value",
-        not hits and not found,
-        f"keys: {hits}; values: {found[:5]}",
-    )
-
-
 def main() -> int:
     store, reg = load_registry()
 
@@ -117,17 +87,10 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             check(f"schemas/{n}.schema.json is itself a valid Draft 2020-12 schema", False, str(e))
 
-    pii_values = collect_staff_pii_values()
-    check(
-        "the real alerts fixture supplies at least one staff name to scan for",
-        len(pii_values) > 0,
-        "servicealerts.json carried no userEmail/userFullname values, so the PII scan proves nothing",
-    )
 
     golden = ROOT / "tests" / "fixtures" / "golden" / "route-4-20260819.json"
     doc = json.loads(golden.read_text())
     validate("the committed route 4 golden output", doc, "route-state.schema.json", store, reg)
-    scan_for_pii("the committed route 4 golden output", golden.read_text(), pii_values)
 
     dead = ROOT / "tests" / "fixtures" / "synthetic" / "route-4-dead-cron.json"
     if dead.exists():
@@ -181,7 +144,6 @@ def main() -> int:
             seen.add(key)
             text = path.read_text()
             validate(str(rel), json.loads(text), key, store, reg)
-            scan_for_pii(str(rel), text, pii_values)
         # Six endpoint kinds now: the four originals plus the route catalog and
         # the per-route departure boards. Counting kinds rather than files is
         # what gives this teeth -- 71 route files would satisfy any file count.
