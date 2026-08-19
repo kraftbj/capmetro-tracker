@@ -1,5 +1,18 @@
 # Test fixtures
 
+> **THIS REPOSITORY MUST STAY PRIVATE, OR THIS FIXTURE MUST BE SANITIZED FIRST.**
+>
+> `feeds-20260819/servicealerts.json` contains **20 real CapMetro employees'** full names and
+> `@capmetro.org` email addresses (`userFullname`, `userEmail` on every alert object). CapMetro
+> publishes them; those people did not choose to appear in this repo.
+>
+> The application strips both fields at ingest and no generated file contains them, which
+> `tests/schema/validate.py` asserts. That protects the app's output. It does **not** protect
+> this raw fixture, which is committed and is in git history.
+>
+> Before making this repository public, or sharing it outside your household, replace those 20
+> identities with synthetic ones and purge the originals from history. Decided 2026-08-19.
+
 ## `feeds-20260819/`
 
 Live CapMetro feed responses captured 2026-08-19 at 10:10 CT, plus the GTFS static
