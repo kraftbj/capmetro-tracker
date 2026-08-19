@@ -1,4 +1,4 @@
-# Written by deploy/install.sh; @INTERVAL_S@ is substituted at install time.
+# Written by deploy/install.sh, which substitutes the AT-sign token below.
 [Unit]
 Description=Run the CapMetro generator every @INTERVAL_S@ seconds
 

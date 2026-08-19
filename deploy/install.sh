@@ -146,23 +146,64 @@ run rsync -a --exclude 'NOTES.md' "$SRC_DIR/client/" "$WEBROOT/"
 run chown -R "$RUN_USER:$RUN_USER" "$WEBROOT"
 
 # ---- the generation job ----------------------------------------------------
-GEN="php $SRC_DIR/runtime/generate-api.php --config=$CONF_DIR/config.php --quiet"
+# Absolute path on purpose. cron gets a PATH and would be fine with a bare
+# `php`, but whether systemd searches PATH for ExecStart has varied by version,
+# and a unit that fails to load reports it in a journal nobody is tailing.
+PHP_BIN=$(command -v php)
+GEN="$PHP_BIN $SRC_DIR/runtime/generate-api.php --config=$CONF_DIR/config.php --quiet"
 
-if command -v systemctl >/dev/null 2>&1 && [ -d /etc/systemd/system ]; then
+# systemctl can exist where systemd is not actually running as pid 1 - a
+# container, a chroot, WSL. Probing for the binary alone and then letting `set
+# -e` kill the script on a failed daemon-reload leaves a half-finished install,
+# so ask whether systemd is really running and fall back rather than abort.
+# The test is /run/systemd/system, not `systemctl is-system-running` and not the
+# presence of the binary. That directory is exactly what sd_booted(3) checks and
+# what Debian's own maintainer scripts use, and it is the only one of the three
+# that was right in every case I tried: systemctl is absent from a base ubuntu
+# image but gets pulled in as a dependency of cron, and is-system-running
+# answered in a way that sent the installer down the systemd path on a box with
+# no systemd running, which then died at daemon-reload with the user, the
+# directories and the config already created.
+SYSTEMD_LIVE=0
+if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
+  SYSTEMD_LIVE=1
+fi
+
+if [ "$SYSTEMD_LIVE" = 1 ]; then
   say "installing the systemd timer (every ${INTERVAL_S}s)"
   if [ "$DRY_RUN" = 0 ]; then
     sed -e "s#@RUN_USER@#$RUN_USER#g" -e "s#@GEN@#$GEN#g" \
+        -e "s#@WEBROOT@#$WEBROOT#g" -e "s#@STATE_DIR@#$STATE_DIR#g" \
       "$SRC_DIR/deploy/capmetro-generate.service" > /etc/systemd/system/capmetro-generate.service
     sed -e "s#@INTERVAL_S@#$INTERVAL_S#g" \
       "$SRC_DIR/deploy/capmetro-generate.timer" > /etc/systemd/system/capmetro-generate.timer
+    # An unsubstituted @PLACEHOLDER@ in ReadWritePaths makes systemd refuse every
+    # write the job needs, and the failure surfaces a minute later inside a unit
+    # nobody is tailing. Catch it here, where the message can say what happened.
+    # Directive lines only. The first version of this check read the whole file
+    # and tripped on the unit's own comment explaining what placeholders are,
+    # which aborted a completely correct install.
+    # A plain `if grep`, not a command substitution. Two earlier versions of this
+    # guard were each broken in their own way: the first matched the unit's own
+    # comment and aborted a correct install, and the second used $(...) whose
+    # grep exits 1 when it finds nothing, which under `set -e` also aborted a
+    # correct install. `if grep -q` has neither failure mode, and grep's exit
+    # code IS the question being asked.
+    if grep -v '^[[:space:]]*#' /etc/systemd/system/capmetro-generate.service \
+       | grep -q '@[A-Z_]*@'; then
+      die "the service unit still has an unsubstituted placeholder; not enabling the timer"
+    fi
     systemctl daemon-reload
     systemctl enable --now capmetro-generate.timer
   fi
   SCHEDULER="systemd timer capmetro-generate.timer"
 else
+  if command -v systemctl >/dev/null 2>&1; then
+    warn "systemctl is installed but systemd is not running here; using cron instead"
+  fi
   # cron cannot go below a minute, so INTERVAL_S is ignored here and the job
   # runs once a minute. Say so rather than pretending the flag was honored.
-  say "no systemd; installing a once-a-minute cron entry instead"
+  say "installing a once-a-minute cron entry"
   [ "$INTERVAL_S" != 60 ] && warn "cron cannot run more often than once a minute; --interval $INTERVAL_S ignored"
   run sh -c "printf '* * * * * %s %s\n' '$RUN_USER' '$GEN' > /etc/cron.d/capmetro"
   run chmod 0644 /etc/cron.d/capmetro
@@ -188,35 +229,37 @@ if [ "$DRY_RUN" = 0 ]; then
 fi
 
 # ---- web server ------------------------------------------------------------
+# The vhost is printed, never installed. Rewriting a web server config on a box
+# that already serves other sites is not a risk this script gets to take on your
+# behalf, and the substitution is one command you can read before running it.
 say "web server"
+VHOST_DOMAIN="${DOMAIN:-your.domain}"
 if command -v nginx >/dev/null 2>&1; then
-  echo "   nginx found. Install the vhost yourself, then reload:"
-  echo "     sed 's/@DOMAIN@/${DOMAIN:-your.domain}/; s#@WEBROOT@#$WEBROOT#' \\"
-  echo "       $SRC_DIR/deploy/nginx-capmetro.conf > /etc/nginx/sites-available/capmetro"
-  echo "     ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro"
-  echo "     nginx -t && systemctl reload nginx"
+  printf '   nginx found. Install the vhost, then reload:\n'
+  printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
+  printf '       %s/deploy/nginx-capmetro.conf > /etc/nginx/sites-available/capmetro\n' "$SRC_DIR"
+  printf '     ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro\n'
+  printf '     nginx -t && systemctl reload nginx\n'
 elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
-  echo "   apache found. Install the vhost yourself, then reload:"
-  echo "     sed 's/@DOMAIN@/${DOMAIN:-your.domain}/; s#@WEBROOT@#$WEBROOT#' \\"
-  echo "       $SRC_DIR/deploy/apache-capmetro.conf > /etc/apache2/sites-available/capmetro.conf"
-  echo "     a2enmod headers expires && a2ensite capmetro"
-  echo "     apache2ctl configtest && systemctl reload apache2"
+  printf '   apache found. Install the vhost, then reload:\n'
+  printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
+  printf '       %s/deploy/apache-capmetro.conf > /etc/apache2/sites-available/capmetro.conf\n' "$SRC_DIR"
+  printf '     a2enmod headers expires && a2ensite capmetro\n'
+  printf '     apache2ctl configtest && systemctl reload apache2\n'
 else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
 
-cat <<EOF
-
-$(say "done")
-  source      $SRC_DIR ($BRANCH)
-  webroot     $WEBROOT
-  config      $CONF_DIR/config.php
-  state       $STATE_DIR
-  scheduler   $SCHEDULER
-
-Next:
-  1. install the vhost printed above and reload the web server
-  2. get a certificate:  certbot --nginx -d ${DOMAIN:-your.domain}
-  3. check it:           curl -s https://${DOMAIN:-your.domain}/api/health.json | head -c 200
-  4. update later:       $SRC_DIR/deploy/update.sh   (as root)
-EOF
+echo
+say "done"
+printf '  source      %s (%s)\n' "$SRC_DIR" "$BRANCH"
+printf '  webroot     %s\n' "$WEBROOT"
+printf '  config      %s/config.php\n' "$CONF_DIR"
+printf '  state       %s\n' "$STATE_DIR"
+printf '  scheduler   %s\n' "$SCHEDULER"
+echo
+echo "Next:"
+printf '  1. install the vhost printed above and reload the web server\n'
+printf '  2. get a certificate:  certbot --nginx -d %s\n' "$VHOST_DOMAIN"
+printf '  3. check it:           curl -s https://%s/api/health.json | head -c 200\n' "$VHOST_DOMAIN"
+printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"

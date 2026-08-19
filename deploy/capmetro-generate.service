@@ -1,4 +1,4 @@
-# Written by deploy/install.sh; @PLACEHOLDERS@ are substituted at install time.
+# Written by deploy/install.sh, which substitutes the AT-sign tokens below.
 #
 # Type=oneshot, driven by capmetro-generate.timer. A long-running daemon would
 # have to own its own scheduling, its own restart-on-crash and its own log
