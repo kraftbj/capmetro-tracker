@@ -378,3 +378,65 @@ describe('suppress_adherence forbids the drawn lateness as well as the printed o
     expect(caption.toLowerCase()).toContain('suppressed')
   })
 })
+
+/*
+ * Regression: the drawn stem must agree with the printed badge.
+ * Found by /review on 2026-08-19 (Codex adversarial pass).
+ *
+ * The stem used to anchor on where the bus's own diagonal crossed its row. That is
+ * "scheduled time at wherever the bus is standing", while the badge is "predicted minus
+ * scheduled at the next stop it has not passed" — two different measurements that can
+ * disagree. Worse, a trip starting before schedule.window.from has no diagonal at all, so
+ * those buses drew no stem, and off-window buses are disproportionately the very late ones:
+ * 2 of 65 late buses on the 2026-08-19 feed, one of them 29 minutes down.
+ */
+describe('the drawn stem is the same fact as the printed badge', () => {
+  const busAt = (scheduledAt) => ({
+    vehicle_id: 'T1',
+    adherence: { state: 'late', seconds: 300, against: { scheduled_at: scheduledAt } },
+  })
+
+  t('anchors on adherence.against.scheduled_at, not on the diagonal crossing', (ns) => {
+    const scale = ns.timeScale(WIDE, 138, 376)
+    const due = WIDE.from + 1800
+    /* A diagonal that crosses this row somewhere completely different. */
+    const diagonal = [{ t: WIDE.from, x: 138, y: 0 }, { t: WIDE.until, x: 376, y: 200 }]
+    const x = ns.stemAnchorX(busAt(due), scale, diagonal, 100)
+    expect(x).toBeCloseTo(scale.x(due), 6)
+    expect(x).not.toBeCloseTo(ns.xAtY(diagonal, 100), 1)
+  })
+
+  t('still returns an anchor when the trip has no diagonal at all', (ns) => {
+    const scale = ns.timeScale(WIDE, 138, 376)
+    const due = WIDE.from + 600
+    /* Trip started before window.from, so it contributed no points. */
+    expect(ns.stemAnchorX(busAt(due), scale, null, 100)).toBeCloseTo(scale.x(due), 6)
+  })
+
+  t('falls back to the diagonal when no stop was measured', (ns) => {
+    const scale = ns.timeScale(WIDE, 138, 376)
+    const diagonal = [{ t: WIDE.from, x: 138, y: 0 }, { t: WIDE.until, x: 376, y: 200 }]
+    const noAgainst = { vehicle_id: 'T2', adherence: { state: 'unknown', seconds: null, against: null } }
+    expect(ns.stemAnchorX(noAgainst, scale, diagonal, 100)).toBeCloseTo(ns.xAtY(diagonal, 100), 6)
+  })
+
+  t('has nothing to anchor to when there is neither a measured stop nor a diagonal', (ns) => {
+    const scale = ns.timeScale(WIDE, 138, 376)
+    const bare = { vehicle_id: 'T3', adherence: { state: 'unknown', seconds: null, against: null } }
+    expect(ns.stemAnchorX(bare, scale, null, 100)).toBeNull()
+  })
+
+  t('agrees with the badge on every measured bus in the real route 4 payload', (ns) => {
+    const data = goldenRoute4()
+    const scale = ns.timeScale(ns.scheduleWindow(data), 138, 376)
+    const measured = (data.vehicles || []).filter(
+      (v) => v.in_service && v.adherence && v.adherence.against
+    )
+    expect(measured.length).toBeGreaterThan(0)
+    measured.forEach((v) => {
+      const x = ns.stemAnchorX(v, scale, null, 100)
+      expect(x).toBeCloseTo(scale.x(v.adherence.against.scheduled_at), 6)
+      expect(Number.isFinite(x)).toBe(true)
+    })
+  })
+})

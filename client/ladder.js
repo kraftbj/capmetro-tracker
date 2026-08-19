@@ -16,8 +16,13 @@
  *    every bus in one column and can therefore never show bunching or a
  *    headway gap, which is the thing a dispatch board exists to show. With a
  *    real time axis the scheduled trips are grey diagonals and every live bus
- *    sits on the NOW line; the horizontal distance from a bus to its own
- *    diagonal IS its lateness, drawn rather than stated.
+ *    sits on the NOW line, with a stem drawn back to where it was due. The
+ *    stem anchors on `adherence.against.scheduled_at`, the SAME instant the
+ *    badge computes from, not on where the diagonal crosses the row: those are
+ *    two different measurements and a picture contradicting its own number is
+ *    the failure this board exists to avoid. It also means a trip that started
+ *    before the window, and so has no diagonal at all, still shows its lateness
+ *    — which matters most, because the off-window buses are the very late ones.
  *
  * Axis meaning:
  *    y = position along the route (timepoint order, interpolated by
@@ -158,6 +163,28 @@
       }
     }
     return null;
+  }
+
+  /*
+   * Where the stem's far end belongs: the instant this bus was DUE at the stop its
+   * lateness is measured against.
+   *
+   * It deliberately does NOT use where the trip's diagonal crosses this row. That is
+   * "scheduled time at wherever the bus is standing", while the badge is "predicted minus
+   * scheduled at the next stop it has not passed" — two different measurements, and a
+   * picture contradicting its own number is the failure this board exists to avoid.
+   *
+   * It also covers the case that matters most. A trip starting before window.from has no
+   * diagonal at all, so a diagonal-based anchor drew nothing — and off-window buses are
+   * disproportionately the very late ones. `against.scheduled_at` is present regardless.
+   * The diagonal remains the fallback for a bus with no measured stop.
+   */
+  function stemAnchorX(v, scale, ownPoints, y) {
+    var against = v && v.adherence && v.adherence.against;
+    if (against && typeof against.scheduled_at === 'number') {
+      return scale.x(against.scheduled_at);
+    }
+    return ownPoints ? xAtY(ownPoints, y) : null;
   }
 
   /*
@@ -424,9 +451,24 @@
       var started = nowAt !== null && typeof v.trip.start_epoch === 'number' &&
         nowAt >= v.trip.start_epoch;
       if (!opts.suppressed && started) {
-        var own = byTrip[v.trip.trip_id];
-        var sx = own ? xAtY(own, y) : null;
-        if (sx !== null && sx !== undefined) {
+        /*
+         * The stem anchors on `adherence.against.scheduled_at` — the SAME instant the
+         * badge computes its number from — not on where this trip's diagonal happens to
+         * cross this row. The two are different measurements: the diagonal crossing is
+         * "scheduled time at wherever the bus is standing", while the badge is
+         * "predicted minus scheduled at the next stop it has not passed". They usually
+         * agree closely and sometimes do not, and a board whose picture contradicts its
+         * own number is the failure this project exists to avoid.
+         *
+         * It also fixes the case that mattered most. A trip that started before
+         * `schedule.window.from` has no diagonal at all, so the old anchor produced no
+         * stem — and the buses most likely to be off-window are the very late ones. Two
+         * of today's 65 late buses were in exactly that state, one of them 29 minutes
+         * down, drawn with no visible lateness whatsoever. `against.scheduled_at` is
+         * present whether or not the trip made the window.
+         */
+        var sx = stemAnchorX(v, scale, byTrip[v.trip.trip_id], y);
+        if (sx !== null && sx !== undefined && isFinite(sx)) {
           var clamped = Math.max(plotLeft, Math.min(plotRight, sx));
           g.appendChild(svgEl('line', { x1: clamped, y1: y, x2: x, y2: y, class: 'bus__stem' }));
         }
@@ -530,7 +572,7 @@
       if (diagonals) {
         schedLine = 'Time runs left to right, ' + span + '. The grey diagonals are the ' +
           fmt.plural(diagonals, 'scheduled trip', 'scheduled trips') +
-          '; how far a bus sits from its own diagonal is how late it is.';
+          '; the stem on each bus is its lateness, drawn to the same scale as the clock.';
       } else if (inWindow) {
         schedLine = 'Time runs left to right, ' + span + '. ' +
           fmt.plural(inWindow, 'trip is', 'trips are') + ' scheduled in that hour, but ' +
@@ -607,7 +649,14 @@
 
     var suppressed = !!(data.staleness && data.staleness.suppress_adherence);
     var width = Math.max(300, host.clientWidth || 384);
-    var dirs = opts.direction === 'both' ? [0, 1] : [opts.direction];
+    /*
+     * The directions the PAYLOAD publishes, never a hard-coded [0, 1]. Routes 466 and 642
+     * run one direction only, and assuming two drew a phantom second ladder reading "No
+     * timepoints published for direction 1" beside a single row group. Rows already derive
+     * from route.directions, so sharing the source is also what keeps the two panels
+     * column-aligned in BOTH mode.
+     */
+    var dirs = opts.direction === 'both' ? fmt.directionIds(data) : [opts.direction];
 
     sub.textContent = 'Clock time across, route down · tap + to open the stops between two timepoints';
 
@@ -664,6 +713,7 @@
     axisTicks: axisTicks,
     tripPoints: tripPoints,
     xAtY: xAtY,
+    stemAnchorX: stemAnchorX,
     PITCH: PITCH,
     LABEL_W: LABEL_W,
     _expanded: expanded
