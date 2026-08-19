@@ -57,14 +57,17 @@
    * continuation is never presented as fact.
    */
   function dirTag(data, id) {
-    var d = ((data && data.route && data.route.directions) || [])
-      .filter(function (x) { return x.id === id; })[0];
-    return fmt.directionTag(d && d.headsign, id);
+    return fmt.directionTagFor(data, id);
   }
 
-  /* Shared with the ladder and the map; see fmt.directionsInOrder. */
+  /*
+   * The rows group by fmt.directionsForRows, NOT by the ladder's list. The two differ by
+   * the directions the vehicles report and the route does not publish, and a bus in one
+   * of those had no group to land in and vanished from the page while the header above it
+   * went on counting it. See the comment on directionsForRows.
+   */
   function directionsInLadderOrder(data) {
-    return fmt.directionsInOrder(data);
+    return fmt.directionsForRows(data);
   }
 
   function continuationText(block, data) {

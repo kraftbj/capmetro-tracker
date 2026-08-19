@@ -48,9 +48,7 @@
 
   /* Same tag the rows and the ladder use, so one bus reads the same in all three. */
   function dirTagFor(data, id) {
-    var d = ((data && data.route && data.route.directions) || [])
-      .filter(function (x) { return x.id === id; })[0];
-    return fmt.directionTag(d && d.headsign, id);
+    return fmt.directionTagFor(data, id);
   }
 
   function render(host, data, opts) {
