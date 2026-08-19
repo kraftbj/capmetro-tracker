@@ -488,6 +488,147 @@ decides whether to keep waiting or start walking. Her heuristic is the product s
   block-continuity feature that is the strongest reason this app should exist. Watching a real
   person fail is worth more than asking them what they want, and you had already done it.
 
+## Design Specification
+
+Added during `/plan-design-review`. Initial design completeness was **4/10**. Target devices are
+**Pixel 8a and Pixel 10 Pro**, so all layout is specified against a **412px CSS width**.
+
+### Information hierarchy (Pass 1: 5/10 → 9/10)
+
+At 7:50am the user has three seconds. Ranked by what answers the question fastest:
+
+```
+412px viewport, above the fold
+┌──────────────────────────────────────┐
+│ 1  route chip · A / B / BOTH toggle  │  identity + scope, ~44px
+├──────────────────────────────────────┤
+│ 2  VEHICLE ROWS                      │  answers "is my bus late"
+│    #2641 ▲ +3m  9:33 trip            │  the primary panel on a phone
+│    next Campbell/5th 9:36 (sch 9:33) │
+│    ...                               │
+├──────────────────────────────────────┤
+│ 3  LADDER (timepoints)               │  answers "is the route healthy"
+│    accordion ▸ to expand minor stops │
+├──────────────────────────────────────┤
+│ 4  MAP                               │  answers "where exactly"
+└──────────────────────────────────────┘
+```
+
+**Rows first, not the map.** The map is the least differentiated panel; Transit already has a
+good one. The rows are where the schedule adherence lives, which is the reason this app exists.
+The ladder sits second because route health is a real question but a secondary one on a phone.
+Desktop can reorder to map-first, since the fold is not a constraint there.
+
+### Interaction states (Pass 2: 1/10 → 10/10)
+
+Every state describes what the **user sees**, not backend behavior.
+
+| Panel | LOADING | EMPTY | ERROR | PARTIAL | STALE |
+|---|---|---|---|---|---|
+| Vehicle rows | Skeleton rows, route name already shown | "No buses on route 350 right now. Next departure 2:14pm." | "Can't reach the feed. Showing data from 9:41am." + retry | Bus shown with position, badge reads "lateness unknown" not a number | Age banner: "data 6 min old"; lateness numbers suppressed past threshold |
+| Ladder | Axis + stop labels render first, lines fade in | Scheduled lines drawn, no dots, caption "no buses in service" | Ladder hidden, rows still shown, one-line reason | Dots for buses with known position, unknown-lateness dots hollow | Dashed NOW line greys out, timestamp shown |
+| Map | Basemap + route line first, chips after | Route line drawn, caption "no buses in service" | Basemap only, chips omitted, banner above | Chips shown without lateness colour, neutral fill | Chips desaturate, age banner |
+| Watchlist | Saved rows as skeletons | "No saved trips yet. Tap a trip to watch it." + example | Row shows last-known status and its age | Watch resolved but trip not yet in service: "scheduled, not yet running" | Watch shows resolution date so a stale shard is visible |
+| All-buses | Count animates up | Never empty in practice; if so, "feed returned no vehicles" | Falls back to last good snapshot with age | Deadheads shown even when in-service data is partial | Whole view greys, age banner |
+
+**First run** (no state at all): show the route picker with the six watchlist routes pre-offered,
+one line explaining what the board does, and no empty panels. Never show a blank screen with a
+picker floating in it.
+
+**Empty is a feature.** "No buses on route 350 right now" is useless alone. "No buses on route
+350 right now. Next departure 2:14pm from Airport/12th." answers the actual question, and the
+schedule shard already holds everything needed to say it.
+
+### User journey (Pass 3: 3/10 → 8/10)
+
+| Horizon | User does | User feels | What supports it |
+|---|---|---|---|
+| 5 sec | Opens to last route | "Is it late?" | Rows above the fold, shape + number badge readable without tapping |
+| 5 min | Watches bus approach | "Should she start walking?" | Ladder shows closing gap; block chain shows inbound bus pre-turnaround |
+| 5 years | Opens it in 2028 | "Still works." | Static files, no login, no account, visible staleness when it finally breaks |
+
+The emotional low point is a kid at a stop with no bus visible. Both the block-continuity feature
+and the non-blank empty state exist to serve that moment specifically.
+
+### Visual language (Pass 4: 7/10 → 9/10)
+
+Classifier: **APP UI**. The design avoids every AI-slop pattern (no card mosaic, no centred hero,
+no purple gradient, no 3-column grid, no decorative blobs, utility copy throughout). Two fixes:
+
+- **Typography.** `system-ui` as the primary face is the "gave up on typography" signal. Pick one
+  real typeface with true tabular numerals, since every number on this board is a figure in a
+  column. Candidates worth trying: Söhne, Roboto Mono for figures, or IBM Plex Sans + Plex Mono.
+  Two faces maximum, one for text and one for figures.
+- **Tokens.** Colours are currently hex literals in prose. Define CSS variables for the whole
+  semantic set so the palette has one source of truth.
+
+### Colour and accessibility (Pass 6: 2/10 → 9/10)
+
+Measured contrast against panel background `#0e1117`, all passing the 3:1 non-text threshold:
+
+| Token | Hex | vs bg | Glyph | Meaning |
+|---|---|---|---|---|
+| `--adh-early` | `#3b82f6` | 5.14:1 | ◀ | running early |
+| `--adh-ontime` | `#22c55e` | 8.29:1 | ● | on time |
+| `--adh-late` | `#f59e0b` | 8.80:1 | ▲ | 3-6 min late |
+| `--adh-vlate` | `#ef4444` | 5.02:1 | ■ | 7+ min late |
+| `--adh-dead` | `#6b7280` | 3.91:1 | ○ | deadhead / no trip |
+| `--adh-special` | `#8b5cf6` | 4.46:1 | ◆ | special trip pattern |
+
+**Colour is never the only channel.** Green and amber differ by only **1.06:1** in luminance, so
+in grayscale they are the same dot. Every lateness indicator therefore carries **shape + signed
+number** alongside colour, on ladder dots and map chips as well as rows. The acceptance test is
+literal: take a grayscale screenshot and confirm every state is still distinguishable.
+
+**Known contrast failure to fix:** dark text on the deadhead grey chip is **4.02:1**, below the
+4.5 needed for normal text. Either lighten the chip or use light text on it.
+
+Other accessibility requirements:
+- Touch targets 44px minimum, which the timepoint ladder's 36px row pitch meets once padded.
+- **The SVG ladder is opaque to screen readers.** The vehicle rows are its accessible equivalent
+  and must carry the same information in text. The ladder gets `aria-hidden` plus a visually
+  hidden summary; it is not the sole carrier of any fact.
+- Keyboard: route picker, direction toggle, and each vehicle row are focusable in DOM order.
+  The accordion expander is a real `button` with `aria-expanded`.
+- Body text never below 16px. Ladder axis labels are chrome, not body text, and may be smaller.
+- Respect `prefers-reduced-motion`: no dot animation, values update in place.
+
+### Responsive (Pass 6, layout half)
+
+Tested by rendering the **worst case** (route 7, 66 stops one direction) at 412px. Three
+treatments were built and screenshotted; artifacts under `## Approved Mockups`.
+
+| Route | dir 0 stops | dir 1 stops | timepoints |
+|---|---|---|---|
+| 7 | **66** | 59 | 8 / 9 |
+| 337 | 43 | 48 | 6 |
+| 350 | 38 | 38 | 5 |
+| 837 | 22 | 24 | 4 / 5 |
+| 800 | 20 | 22 | 5 / 6 |
+| 4 | 17 | 27 | 3 |
+
+- **Variant A, all stops on one screen: FAILS.** 6px labels, 11px row pitch, dots overlapping
+  across five stops. Unusable.
+- **Variant B, timepoints only: WORKS.** 11px labels, 36px pitch, whole route in one glance.
+- **Variant C, all stops with vertical scroll: usable, wrong default.** 2.5 screens of scrolling
+  destroys the glance that justifies the ladder.
+
+**Decision: timepoints by default, accordion to expand minor stops between any two timepoints.**
+Progressive disclosure keeps the glance and keeps detail reachable.
+
+**Required refinement found in the render:** in the timepoints-only view only 1 of 6 live buses
+appeared, because the other five sit at non-timepoint stops and had no row to land on. Bus
+position must therefore be **interpolated along the line between timepoints**, not snapped to a
+label row. A string-line is continuous; only the labels are sparse.
+
+**Also found:** stop labels truncate mid-word (`UT Stadium SB (San Jacin`). Stop names need
+intelligent shortening that drops parenthetical suffixes, not character clipping.
+
+**BOTH-direction rendering** remains the one open layout question. At 412px, BOTH is roughly
+2x the rows; with timepoints that is ~16 rows for route 7, which fits. Mirroring around a shared
+time axis is the likely answer but is unverified.
+
+
 ## NOT in scope
 
 Considered during `/plan-eng-review` and explicitly deferred.
@@ -510,6 +651,15 @@ Considered during `/plan-eng-review` and explicitly deferred.
   deprecated PHP dependency. JSON + gzip only.
 - **A non-git shard transport.** Committed shards are good enough for v1. Captured in
   `TODOS.md` with a `feed_version`-gated commit as the cheapest mitigation.
+- **A full DESIGN.md design system.** No design system exists. The tokens in
+  `## Design Specification` are the minimum viable substitute. `/design-consultation` would
+  produce the real thing; deferred to `TODOS.md`.
+- **Desktop-optimised layout.** Targets are Pixel 8a and Pixel 10 Pro. Desktop gets a wider
+  ladder and may reorder panels map-first, but is not designed here.
+- **Dark/light theming.** Dark only. A dispatch board read at a bus stop in morning glare is a
+  dark-UI problem; a light theme is a separate exercise.
+- **Motion design.** Values update in place. No entrance animation, no scroll-linked motion.
+  `prefers-reduced-motion` is honoured trivially because there is nothing to reduce.
 
 ## What already exists
 
@@ -526,6 +676,14 @@ Considered during `/plan-eng-review` and explicitly deferred.
 - **`OneBusAway`** was proposed by the outside voice and **rejected**: an agency-scale Java
   platform oriented around arrival prediction, which is explicitly not the goal.
 - Nothing in this repo is rebuilt, because nothing exists yet.
+- **Transit-operations string-line convention** is reused rather than invented. Marey/time-distance
+  diagrams are long-established practice for exactly this problem.
+- **CapMetro's own `timepoint` flag** in `stop_times.txt` is reused as the major-stop set for the
+  ladder. The agency already decided which stops matter; no heuristic needed.
+- **The rendered sketch** at `docs/designs/dispatch-board-sketch.png` is the visual reference for
+  the rows and colour language.
+- **No DESIGN.md and no existing components** exist to align with. That gap is the reason Pass 5
+  scored 2/10.
 
 ## Failure modes
 
@@ -630,6 +788,60 @@ Synthesized from this review's findings. Each task derives from a specific findi
   - Surfaced by: Outside voice — block continuity verified on route 4 only; other routes may interline or have dirty `block_id`
   - Files: `build/blocks.js`
   - Verify: block chains computed for all 71 routes; routes with missing or ambiguous `block_id` marked low-confidence rather than silently chained
+
+## Unresolved design decisions
+
+| Decision needed | If deferred, what happens |
+|---|---|
+| How BOTH directions render on one ladder | Engineer stacks them, doubling rows; at 412px it reads as one confusing 16-row chart with no directional cue |
+| Which typeface (and figure face) | Ships `system-ui`, the "gave up on typography" default, on a board that is 90% numbers |
+| Stop-name shortening rule | Labels clip mid-word (`UT Stadium SB (San Jacin`) on every ladder |
+| Map interaction model (tap a chip → what?) | Chips become decorative; the map stops earning its space |
+| Saved-watch creation gesture | Feature has no entry point and quietly never gets used |
+| All-buses view layout at 412px | 392 vehicles render as an unusable list |
+
+## Approved Mockups
+
+| Screen/Section | Mockup Path | Direction | Notes |
+|---|---|---|---|
+| Route ladder, worst case | `~/.gstack/projects/kraft/designs/ladder-phone-20260819/ladder-variants-412px.png` | Variant B, timepoints only, plus accordion for minor stops | Rendered at 412px against route 7 (66 stops) with live fixture data. A fails, C is a drill-down. Bus dots must interpolate between timepoints, not snap to rows. |
+| Vehicle rows + colour language | `docs/designs/dispatch-board-sketch.png` | Dark ops board, tabular figures, hairline rules | Rendered from live feeds at 9:35 CT. Colour language now requires redundant shape + number. |
+
+## Implementation Tasks (design review)
+
+- [ ] **D1 (P1, human: ~4h / CC: ~20min)** — client/adherence — Redundant shape + number on every lateness indicator
+  - Surfaced by: Pass 6 — green vs amber measured at 1.06:1 luminance; colour-only encoding collapses in grayscale
+  - Files: `client/adherence.js`, `client/ladder.js`, `client/map.js`
+  - Verify: grayscale screenshot of the board; every state still distinguishable
+- [ ] **D2 (P1, human: ~1 day / CC: ~30min)** — client/states — Implement the full interaction state table
+  - Surfaced by: Pass 2 — rated 1/10, no state specified for any panel
+  - Files: `client/states.js`, all panel components
+  - Verify: force each of loading/empty/error/partial/stale/first-run and compare against the table
+- [ ] **D3 (P1, human: ~1 day / CC: ~30min)** — client/ladder — Timepoint ladder with accordion and interpolated bus positions
+  - Surfaced by: Pass 6 — variant A fails at 412px; only 1 of 6 buses appeared in the timepoints render
+  - Files: `client/ladder.js`
+  - Verify: route 7 at 412px shows all live buses and all 8 timepoints without scrolling
+- [ ] **D4 (P2, human: ~2h / CC: ~10min)** — client/tokens — Define CSS variables for the semantic colour set
+  - Surfaced by: Pass 4 — universal rule requires CSS variables; colours are currently hex literals in prose
+  - Files: `client/tokens.css`
+  - Verify: no hard-coded adherence hex outside `tokens.css`
+- [ ] **D5 (P2, human: ~1h / CC: ~5min)** — client/tokens — Fix the deadhead chip contrast failure
+  - Surfaced by: Pass 6 — dark text on `#6b7280` measures 4.02:1, below the 4.5 threshold
+  - Files: `client/tokens.css`
+  - Verify: contrast checker reports >= 4.5:1
+- [ ] **D6 (P2, human: ~3h / CC: ~15min)** — client/a11y — Screen-reader parity for the ladder
+  - Surfaced by: Pass 6 — the SVG string-line is opaque to screen readers
+  - Files: `client/ladder.js`, `client/rows.js`
+  - Verify: with the ladder `aria-hidden`, a screen reader still conveys every bus, its lateness, and its next stop from the rows
+- [ ] **D7 (P2, human: ~2h / CC: ~10min)** — client/type — Choose and load a real typeface with tabular figures
+  - Surfaced by: Pass 4 — `system-ui` as primary face is AI-slop blacklist item 11
+  - Files: `client/tokens.css`, `client/index.html`
+  - Verify: figures align in a column across rows; no `system-ui` as primary display face
+- [ ] **D8 (P3, human: ~2h / CC: ~10min)** — build/stops — Intelligent stop-name shortening
+  - Surfaced by: Pass 6 — labels clip mid-word in the 412px render
+  - Files: `build/stops.js`
+  - Verify: no ladder label ends mid-word at 412px on routes 7, 337, and 350
+
 
 ## GSTACK REVIEW REPORT
 
