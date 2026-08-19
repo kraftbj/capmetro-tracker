@@ -64,7 +64,7 @@ Target devices are Pixel 8a and Pixel 10 Pro, dark theme only.
 **Depends on / blocked by:** Nothing. Best done after v1 ships, when the real components exist to
 systematise rather than being guessed at in advance.
 
-## Resolve BOTH-direction ladder rendering
+## ~~Resolve BOTH-direction ladder rendering~~ (DONE 2026-08-19)
 
 **What:** The direction control is a three-way toggle (direction A / direction B / BOTH). A and B
 are specified and rendered. BOTH is not.
@@ -83,4 +83,28 @@ answer is mirroring the two directions around a shared time axis so the turnarou
 fold, but this is unverified. Route 7 is the worst case (66 stops one direction, 59 the other,
 8-9 timepoints). Render it before deciding.
 
-**Depends on / blocked by:** Task D3 (timepoint ladder with accordion) should land first.
+**Depends on / blocked by:** ~~Task D3~~ — done.
+
+**RESOLVED 2026-08-19 by /qa.** BOTH renders two stacked per-direction ladders rather than one
+merged ladder, so the cramped-pitch concern never materialises. Verified at 412px on route 7.
+
+---
+
+## Normalize all-caps stop names (ISSUE-003, deferred from /qa 2026-08-19)
+
+**What:** 13 of 2,348 stops arrive entirely upper case from upstream (`SAN JACINTO/21ST`,
+`AIRPORT/KOENIG`, `RIVERSIDE/MONTOPOLIS`) and render that way beside Title Case neighbours.
+Visible in the route 103 empty state: "Next departure 5:12p from SAN JACINTO/21ST."
+
+**Why:** Cosmetic inconsistency on a board whose whole value is being easy to read at a glance.
+
+**Pros:** Uniform typography; one less thing that looks unfinished.
+
+**Cons:** Not as trivial as it looks. A naive title-case corrupts `ABIA Lower Level`, where ABIA
+is a real acronym (Austin-Bergstrom International Airport). Needs an acronym allowlist.
+
+**Context:** Deferred as Low severity under the Standard tier. Any fix MUST be applied identically
+in `build/lib/stop-names.mjs` and `runtime/lib/stopnames.php`, or it reintroduces ISSUE-002 (the
+two implementations disagreeing on the same stop). Add cases to both regression suites.
+
+**Depends on / blocked by:** Nothing.

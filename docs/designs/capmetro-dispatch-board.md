@@ -345,12 +345,11 @@ deadhead, purple special pattern.
 2. **Ladder legibility on a phone.** The rendered sketch is 1180px wide. A route with 20+ stops
    over a 60-minute window on a 390px screen is unproven. May need horizontal scroll, a stop
    subset, or a rotated layout. This is the biggest unvalidated design risk.
-3. **How to draw both directions on one ladder.** Partially resolved: the control is a
-   **three-way toggle per route — direction A, direction B, or BOTH**, not a separate view mode.
-   What remains open is the BOTH rendering itself: mirror the directions around a shared time
-   axis, fold the route into an out-and-back loop so the turnaround sits at the fold, or overlay
-   with distinct line styles. This interacts badly with question 2 on a narrow screen, since BOTH
-   roughly doubles the vertical extent.
+3. ~~How to draw both directions on one ladder.~~ **RESOLVED 2026-08-19 by /qa.** The three-way
+   toggle stands. BOTH does not merge the directions into one ladder, which is what made route 7
+   look cramped at a predicted 23.8px pitch. It renders **two stacked per-direction ladders**,
+   each at full pitch with its own timepoints. Verified at 412px on route 7: SB placed 6 of 6
+   buses, NB placed 7 of 7, no horizontal overflow.
 4. **Transfer chains.** The kids' trips are 800→4 and 337→7→837. Does the board model a chain
    explicitly (does the connection hold?), or just show a watchlist of routes side by side?
    Chains are the more useful answer and the much harder build.
