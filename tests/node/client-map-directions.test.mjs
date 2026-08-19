@@ -54,7 +54,20 @@ describe('a chip says which way its bus is going', () => {
   })
 
   t('leaves a deadhead chip untagged, because it has no trip to have a direction', (cmb, document) => {
+    /*
+     * The deadhead is constructed rather than taken from the fixture. A route
+     * payload legitimately carries none: all 143 out-of-service vehicles in the
+     * capture report `trip: null` and no routeId at all, so nothing can attribute
+     * them to a route. The golden file used to contain one, which was an artifact
+     * of the hand-made generator that produced it, not something the runtime emits.
+     */
     const data = goldenRoute4()
+    data.vehicles.push({
+      vehicle_id: '2305', label: '2305', in_service: false,
+      position: { lat: 30.3, lon: -97.7, bearing: null, speed_mps: 0 },
+      position_at: data.generated_at,
+      adherence: { state: 'deadhead', seconds: null, glyph: 'ring', reason: null, against: null },
+    })
     const oos = data.vehicles.filter((v) => !v.in_service)
     expect(oos.length).toBeGreaterThan(0)
     const texts = chipTexts(draw(cmb, document, data))

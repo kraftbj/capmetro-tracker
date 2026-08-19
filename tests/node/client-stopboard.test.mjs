@@ -209,3 +209,78 @@ describe('what the panel says', () => {
     expect(all(host, 'nextbus').length).toBeLessThanOrEqual(spoken.split('scheduled').length - 1 + 1)
   })
 })
+
+/*
+ * Cancellations.
+ *
+ * On 2026-08-19 a canceled trip was invisible to this client. It rendered as
+ * "scheduled · no bus reporting yet", which a reader correctly parses as "it
+ * has not started yet" when it means "it is never coming". A kid waited at a
+ * stop that no other bus serves that day.
+ *
+ * Cancellation is not rare on this system: 100 of 912 trip updates in the
+ * committed capture, and 187 system-wide live that afternoon with 17 on route 4
+ * alone, on a day carrying a route-wide reduced-service alert.
+ */
+describe('a canceled trip is never mistaken for one that has not started', () => {
+  const cancel = (dep, tripId) => {
+    const copy = JSON.parse(JSON.stringify(dep))
+    copy.trips.forEach((t) => { if (t.id === tripId) t.canceled = true })
+    return copy
+  }
+
+  t('does not count a canceled departure toward the two being asked for', (sb) => {
+    /*
+     * "Your 5:40 is canceled, the 5:57 is running" is the useful answer, so the
+     * canceled one rides along without consuming a slot.
+     */
+    const dep = cancel(DEP, TRIP_0732)
+    const rows = sb.upcoming(dep, null, '6293', 1, at(7, 0), 2)
+    expect(rows.filter((r) => !r.canceled)).toHaveLength(2)
+    expect(rows.map((r) => r.trip.id)).toContain(TRIP_0732)
+  })
+
+  t('keeps it in place rather than leaving a hole in the timetable', (sb) => {
+    const dep = cancel(DEP, TRIP_0732)
+    const rows = sb.upcoming(dep, null, '6293', 1, at(7, 0), 2)
+    /* Still first: it is still the earliest thing that was going to happen. */
+    expect(rows[0].trip.id).toBe(TRIP_0732)
+    expect(rows[0].canceled).toBe(true)
+  })
+
+  t('never lets a canceled trip be the answer to "what is next"', (sb) => {
+    const dep = cancel(DEP, TRIP_0732)
+    const groups = sb.nextAtStop(dep, null, '6293', at(7, 0), 2)
+    const first = groups[0].departures.filter((d) => !d.canceled)[0]
+    expect(first.trip.id).not.toBe(TRIP_0732)
+  })
+
+  t('says the word CANCELED, not just a strike-through', (sb) => {
+    /*
+     * A struck-out time is ambiguous at a glance and silent to a screen reader,
+     * and this is the one line that must not be misread.
+     */
+    const host = client.document.createElement('section')
+    client.cmb.stopboard.render(host, cancel(DEP, TRIP_0732), null, at(7, 0), { stopId: '6293' })
+    const text = textDeep(host)
+    expect(text).toMatch(/CANCELED/)
+    expect(text).toMatch(/No bus is coming for it/i)
+  })
+
+  t('does not say "no bus reporting yet" about a canceled trip', (sb) => {
+    /* The exact sentence that was on screen while someone waited. */
+    const host = client.document.createElement('section')
+    const dep = cancel(DEP, TRIP_0732)
+    dep.trips.forEach((t) => { t.canceled = true })
+    client.cmb.stopboard.render(host, dep, null, at(7, 0), { stopId: '6293' })
+    expect(textDeep(host)).not.toMatch(/no bus reporting yet/i)
+  })
+
+  t('speaks the cancellation to a screen reader', (sb) => {
+    const host = client.document.createElement('section')
+    client.cmb.stopboard.render(host, cancel(DEP, TRIP_0732), null, at(7, 0), { stopId: '6293' })
+    const spoken = all(host, 'sr-only').map((n) => n.textContent).join(' ')
+    expect(spoken).toMatch(/canceled/i)
+    expect(spoken).toMatch(/no bus is running this trip/i)
+  })
+})

@@ -221,6 +221,23 @@
 
     var trip = match.row.trip;
     var scheduledAt = dep.service_day_start_epoch + match.row.seconds;
+
+    /*
+     * Before anything else. A canceled trip has no vehicle, so every check
+     * below it would conclude "no bus is reporting on this trip yet" - which
+     * reads as "it has not started" when it means "it is never coming". That
+     * exact sentence was on screen while a kid waited at a stop.
+     */
+    if (trip.canceled) {
+      return extend(base, {
+        state: 'canceled',
+        trip: trip,
+        scheduled_at: scheduledAt,
+        due_at: scheduledAt,
+        seconds_until: scheduledAt - now,
+        detail: 'CapMetro has canceled this trip. No bus is running it today.'
+      });
+    }
     var vehicle = vehicleForTrip(route, trip.id);
     var view = vehicle ? adhLib.view(vehicle, route && route.staleness) : null;
     var lateness = view && view.seconds !== null && view.seconds !== undefined ? view.seconds : null;
@@ -330,6 +347,10 @@
       box.appendChild(line);
       box.appendChild(el('p', 'watchcard__detail',
         'Tracking starts an hour before it is due.'));
+    } else if (model.state === 'canceled') {
+      line.appendChild(el('span', 'watchcard__canceled', 'CANCELED'));
+      box.appendChild(line);
+      box.appendChild(el('p', 'watchcard__detail', model.detail));
     } else if (model.state === 'passed') {
       line.textContent = 'Gone · ' + untilText(model.seconds_until);
       box.appendChild(line);
@@ -355,7 +376,8 @@
     var spoken = describe(w) + '. ' +
       (model.state === 'live'
         ? 'Due ' + fmt.clockSpoken(model.due_at) + ', ' + model.view.spoken + '.'
-        : model.state === 'passed' ? 'Already gone.'
+        : model.state === 'canceled' ? 'Canceled. No bus is running this trip today.'
+          : model.state === 'passed' ? 'Already gone.'
           : model.state === 'upcoming' ? 'Due ' + fmt.clockSpoken(model.scheduled_at) + '.'
             : (model.detail || 'Nothing to show.'));
     var sr = el('p', 'sr-only', spoken);
@@ -420,7 +442,7 @@
    * same principle the vehicle rows use — worst news first — applied to time.
    */
   function sortModels(models) {
-    var RANK = { live: 0, 'no-vehicle': 1, upcoming: 2, passed: 3, unresolved: 4, unserved: 5, 'not-today': 6, 'no-schedule': 7 };
+    var RANK = { live: 0, canceled: 1, 'no-vehicle': 2, upcoming: 3, passed: 4, unresolved: 5, unserved: 6, 'not-today': 7, 'no-schedule': 8 };
     return models.slice().sort(function (a, b) {
       var ra = RANK[a.state] === undefined ? 9 : RANK[a.state];
       var rb = RANK[b.state] === undefined ? 9 : RANK[b.state];

@@ -836,6 +836,13 @@
     state.routeId = routeId;
     state.stopId = q.stop || recall('stop.' + routeId);
     load(routeId);
+    /*
+     * Boot does not go through selectRoute, so it has to ask for the schedule
+     * itself. Moving this out of paint() to stop a render loop left the first
+     * page load with no schedule at all, and the Next buses band sat on
+     * "Loading this route's schedule..." forever.
+     */
+    loadDepartures(routeId);
     loadCatalog();
 
     var view = q.view || recall('view');

@@ -76,6 +76,7 @@
 
       out.push({
         trip: row.trip,
+        canceled: !!row.trip.canceled,
         vehicle: vehicle,
         view: view,
         suppressed: suppressed,
@@ -88,7 +89,25 @@
     });
 
     out.sort(function (a, b) { return a.due_at - b.due_at; });
-    return out.slice(0, count === undefined ? 2 : count);
+
+    /*
+     * A canceled departure stays on the list and does not count toward the two
+     * being asked for. "Your 5:40 is canceled, the 5:57 is running" is a usable
+     * answer; dropping the 5:40 leaves a hole in the timetable that reads as a
+     * gap in service and tells a person at the stop nothing.
+     *
+     * On 2026-08-19 the client could not see a cancellation at all and rendered
+     * one as "no bus reporting yet", which reads as "it has not started". A kid
+     * waited at a stop for a bus that was never coming.
+     */
+    var want = count === undefined ? 2 : count;
+    var picked = [];
+    var live = 0;
+    for (var i = 0; i < out.length && live < want; i++) {
+      picked.push(out[i]);
+      if (!out[i].canceled) { live++; }
+    }
+    return picked;
   }
 
   /**
@@ -116,10 +135,25 @@
   /* ---- render ---------------------------------------------------------- */
 
   function departureRow(d) {
-    var row = el('article', 'nextbus nextbus--' + (d.view ? d.view.state : 'scheduled'));
+    var row = el('article', 'nextbus nextbus--' +
+      (d.canceled ? 'canceled' : d.view ? d.view.state : 'scheduled'));
 
     var when = el('p', 'nextbus__when');
     when.appendChild(el('span', 'nextbus__clock', fmt.clock(d.due_at)));
+    if (d.canceled) {
+      /*
+       * The word, not a colour and not a strike-through alone. A struck-out
+       * time is ambiguous at a glance and invisible to a screen reader, and
+       * this is the one line on the panel that must not be misread.
+       */
+      when.appendChild(el('span', 'nextbus__canceled', 'CANCELED'));
+      row.appendChild(when);
+      row.appendChild(el('p', 'nextbus__sched',
+        'CapMetro has canceled this trip. No bus is coming for it.'));
+      row.appendChild(el('p', 'sr-only',
+        fmt.clock(d.scheduled_at) + ' is canceled. No bus is running this trip.'));
+      return row;
+    }
     when.appendChild(el('span', 'nextbus__until', W.untilText(d.seconds_until)));
     row.appendChild(when);
 

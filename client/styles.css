@@ -902,3 +902,18 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 .abchip__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .abchip.is-open { grid-column: 1 / -1; background: var(--surface-raised-hi); }
 .abchip.is-open .abdet { padding: 0 8px 8px; }
+
+/* A canceled departure is present and unmistakable, never quietly absent. */
+.nextbus--canceled { border-left-color: var(--danger); opacity: 0.85; }
+.nextbus--canceled .nextbus__clock { text-decoration: line-through; color: var(--ink-dim); }
+.nextbus__canceled {
+  font-size: var(--fs-chrome); font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  background: var(--danger); color: var(--adh-ink-dark);
+}
+.watchcard--canceled { border-left-color: var(--danger); }
+.watchcard__canceled {
+  font-family: var(--font-figure); font-size: 20px; font-weight: 700;
+  letter-spacing: 0.08em; padding: 2px 8px; border-radius: var(--radius-sm);
+  background: var(--danger); color: var(--adh-ink-dark);
+}

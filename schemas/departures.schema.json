@@ -118,7 +118,8 @@
           "headsign",
           "start_time",
           "block_id",
-          "is_special"
+          "is_special",
+          "canceled"
         ],
         "properties": {
           "id": {
@@ -148,6 +149,10 @@
           "is_special": {
             "type": "boolean",
             "description": "The same flag as vehicle.pattern.is_special in section 2, computed by the same function."
+          },
+          "canceled": {
+            "type": "boolean",
+            "$comment": "True when the agency has canceled this trip on the trip updates feed. A canceled trip stays IN this document rather than being filtered out: 'the 5:40 is canceled' is a usable answer, while a 5:40 that silently does not exist reads as a gap in the timetable."
           }
         }
       }

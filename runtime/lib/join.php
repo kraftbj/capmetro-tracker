@@ -20,6 +20,31 @@ require_once __DIR__ . '/shards.php';
  * at all and 683 carry a vehicle. The index is keyed on tripId because that is the only
  * field present on all of them.
  */
+/*
+ * The trip ids the agency has canceled, from the trip updates feed.
+ *
+ * This is a property of a TRIP, not of a vehicle, and that distinction is the
+ * whole reason the field exists. `adherence.reason: trip_canceled` only ever
+ * attaches to a vehicle, and a canceled trip HAS no vehicle - it is canceled -
+ * so nothing about a cancellation could ever reach a reader through that path.
+ * In the 2026-08-19 capture 100 of 912 trip updates were canceled and not one
+ * of the 249 vehicle trip descriptors was; live at 17:28 the same day it was
+ * 187 system-wide with 17 on route 4 alone. A client that cannot see this shows
+ * a canceled departure as "no bus reporting yet", which reads as "it has not
+ * started" when it means "it is never coming". Someone waited at a stop for
+ * that.
+ */
+function cm_canceled_trip_ids(array $trip_updates): array
+{
+    $ids = [];
+    foreach ($trip_updates as $trip_id => $tu) {
+        if (($tu['trip']['scheduleRelationship'] ?? null) === 'CANCELED') {
+            $ids[(string) $trip_id] = true;
+        }
+    }
+    return $ids;
+}
+
 function cm_index_trip_updates($feed): array
 {
     $out = [];
@@ -576,6 +601,7 @@ function cm_build_schedule(
     $from = max(0, $now - $before_s);
     $until = $now + $after_s;
     $window = ['from' => $from, 'until' => $until, 'before_s' => $before_s, 'after_s' => $after_s];
+    $canceled = cm_canceled_trip_ids($trip_updates);
 
     /*
      * Column order per direction, taken from the rows the client will render rather than
@@ -676,9 +702,25 @@ function cm_build_schedule(
     }
     usort($directions, static fn($a, $b) => $a['direction_id'] <=> $b['direction_id']);
 
+    /*
+     * Only the ids actually drawn in this window, not every cancellation on the
+     * route. The ladder's job is to explain the diagonals it drew; a list of
+     * trips that are not on screen would be noise it cannot place.
+     */
+    $canceled_here = [];
+    foreach ($directions as $d) {
+        foreach ($d['trips'] as $row) {
+            if (isset($canceled[(string) $row[0]])) {
+                $canceled_here[] = (string) $row[0];
+            }
+        }
+    }
+    sort($canceled_here);
+
     return [
-        'window'         => $window,
-        'directions'     => $directions,
-        'next_departure' => $next_departure,
+        'window'          => $window,
+        'directions'      => $directions,
+        'next_departure'  => $next_departure,
+        'canceled_trips'  => $canceled_here,
     ];
 }
