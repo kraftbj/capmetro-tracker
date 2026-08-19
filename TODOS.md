@@ -40,6 +40,25 @@ a property of the TRIP.
 **Priority:** P0
 **Depends on:** None
 
+### Regenerate the golden route 4 fixture and make the block fields required
+
+**What:** `tests/fixtures/golden/route-4-20260819.json` predates
+`block.spans_routes`, `route_ids`, `is_last_trip` and `next_trip.route_id`, so those five
+fields are in the schemas' `properties` but deliberately not in `required`.
+
+**Why:** Presence on live output is currently enforced only by a PHPUnit sweep. Making the
+fields required in the schema is the stronger guarantee, and it cannot be done while a
+committed fixture would fail it.
+
+**Context:** Left alone by the block-routes lane because the fixture feeds the e2e suite.
+Regenerate it from the 2026-08-19 feeds, confirm the e2e specs still pass against it, then
+promote the five fields to `required` in `schemas/common.schema.json` and drop the
+`$comment` explaining their absence.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** None
+
 ### Order the vehicle rows by position along the route, not by lateness
 
 **What:** `client/rows.js` sorts by adherence severity — worst news first. Order them by
