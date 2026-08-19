@@ -40,6 +40,13 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 - Routes that publish only one direction (466 and 642 among them) drew a phantom
   second ladder reading "No timepoints published for direction 1". The ladder
   hard-coded two directions instead of reading the route's own list.
+- A bus whose direction the route does not publish is no longer dropped from the
+  page. Grouping the rows by direction gave such a bus no group to land in, so it
+  vanished while the header above went on counting it. On route 4 with a trimmed
+  direction list that was two of six rows, one of them a bus in service. A bus
+  that is not drawn reads exactly like a bus that is not running.
+- The ladder says why it is empty when a payload names no directions at all.
+  Previously it drew a heading over nothing.
 
 ## [0.1.0.0] - 2026-08-19
 

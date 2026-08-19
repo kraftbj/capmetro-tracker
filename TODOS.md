@@ -130,6 +130,47 @@ regression suites.
 **Priority:** P3
 **Depends on:** None
 
+### Finish the test coverage on the client panels
+
+**What:** The ship coverage audit on 2026-08-19 put the time-axis branch at about 30% of
+its changed lines. The P0 gaps are now closed — 30 tests across `client-format-directions`,
+`client-rows-directions`, `client-map-directions` and the ladder file. The P1 and P2 items
+from that audit are not.
+
+**Why:** The audit's own summary is the argument: the comments in these files are doing work
+the tests should be doing. It found one confirmed regression and two silent-blank branches
+purely by reading the code, which means the suite was not going to find them.
+
+**Context:** The full list is in `.gstack/coverage-audit.md`, prioritized, with the exact
+assertion each missing test should make. The high-value remainder: the layover-not-lateness
+stem branch (fires today, nothing sees it), the clamped off-window stem, distinct clipPath
+ids between the two BOTH-mode tracks, `axisTicks` returning an empty array on a very narrow
+window, and the label-flip at the right edge of the plot. Also worth doing: a
+`desktop-1280` Playwright project, since `.dirgroups`, `.vrows--dir` and `.tracks--both`
+are untestable end to end without one.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** None
+
+### Decide what a clamped stem should look like
+
+**What:** When a bus is due before the visible schedule window opens, its stem is clamped to
+the plot edge. It is visible, which is the point, but shorter than its real lateness — while
+the caption asserts the stem is "drawn to the same scale as the clock".
+
+**Why:** For exactly the off-window buses the stem fix was written for, that sentence is
+false. The file header says a picture contradicting its own number is the failure this board
+exists to avoid, so this is the same class of bug, one step further out.
+
+**Context:** Found by the ship coverage audit on 2026-08-19. Two ways out: hedge the caption
+for clamped stems, or mark a clamped stem visually — a dashed cap or an arrowhead saying it
+continues past the edge. The second is better and needs a test either way.
+
+**Effort:** S
+**Priority:** P2
+**Depends on:** None
+
 ## Infrastructure
 
 ### Deploy it somewhere you can actually open on a phone
