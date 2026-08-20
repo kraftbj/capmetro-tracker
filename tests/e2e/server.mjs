@@ -84,6 +84,11 @@ const DEPARTURES = {
  */
 const YESTERDAY_ROUTE = '7'
 
+/* Serves its schedule exactly once; every request after that is a 500. Reset
+ * between tests through GET /__reset. */
+const FLAKY_ROUTE = 'flaky'
+let flakyServed = false
+
 /*
  * A live route payload for route 837 whose vehicle is genuinely on the inbound
  * leg of a northbound departure from Republic Square.
@@ -167,12 +172,42 @@ function turnaroundRoute() {
 
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
+  if (url.pathname === '/__reset') {
+    flakyServed = false
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('ok')
+    return
+  }
   const parts = url.pathname.split('/').filter(Boolean)
   const scenario = SCENARIOS[parts[0]] ? parts.shift() : 'fresh'
   const rest = parts.join('/') || 'index.html'
 
   if (rest.startsWith('api/departures/')) {
     const id = path.basename(rest, '.json')
+    /*
+     * A schedule that loads once and then cannot be re-fetched, dated for a
+     * service day that is not the bundled fixture's.
+     *
+     * This models the failure exactly: a dropped route request makes the client
+     * fall back to the frozen 20260819 fixture, and if that date is read as
+     * "today" every cached schedule looks expired. Evicting one before its
+     * replacement lands then loses a whole service day to a connection that has
+     * already proved it cannot fetch anything.
+     */
+    if (id === FLAKY_ROUTE) {
+      if (flakyServed) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+        res.end('{"error":"gone"}')
+        return
+      }
+      flakyServed = true
+      const doc = wireFormat(readJson(path.join(SYNTHETIC, DEPARTURES[4])))
+      doc.route_id = FLAKY_ROUTE
+      doc.service_date = '20260818'
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+      res.end(JSON.stringify(doc))
+      return
+    }
     if (id === YESTERDAY_ROUTE) {
       const doc = wireFormat(readJson(path.join(SYNTHETIC, DEPARTURES[4])))
       doc.route_id = YESTERDAY_ROUTE

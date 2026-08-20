@@ -59,7 +59,28 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   connection, which is exactly when it mattered.
 - Opening a kept stops link a second time landed on the route board: the view
   switch hung off the unanswered offer rather than off the link. Removing a stop
-  also left the old fragment in the address bar, so a reload restored it.
+  also left the old fragment in the address bar, so a reload restored it. The
+  same applies to pasting a link into a tab that is already open, which is the
+  commonest way a link gets used and went through a different code path.
+- **A failed route fetch could delete a good schedule.** Falling back to the
+  bundled fixture made its frozen `20260819` read as today, so every cached
+  departures document looked expired and was dropped -- on a connection that had
+  just proved it could not fetch a replacement, and on route 4, which is the
+  default and the only bundled route. The fixture is no longer treated as a
+  statement about today, and a document is now swapped out only when its
+  replacement has actually arrived rather than deleted before the request.
+- **A cancelled inbound leg was named as the bus bringing a turnaround departure
+  in**, with "no bus is reporting on that trip yet" -- the sentence that means
+  "it has not started" used for "it is never running". That is the confusion
+  cancellations were surfaced to remove, on the one card where the inbound leg is
+  the only evidence a bus is coming at all.
+- **The screen-reader summary announced only the cancellation** when the soonest
+  departure on a card was cancelled, hiding the buses that were still running.
+  It now mirrors the card.
+- Two more bare object lookups reachable from a link: a window name resolving
+  through `Object.prototype` rendered `NaN:NaNp-NaN:NaNp` permanently, and a
+  prototype-named route id was dropped from the preload and the refresh while
+  paint went on fetching it.
 
 ## [0.4.0.2] - 2026-08-20
 

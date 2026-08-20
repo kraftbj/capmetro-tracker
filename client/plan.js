@@ -334,7 +334,10 @@
   /* Every route a plan touches, so the caller can fetch them all up front rather
    * than one at a time as cards paint. */
   function routesIn(entries) {
-    var seen = {};
+    /* Null-prototype for the same reason: with a bare {}, a route id of
+     * `constructor` reads back truthy and the route is silently dropped from the
+     * preload and from the 60-second refresh, while paint goes on fetching it. */
+    var seen = Object.create(null);
     var out = [];
     (entries || []).forEach(function (e) {
       if (seen[e.route_id]) return;
@@ -353,7 +356,14 @@
    * and different departure from 01:10 and is never wrapped back.
    */
   function windowRange(name) {
-    if (WINDOWS[name]) return WINDOWS[name];
+    /*
+     * hasOwnProperty, not a bare lookup. `WINDOWS['constructor']` returns the
+     * Object function — truthy — so a hostile or merely mistyped window name
+     * passed validation and the card rendered `NaN:NaNp–NaN:NaNp`, pinned under
+     * "Later today" and saved with the plan, so permanently. Same class as the
+     * stop-id lookup rowsFor() closed, one field over.
+     */
+    if (Object.prototype.hasOwnProperty.call(WINDOWS, name)) return WINDOWS[name];
     var m = /^(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(String(name || ''));
     if (!m) return null;
     var from = parseInt(m[1], 10) * 3600 + parseInt(m[2], 10) * 60;
@@ -412,6 +422,25 @@
       if (!best || other[i].seconds > best.seconds) best = other[i];
     }
     return best;
+  }
+
+  /*
+   * Whether the leg that would bring this departure in has itself been called off.
+   *
+   * A cancelled inbound leg used to be named exactly like a running one — "Comes
+   * in on the 10:20a SB. No bus is reporting on that trip yet." — and that
+   * sentence means "it has not started", used here for "it is never running".
+   * That is precisely the confusion cancellations were surfaced to remove, and it
+   * lands hardest on this card: the turnaround card exists because no approaching
+   * bus is visible at the stop, so the inbound leg is the ONLY evidence a bus is
+   * coming.
+   *
+   * The whole-block case cannot reach here — the outbound would be cancelled too
+   * and decorate() returns before this — so what this covers is one leg of a block
+   * called off on its own.
+   */
+  function legCanceled(leg) {
+    return !!(leg && leg.trip && leg.trip.canceled);
   }
 
   /*
@@ -567,6 +596,7 @@
         vehicle: feeder,
         view: fView,
         at_stop: atStop(feeder, entry.stop_id),
+        canceled: legCanceled(leg),
         confidence: confidence,
         confirmed: confirmed,
         /* The scheduled leg names the direction best. Without one, the feeder's
@@ -581,10 +611,11 @@
     var here = atStop(vehicle, entry.stop_id);
     var boarding = here ? 'here'
       : vehicle ? 'enroute'
-        : inbound && inbound.at_stop ? 'waiting'
-          : inbound && inbound.vehicle ? 'inbound'
-            : inbound && inbound.trip ? 'scheduled'
-              : 'none';
+        : inbound && inbound.canceled ? 'inbound-canceled'
+          : inbound && inbound.at_stop ? 'waiting'
+            : inbound && inbound.vehicle ? 'inbound'
+              : inbound && inbound.trip ? 'scheduled'
+                : 'none';
 
     return extend({}, d, {
       at_stop: here,
@@ -721,6 +752,10 @@
     if (m.boarding === 'canceled') {
       return 'CapMetro has canceled this trip. No bus is coming for it.';
     }
+    if (m.boarding === 'inbound-canceled') {
+      return 'The ' + (legName(m) || 'inbound trip') + ' that would bring this bus ' +
+        'in is canceled, and nothing in the schedule says what runs this trip instead.';
+    }
     if (m.boarding === 'here') {
       return busName + ' is at the stop now.';
     }
@@ -777,13 +812,20 @@
     return words.indexOf('on time') === 0 ? ', and ' + words : ', running ' + words;
   }
 
-  /* "the 10:14a WB", or null when the inbound leg has no time or no direction to
+  /* "10:14a WB", or null when the inbound leg has no time or no direction to
    * name — half a phrase is worse than none. */
-  function namedLeg(m) {
+  function legName(m) {
     var inb = m.inbound;
     if (!inb || inb.scheduled_at === null || inb.scheduled_at === undefined) return null;
     if (!inb.direction_tag) return null;
-    return 'the ' + fmt.clock(inb.scheduled_at) + ' ' + inb.direction_tag;
+    return fmt.clock(inb.scheduled_at) + ' ' + inb.direction_tag;
+  }
+
+  /* The same thing with its article, for mid-sentence use. Kept apart from
+   * legName so a sentence that starts with the leg does not print "The the". */
+  function namedLeg(m) {
+    var name = legName(m);
+    return name === null ? null : 'the ' + name;
   }
 
   function card(model, opts) {
@@ -846,18 +888,33 @@
   function spokenFor(model) {
     var lead = describe(model.entry, model) + '. ';
     if (model.state !== 'ok') return lead + (model.detail || 'Nothing to show.');
-    var m = model.next;
-    if (m.canceled) {
-      return lead + 'The ' + fmt.clockSpoken(m.scheduled_at) + ' is canceled. ' +
-        'No bus is running this trip.';
+
+    /*
+     * The summary mirrors the CARD, which lists a cancellation and then the buses
+     * that are still running. Taking only the first entry meant that when the
+     * soonest departure was cancelled, a screen-reader user heard "cancelled" and
+     * nothing else — the half of the message that sends someone home, while a
+     * sighted reader saw the two running departures underneath it.
+     */
+    var canceled = model.departures.filter(function (d) { return d.canceled; });
+    var running = model.departures.filter(function (d) { return !d.canceled; });
+
+    var said = lead;
+    canceled.forEach(function (d) {
+      said += 'The ' + fmt.clockSpoken(d.scheduled_at) + ' is canceled. ';
+    });
+
+    if (!running.length) {
+      return said + 'Nothing else is running at this stop today.';
     }
-    var when = 'Next bus due ' + fmt.clockSpoken(m.due_at) + ', ' +
-      W.untilText(m.seconds_until) + '. ';
-    var how = boardingText(m, model);
+
+    var m = running[0];
+    var when = (canceled.length ? 'The next bus running is due ' : 'Next bus due ') +
+      fmt.clockSpoken(m.due_at) + ', ' + W.untilText(m.seconds_until) + '. ';
     var late = m.view && !m.suppressed ? m.view.spoken + '. ' : '';
     var caveat = m.inbound && m.inbound.vehicle && !m.inbound.confirmed
       ? ' ' + UNCONFIRMED_NOTE : '';
-    return lead + when + late + how + caveat;
+    return said + when + late + boardingText(m, model) + caveat;
   }
 
   /*

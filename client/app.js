@@ -242,22 +242,40 @@
   }
 
   /*
-   * The service date the LIVE payloads say it is now.
+   * The service date the LIVE payloads say it is now, or null when nothing live
+   * has been seen. Null means "do not judge anything expired".
    *
    * Never derived here from a device clock. The server already resolved
    * service-day midnight once, correctly across both DST transitions, and
    * re-deriving it in a browser is two chances a year to be an hour wrong on the
    * document that says when a kid's bus leaves.
+   *
+   * And never from the bundled fixture. That file is a frozen 20260819 capture,
+   * not a statement about today: reading its date as the current one meant a
+   * single failed request — route 4 is the default and the only bundled route —
+   * declared every cached schedule expired and threw it away, on a connection
+   * that had just proved it could not fetch a replacement.
    */
   function currentServiceDate() {
-    var d = state.data || state.all;
-    if (d && d.service_day && d.service_day.date) return d.service_day.date;
+    if (!state.usingFixture && state.data && state.data.service_day &&
+        state.data.service_day.date) {
+      return state.data.service_day.date;
+    }
+    if (state.all && state.all.service_day && state.all.service_day.date) {
+      return state.all.service_day.date;
+    }
     var ids = Object.keys(state.routeData);
     for (var i = 0; i < ids.length; i++) {
       var r = state.routeData[ids[i]];
       if (r && r.service_day && r.service_day.date) return r.service_day.date;
     }
     return null;
+  }
+
+  /* A departures document describes one service day. This one is not today's. */
+  function scheduleExpired(doc) {
+    var today = currentServiceDate();
+    return !!(today && doc && doc.service_date !== today);
   }
 
   /*
@@ -276,21 +294,17 @@
    */
   function loadDepartures(routeId) {
     if (!routeId) return;
+    /*
+     * A document for the current service day is done; there is nothing to do.
+     *
+     * One that is NOT is left exactly where it is and re-requested. It used to be
+     * deleted first, which is only safe when the fetch cannot fail — and this one
+     * demonstrably can, taking a correct schedule with it and leaving "Schedule
+     * not loaded" where a minute earlier there was a whole service day. The
+     * replacement is swapped in below, once it has actually arrived.
+     */
     var cached = state.departures[routeId];
-    if (cached) {
-      var today = currentServiceDate();
-      if (!today || cached.service_date === today) return;
-      /*
-       * Rolled over — but evict at most once per attempt. A server that keeps
-       * answering with the old date (a stalled generator, a cache in front of it)
-       * would otherwise be re-asked on every repaint, which is the same
-       * fetch-and-render loop this file has already been bitten by once. The
-       * 'stale' status parks it until the 60s timer decides to try again.
-       */
-      if (state.depStatus[routeId] === 'stale') return;
-      delete state.departures[routeId];
-      state.depStatus[routeId] = 'idle';
-    }
+    if (cached && !scheduleExpired(cached)) return;
     /*
      * 'error' is a stop, not a pause, and so is 'ok'. Without that a failed
      * fetch set the status, called render, and render asked again - a
@@ -303,12 +317,14 @@
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
+        /* The swap. Whatever was here is replaced only now, by something that
+         * arrived. */
         state.departures[routeId] = d;
-        var today = currentServiceDate();
         /* A document for a day that is not today is kept and shown — it is still
-         * the best answer available — but it is marked so it is asked for again
-         * on the timer rather than trusted for the rest of the session. */
-        state.depStatus[routeId] = (today && d.service_date !== today) ? 'stale' : 'ok';
+         * the best answer available — but marked so it is asked for again on the
+         * timer rather than trusted, and so a server stuck on yesterday cannot
+         * spin this into a fetch-and-render loop. */
+        state.depStatus[routeId] = scheduleExpired(d) ? 'stale' : 'ok';
         render();
       })
       .catch(function () {
@@ -442,7 +458,16 @@
    */
   function retryDepartures(routeId) {
     var status = state.depStatus[routeId];
-    if (status === 'error' || status === 'stale') state.depStatus[routeId] = 'idle';
+    if (status === 'error' || status === 'stale') {
+      state.depStatus[routeId] = 'idle';
+      return;
+    }
+    /*
+     * The service day rolled over under a document that fetched cleanly. Only the
+     * timer may clear an 'ok' status, because paint() calls loadDepartures and a
+     * status that paint could clear is a fetch-and-render loop.
+     */
+    if (scheduleExpired(state.departures[routeId])) state.depStatus[routeId] = 'idle';
   }
 
   /*
@@ -1234,22 +1259,38 @@
     }
 
     /*
-     * Pasting a second stops link into the same tab only changes the fragment, so
-     * nothing reloads and nothing would repaint without this.
+     * Pasting a stops link into a tab that is already open only changes the
+     * fragment, so nothing reloads and nothing would happen without this — and
+     * that is the commonest way a link actually gets used: the board is open, the
+     * link arrives in a message, it goes in the address bar.
      *
-     * It reacts to a CHANGED PLAN, not to any hash change. Reacting to every one
-     * dragged the reader onto the stops view whenever a fragment appeared for any
-     * other reason, and re-opened an offer they had already declined — because
-     * adoptPlan rebuilds `offer` from scratch every time it runs.
+     * What decides the view is whether the hash CARRIES A PLAN, not whether the
+     * plan changed. Comparing against what was on screen and returning early made
+     * pasting an already-kept link do nothing at all, which is the same "the link
+     * looks inert" symptom the boot path was just fixed for, surviving on the
+     * other entry point.
+     *
+     * The comparison still earns its keep for one thing: an identical plan skips
+     * adoptPlan(), which rebuilds `offer` from scratch and would otherwise
+     * resurrect an offer the reader had already declined.
      */
     global.addEventListener('hashchange', function () {
-      var before = state.plan.entries;
       var found = global.CMB.plan.fromLocation(global.location);
-      if (found && before && global.CMB.plan.sameSet(before, found.entries)) return;
-      if (!found && !before) return;
-      adoptPlan();
-      if (state.plan.fromLink) selectView('stops');
-      else render();
+      if (!found) {
+        /* The plan left the address bar. Kept stops stay on screen; a link-only
+         * plan falls back to whatever storage says. An unrelated fragment on a
+         * board that was never showing a link is left alone entirely. */
+        if (!state.plan.fromLink) return;
+        adoptPlan();
+        render();
+        return;
+      }
+      if (state.plan.entries && global.CMB.plan.sameSet(state.plan.entries, found.entries)) {
+        state.plan.fromLink = true;
+      } else {
+        adoptPlan();
+      }
+      selectView('stops');
     });
 
     var resizeTimer = null;

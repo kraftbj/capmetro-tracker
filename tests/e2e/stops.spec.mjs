@@ -290,3 +290,109 @@ test.describe('the link and the screen stay in step', () => {
     await expect(page.getByText('Simond SB')).toHaveCount(0)
   })
 })
+
+test.describe('a failed route fetch must not destroy a good schedule', () => {
+  /*
+   * The chain the second review traced: a dropped `api/route` request swaps in the
+   * bundled 20260819 fixture, and if that frozen date is read as "today" then every
+   * cached schedule looks expired. Evicting one before its replacement arrives then
+   * loses a whole service day to a connection that has just proved it cannot fetch.
+   *
+   * Route 4 is the default and the only bundled fixture, so this was the ordinary
+   * user on the ordinary route.
+   */
+  test('keeps the cached schedule when the route payload falls back to the fixture', async ({ page }) => {
+    await page.goto('/__reset')
+    /* /missing/ 500s every api/route request, so the client is on the fixture.
+     * The 'flaky' schedule loads once, is dated 20260818, and 500s thereafter. */
+    await page.goto('/missing/index.html#plan=1;flaky.1.6243.all')
+
+    const card = page.locator('.stopcard').first()
+    await expect(card).toBeVisible()
+    await expect(card.locator('.stopdep').first()).toBeVisible()
+
+    /* Long enough for a repaint or two to have thrown it away. */
+    await page.waitForTimeout(2000)
+    await expect(card.locator('.stopdep').first()).toBeVisible()
+    await expect(page.getByText('Schedule not loaded')).toHaveCount(0)
+
+    /*
+     * And the schedule is not merely surviving — it was never judged against the
+     * fixture's frozen date in the first place. Without that guard the document
+     * is marked 'stale' and re-requested every 60 seconds forever, on a route
+     * whose schedule is in fact perfectly current. Asserting the decision rather
+     * than waiting out a timer.
+     */
+    const status = await page.evaluate(() => window.CMB.app.state.depStatus.flaky)
+    expect(status, 'the bundled fixture was read as today').not.toBe('stale')
+  })
+
+  test('does not spin re-requesting it either', async ({ page }) => {
+    await page.goto('/__reset')
+    const seen = new Map()
+    page.on('request', (r) => {
+      const u = new URL(r.url()).pathname
+      if (!/\/api\/departures\//.test(u)) return
+      seen.set(u, (seen.get(u) ?? 0) + 1)
+    })
+    await page.goto('/missing/index.html#plan=1;flaky.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(2000)
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+})
+
+test.describe('pasting a link into a tab that is already open', () => {
+  /*
+   * The commonest way a link actually gets used: the board is open, the link
+   * arrives in a message, it goes in the address bar. Only the fragment changes,
+   * so nothing reloads.
+   */
+  test('switches to the stops view even when those stops are already kept', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    /* Reopen with no plan in the address bar and get onto the route board, which
+     * is the state a tab is in when a link arrives in a message. */
+    await page.goto('/fresh/index.html')
+    await page.locator('.viewtabs__btn[data-view="board"]').click()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+
+    await page.evaluate((plan) => { window.location.hash = `plan=${plan}` }, PLAN)
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  test('does not re-open a declined offer when some other fragment changes', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /* An unrelated fragment must not drag adoptPlan() through a rebuild, which is
+     * what would put the declined offer back on screen. */
+    await page.evaluate(() => { window.location.hash = 'something-else' })
+    await page.waitForTimeout(300)
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  test('kept stops survive an unrelated fragment replacing the plan', async ({ page }) => {
+    /* Once they are on the phone the address bar is not the only copy, so
+     * overwriting the fragment must not take them off screen. */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await page.evaluate(() => { window.location.hash = 'something-else' })
+    await page.waitForTimeout(300)
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  test('leaves an unrelated fragment alone', async ({ page }) => {
+    await page.goto('/fresh/index.html')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+    await page.evaluate(() => { window.location.hash = 'somewhere-else' })
+    await page.waitForTimeout(300)
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+  })
+})

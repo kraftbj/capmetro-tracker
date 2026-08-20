@@ -227,6 +227,26 @@ describe('a link is untrusted input, which nothing in this codebase used to be',
     )
   })
 
+  t('rejects a window name that resolves through Object.prototype', (p) => {
+    /* `WINDOWS['constructor']` is the Object function — truthy — so the name
+     * passed validation and the card rendered NaN:NaNp–NaN:NaNp, pinned under
+     * "Later today" and saved with the plan, so permanently. */
+    ;['constructor', 'toString', 'valueOf', 'hasOwnProperty'].forEach((hostile) => {
+      expect(p.windowRange(hostile), hostile).toBeNull()
+      expect(p.decode(`1;4.1.6243.${hostile}`), hostile).toBeNull()
+    })
+    /* And the real ones still work. */
+    expect(p.windowRange('am')).toEqual([4 * 3600, 12 * 3600])
+  })
+
+  t('counts a route id that names something on Object.prototype', (p) => {
+    /* A bare {} accumulator read `constructor` back as truthy and dropped the
+     * route from the preload and the 60-second refresh, while paint went on
+     * fetching it. */
+    expect(p.routesIn([{ route_id: 'constructor' }, { route_id: 'toString' }, { route_id: '4' }]))
+      .toEqual(['constructor', 'toString', '4'])
+  })
+
   t('caps the entries one link may carry', (p) => {
     const many = Array.from({ length: 400 }, (_, i) => `4.1.stop${i}.all`).join(';')
     const decoded = p.decode(`1;${many}`)
@@ -297,6 +317,103 @@ describe('a canceled trip is never mistaken for one that has not started', () =>
      * listed and does not consume one of the slots. */
     const live = m.departures.filter((d) => !d.canceled)
     expect(live.length).toBe(p.SHOW)
+  })
+})
+
+describe('a cancelled inbound leg is not a bus that has not started yet', () => {
+  const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
+
+  /*
+   * The real capture only cancels whole blocks, so both legs go together and the
+   * outbound is cancelled before this reasoning is reached. One leg of a block
+   * called off on its own is possible and is what this covers, so the fixture is
+   * edited rather than pretended into existence.
+   */
+  const withCanceledLeg = () => {
+    const dep = fixture('departures-837-turnaround-canceled.json')
+    const pair = dep._expected.pairs.find(
+      (x) => x.inbound_arrival_s !== null && !tripAtIn(dep, x.outbound_departure_s, 1).canceled,
+    )
+    tripAtIn(dep, pair.inbound_arrival_s, 0).canceled = true
+    return { dep, pair }
+  }
+  const tripAtIn = (dep, seconds, dir) => {
+    const row = dep.departures['2112'].find(
+      ([s, i]) => s === seconds && dep.trips[i].direction_id === dir,
+    )
+    return dep.trips[row[1]]
+  }
+
+  t('says the leg is cancelled instead of "no bus is reporting on that trip yet"', (p) => {
+    const { dep, pair } = withCanceledLeg()
+    const now = dep.service_day_start_epoch + pair.outbound_departure_s - 600
+    const m = p.resolve(AT_837, dep, EMPTY_ROUTE, now)
+    const d = m.departures.find(
+      (x) => x.scheduled_at - dep.service_day_start_epoch === pair.outbound_departure_s,
+    )
+    expect(d.canceled).toBe(false)
+    expect(d.boarding).toBe('inbound-canceled')
+
+    const said = p.boardingText(d, m)
+    expect(said).toContain('canceled')
+    /* The sentence that means "it has not started", used for "it is never
+     * running", is the exact confusion cancellations were surfaced to remove. */
+    expect(said).not.toContain('reporting')
+    expect(said).not.toMatch(/the the/i)
+  })
+
+  t('still names which leg it was, so the reader can tell what was cancelled', (p) => {
+    const { dep, pair } = withCanceledLeg()
+    const now = dep.service_day_start_epoch + pair.outbound_departure_s - 600
+    const m = p.resolve(AT_837, dep, EMPTY_ROUTE, now)
+    const d = m.departures.find(
+      (x) => x.scheduled_at - dep.service_day_start_epoch === pair.outbound_departure_s,
+    )
+    expect(p.boardingText(d, m)).toMatch(/The \d{1,2}:\d{2}[ap] SB that would bring this bus in/)
+  })
+
+  t('leaves a running leg alone', (p) => {
+    const dep = fixture('departures-837-turnaround-canceled.json')
+    const m = p.resolve(AT_837, dep, EMPTY_ROUTE, dep._now)
+    const running = m.departures.filter((d) => !d.canceled)
+    expect(running.length).toBeGreaterThan(0)
+    running.forEach((d) => expect(d.boarding).not.toBe('inbound-canceled'))
+  })
+})
+
+describe('what a screen reader is told', () => {
+  const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
+  const spokenOf = (p, model) =>
+    textDeep(all(p.render(client.document.createElement('div'), [model], {}), 'sr-only')[0])
+
+  t('names the cancellation AND the bus that is actually coming', (p) => {
+    /* Five minutes before the cancelled 10:13, so it is the first entry on the
+     * card. The summary used to stop there — the half of the message that sends
+     * somebody home — while the card listed two running departures below it. */
+    const now = DEP837.service_day_start_epoch + 10 * 3600 + 5 * 60
+    const m = p.resolve(AT_837, DEP837, EMPTY_ROUTE, now)
+    expect(m.departures[0].canceled).toBe(true)
+
+    const spoken = spokenOf(p, m)
+    expect(spoken).toContain('is canceled')
+    expect(spoken).toContain('The next bus running is due')
+    expect(spoken).toContain('10:23')
+  })
+
+  t('says so plainly when the cancellation is all there is left', (p) => {
+    const dep = fixture('departures-837-turnaround-canceled.json')
+    /* Keep only the cancelled departure in the boarding direction. */
+    const canceledS = dep._expected.canceled_departure_s[0]
+    dep.departures['2112'] = dep.departures['2112'].filter(
+      ([s, i]) => dep.trips[i].direction_id === 0 || s === canceledS,
+    )
+    const m = p.resolve(AT_837, dep, EMPTY_ROUTE, dep.service_day_start_epoch + 10 * 3600 + 5 * 60)
+    expect(spokenOf(p, m)).toContain('Nothing else is running at this stop today')
+  })
+
+  t('leads with the next bus when nothing is cancelled', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
+    expect(spokenOf(p, m)).toContain('Next bus due')
   })
 })
 

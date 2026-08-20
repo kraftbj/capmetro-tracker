@@ -157,6 +157,7 @@ Three published facts answer it, and the card says which one it is using:
 | A vehicle is on the outbound trip and `STOPPED_AT` the stop | "Bus 2867 is at the stop now." |
 | A vehicle is on the inbound leg and `STOPPED_AT` the stop | "Bus 2867 is standing at this stop now, in on the 3:04p WB, and goes back out as this trip." |
 | A vehicle is running the inbound leg elsewhere | "Bus 2867 brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds late." |
+| The inbound leg itself is cancelled | "The 3:04p WB that would bring this bus in is canceled, and nothing in the schedule says what runs this trip instead." |
 | Only the schedule knows | "Comes in on the 3:04p WB. No bus is reporting on that trip yet." |
 
 **A continuation the feed has not confirmed is a likelihood, not a fact** —
@@ -177,6 +178,31 @@ ahead, a cancelled one is listed and does not consume one of the three slots, an
 cancelled trip gets no continuation reasoning at all — "Bus 8021 brings it in"
 printed beside CANCELED is the contradiction this board exists to avoid. Those
 rules were paid for once, when a kid waited for a bus that was never coming.
+
+The inbound leg gets the same check. "Comes in on the 3:04p WB. No bus is
+reporting on that trip yet" means *it has not started*, and using it for *it is
+never running* is the confusion cancellations exist to remove — worst here, since
+the inbound leg is the only evidence a bus is coming at a stop where none is
+visible. The whole-block case never reaches that code (the outbound is cancelled
+too, and `decorate()` returns first), so what it covers is one leg of a block
+called off on its own. The real capture only cancels whole blocks, so the test
+edits a fixture rather than pretending the case is in the data.
+
+**The screen-reader summary mirrors the card, not just its first row.** The card
+lists a cancellation and then the buses still running; taking only the first entry
+meant that when the soonest departure was cancelled a screen-reader user heard
+"cancelled" and nothing else — the half of the message that sends someone home.
+
+### Known gap: a mid-day cancellation
+
+`trip.canceled` lives only in the departures document, which is now kept for the
+service day it describes. `canceled_trips` is published on the *route* payload and
+rebuilt every 60 seconds, and no client code reads it. So a trip cancelled at
+10:05 for a 10:13 departure does not reach a tab that was opened at 07:00 — on the
+stops view or the Next-buses band. This is a trunk gap rather than one this view
+introduced (the same hole exists on `stopboard.js`), and it is being fixed there;
+the eviction rule here is what decides how long the stale copy lives, so both
+halves belong in view together.
 
 The live half comes from `vehicle.block.next_trip` (§2), the server's own block
 continuity with `is_direction_flip` already computed, falling back to the vehicle
