@@ -1,7 +1,7 @@
 /*
  * map.js — the "where is she right now" panel.
  *
- * No basemap ships here and none is coming: a tile source is a network
+ * No tile basemap ships here and none is coming: a tile source is a network
  * dependency and this board has to open from a file:// URL with no server. The
  * answer was not to fake cartography but to notice that the payload already
  * carries the only cartography this panel needs. Stops on these routes sit
@@ -234,7 +234,7 @@
     S.clear(host);
     var head = el('div', 'band__head');
     head.appendChild(el('h2', 'band__title', 'Map'));
-    head.appendChild(el('p', 'band__sub', 'Route geography · north up'));
+    head.appendChild(el('p', 'band__sub', 'Stops at their true positions'));
     host.appendChild(head);
 
     if (opts.status === 'loading') {
@@ -469,21 +469,24 @@
     host.appendChild(svg);
 
     /*
-     * The caption's whole job is to stop the panel overclaiming. It is a true
-     * map of one route's geography and nothing else on the screen is real
-     * ground, so it says both halves.
+     * A legend, not a disclaimer. That there are no streets under the drawing is
+     * plain from looking at it, and spending three clauses saying so was the
+     * panel apologising for itself. What a reader cannot work out unaided is
+     * which dots are timepoints and which line is which direction, so that is
+     * what the caption spends its words on.
      */
-    var geo = 'Every stop at its true position, north up, to the scale shown. There is no ' +
-      'basemap under it — no streets, no river, no city — so this is a map of the route, ' +
-      'not a map of Austin.';
+    var drawn = chains.filter(function (c) { return c.stops.length > 1; }).length;
+    var legend = drawn > 1
+      ? 'Solid line outbound, dashed inbound. Larger dots are timepoints.'
+      : 'Larger dots are timepoints.';
     var cap = el('p', 'track__cap');
     if (suppressed) {
       cap.className += ' is-warn';
-      cap.textContent = 'Positions only: lateness is suppressed, so chips carry no number. ' + geo;
+      cap.textContent = 'Lateness is suppressed, so chips carry no number. ' + legend;
     } else if (!buses.length) {
-      cap.textContent = 'No vehicle is reporting a position, so the route is drawn empty. ' + geo;
+      cap.textContent = 'No vehicle is reporting a position. ' + legend;
     } else {
-      cap.textContent = geo;
+      cap.textContent = legend;
     }
     host.appendChild(cap);
 

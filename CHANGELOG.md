@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the CapMetro dispatch board are recorded here.
+All notable changes to the Dillo Bus Board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ## [Unreleased]
@@ -36,6 +36,77 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   `require` in a package declaring `"type": "module"`. The bundled offline copy
   of the fixture had drifted from the golden file as a result, and is now back
   in sync.
+
+## [0.4.0.1] - 2026-08-20
+
+### Fixed
+
+- **The vhost served the board with no CSP.** nginx inherits `add_header` from
+  an enclosing level only when the current level declares none of its own, so a
+  single `add_header` inside a `location` silently discards every inherited one.
+  Each location sets its own `Cache-Control`, which meant the four security
+  headers declared at server level reached only `location /` -- and
+  `location = /index.html` shadows it. The one HTML document on the origin, and
+  every script, stylesheet and API response, went out with no
+  Content-Security-Policy, no Referrer-Policy and no X-Frame-Options. Confirmed
+  against `nginx:alpine`: zero of the three on `/index.html`, `/styles.css` and
+  `/api/health.json` before, all four present on all five paths after. The
+  Apache vhost was never affected -- `mod_headers` is additive across scopes.
+
+### Changed
+
+- The board is called **Dillo Bus Board**, matching the host it runs on.
+
+## [0.4.0.0] - 2026-08-19
+
+### Added
+
+- **Cancelled trips are visible.** A cancelled trip used to render as
+  "scheduled, no bus reporting yet", which reads as "it hasn't started" when it
+  means "it is never coming". Someone waited at a stop for a bus that was never
+  coming because of it. Cancellation is a property of a trip, not of a vehicle
+  (a cancelled trip has no vehicle), so it is now published as one: each trip in
+  `api/departures/{route}.json` carries `canceled`, and the route payload's
+  `schedule` carries `canceled_trips` listing the ids it actually drew. A
+  cancelled departure stays on the stop board, says the word CANCELED, and does
+  not count as one of the two buses you were shown.
+- **Next buses at a stop.** Pick a stop on any route and see the next two each
+  way, ordered by when a bus will actually arrive rather than when it was
+  scheduled to. A bus running twenty minutes late is still the next bus, and
+  ordering by the timetable hides exactly that.
+- **Every bus is tappable.** The all-buses screen lists every route with all of
+  its buses, and opening one shows its route, next stop, when it is due there
+  against when it was scheduled, the stop it just left, where it is, whether it
+  is moving, and what it does next.
+- **Whether a bus is pulling in or changing route.** `block.next_trip` now
+  names the route it becomes, so the board can say "becomes route 333 at Oak
+  Hill Plaza" instead of only "it has another trip". Seven buses on the captured
+  day change route mid-block.
+- **A route catalog and a deploy kit**, so the board can be installed on a plain
+  Debian or Ubuntu box behind nginx or Apache with one command.
+
+### Changed
+
+- The vehicle rows read in running order, lead bus first, instead of worst-late
+  first. Severity order is how a dispatcher triages a fleet; someone at a stop
+  is asking which bus is nearest them.
+- The all-buses screen no longer opens with a triage band.
+- The map caption is a legend rather than a disclaimer. It stopped explaining at
+  length that there are no streets under the drawing, which is plain from
+  looking at it, and now says the two things that are not: larger dots are
+  timepoints, and the dashed line is the inbound direction.
+
+### Fixed
+
+- The schedule boards were rewritten every sixty seconds, 3.9 GB a day, for data
+  that changes about three times a year.
+- The test suite was checking a fraction of what it claimed: webroot generation
+  was gated on a directory that never existed, so schema validation ran 13
+  checks where it should run 305 and eighteen PHP tests silently skipped.
+- Both committed fixtures were hand-made and disagreed with real output in two
+  ways: one carried a bus on a route the feed cannot attribute it to, and one
+  recorded a feed age its own generator never computed. Regenerated from the
+  runtime, which let five block fields become schema-required.
 
 ## [0.3.0.0] - 2026-08-19
 

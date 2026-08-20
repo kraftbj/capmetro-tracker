@@ -207,10 +207,14 @@ describe('a reader can turn the picture into a distance and a direction', () => 
     expect(all(host, 'map__scale-bar').length).toBeGreaterThan(0)
   })
 
-  t('says what it is without claiming to be a street map', (cmb, document) => {
+  t('captions what a reader cannot work out from the picture', (cmb, document) => {
+    /*
+     * The caption is a legend now, not a disclaimer. That there are no streets
+     * under the drawing needs no words; which dots are timepoints does.
+     */
     const text = textDeep(draw(cmb, document, goldenRoute4()))
-    expect(text).toMatch(/no basemap/i)
-    expect(text).toMatch(/not a map of Austin/i)
+    expect(text).toMatch(/larger dots are timepoints/i)
+    expect(text).not.toMatch(/no basemap|no streets|no river|not a map of Austin/i)
   })
 })
 
@@ -274,7 +278,7 @@ describe('degenerate payloads render something legible instead of nothing', () =
     noNaN(host)
     expect(all(host, 'map__stop--major')).toHaveLength(1)
     expect(all(host, 'map__route--out')).toHaveLength(0)
-    expect(textDeep(host)).toMatch(/no basemap/i)
+    expect(textDeep(host)).toMatch(/no vehicle is reporting/i)
   })
 
   t('draws the route with no vehicles on it, and says that is what happened', (cmb, document) => {

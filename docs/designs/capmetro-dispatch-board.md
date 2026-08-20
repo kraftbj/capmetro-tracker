@@ -552,7 +552,7 @@ and the non-blank empty state exist to serve that moment specifically.
 ### Product identity and surface rules (from the design outside voice)
 
 - **The board must say what it is.** A compact persistent title in the top bar
-  (`School Bus Board`), small but unmistakable. Without it the first screen is a route chip and a
+  (`Dillo Bus Board`), small but unmistakable. Without it the first screen is a route chip and a
   toggle, which reads as an anonymous internal tool when opened cold from a home screen or shared
   with another parent. This was the one litmus check both reviewers failed.
 - **Bands, not cards.** Panels are full-width bands on a continuous surface, separated by hairline
