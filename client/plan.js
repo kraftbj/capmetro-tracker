@@ -45,6 +45,26 @@
  * inbound one. It is sitting there. That gets said in words, because a bus you can
  * see out of the window is not the same news as one that is eight minutes away.
  *
+ * The live side carries a CONFIDENCE, and it is not decoration. Contract §4
+ * forbids stating a low-confidence continuation as fact, and every route 837 block
+ * in the 2026-08-19 capture is low — so the hedge is the ordinary reading on one of
+ * the three turnarounds this shipped for, not an edge case. It matters more here
+ * than on the rows band: the whole point of this card is answering "is a bus
+ * actually coming for me" at a stop where none is visible, which is exactly where a
+ * false certainty costs somebody a wait in the dark. Same wording as rows.js
+ * continuationText(), because it is the same claim.
+ *
+ * WHAT THIS FILE DOES NOT DECIDE
+ *
+ * Which departures are upcoming, in what order, and what a cancelled one does to
+ * the count are all stopboard.js's answers, reached through SB.upcoming(). They are
+ * load-bearing and were paid for once: a departure is upcoming when its PREDICTED
+ * arrival is still ahead, so a bus twenty minutes late stays listed until it has
+ * actually been; and a cancelled trip is shown without consuming a slot, because a
+ * kid waited at a stop for a bus that was never coming while the board said "no bus
+ * reporting yet". This file adds the turnaround, the window and the link to that,
+ * and restates none of it.
+ *
  * WHAT IS DELIBERATELY NOT DONE: when the inbound bus is nine minutes late, the
  * outbound departure it becomes will almost certainly leave late too. This file
  * does not compute that number. The board's rule is that nothing on it is
@@ -53,20 +73,38 @@
  * instead, and the arithmetic — which is one subtraction — is left to a reader who
  * can see where the number came from.
  *
- * WHY THE LINK IS A FRAGMENT
+ * WHY THE LINK IS A FRAGMENT, AND WHAT THAT DOES AND DOES NOT BUY
  *
  * Contract §9 hashes the watch tuple for one stated reason: "so a URL or server
  * log never carries a legible description of a child's daily routine." A feature
  * whose whole point is a URL has to answer that, not inherit it.
  *
- * It is answered twice over. The plan lives in the '#' fragment, which browsers do
- * not send to the server — bus.dillo.dev's access log gets 'GET /' and nothing
- * else, no matter how many stops the link carries. And the encoding is numeric ids
- * only: '4.1.6243.pm' names no street, no child and no clock time. Reading it
- * needs the stop table, which is the same bar as reading the sha256. A '?plan='
- * query is still accepted, because a link that has been through three messaging
- * apps may arrive in any shape, but it is rewritten into the fragment on arrival
- * so it stops leaking on the next reload.
+ * The fragment is the answer to the half that is about passive leakage. Browsers
+ * do not send it, so the request line in bus.dillo.dev's access log is 'GET /'
+ * however many stops the link carries, and it does not ride along in a Referer
+ * header either.
+ *
+ * It is NOT the same guarantee the hash gives, and an earlier draft of this
+ * comment claimed it was. The sha256 in §9 is one-way: there is no decoder, only
+ * a guess-and-check against a stop you already suspect. This encoding is
+ * reversible and THIS APPLICATION IS THE DECODER — paste a link into the board
+ * and the stops are on screen, named, with times, no stop table required. Stop
+ * ids are public GTFS besides. So the true and still worthwhile claim is:
+ *
+ *   the server never learns which stops a link carries; anyone the link is GIVEN
+ *   to can open it and read them, which is the entire point of sharing it.
+ *
+ * A link somebody chose to send is a different thing from a URL that leaks into
+ * logs and referrers by itself, and only the second is what §9 is about.
+ *
+ * One thing the fragment does not hide: opening a plan immediately fetches that
+ * plan's routes, so the access log does learn the route SET, just not the stops
+ * or the directions or the times. Worth saying plainly rather than leaving the
+ * reader with "the log sees GET /".
+ *
+ * A '?plan=' query is still accepted, because a link that has been through three
+ * messaging apps may arrive in any shape, but it is rewritten into the fragment
+ * on arrival so it stops leaking on the next reload.
  */
 (function (global) {
   'use strict';
@@ -78,17 +116,33 @@
 
   /* watch.js owns the schedule/live join. This file borrows it whole. */
   var W = global.CMB.watch;
+  /* stopboard.js owns "what is next at this stop", cancellations and the
+   * arrival-order ranking included. This file adds the turnaround, the window
+   * and the link, and does not restate any of that. */
+  var SB = global.CMB.stopboard;
 
   var STORE_KEY = 'cmb.plan';
   var FORMAT = '1';
 
-  /* How many departures a card shows. Two is what you act on; the third is there
-   * so a bus you have just missed does not leave the card looking empty. */
+  /* How many live departures a card shows. Two is what you act on; the third is
+   * there so a bus you have just missed does not leave the card looking empty.
+   * A canceled one is shown as well and does not count toward this, which is
+   * stopboard's rule and the reason that ranking is borrowed rather than
+   * rewritten. */
   var SHOW = 3;
 
-  /* A departure stops being offerable this long after it was due. Generous,
-   * because a bus that is late has not gone. */
-  var GONE_S = 120;
+  /*
+   * The most stops one link may carry.
+   *
+   * Every surviving entry becomes a route whose schedule and live payload get
+   * fetched, and the refresh timer re-runs the set every sixty seconds. A
+   * fragment with a few hundred entries is a few hundred requests a minute from
+   * one phone, and the phone is what suffers first: a wedged board with the fan
+   * on is indistinguishable from the app being broken. Twelve is well past any
+   * real commute — the one this shipped for has five.
+   */
+  var MAX_ENTRIES = 12;
+  var MAX_ROUTES = 6;
 
   /*
    * Time-of-day windows, in seconds since the start of the service day.
@@ -150,7 +204,9 @@
     if (parts[0] !== FORMAT) return null;
 
     var entries = [];
-    for (var i = 1; i < parts.length; i++) {
+    var routes = Object.create(null);
+    var routeCount = 0;
+    for (var i = 1; i < parts.length && entries.length < MAX_ENTRIES; i++) {
       var f = parts[i].split('.');
       if (f.length < 3) continue;
       var dir = parseInt(f[1], 10);
@@ -160,6 +216,14 @@
       if (!routeId || !stopId) continue;
       var win = f.length > 3 && f[3] ? f[3] : 'all';
       if (!windowRange(win)) continue;
+      /* Routes are capped separately from entries, because the route count is
+       * what drives the fetching: twelve stops on two routes is two documents,
+       * twelve stops on twelve routes is twenty-four. */
+      if (routes[routeId] === undefined) {
+        if (routeCount >= MAX_ROUTES) continue;
+        routes[routeId] = true;
+        routeCount++;
+      }
       entries.push({
         route_id: routeId,
         direction_id: dir,
@@ -421,23 +485,19 @@
     base.headsign = rows[0].trip.headsign;
     base.direction_tag = fmt.directionTag(rows[0].trip.headsign, entry.direction_id);
 
-    var models = [];
-    for (var i = 0; i < rows.length && models.length < SHOW; i++) {
-      var m = departureModel(rows[i], entry, dep, route, now);
-      /* Scheduled time is the filter, not the prediction: a bus running late is
-       * still ahead of you, and dropping it because the clock passed its
-       * scheduled time is how a board loses the bus you are about to catch. */
-      if (m.due_at < now - GONE_S) continue;
-      models.push(m);
-    }
-
     /*
-     * Scheduled order picks the candidates; DUE order is what gets printed. A
-     * bus twenty minutes late and the one behind it running on time arrive
-     * together, and on a card headed "next bus" the one that actually gets here
-     * first has to be the one at the top.
+     * Which departures, in what order, and what a canceled one does to the count
+     * are all stopboard's answers, and they are load-bearing ones: a departure is
+     * upcoming when its PREDICTED arrival is still ahead, so a bus twenty minutes
+     * late stays on the list until it has actually been; and a canceled trip is
+     * shown but does not consume one of the slots. Rewriting either here would be
+     * a second implementation of a rule someone got stranded proving.
+     *
+     * What this file adds is per departure: does it START here, and if so which
+     * bus is bringing it in.
      */
-    models.sort(function (a, b) { return a.due_at - b.due_at; });
+    var models = SB.upcoming(dep, route, entry.stop_id, entry.direction_id, now, SHOW)
+      .map(function (d) { return decorate(d, entry, dep, route, now); });
 
     base.departures = models;
     base.is_turnaround = models.length > 0 && models.every(function (m) { return m.starts_here; });
@@ -449,18 +509,48 @@
     return extend(base, { state: 'ok', next: models[0] });
   }
 
-  function departureModel(row, entry, dep, route, now) {
-    var trip = row.trip;
-    var scheduledAt = dep.service_day_start_epoch + row.seconds;
+  /*
+   * One stopboard departure, plus the two things a turnaround needs: whether the
+   * trip STARTS at this stop, and which bus is bringing it in if so.
+   *
+   * The stopboard model is spread through unchanged, so `canceled`, `due_at`,
+   * `suppressed` and the rest keep exactly the meaning that file gave them.
+   */
+  function decorate(d, entry, dep, route, now) {
+    var trip = d.trip;
+    var arrivalS = d.scheduled_at - dep.service_day_start_epoch;
 
-    var vehicle = W.vehicleForTrip(route, trip.id);
-    var view = vehicle ? adhLib.view(vehicle, route && route.staleness) : null;
-    var lateness = view && view.seconds !== null && view.seconds !== undefined ? view.seconds : null;
-    var predictedAt = lateness === null ? null : scheduledAt + lateness;
-    var dueAt = predictedAt === null ? scheduledAt : predictedAt;
+    /*
+     * A canceled trip gets no continuation reasoning at all. There is no bus to
+     * bring in, and printing "Bus 8021 brings it in on the 10:20a SB" beside the
+     * word CANCELED is the contradiction this board exists to avoid.
+     */
+    if (d.canceled) {
+      return extend({}, d, {
+        starts_here: startsHere(trip, arrivalS),
+        inbound: null,
+        boarding: 'canceled'
+      });
+    }
 
-    var leg = inboundLeg(dep, entry.stop_id, entry.direction_id, trip, row.seconds);
+    var vehicle = d.vehicle;
+    var leg = inboundLeg(dep, entry.stop_id, entry.direction_id, trip, arrivalS);
+
+    /*
+     * Two ways to find the bus, and they are not equally certain.
+     *
+     * `vehicleFeeding` is the runtime's own block continuity — the feed saying
+     * this vehicle runs that trip next — and it carries a confidence. The
+     * fallback is the vehicle currently on the SCHEDULED inbound leg, where the
+     * link to our departure is the timetable's block_id rather than anything the
+     * feed has confirmed. Contract section 4 forbids stating a low-confidence
+     * continuation as fact, so which one answered is carried on the model and
+     * the copy hedges when it has to. On the 2026-08-19 capture every route 837
+     * block is `confidence: low`, so this is not a hypothetical branch.
+     */
     var feeder = vehicle ? null : vehicleFeeding(route, trip.id);
+    var confidence = feeder && feeder.block ? feeder.block.confidence : null;
+    var confirmed = !!feeder && confidence === 'high';
     if (!feeder && !vehicle && leg) feeder = W.vehicleForTrip(route, leg.trip.id);
 
     var inbound = null;
@@ -477,6 +567,8 @@
         vehicle: feeder,
         view: fView,
         at_stop: atStop(feeder, entry.stop_id),
+        confidence: confidence,
+        confirmed: confirmed,
         /* The scheduled leg names the direction best. Without one, the feeder's
          * own trip still does — and with neither there is no direction to name,
          * which the copy has to handle rather than print an empty phrase. */
@@ -494,20 +586,12 @@
             : inbound && inbound.trip ? 'scheduled'
               : 'none';
 
-    return {
-      trip: trip,
-      scheduled_at: scheduledAt,
-      predicted_at: predictedAt,
-      due_at: dueAt,
-      seconds_until: dueAt - now,
-      vehicle: vehicle,
-      view: view,
+    return extend({}, d, {
       at_stop: here,
-      starts_here: startsHere(trip, row.seconds),
+      starts_here: startsHere(trip, arrivalS),
       inbound: inbound,
-      boarding: boarding,
-      is_special: !!trip.is_special
-    };
+      boarding: boarding
+    });
   }
 
   function stopMeta(dep, stopId, directionId) {
@@ -521,8 +605,25 @@
     return null;
   }
 
-  function extend(a, b) {
-    for (var k in b) if (Object.prototype.hasOwnProperty.call(b, k)) a[k] = b[k];
+  /* Variadic, because decorate() merges a stopboard model and its own additions
+   * onto a fresh object in one call. A two-argument version silently dropped the
+   * third and every boarding state came back undefined. */
+  var UNCONFIRMED_NOTE = '“Likely” means the feed has not confirmed which bus ' +
+    'continues onto that trip. The schedule says this one should.';
+
+  /* True when any departure on this card leans on a continuation the feed has
+   * not confirmed, which is what the card-level note is there to explain. */
+  function anyUnconfirmed(model) {
+    return (model.departures || []).some(function (d) {
+      return d.inbound && d.inbound.vehicle && !d.inbound.confirmed;
+    });
+  }
+
+  function extend(a) {
+    for (var i = 1; i < arguments.length; i++) {
+      var b = arguments[i];
+      for (var k in b) if (Object.prototype.hasOwnProperty.call(b, k)) a[k] = b[k];
+    }
     return a;
   }
 
@@ -561,15 +662,31 @@
    * without it.
    */
   function departureLine(m, model, isFirst) {
-    var box = el('div', 'stopdep' + (isFirst ? ' stopdep--next' : ''));
+    var box = el('div', 'stopdep' + (isFirst ? ' stopdep--next' : '') +
+      (m.canceled ? ' stopdep--canceled' : ''));
 
     var line = el('p', 'stopdep__line');
     line.appendChild(el('span', 'stopdep__due', fmt.clock(m.due_at)));
+    if (m.canceled) {
+      /*
+       * The word, not a colour and not a strike-through — stopboard's rule, for
+       * the reason stopboard gives: a struck-out time is ambiguous at a glance
+       * and invisible to a screen reader, and this is the one line on the card
+       * that must not be misread. A kid waited at a stop for a bus that was
+       * never coming while the board said "no bus reporting yet".
+       */
+      line.appendChild(el('span', 'nextbus__canceled', 'CANCELED'));
+      box.appendChild(line);
+      box.appendChild(el('p', 'stopdep__note', boardingText(m, model)));
+      return box;
+    }
     line.appendChild(el('span', 'stopdep__until', W.untilText(m.seconds_until)));
-    if (m.view) line.appendChild(adhLib.badge(m.view, { small: !isFirst }));
+    if (m.view && !m.suppressed) line.appendChild(adhLib.badge(m.view, { small: !isFirst }));
     box.appendChild(line);
 
-    if (m.predicted_at !== null && m.predicted_at !== m.scheduled_at) {
+    if (m.suppressed) {
+      box.appendChild(el('p', 'stopdep__sched', 'Scheduled · lateness unavailable'));
+    } else if (m.predicted_at !== null && m.predicted_at !== m.scheduled_at) {
       box.appendChild(el('p', 'stopdep__sched', 'Scheduled ' + fmt.clock(m.scheduled_at)));
     }
 
@@ -601,20 +718,42 @@
      */
     var leg = namedLeg(m);
 
+    if (m.boarding === 'canceled') {
+      return 'CapMetro has canceled this trip. No bus is coming for it.';
+    }
     if (m.boarding === 'here') {
       return busName + ' is at the stop now.';
     }
+    /*
+     * A continuation the feed has not confirmed is said as a likelihood, never as
+     * a fact — contract section 4, and the same hedge rows.js continuationText()
+     * makes. It matters more here than on the rows band: the whole point of a
+     * turnaround card is answering "is a bus actually coming for me" at a stop
+     * where none is visible, which is exactly where a false certainty costs
+     * somebody a wait in the dark.
+     */
+    var sure = m.inbound && m.inbound.confirmed;
     if (m.boarding === 'waiting') {
-      return feederName + ' is already standing at this stop' +
-        (leg ? ', in on ' + leg : '') + ', and goes back out as this trip.';
+      return feederName + ' is standing at this stop now' +
+        (leg ? ', in on ' + leg : '') +
+        (sure ? ', and goes back out as this trip.'
+          : ', and is likely the one that goes back out as this trip.');
     }
     if (m.boarding === 'inbound') {
       var eta = m.inbound.seconds_until === null || m.inbound.seconds_until === undefined
         ? '' : ' — due here ' + W.untilText(m.inbound.seconds_until);
       var late = latenessClause(m.inbound.view);
+      /*
+       * The hedge is the word "likely", on every line. What it MEANS is said once
+       * per card, below the departures — printing the whole caveat three times
+       * running filled a phone screen with the same sentence and buried the
+       * times, which are what the card is for.
+       */
+      var verb = sure ? ' brings it in on ' : ' likely brings it in on ';
       return leg
-        ? feederName + ' brings it in on ' + leg + eta + late + '.'
-        : feederName + ' runs this trip next; it is finishing another one first' + late + '.';
+        ? feederName + verb + leg + eta + late + '.'
+        : feederName + (sure ? ' runs this trip next' : ' likely runs this trip next') +
+          '; it is finishing another one first' + late + '.';
     }
     if (m.boarding === 'scheduled') {
       return leg
@@ -676,6 +815,9 @@
         listEl.appendChild(departureLine(m, model, i === 0));
       });
       box.appendChild(listEl);
+      if (anyUnconfirmed(model)) {
+        box.appendChild(el('p', 'stopcard__caveat', UNCONFIRMED_NOTE));
+      }
     } else {
       box.appendChild(S.notice('empty', headlineFor(model), model.detail || null));
     }
@@ -705,11 +847,17 @@
     var lead = describe(model.entry, model) + '. ';
     if (model.state !== 'ok') return lead + (model.detail || 'Nothing to show.');
     var m = model.next;
+    if (m.canceled) {
+      return lead + 'The ' + fmt.clockSpoken(m.scheduled_at) + ' is canceled. ' +
+        'No bus is running this trip.';
+    }
     var when = 'Next bus due ' + fmt.clockSpoken(m.due_at) + ', ' +
       W.untilText(m.seconds_until) + '. ';
     var how = boardingText(m, model);
-    var late = m.view ? m.view.spoken + '. ' : '';
-    return lead + when + late + how;
+    var late = m.view && !m.suppressed ? m.view.spoken + '. ' : '';
+    var caveat = m.inbound && m.inbound.vehicle && !m.inbound.confirmed
+      ? ' ' + UNCONFIRMED_NOTE : '';
+    return lead + when + late + how + caveat;
   }
 
   /*
@@ -721,6 +869,17 @@
     opts = opts || {};
     S.clear(host);
     host.appendChild(el('p', 'band__head', 'Stops'));
+
+    /*
+     * A refused write is said out loud, above everything. The alternative — which
+     * is what this did — is announcing "kept on this phone" and letting the reader
+     * find out tomorrow, when the stops are simply not there.
+     */
+    if (opts.storageFailed) {
+      host.appendChild(S.notice('warn', 'Nothing could be saved on this phone.',
+        'Private browsing or storage turned off. The stops below are still correct, ' +
+        'and the link is still the way back to them.'));
+    }
 
     if (opts.offer) host.appendChild(offerBanner(opts));
 
@@ -811,9 +970,13 @@
     field.setAttribute('aria-label', 'Link to these stops');
     field.addEventListener('focus', function () { field.select(); });
     box.appendChild(field);
+    /* Precise on purpose. "Tells the server nothing" was the earlier wording and
+     * it was not true: opening a plan fetches its routes, so the server does see
+     * which routes, just not which stops or when. */
     box.appendChild(el('p', 'hint',
-      'Everything after the # stays in the browser — opening this link tells the ' +
-      'server nothing about which stops it carries.'));
+      'Everything after the # stays in the browser, so the server never sees ' +
+      'which stops this carries. Anyone you send it to can open it and read them ' +
+      '— that is what makes it shareable.'));
     return box;
   }
 
@@ -821,7 +984,8 @@
     STORE_KEY: STORE_KEY,
     FORMAT: FORMAT,
     SHOW: SHOW,
-    GONE_S: GONE_S,
+    MAX_ENTRIES: MAX_ENTRIES,
+    MAX_ROUTES: MAX_ROUTES,
     WINDOWS: WINDOWS,
     encode: encode,
     decode: decode,

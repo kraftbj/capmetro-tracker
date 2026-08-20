@@ -2,6 +2,7 @@
  "_comment": "Turnaround: route 4 at stop 6243 Campbell/5th on service day 20260819. Westbound arrives here as its LAST stop and eastbound leaves from here as its FIRST, so a rider waiting for an eastbound bus never sees one approach - the bus that answers the question is westbound until it gets here. Trimmed to the four eastbound departures between 15:00 and 16:00 and the four westbound legs that feed them, paired by block_id.",
  "_expected": {
   "boarding_direction_id": 1,
+  "canceled_departure_s": [],
   "every_boarding_departure_starts_here": true,
   "inbound_direction_id": 0,
   "pairs": [
@@ -1323,6 +1324,7 @@
  "trips": [
   {
    "block_id": "4002",
+   "canceled": false,
    "direction_id": 0,
    "headsign": "4 Mopac WB",
    "id": "3014724_15626",
@@ -1331,6 +1333,7 @@
   },
   {
    "block_id": "4004",
+   "canceled": false,
    "direction_id": 0,
    "headsign": "4 Mopac WB",
    "id": "3014725_15627",
@@ -1339,6 +1342,7 @@
   },
   {
    "block_id": "1010",
+   "canceled": false,
    "direction_id": 0,
    "headsign": "4 Mopac WB",
    "id": "3014726_15628",
@@ -1347,6 +1351,7 @@
   },
   {
    "block_id": "4002",
+   "canceled": false,
    "direction_id": 1,
    "headsign": "4 Shady EB",
    "id": "3014788_15221",
@@ -1355,6 +1360,7 @@
   },
   {
    "block_id": "4001",
+   "canceled": false,
    "direction_id": 0,
    "headsign": "4 Mopac WB",
    "id": "3014727_15629",
@@ -1363,6 +1369,7 @@
   },
   {
    "block_id": "4004",
+   "canceled": false,
    "direction_id": 1,
    "headsign": "4 Shady EB",
    "id": "3014789_15056",
@@ -1371,6 +1378,7 @@
   },
   {
    "block_id": "1010",
+   "canceled": false,
    "direction_id": 1,
    "headsign": "4 Shady EB",
    "id": "3014790_15222",
@@ -1379,6 +1387,7 @@
   },
   {
    "block_id": "4001",
+   "canceled": false,
    "direction_id": 1,
    "headsign": "4 Shady EB",
    "id": "3014791_15223",

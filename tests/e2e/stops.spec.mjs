@@ -44,6 +44,23 @@ test.describe('opening a stops link', () => {
     await expect(card.locator('.stopdep__note').first()).toContainText(/comes in on the .* WB/i)
   })
 
+  test('names the live bus running the inbound leg, hedged as the feed requires', async ({ page }) => {
+    /*
+     * Republic Square, with a route payload whose vehicle really is on the
+     * southbound leg that becomes this northbound departure. Every route 837
+     * block in the 2026-08-19 capture is confidence "low", so the sentence has
+     * to read as a likelihood — contract section 4.
+     */
+    await page.goto('/fresh/index.html#plan=1;837.1.2112.all')
+    const card = page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })
+    await expect(card).toBeVisible()
+    await expect(card).toContainText(/Bus 8021 likely brings it in on the .* SB/)
+    await expect(card).toContainText('due here in')
+    /* The word is the hedge on every line; the explanation is once per card. */
+    await expect(card.locator('.stopcard__caveat')).toHaveCount(1)
+    await expect(card.locator('.stopcard__caveat')).toContainText('has not confirmed which bus')
+  })
+
   test('does not claim a turnaround at a stop that is not one', async ({ page }) => {
     await page.goto(LINK)
     const card = page.locator('.stopcard').filter({ hasText: 'Simond SB' })
@@ -119,5 +136,157 @@ test.describe('the plan never reaches the server', () => {
     /* And it says so, rather than tidying up silently — the reader needs to know
      * which link to share next time. */
     await expect(page.locator('.offer')).toContainText('web address')
+  })
+})
+
+/*
+ * The fetch-and-render loop, which is the bug most likely to be quietly undone.
+ *
+ * loadRouteData and loadDepartures both call render() from their callbacks, and
+ * the views that need them call those loaders from inside paint(). Any status
+ * other than 'idle' therefore has to stop a re-fetch, or a route that had already
+ * resolved gets asked for again by the very paint its own response triggered.
+ *
+ * The guard reads like an optimisation and is not one, so the assertion here is
+ * the REQUEST COUNT rather than anything on screen. Unfixed, this loop issues a
+ * request per animation frame — roughly sixty a second — so the gap between pass
+ * and fail is two versus hundreds, not a number that needs a tolerance.
+ */
+test.describe('a resolved route is fetched once, not once per frame', () => {
+  const countRequests = async (page, url) => {
+    const seen = new Map()
+    page.on('request', (r) => {
+      const u = new URL(r.url()).pathname
+      if (!/\/api\/(route|departures)\//.test(u)) return
+      seen.set(u, (seen.get(u) ?? 0) + 1)
+    })
+    await page.goto(url)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(2500)
+    return seen
+  }
+
+  test('on the success path', async ({ page }) => {
+    const seen = await countRequests(page, LINK)
+    expect(seen.size).toBeGreaterThan(0)
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+
+  test('on the failure path, where the rejection is immediate', async ({ page }) => {
+    /* Route 999 has no schedule and no route file: both fetches 404. An errored
+     * status must stop the retry just as a resolved one does. */
+    const seen = await countRequests(page, '/missing/index.html#plan=1;4.1.6243.all;999.1.1.all')
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+
+  test('on a schedule that describes a service day that is not today', async ({ page }) => {
+    /* Route 7 is served a document dated 20260818 while the route payload says
+     * 20260819. The client must not trust it for the session, and must not spin
+     * evicting and re-fetching it either. */
+    const seen = await countRequests(page, '/fresh/index.html#plan=1;4.1.6243.all;7.1.847.all')
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+})
+
+test.describe('a cancelled trip on a stops card', () => {
+  /* Republic Square: route 837 turns around here, and CapMetro canceled the
+   * 10:13 northbound in the 2026-08-19 capture. */
+  const CANCELED = '/fresh/index.html#plan=1;837.1.2112.all'
+
+  test('says the word rather than reading as a bus that has not started', async ({ page }) => {
+    await page.goto(CANCELED)
+    const card = page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })
+    await expect(card).toBeVisible()
+    const canceled = card.locator('.stopdep--canceled')
+    await expect(canceled).toHaveCount(1)
+    await expect(canceled).toContainText('CANCELED')
+    await expect(canceled).toContainText('No bus is coming for it')
+    await expect(canceled).not.toContainText('reporting')
+  })
+
+  test('never claims a bus is bringing in a trip that is not running', async ({ page }) => {
+    await page.goto(CANCELED)
+    const canceled = page.locator('.stopdep--canceled')
+    await expect(canceled).toHaveCount(1)
+    await expect(canceled).not.toContainText('brings it in')
+  })
+})
+
+test.describe('the board never claims a save it did not make', () => {
+  test('says storage refused instead of announcing success', async ({ page }) => {
+    await page.addInitScript(() => {
+      /* Safari private browsing, an exhausted quota, storage switched off. */
+      const real = Storage.prototype.setItem
+      Storage.prototype.setItem = function (k, v) {
+        if (String(k).indexOf('cmb.plan') === 0) throw new Error('QuotaExceededError')
+        return real.call(this, k, v)
+      }
+    })
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    await expect(page.getByText('Nothing could be saved on this phone.')).toBeVisible()
+    /* The offer stays up, because the link in the address bar is still the way
+     * back to these stops. */
+    await expect(page.locator('.offer')).toBeVisible()
+  })
+})
+
+test.describe('a link is untrusted input', () => {
+  test('a stop id naming something on Object.prototype does not blank the board', async ({ page }) => {
+    const errors = []
+    page.on('pageerror', (e) => errors.push(e.message))
+    await page.goto('/fresh/index.html#plan=1;4.1.constructor.all;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await page.waitForTimeout(1000)
+    expect(errors, errors.join('; ')).toHaveLength(0)
+  })
+
+  test('a link with hundreds of stops is capped rather than fetched in full', async ({ page }) => {
+    const routes = new Set()
+    page.on('request', (r) => {
+      const m = /\/api\/departures\/([^/]+)\.json/.exec(r.url())
+      if (m) routes.add(m[1])
+    })
+    const many = Array.from({ length: 300 }, (_, i) => `r${i}.1.6243.all`).join(';')
+    await page.goto(`/fresh/index.html#plan=1;${many}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(1500)
+    /* Plus the open route board's own schedule, which is not part of the plan. */
+    expect(routes.size).toBeLessThanOrEqual(7)
+  })
+})
+
+test.describe('the link and the screen stay in step', () => {
+  test('opens the stops view on a second visit, after the stops are kept', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /* The switch used to hang off the offer, so once there was nothing to offer
+     * the same bookmarked link landed on the route board and looked inert. */
+    await page.goto(LINK)
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  test('rewrites the fragment when a stop is removed, so a reload does not restore it', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    expect(page.url()).not.toContain('6293')
+
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    await expect(page.getByText('Simond SB')).toHaveCount(0)
   })
 })

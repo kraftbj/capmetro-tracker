@@ -26,30 +26,6 @@ about. `CMB.plan.encode` and `CMB.plan.linkFor` already produce the link.
 **Priority:** P2
 **Depends on:** None
 
-### Decide what a stops card should do when a bus is cancelled
-
-**What:** A departure whose trip the feed reports `CANCELED` renders like any
-other: a time, and "no bus is reporting on this trip yet". The adherence layer
-knows — `reason: trip_canceled` — but a stop card with no vehicle never reaches a
-vehicle to ask.
-
-**Why:** "No bus reporting yet" is normal and reassuring. "This trip is cancelled"
-is the one thing a parent needs to know before it is due, and today the two look
-identical on the card that exists to answer exactly that.
-
-**Context:** Found while building the stops view on 2026-08-19, deliberately left
-alone rather than guessed at. The route payload only carries vehicles, so a
-cancelled trip with no vehicle assigned is invisible to the client — this may need
-`schedule_relationship` surfaced per scheduled trip, which is an API contract
-question, not a client one. Check whether CapMetro's trip updates actually carry
-cancellations for these routes before costing it.
-
-**Effort:** M
-**Priority:** P2
-**Depends on:** An API contract answer
-
-
-
 ### Decide whether the map ever gets streets under it
 
 **What:** The map now plots every stop at its true position and joins them in order, so

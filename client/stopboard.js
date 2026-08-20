@@ -40,10 +40,17 @@
    */
   var GRACE_S = 90;
 
-  /** Every direction the stop is served in, in id order. */
+  /*
+   * Every direction the stop is served in, in id order.
+   *
+   * The rows come through W.rowsFor rather than a bare `departures[stopId]`,
+   * which also reaches Object.prototype: a stop id of `constructor` returns a
+   * function that is truthy, has a length, and has nothing at [0]. Reachable
+   * from a stops link, so it is guarded at the lookup for every caller.
+   */
   function directionsAt(dep, stopId) {
     var seen = Object.create(null);
-    ((dep && dep.departures && dep.departures[stopId]) || []).forEach(function (row) {
+    W.rowsFor((dep && dep.departures) || {}, stopId).forEach(function (row) {
       var trip = (dep.trips || [])[row[1]];
       if (trip && seen[trip.direction_id] === undefined) {
         seen[trip.direction_id] = trip.headsign || null;

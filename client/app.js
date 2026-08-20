@@ -29,6 +29,15 @@
   var REFRESH_MS = 60000;
 
   /*
+   * What to say when localStorage refuses a write — Safari private browsing, an
+   * exhausted quota, storage switched off. The board must never announce a save
+   * that did not happen: the stops or the trip would simply be gone next time,
+   * with nothing on screen having suggested anything went wrong.
+   */
+  var STORAGE_REFUSED = 'This browser would not let the board save anything — ' +
+    'private browsing or storage turned off. Nothing was kept. The link still works.';
+
+  /*
    * The six routes this household actually rides, pinned to the top of the picker.
    * They are a shortcut, NOT the list: the picker offers every route the catalog
    * publishes. Hard-coding six while the build generated seventy-one meant the
@@ -81,10 +90,17 @@
     routes: null,        /* the catalog, once api/routes.json lands */
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
-    departures: {},      /* route id -> api/departures/{id}.json */
-    depStatus: {},       /* route id -> loading | ok | error */
-    routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
-    routeStatus: {},     /* route id -> loading | ok | error */
+    /*
+     * Four maps keyed by a route id, and a stops link can put ANY string in that
+     * key. A bare `{}` inherits Object.prototype, so a route id of `constructor`
+     * or `toString` reads back a function rather than undefined: the fetch guard
+     * sees a cached document that is not one, and the view is handed a function
+     * where it expects a payload. Object.create(null) has no prototype to reach.
+     */
+    departures: Object.create(null),   /* route id -> api/departures/{id}.json */
+    depStatus: Object.create(null),    /* route id -> idle | loading | ok | stale | error */
+    routeData: Object.create(null),    /* route id -> api/route/{id}.json, off the open board */
+    routeStatus: Object.create(null),  /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
@@ -96,7 +112,8 @@
      * `offer` is the set a link is proposing and is null once it is answered
      * either way, so the banner does not come back on every repaint.
      */
-    plan: { entries: null, saved: false, offer: null, fromQuery: false, fromLink: false }
+    plan: { entries: null, saved: false, offer: null, fromQuery: false, fromLink: false },
+    storageFailed: false
   };
 
   var dom = {};
@@ -225,14 +242,55 @@
   }
 
   /*
-   * One departures document per route, kept for the session. It is a whole
-   * service day of scheduled stop times — about 17 KB gzipped for route 800 —
-   * so it is worth fetching once and worth not fetching until a saved trip or
-   * the editor actually needs it.
+   * The service date the LIVE payloads say it is now.
+   *
+   * Never derived here from a device clock. The server already resolved
+   * service-day midnight once, correctly across both DST transitions, and
+   * re-deriving it in a browser is two chances a year to be an hour wrong on the
+   * document that says when a kid's bus leaves.
+   */
+  function currentServiceDate() {
+    var d = state.data || state.all;
+    if (d && d.service_day && d.service_day.date) return d.service_day.date;
+    var ids = Object.keys(state.routeData);
+    for (var i = 0; i < ids.length; i++) {
+      var r = state.routeData[ids[i]];
+      if (r && r.service_day && r.service_day.date) return r.service_day.date;
+    }
+    return null;
+  }
+
+  /*
+   * One departures document per route, kept for the SERVICE DAY it describes —
+   * not, as it was, for the life of the tab.
+   *
+   * It is a whole service day of scheduled stop times, about 17 KB gzipped for
+   * route 800, so it is worth fetching once and worth not fetching until a saved
+   * trip, a stop card or the editor actually needs it. But a phone left on the
+   * counter overnight and picked up at seven still held yesterday's document:
+   * every stop reading "the last one today has gone", or times belonging to the
+   * wrong service day entirely, on the exact surface someone consults at
+   * breakfast and has no reason to doubt. The route payload refreshes every 60
+   * seconds and carries the current service date, so it is what says when this
+   * document has expired.
    */
   function loadDepartures(routeId) {
     if (!routeId) return;
-    if (state.departures[routeId]) return;
+    var cached = state.departures[routeId];
+    if (cached) {
+      var today = currentServiceDate();
+      if (!today || cached.service_date === today) return;
+      /*
+       * Rolled over — but evict at most once per attempt. A server that keeps
+       * answering with the old date (a stalled generator, a cache in front of it)
+       * would otherwise be re-asked on every repaint, which is the same
+       * fetch-and-render loop this file has already been bitten by once. The
+       * 'stale' status parks it until the 60s timer decides to try again.
+       */
+      if (state.depStatus[routeId] === 'stale') return;
+      delete state.departures[routeId];
+      state.depStatus[routeId] = 'idle';
+    }
     /*
      * 'error' is a stop, not a pause, and so is 'ok'. Without that a failed
      * fetch set the status, called render, and render asked again - a
@@ -246,7 +304,11 @@
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
         state.departures[routeId] = d;
-        state.depStatus[routeId] = 'ok';
+        var today = currentServiceDate();
+        /* A document for a day that is not today is kept and shown — it is still
+         * the best answer available — but it is marked so it is asked for again
+         * on the timer rather than trusted for the rest of the session. */
+        state.depStatus[routeId] = (today && d.service_date !== today) ? 'stale' : 'ok';
         render();
       })
       .catch(function () {
@@ -293,6 +355,29 @@
     return found;
   }
 
+  /*
+   * Put the fragment back in step with what is on screen, after an edit.
+   *
+   * Only when the plan came FROM a link. Removing a stop used to leave the old
+   * fragment in the address bar, so a reload restored the stop that had just
+   * been removed and re-offered a set the reader had already edited. Kept stops
+   * live in localStorage and need no fragment at all.
+   */
+  function syncFragment() {
+    if (!state.plan.fromLink) return;
+    if (!global.history || typeof global.history.replaceState !== 'function') return;
+    var entries = state.plan.entries || [];
+    try {
+      global.history.replaceState(null, '', entries.length
+        ? global.CMB.plan.linkFor(entries, global.location.href)
+        : global.location.pathname + global.location.search);
+      if (!entries.length) state.plan.fromLink = false;
+    } catch (e) {
+      /* Some browsers refuse replaceState on a file:// URL. The screen is still
+       * right; only the address bar is behind. */
+    }
+  }
+
   function rewriteQueryToFragment(raw) {
     if (!global.history || typeof global.history.replaceState !== 'function') return;
     var search = (global.location.search || '').replace(/^\?/, '')
@@ -320,10 +405,19 @@
     var saved = global.CMB.plan.stored();
     var link = planFromLocation();
 
+    state.plan.fromLink = !!link;
+
     if (link) {
       state.plan.entries = link.entries;
       state.plan.fromQuery = link.fromQuery;
       state.plan.saved = !!(saved && global.CMB.plan.sameSet(saved, link.entries));
+      /*
+       * `offer` is the unanswered question, and `fromLink` is where the load came
+       * from. They were one flag, and that made the second visit to a bookmarked
+       * link land on the route board: once "Keep on this phone" had been tapped
+       * there was no offer to make, so nothing switched the view and the link
+       * looked like it had done nothing.
+       */
       state.plan.offer = state.plan.saved ? null : link.entries;
     } else if (saved) {
       state.plan.entries = saved;
@@ -347,7 +441,24 @@
    * tunnel, on a view that would otherwise stay blank until the tab is closed.
    */
   function retryDepartures(routeId) {
-    if (state.depStatus[routeId] === 'error') state.depStatus[routeId] = 'idle';
+    var status = state.depStatus[routeId];
+    if (status === 'error' || status === 'stale') state.depStatus[routeId] = 'idle';
+  }
+
+  /*
+   * One route's live payload and schedule, refreshed on the timer.
+   *
+   * The status is only forced back to idle when a fetch is NOT in flight.
+   * Clearing it unconditionally meant a request still outstanding after 60
+   * seconds — a phone on a bad connection, which is exactly when this matters —
+   * got a second one fired alongside it, and then a third, each one still
+   * counted as "loading" by nothing at all.
+   */
+  function refreshRoute(routeId) {
+    if (state.routeStatus[routeId] !== 'loading') state.routeStatus[routeId] = 'idle';
+    retryDepartures(routeId);
+    loadDepartures(routeId);
+    loadRouteData(routeId);
   }
 
   function load(routeId) {
@@ -839,8 +950,22 @@
       link: entries.length
         ? global.CMB.plan.linkFor(entries, global.location.href)
         : null,
+      storageFailed: state.storageFailed,
       onKeep: function () {
-        global.CMB.plan.save(state.plan.entries);
+        /*
+         * The write is allowed to fail, so its answer decides what is said. This
+         * used to dismiss the offer and announce success on a save that never
+         * happened — the stops were gone on the next load with nothing on screen
+         * having suggested anything went wrong. The offer stays up on a refusal,
+         * because the link in the address bar is still the way back.
+         */
+        if (!global.CMB.plan.save(state.plan.entries)) {
+          state.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.storageFailed = false;
         state.plan.saved = true;
         state.plan.offer = null;
         announce('Kept ' + fmt.plural(state.plan.entries.length, 'stop', 'stops') +
@@ -866,6 +991,7 @@
         });
         if (state.plan.saved) global.CMB.plan.save(state.plan.entries);
         if (state.plan.offer) state.plan.offer = state.plan.entries;
+        syncFragment();
         render();
       }
     });
@@ -950,6 +1076,11 @@
     band.setAttribute('aria-label', 'Save a trip');
     dom.main.appendChild(band);
 
+    if (state.storageFailed) {
+      band.appendChild(S.notice('warn', 'Nothing could be saved on this phone.',
+        'Private browsing or storage turned off, so the trip was not kept.'));
+    }
+
     global.CMB.watch.renderEditor(band, {
       routes: catalog(),
       route_id: state.editor.route_id,
@@ -972,7 +1103,16 @@
         render();
       },
       onSave: function (w) {
-        global.CMB.watch.add(w);
+        var result = global.CMB.watch.add(w);
+        if (!result.saved) {
+          /* Storage refused. Stay on the editor rather than claiming a save and
+           * dropping the reader on a list the trip is not in. */
+          state.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.storageFailed = false;
         state.view = 'saved';
         announce('Saved ' + global.CMB.watch.describe(w));
         render();
@@ -1039,6 +1179,16 @@
     var routeId = q.route || recall('route') || '4';
     state.routeId = routeId;
     state.stopId = q.stop || recall('stop.' + routeId);
+
+    /*
+     * Before any fetch. A '?plan=' link is scrubbed into the fragment in here,
+     * and a request issued while the query string is still in the address bar
+     * can carry it onward in a Referer header. The vhost and the meta tag in
+     * index.html both say no-referrer, but ordering is the part this file
+     * controls, and it costs nothing to put the scrub first.
+     */
+    adoptPlan();
+
     load(routeId);
     /*
      * Boot does not go through selectRoute, so it has to ask for the schedule
@@ -1049,44 +1199,36 @@
     loadDepartures(routeId);
     loadCatalog();
 
-    adoptPlan();
-
     var view = q.view || recall('view');
     if (view === 'all' || view === 'saved' || view === 'stops') selectView(view);
     /*
      * A link beats a remembered view. Someone who has just opened a stops link is
-     * asking for the stops, whatever tab they happened to leave the board on.
+     * asking for the stops, whatever tab they happened to leave the board on, and
+     * whether or not those stops are already kept on this phone.
      */
-    if (state.plan.offer) selectView('stops');
+    if (state.plan.fromLink) selectView('stops');
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
       setInterval(function () {
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
-        /* One retry per minute for a schedule that failed to load, and only
-         * here, where a retry cannot become a render loop. */
-        if (state.depStatus[state.routeId] === 'error') {
-          delete state.depStatus[state.routeId];
-          loadDepartures(state.routeId);
-        }
+        /* One retry per minute for a schedule that failed to load, or that came
+         * back describing a service day that is no longer today — and only here,
+         * where a retry cannot become a render loop. */
+        retryDepartures(state.routeId);
+        loadDepartures(state.routeId);
         if (state.view === 'saved') {
           /* A frozen saved trip is worse than none: it reads as a live prediction. */
           global.CMB.watch.list().forEach(function (w) {
-            state.routeStatus[w.route_id] = 'idle';
-            retryDepartures(w.route_id);
-            loadRouteData(w.route_id);
+            refreshRoute(w.route_id);
           });
         }
         if (state.view === 'stops') {
           /* Same rule, and it bites harder here: a stops card names the bus that
            * is bringing your trip in, and a frozen one puts it eight minutes away
            * for as long as the tab stays open. */
-          global.CMB.plan.routesIn(state.plan.entries || []).forEach(function (id) {
-            state.routeStatus[id] = 'idle';
-            retryDepartures(id);
-            loadRouteData(id);
-          });
+          global.CMB.plan.routesIn(state.plan.entries || []).forEach(refreshRoute);
         }
       }, REFRESH_MS);
     }
@@ -1094,10 +1236,19 @@
     /*
      * Pasting a second stops link into the same tab only changes the fragment, so
      * nothing reloads and nothing would repaint without this.
+     *
+     * It reacts to a CHANGED PLAN, not to any hash change. Reacting to every one
+     * dragged the reader onto the stops view whenever a fragment appeared for any
+     * other reason, and re-opened an offer they had already declined — because
+     * adoptPlan rebuilds `offer` from scratch every time it runs.
      */
     global.addEventListener('hashchange', function () {
+      var before = state.plan.entries;
+      var found = global.CMB.plan.fromLocation(global.location);
+      if (found && before && global.CMB.plan.sameSet(before, found.entries)) return;
+      if (!found && !before) return;
       adoptPlan();
-      if (state.plan.entries) selectView('stops');
+      if (state.plan.fromLink) selectView('stops');
       else render();
     });
 

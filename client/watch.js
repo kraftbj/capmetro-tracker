@@ -26,8 +26,17 @@
  * filesystem and the network. These watches never reach either: they live in
  * localStorage and are never put in a URL. A plain tuple key is honest about what
  * it is, and hashing it locally would be theatre — the readable original would be
- * sitting in the same store. If a watch ever becomes shareable, it needs the hash
- * and this comment needs deleting.
+ * sitting in the same store.
+ *
+ * This paragraph used to end "if a watch ever becomes shareable, it needs the
+ * hash". plan.js has since made a sibling shape shareable, so that condition has
+ * been met and the conclusion turned out to be wrong. Hashing would not have
+ * helped: a shared link has to be resolvable by the phone that receives it, so
+ * whatever it carries must be reversible by the app at the other end, and a hash
+ * that the client can turn back into a stop is not doing the work §9's hash does.
+ * What actually answers §9 is keeping the thing out of the request — the plan
+ * rides in the '#' fragment, which browsers never send. See the header of
+ * plan.js. A saved watch still never leaves this browser at all.
  */
 (function (global) {
   'use strict';
@@ -86,13 +95,23 @@
     });
   }
 
+  /*
+   * Returns whether the store now holds the watch, not just the new list.
+   *
+   * writeStore already reports a refusal — Safari private browsing, an exhausted
+   * quota, storage disabled — and every caller used to discard it, so the UI
+   * announced "saved" on a write that did not happen and the trip was gone on the
+   * next load. That is the failure this board is otherwise careful about: not
+   * that something broke, but that the interface said it worked.
+   */
   function add(w) {
     var all = list();
     var k = keyFor(w);
-    if (all.filter(function (x) { return keyFor(x) === k; }).length) return all;
+    if (all.filter(function (x) { return keyFor(x) === k; }).length) {
+      return { list: all, saved: true };   /* already there; nothing to write */
+    }
     all.push(w);
-    writeStore(all);
-    return all;
+    return { list: all, saved: writeStore(all) };
   }
 
   function remove(k) {
@@ -129,13 +148,37 @@
   }
 
   /*
+   * The rows at one stop, looked up the only way that is safe.
+   *
+   * `departures[stopId]` is a bare lookup on a plain object parsed from JSON, so
+   * it also reaches Object.prototype. A stop id of `constructor` returns the
+   * Object function: truthy, so an `|| []` fallback never fires, with a `.length`
+   * of 1 and no element at [0]. The next line reads `rows[0][1]` and throws, and
+   * because that happens during render the whole board goes blank.
+   *
+   * That was unreachable while every stop id came from internal state. The stops
+   * link made it reachable from a URL fragment anyone can send, so the guard
+   * belongs here, at the one lookup every caller goes through, rather than in
+   * whichever caller happens to be holding an untrusted id today.
+   */
+  function rowsFor(departures, stopId) {
+    if (!Object.prototype.hasOwnProperty.call(departures, stopId)) return [];
+    var rows = departures[stopId];
+    return isArray(rows) ? rows : [];
+  }
+
+  function isArray(v) {
+    return Object.prototype.toString.call(v) === '[object Array]';
+  }
+
+  /*
    * Every departure at one stop, in the watched direction, as {seconds, trip}.
    * The departures document keys by stop_id alone because a stop can be served in
    * both directions; the direction filter is the trip's, not the stop's.
    */
   function departuresAt(dep, stopId, directionId) {
     if (!dep || !dep.departures) return [];
-    var rows = dep.departures[stopId] || [];
+    var rows = rowsFor(dep.departures, stopId);
     var trips = dep.trips || [];
     var out = [];
     for (var i = 0; i < rows.length; i++) {
@@ -673,6 +716,7 @@
     keyFor: keyFor,
     clockOf: clockOf,
     secondsOf: secondsOf,
+    rowsFor: rowsFor,
     departuresAt: departuresAt,
     matchDeparture: matchDeparture,
     vehicleForTrip: vehicleForTrip,

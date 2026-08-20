@@ -3,6 +3,64 @@
 All notable changes to the Dillo Bus Board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
+## [Unreleased]
+
+### Added
+
+- **A stops link.** `#plan=1;800.1.6293.am;4.1.6243.pm` opens the board on the
+  places somebody actually waits, resolved and on screen, and offers to keep
+  them on that phone. A saved trip pins one departure; a stop is a place and a
+  time of day, and shows the next few — which of the afternoon's buses gets
+  caught is decided on the day, not in advance.
+- **Turnaround stops answer the question that has no visible bus.** Route 4
+  eastbound starts at Campbell/5th and Veterans/Atlanta; route 837 northbound
+  starts at Republic Square. No eastbound bus ever approaches Campbell/5th — the
+  bus that answers the question is westbound until it gets there. The card names
+  the inbound leg and, when one is reporting, the bus running it: "Bus 2867
+  brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds
+  late." A continuation the feed has not confirmed is said as a likelihood, per
+  contract section 4; every route 837 block in the 2026-08-19 capture is
+  `confidence: low`, so that is the ordinary case, not an edge one.
+- The plan rides in the URL fragment, which browsers never send, so the access
+  log never carries the stops. `index.html` now also declares
+  `referrer: no-referrer` so that holds where the vhost does not reach — a board
+  opened from disk, or served by something other than the shipped nginx config.
+
+### Fixed
+
+- **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
+  call `render()` from their callbacks, and the views that need them call the
+  loaders from inside `paint()`. Both treated any status other than `loading` as
+  fetchable, so a route that had already resolved was re-fetched by the very
+  paint its own response triggered — a request per animation frame. It made the
+  stops view's offer button unclickable, being detached and rebuilt faster than
+  a tap could land, and spun hardest from a `file://` URL where the rejection is
+  immediate. Only an idle status is fetchable now, which is the contract the
+  refresh timer was already written to.
+- **A schedule was cached for the life of the tab.** A departures document
+  describes one service day, and nothing evicted it. A phone left on the counter
+  overnight and picked up at seven still held yesterday's: every stop reading
+  "the last one today has gone", on the exact surface someone consults at
+  breakfast and has no reason to doubt. It is now checked against the service
+  date the live payload reports, and re-asked for on the timer.
+- **A stop id naming something on `Object.prototype` blanked the board.**
+  `departures['constructor']` returns the `Object` function — truthy, so an
+  `|| []` fallback never fires, with a length of 1 and nothing at [0]. The next
+  read threw, during render. Unreachable while every id came from internal
+  state; a URL fragment made it reachable. Guarded at the shared lookup, and the
+  route-keyed caches are now prototype-free.
+- **"Keep on this phone" reported success when nothing was kept.** Both
+  `plan.save()` and `watch.add()` already reported a refusal — Safari private
+  browsing, an exhausted quota — and both call sites discarded it. The board
+  said saved, and the stops were gone on the next load with nothing on screen
+  having suggested otherwise.
+- The refresh timer forced a route's status back to idle even while its fetch
+  was still in flight, firing a second request alongside the first — on a slow
+  connection, which is exactly when it mattered.
+- Opening a kept stops link a second time landed on the route board: the view
+  switch hung off the unanswered offer rather than off the link. Removing a stop
+  also left the old fragment in the address bar, so a reload restored it.
+
 ## [0.4.0.2] - 2026-08-20
 
 ### Fixed
@@ -29,7 +87,6 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   cancellations in the feed, 100 in the departures documents, 0 in
   `canceled_trips`. This is the carrier the fix above depends on, so the first
   fix was worthless without this one.
-
 ## [0.4.0.1] - 2026-08-20
 
 ### Fixed

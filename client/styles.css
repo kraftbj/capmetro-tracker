@@ -1027,3 +1027,16 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   font-family: var(--font-figure); font-size: var(--fs-chrome);
 }
 .share__field:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* A canceled departure keeps its slot and its time, and says the word. Same
+ * treatment as the Next buses band, because it is the same fact and it must not
+ * read as two different severities on two screens. */
+.stopdep--canceled .stopdep__due { color: var(--ink-dim); text-decoration: line-through; }
+.stopdep--canceled .stopdep__note { color: var(--ink-muted); }
+/* Said once per card, not once per departure: three identical caveats in a row
+ * buried the times the card exists to show. */
+.stopcard__caveat {
+  margin: 8px 0 0; padding-left: 10px;
+  border-left: 2px solid var(--hairline);
+  font-size: var(--fs-chrome); line-height: var(--lh-body); color: var(--ink-chrome);
+}

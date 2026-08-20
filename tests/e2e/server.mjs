@@ -73,6 +73,96 @@ export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 const DEPARTURES = {
   4: 'departures-4-turnaround.json',
   800: 'departures-800.json',
+  837: 'departures-837-turnaround-canceled.json',
+}
+
+/*
+ * A schedule for a service day that is not the one the route payload reports.
+ * The client must keep asking for it on the timer rather than trusting it for
+ * the session — and must not ask for it on every repaint while doing so, which
+ * is how the fetch-and-render loop this suite guards against would come back.
+ */
+const YESTERDAY_ROUTE = '7'
+
+/*
+ * A live route payload for route 837 whose vehicle is genuinely on the inbound
+ * leg of a northbound departure from Republic Square.
+ *
+ * Without this every `api/route/*` request answers with the golden route 4 file,
+ * whose vehicles are on 10:xx route 4 trips, so no plan departure ever resolves a
+ * live bus and the turnaround's whole point — naming the bus coming the other way
+ * — went untested end to end. Built from the departures fixture rather than
+ * committed, so the two cannot drift.
+ *
+ * `confidence: 'low'` because that is what every real 837 block in the
+ * 2026-08-19 capture carries, and it is what the hedge is for.
+ */
+function turnaroundRoute() {
+  const dep = wireFormat(readJson(path.join(SYNTHETIC, DEPARTURES[837])))
+  const stop = dep._expected?.turnaround_stop_id ?? '2112'
+  const tripAt = (seconds, dir) => {
+    const row = dep.departures[stop].find(
+      ([s, i]) => s === seconds && dep.trips[i].direction_id === dir,
+    )
+    return dep.trips[row[1]]
+  }
+  const golden = readJson(GOLDEN)
+  /* A departure that is still ahead of the golden file's clock and is running,
+   * so the card actually has a live bus to name. */
+  const nowSeconds = golden.generated_at - dep.service_day_start_epoch
+  const pair = readJson(path.join(SYNTHETIC, DEPARTURES[837]))._expected.pairs.find(
+    (x) =>
+      x.inbound_arrival_s !== null &&
+      x.outbound_departure_s > nowSeconds &&
+      !tripAt(x.outbound_departure_s, 1).canceled,
+  )
+  const outbound = tripAt(pair.outbound_departure_s, 1)
+  const inbound = tripAt(pair.inbound_arrival_s, 0)
+
+  return {
+    ...golden,
+    route: { ...golden.route, id: '837', short_name: '837', long_name: 'Expo Center' },
+    vehicles: [
+      {
+        vehicle_id: '8021',
+        label: '8021',
+        route_id: '837',
+        route_short_name: '837',
+        in_service: true,
+        position: { lat: 30.2685, lon: -97.7462, bearing: 180, speed: 8 },
+        position_at: golden.generated_at,
+        trip: {
+          trip_id: inbound.id,
+          start_time: inbound.start_time,
+          start_epoch: dep.service_day_start_epoch,
+          direction_id: inbound.direction_id,
+          headsign: inbound.headsign,
+          schedule_relationship: 'SCHEDULED',
+        },
+        progress: { current_stop_sequence: 18, current_stop_id: '6502', current_status: 'IN_TRANSIT_TO' },
+        pattern: { is_baseline: true, is_special: false, trips_in_pattern: 40, adds: [], skips: [] },
+        block: {
+          block_id: inbound.block_id,
+          confidence: 'low',
+          spans_routes: false,
+          route_ids: ['837'],
+          is_last_trip: false,
+          next_trip: {
+            trip_id: outbound.id,
+            route_id: '837',
+            route_short_name: '837',
+            direction_id: 1,
+            start_time: outbound.start_time,
+            start_epoch: dep.service_day_start_epoch + pair.outbound_departure_s,
+            start_stop_id: stop,
+            start_stop_name: '5th/Guadalupe',
+            is_direction_flip: true,
+          },
+        },
+        adherence: { state: 'late', seconds: 210, glyph: 'up-triangle', reason: null, against: null },
+      },
+    ],
+  }
 }
 
 const server = createServer((req, res) => {
@@ -83,6 +173,14 @@ const server = createServer((req, res) => {
 
   if (rest.startsWith('api/departures/')) {
     const id = path.basename(rest, '.json')
+    if (id === YESTERDAY_ROUTE) {
+      const doc = wireFormat(readJson(path.join(SYNTHETIC, DEPARTURES[4])))
+      doc.route_id = YESTERDAY_ROUTE
+      doc.service_date = '20260818'
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+      res.end(JSON.stringify(doc))
+      return
+    }
     const file = DEPARTURES[id]
     if (!file) {
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' })
@@ -95,6 +193,11 @@ const server = createServer((req, res) => {
   }
 
   if (rest.startsWith('api/route/')) {
+    if (path.basename(rest, '.json') === '837') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+      res.end(JSON.stringify(turnaroundRoute()))
+      return
+    }
     const { status, body } = SCENARIOS[scenario]()
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(body)

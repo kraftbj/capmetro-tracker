@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0d12">
+<!-- The stops link keeps its plan in the '#' fragment, which browsers never send.
+     This makes that hold even where the vhost does not reach: a board opened from
+     disk, or served by anything other than the shipped nginx config. -->
+<meta name="referrer" content="no-referrer">
 <meta name="description" content="Live CapMetro bus positions and schedule adherence for one route, on a phone.">
 <title>Dillo Bus Board</title>
 

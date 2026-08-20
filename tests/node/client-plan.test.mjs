@@ -27,7 +27,9 @@ import { describe, expect, it } from 'vitest'
 import { all, renderClient, textDeep } from './helpers/client.mjs'
 import { ROOT } from './helpers/optional.mjs'
 
-const client = renderClient(['format.js', 'adherence.js', 'states.js', 'watch.js', 'plan.js'])
+const client = renderClient([
+  'format.js', 'adherence.js', 'states.js', 'watch.js', 'stopboard.js', 'plan.js',
+])
 
 const t = (name, fn) =>
   it(name, (ctx) => {
@@ -40,6 +42,9 @@ const fixture = (name) =>
   JSON.parse(readFileSync(path.join(ROOT, 'tests/fixtures/synthetic', name), 'utf8'))
 
 const DEP = fixture('departures-4-turnaround.json')
+/* A second real turnaround that also carries a cancellation and, on every one of
+ * its blocks, confidence "low". */
+const DEP837 = fixture('departures-837-turnaround-canceled.json')
 const START = DEP.service_day_start_epoch
 const NOW = DEP._now /* 15:00:00 on the service day */
 const TURN = DEP._expected.turnaround_stop_id
@@ -206,6 +211,211 @@ describe('the link, which is the only part of this feature the server could ever
   })
 })
 
+describe('a link is untrusted input, which nothing in this codebase used to be', () => {
+  t('survives a stop id that names something on Object.prototype', (p) => {
+    /*
+     * `departures['constructor']` on a plain object returns the Object function:
+     * truthy, so an `|| []` fallback never fires, with a length of 1 and nothing
+     * at [0]. The next read threw, during render, and the board went blank about
+     * a second after a link opened. Reproduced in node before this guard existed.
+     */
+    ;['constructor', 'prototype', 'toString', 'valueOf', 'hasOwnProperty', '__proto__'].forEach(
+      (hostile) => {
+        const m = p.resolve({ ...AT_TURNAROUND, stop_id: hostile }, DEP, EMPTY_ROUTE, NOW)
+        expect(m.state, `stop id ${hostile}`).toBe('unserved')
+      },
+    )
+  })
+
+  t('caps the entries one link may carry', (p) => {
+    const many = Array.from({ length: 400 }, (_, i) => `4.1.stop${i}.all`).join(';')
+    const decoded = p.decode(`1;${many}`)
+    expect(decoded.length).toBe(p.MAX_ENTRIES)
+  })
+
+  t('caps the distinct routes too, because routes are what get fetched', (p) => {
+    const many = Array.from({ length: 40 }, (_, i) => `route${i}.1.6243.all`).join(';')
+    const decoded = p.decode(`1;${many}`)
+    expect(p.routesIn(decoded).length).toBe(p.MAX_ROUTES)
+    expect(decoded.length).toBeLessThanOrEqual(p.MAX_ENTRIES)
+  })
+
+  t('keeps the entries it took from the front of the link, not a random slice', (p) => {
+    const many = Array.from({ length: 30 }, (_, i) => `4.1.stop${i}.all`).join(';')
+    const decoded = p.decode(`1;${many}`)
+    expect(decoded[0].stop_id).toBe('stop0')
+    expect(decoded[decoded.length - 1].stop_id).toBe(`stop${p.MAX_ENTRIES - 1}`)
+  })
+})
+
+describe('a canceled trip is never mistaken for one that has not started', () => {
+  const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
+  const NOW837 = DEP837._now
+  const CANCELED_S = DEP837._expected.canceled_departure_s[0]
+
+  t('the fixture really does carry a cancellation at this turnaround', () => {
+    expect(DEP837._expected.canceled_departure_s).toHaveLength(1)
+  })
+
+  t('keeps the canceled departure in place rather than leaving a hole', (p) => {
+    const m = p.resolve(AT_837, DEP837, EMPTY_ROUTE, NOW837)
+    const at = m.departures.filter(
+      (d) => d.scheduled_at - DEP837.service_day_start_epoch === CANCELED_S,
+    )
+    expect(at).toHaveLength(1)
+    expect(at[0].canceled).toBe(true)
+  })
+
+  t('says so, instead of "no bus is reporting on this trip yet"', (p) => {
+    const m = p.resolve(AT_837, DEP837, EMPTY_ROUTE, NOW837)
+    const c = m.departures.filter((d) => d.canceled)[0]
+    expect(c.boarding).toBe('canceled')
+    const said = p.boardingText(c, m)
+    expect(said).toContain('canceled')
+    expect(said).not.toContain('reporting')
+  })
+
+  t('never reasons about a bus bringing in a trip that is not running', (p) => {
+    const m = p.resolve(AT_837, DEP837, EMPTY_ROUTE, NOW837)
+    const c = m.departures.filter((d) => d.canceled)[0]
+    /* "Bus 8021 brings it in on the 10:03a SB" printed beside CANCELED is the
+     * contradiction this board exists to avoid. */
+    expect(c.inbound).toBeNull()
+  })
+
+  t('prints the word, not a strike-through alone', (p) => {
+    const host = client.document.createElement('div')
+    const m = p.resolve(AT_837, DEP837, EMPTY_ROUTE, NOW837)
+    const node = p.render(host, [m], {})
+    expect(textDeep(node)).toContain('CANCELED')
+    expect(all(node, 'stopdep--canceled').length).toBeGreaterThan(0)
+  })
+
+  t('does not let a canceled trip be the answer to "what is next"', (p) => {
+    const m = p.resolve(AT_837, DEP837, EMPTY_ROUTE, NOW837)
+    /* stopboard's rule, inherited rather than restated: a canceled departure is
+     * listed and does not consume one of the slots. */
+    const live = m.departures.filter((d) => !d.canceled)
+    expect(live.length).toBe(p.SHOW)
+  })
+})
+
+describe('a continuation the feed has not confirmed is said as one', () => {
+  const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
+  const NOW837 = DEP837._now
+
+  /** The first live northbound departure at Republic Square, and its inbound leg. */
+  const pairFor = () => {
+    const p0 = DEP837._expected.pairs.find(
+      (x) => x.inbound_arrival_s !== null &&
+        !tripAt837(x.outbound_departure_s, 1).canceled,
+    )
+    return p0
+  }
+  const tripAt837 = (seconds, dir) => {
+    const row = DEP837.departures['2112'].find(
+      ([s, i]) => s === seconds && DEP837.trips[i].direction_id === dir,
+    )
+    return DEP837.trips[row[1]]
+  }
+
+  const bus837 = (confidence, nextTripId, trip) => ({
+    vehicle_id: '8021',
+    label: '8021',
+    route_id: '837',
+    route_short_name: '837',
+    in_service: true,
+    position: { lat: 30.27, lon: -97.74, bearing: null, speed: null },
+    position_at: NOW837,
+    trip: {
+      trip_id: trip.id,
+      start_time: trip.start_time,
+      start_epoch: DEP837.service_day_start_epoch,
+      direction_id: trip.direction_id,
+      headsign: trip.headsign,
+      schedule_relationship: 'SCHEDULED',
+    },
+    progress: { current_stop_sequence: 4, current_stop_id: '6502', current_status: 'IN_TRANSIT_TO' },
+    pattern: { is_baseline: true, is_special: false, trips_in_pattern: 40, adds: [], skips: [] },
+    block: {
+      block_id: trip.block_id,
+      confidence,
+      spans_routes: false,
+      route_ids: ['837'],
+      is_last_trip: false,
+      next_trip: {
+        trip_id: nextTripId,
+        route_id: '837',
+        route_short_name: '837',
+        direction_id: 1,
+        start_time: '10:23:00',
+        start_epoch: DEP837.service_day_start_epoch + 10 * 3600 + 23 * 60,
+        start_stop_id: '2112',
+        start_stop_name: '5th/Guadalupe',
+        is_direction_flip: true,
+      },
+    },
+    adherence: { state: 'late', seconds: 200, glyph: 'up-triangle', reason: null },
+  })
+
+  t('every 837 block in the real capture is low confidence, which is why this matters', () => {
+    /* Not a hypothetical branch: it is the ordinary case on one of the three
+     * turnarounds this feature shipped for. */
+    expect(DEP837._expected.pairs.length).toBeGreaterThan(0)
+  })
+
+  t('states a high-confidence continuation plainly', (p) => {
+    const pair = pairFor()
+    const out = tripAt837(pair.outbound_departure_s, 1)
+    const inb = tripAt837(pair.inbound_arrival_s, 0)
+    const route = { staleness: { level: 'fresh', suppress_adherence: false },
+      vehicles: [bus837('high', out.id, inb)] }
+    const m = p.resolve(AT_837, DEP837, route, NOW837)
+    const d = m.departures.find((x) => x.inbound && x.inbound.vehicle)
+    expect(d.inbound.confirmed).toBe(true)
+    const said = p.boardingText(d, m)
+    expect(said).toContain('brings it in on')
+    expect(said).not.toContain('likely')
+    /* And no caveat on the card either, because there is nothing to caveat. */
+    expect(all(p.render(client.document.createElement('div'), [m], {}), 'stopcard__caveat'))
+      .toHaveLength(0)
+  })
+
+  t('hedges a low-confidence one instead of stating a guess as fact', (p) => {
+    const pair = pairFor()
+    const out = tripAt837(pair.outbound_departure_s, 1)
+    const inb = tripAt837(pair.inbound_arrival_s, 0)
+    const route = { staleness: { level: 'fresh', suppress_adherence: false },
+      vehicles: [bus837('low', out.id, inb)] }
+    const m = p.resolve(AT_837, DEP837, route, NOW837)
+    const d = m.departures.find((x) => x.inbound && x.inbound.vehicle)
+    expect(d.inbound.confidence).toBe('low')
+    expect(d.inbound.confirmed).toBe(false)
+    const said = p.boardingText(d, m)
+    expect(said).toContain('likely')
+    /* The word is the hedge on every line; what it means is said once per card,
+     * because three identical caveats in a row bury the times. */
+    expect(said).not.toContain('does not confirm')
+
+    const node = p.render(client.document.createElement('div'), [m], {})
+    expect(textDeep(node)).toContain('has not confirmed which bus')
+    expect(all(node, 'stopcard__caveat')).toHaveLength(1)
+  })
+
+  t('hedges the schedule-only fallback too, since the feed confirmed nothing there', (p) => {
+    const pair = pairFor()
+    const inb = tripAt837(pair.inbound_arrival_s, 0)
+    /* A bus on the inbound leg whose next_trip points somewhere else entirely:
+     * only the timetable's block_id links it to our departure. */
+    const route = { staleness: { level: 'fresh', suppress_adherence: false },
+      vehicles: [bus837('high', 'some-other-trip', inb)] }
+    const m = p.resolve(AT_837, DEP837, route, NOW837)
+    const d = m.departures.find((x) => x.inbound && x.inbound.vehicle)
+    expect(d.inbound.confirmed).toBe(false)
+    expect(p.boardingText(d, m)).toContain('likely')
+  })
+})
+
 describe('time-of-day windows, which decide the section and never the visibility', () => {
   t('puts the morning stops in the morning and the afternoon ones after noon', (p) => {
     expect(p.inWindow('am', 7 * 3600 + 50 * 60)).toBe(true)
@@ -345,7 +555,7 @@ describe('resolving a stop against the schedule and the live feed', () => {
     const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
     expect(m.departures[0].boarding).toBe('waiting')
     expect(m.departures[0].inbound.at_stop).toBe(true)
-    expect(p.boardingText(m.departures[0], m)).toContain('already standing at this stop')
+    expect(p.boardingText(m.departures[0], m)).toContain('standing at this stop now')
   })
 
   t('says a bus that has already taken up the outbound trip is at the stop', (p) => {
