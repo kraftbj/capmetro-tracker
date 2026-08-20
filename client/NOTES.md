@@ -193,16 +193,19 @@ lists a cancellation and then the buses still running; taking only the first ent
 meant that when the soonest departure was cancelled a screen-reader user heard
 "cancelled" and nothing else — the half of the message that sends someone home.
 
-### Known gap: a mid-day cancellation
+### A cancellation announced after the page loaded
 
-`trip.canceled` lives only in the departures document, which is now kept for the
-service day it describes. `canceled_trips` is published on the *route* payload and
-rebuilt every 60 seconds, and no client code reads it. So a trip cancelled at
-10:05 for a 10:13 departure does not reach a tab that was opened at 07:00 — on the
-stops view or the Next-buses band. This is a trunk gap rather than one this view
-introduced (the same hole exists on `stopboard.js`), and it is being fixed there;
-the eviction rule here is what decides how long the stale copy lives, so both
-halves belong in view together.
+`trip.canceled` rides the departures document, which is cached for the service day
+it describes, so on its own it cannot carry a cancellation announced since the tab
+was opened. `watch.isCanceled()` (0.4.0.2) takes the union of that and the live
+`route.schedule.canceled_trips`, which is rebuilt every 60 seconds.
+
+Both paths on this view go through it: the outbound departures via
+`stopboard.upcoming()`, and the inbound leg via `legCanceled()`. The second is easy
+to miss — the leg is looked up in the cached document, so reading `trip.canceled`
+off it directly would have been the natural thing to write and would have left
+exactly the hole 0.4.0.2 closed, on the one card where the inbound leg is the only
+evidence a bus is coming.
 
 The live half comes from `vehicle.block.next_trip` (§2), the server's own block
 continuity with `is_direction_flip` already computed, falling back to the vehicle

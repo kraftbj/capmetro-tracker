@@ -372,6 +372,33 @@ describe('a cancelled inbound leg is not a bus that has not started yet', () => 
     expect(p.boardingText(d, m)).toMatch(/The \d{1,2}:\d{2}[ap] SB that would bring this bus in/)
   })
 
+  t('sees a leg cancelled after the page loaded, not only one in the cached copy', (p) => {
+    /*
+     * The cached departures document cannot carry a cancellation announced since
+     * the tab was opened; `route.schedule.canceled_trips` is rebuilt every 60
+     * seconds and can. This goes through watch.isCanceled so it reads the union,
+     * the same way stopboard does.
+     */
+    const dep = fixture('departures-837-turnaround-canceled.json')
+    const pair = dep._expected.pairs.find(
+      (x) => x.inbound_arrival_s !== null && !tripAtIn(dep, x.outbound_departure_s, 1).canceled,
+    )
+    const leg = tripAtIn(dep, pair.inbound_arrival_s, 0)
+    expect(leg.canceled, 'the cached copy must not already know').toBe(false)
+
+    const route = {
+      staleness: { level: 'fresh', suppress_adherence: false },
+      schedule: { canceled_trips: [leg.id] },
+      vehicles: [],
+    }
+    const now = dep.service_day_start_epoch + pair.outbound_departure_s - 600
+    const m = p.resolve(AT_837, dep, route, now)
+    const d = m.departures.find(
+      (x) => x.scheduled_at - dep.service_day_start_epoch === pair.outbound_departure_s,
+    )
+    expect(d.boarding).toBe('inbound-canceled')
+  })
+
   t('leaves a running leg alone', (p) => {
     const dep = fixture('departures-837-turnaround-canceled.json')
     const m = p.resolve(AT_837, dep, EMPTY_ROUTE, dep._now)

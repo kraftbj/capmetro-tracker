@@ -73,7 +73,9 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   in**, with "no bus is reporting on that trip yet" -- the sentence that means
   "it has not started" used for "it is never running". That is the confusion
   cancellations were surfaced to remove, on the one card where the inbound leg is
-  the only evidence a bus is coming at all.
+  the only evidence a bus is coming at all. It reads the same cached/live union
+  `watch.isCanceled()` gives every other surface, so a cancellation announced
+  after the page loaded reaches it too.
 - **The screen-reader summary announced only the cancellation** when the soonest
   departure on a card was cancelled, hiding the buses that were still running.
   It now mirrors the card.

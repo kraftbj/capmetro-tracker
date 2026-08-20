@@ -438,9 +438,14 @@
    * The whole-block case cannot reach here — the outbound would be cancelled too
    * and decorate() returns before this — so what this covers is one leg of a block
    * called off on its own.
+   *
+   * Through W.isCanceled rather than trip.canceled directly, so this reads the
+   * union of the cached document and the live schedule.canceled_trips. The cached
+   * copy alone cannot carry a cancellation announced after the page loaded, which
+   * is the ordinary case for a board somebody leaves open at a stop.
    */
-  function legCanceled(leg) {
-    return !!(leg && leg.trip && leg.trip.canceled);
+  function legCanceled(leg, route) {
+    return !!(leg && W.isCanceled(leg.trip, route));
   }
 
   /*
@@ -596,7 +601,7 @@
         vehicle: feeder,
         view: fView,
         at_stop: atStop(feeder, entry.stop_id),
-        canceled: legCanceled(leg),
+        canceled: legCanceled(leg, route),
         confidence: confidence,
         confirmed: confirmed,
         /* The scheduled leg names the direction best. Without one, the feeder's
