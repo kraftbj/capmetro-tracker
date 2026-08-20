@@ -25,9 +25,45 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   log never carries the stops. `index.html` now also declares
   `referrer: no-referrer` so that holds where the vhost does not reach — a board
   opened from disk, or served by something other than the shipped nginx config.
+- **Nearest stop, and when the next bus reaches it.** Tap "Use my location" and
+  the board finds the stop you are standing at on the route you are looking at,
+  then shows when each approaching bus is due there — "4 min", "due" — with the
+  matching vehicle row marked. It uses the browser's own location and nothing
+  else: no map service, no key, and no request of any kind. Your position is
+  used in the page and thrown away; it is never sent anywhere and, unlike the
+  saved route, never written to storage. The prompt only ever appears when you
+  press the button.
+
+  Every time shown is the agency's own prediction for that stop. The board does
+  not estimate: when the feed is too far behind to stand behind a number, the
+  panel says so instead of counting down. And it never guesses which stop you
+  are at — if your location is too coarse to tell two stops apart, it says that
+  too.
+
+### Changed
+
+- `Vehicle.predictions` added to `/api/route/{id}.json`: the arrival times the
+  agency already publishes for every stop still ahead of a bus, within the same
+  45-minute window the schedule uses. Nothing is published for a cancelled trip
+  or for a stop the bus has already passed. Costs 104 KB across all 71 route
+  files; route 4 goes from 16 KB to 17 KB. `/api/all.json` deliberately does not
+  carry it — the fleet view does not ask the question, and it would take that
+  document from 317 KB to 422 KB. See api-contract.md §2.
+- **The Next buses panel now uses the agency's own arrival times** where it has
+  them, instead of adding a bus's current lateness to the scheduled time. That
+  shortcut assumes a bus stays exactly as late as it is now all the way down the
+  line; measured against the real feed it is off by more than a minute on 64% of
+  stops and by more than two minutes on 41%. Where the agency publishes no
+  prediction — mostly buses that have not started their trip yet — the previous
+  estimate is still used, because it is the only answer there is.
+
+  A row that takes its time from the agency now drops the lateness badge and
+  prints the scheduled time instead, so the arrival and the schedule beside it
+  always subtract correctly. The bus's overall state is still there in words —
+  "bus 8012 · running very late" — which stays true whether or not the bus makes
+  up time before it reaches you.
 
 ### Fixed
-
 - **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
   call `render()` from their callbacks, and the views that need them call the
   loaders from inside `paint()`. Both treated any status other than `loading` as
@@ -83,6 +119,10 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   through `Object.prototype` rendered `NaN:NaNp-NaN:NaNp` permanently, and a
   prototype-named route id was dropped from the preload and the refresh while
   paint went on fetching it.
+- `node client/data/regenerate.js` could not run at all: it used CommonJS
+  `require` in a package declaring `"type": "module"`. The bundled offline copy
+  of the fixture had drifted from the golden file as a result, and is now back
+  in sync.
 
 ## [0.4.0.2] - 2026-08-20
 

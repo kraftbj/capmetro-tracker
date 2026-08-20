@@ -115,8 +115,9 @@
     };
   }
 
-  function spokenLabel(v, view, data) {
+  function spokenLabel(v, view, data, highlight) {
     var bits = ['Bus ' + (v.label || v.vehicle_id)];
+    if (highlight) bits.push('next bus at your nearest stop');
     bits.push(view.spoken);
     if (v.trip) {
       bits.push(fmt.serviceClock(v.trip.start_time).replace(/a$/, ' AM').replace(/p$/, ' PM') +
@@ -142,9 +143,22 @@
    * mean something. Motion fires on a real transition, never on first paint. */
   var lastState = Object.create(null);
 
-  function buildRow(v, data, idx) {
+  function buildRow(v, data, idx, highlight) {
     var view = adh.view(v, data.staleness);
     var wrap = el('article', 'vrow vrow--' + view.state);
+    /*
+     * The near-me panel names one bus per direction; this marks the row it is
+     * talking about so the two panels are visibly about the same object. It is
+     * a marker only, never a re-sort: the rows are in running order so they
+     * match the ladder beside them, and lifting one bus out of that order would
+     * break the correspondence the order exists to create.
+     */
+    if (highlight) {
+      wrap.classList.add('is-yours');
+      var flag = el('span', 'vrow__yours', 'next at your stop');
+      flag.setAttribute('aria-hidden', 'true');
+      wrap.appendChild(flag);
+    }
     var prev = lastState[v.vehicle_id];
     if (prev !== undefined && prev !== view.state) wrap.classList.add('is-changed');
     lastState[v.vehicle_id] = view.state;
@@ -154,7 +168,7 @@
     main.type = 'button';
     main.setAttribute('aria-expanded', 'false');
     main.setAttribute('aria-controls', detailId);
-    main.setAttribute('aria-label', spokenLabel(v, view, data));
+    main.setAttribute('aria-label', spokenLabel(v, view, data, highlight));
 
     var badgeCell = el('span', 'vrow__badge');
     badgeCell.appendChild(adh.badge(view));
@@ -345,6 +359,8 @@
     }
 
     var counts = vehiclesFor(data, opts.direction);
+    var yours = Object.create(null);
+    (opts.highlightVehicleIds || []).forEach(function (id) { yours[id] = true; });
     var parts = [];
     parts.push(fmt.plural(counts.inService.length, 'bus', 'buses') + ' in service');
     if (opts.direction !== 'both') {
@@ -378,14 +394,18 @@
         head.appendChild(el('span', 'subband__note', dir.headsign || ''));
         group.appendChild(head);
         var list = el('div', 'vrows vrows--dir');
-        forDir.forEach(function (v, i) { list.appendChild(buildRow(v, data, dir.id + '-' + i)); });
+        forDir.forEach(function (v, i) {
+          list.appendChild(buildRow(v, data, dir.id + '-' + i, !!yours[v.vehicle_id]));
+        });
         group.appendChild(list);
         groups.appendChild(group);
       });
       host.appendChild(groups);
     } else {
       var list = el('div', 'vrows');
-      counts.shown.forEach(function (v, i) { list.appendChild(buildRow(v, data, i)); });
+      counts.shown.forEach(function (v, i) {
+        list.appendChild(buildRow(v, data, i, !!yours[v.vehicle_id]));
+      });
       host.appendChild(list);
     }
 

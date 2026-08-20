@@ -60,7 +60,19 @@
     "vehicles": {
       "type": "array",
       "items": {
-        "$ref": "common.schema.json#/$defs/vehicle"
+        "allOf": [
+          {
+            "$ref": "common.schema.json#/$defs/vehicle"
+          },
+          {
+            "description": "The fleet view never reads predictions and carries every vehicle in the system, so the generator strips the field here. Asserted rather than assumed: leaving it in would add roughly 190 KB to this document.",
+            "not": {
+              "required": [
+                "predictions"
+              ]
+            }
+          }
+        ]
       }
     }
   }

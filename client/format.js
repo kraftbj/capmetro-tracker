@@ -115,6 +115,45 @@
     return directionTag(d && d.headsign, id);
   }
 
+  /*
+   * Does this object carry a usable coordinate?
+   *
+   * 0/0 is the Gulf of Guinea, not Austin: the feed uses it for "no position
+   * recorded", and plotting it drags a map's whole frame 3,000km south. Lives
+   * here rather than in a panel because map.js and near.js both need it and a
+   * second copy is how build/lib/stop-names.mjs and runtime/lib/stopnames.php
+   * drifted (ISSUE-002). One definition, both callers.
+   */
+  function hasFix(p) {
+    return !!p && typeof p.lat === 'number' && typeof p.lon === 'number' &&
+      isFinite(p.lat) && isFinite(p.lon) && !(p.lat === 0 && p.lon === 0);
+  }
+
+  /*
+   * The agency's own predicted arrival for one vehicle at one stop, or null.
+   *
+   * Rows are Vehicle.predictions triples, [stop_sequence, stop_id, predicted_at].
+   * Matching is on stop_id, never stop_sequence: route 4 runs a 17-stop baseline
+   * on five services and a 19-stop one on three others, so one physical stop does
+   * not carry one sequence across every trip.
+   *
+   * Lives here because near.js and stopboard.js both answer "when does this bus
+   * reach this stop" and must not answer it differently on the same screen.
+   */
+  function predictionFor(vehicle, stopId) {
+    var rows = (vehicle && vehicle.predictions) || [];
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i] && String(rows[i][1]) === String(stopId)) {
+        return {
+          stop_sequence: rows[i][0],
+          stop_id: String(rows[i][1]),
+          predicted_at: rows[i][2]
+        };
+      }
+    }
+    return null;
+  }
+
   function plural(n, one, many) {
     return n + ' ' + (n === 1 ? one : many);
   }
@@ -203,6 +242,8 @@
     age: age,
     serviceClock: serviceClock,
     directionTag: directionTag,
-    plural: plural
+    plural: plural,
+    hasFix: hasFix,
+    predictionFor: predictionFor
   };
 })(window);

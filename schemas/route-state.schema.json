@@ -87,7 +87,29 @@
     "vehicles": {
       "type": "array",
       "items": {
-        "$ref": "common.schema.json#/$defs/vehicle"
+        "allOf": [
+          {
+            "$ref": "common.schema.json#/$defs/vehicle"
+          },
+          {
+            "description": "A bus in service on a route document always publishes predictions, even when the list is empty. Absent would be indistinguishable from a board built before the field existed.",
+            "if": {
+              "properties": {
+                "in_service": {
+                  "const": true
+                }
+              },
+              "required": [
+                "in_service"
+              ]
+            },
+            "then": {
+              "required": [
+                "predictions"
+              ]
+            }
+          }
+        ]
       }
     },
     "timepoints": {
