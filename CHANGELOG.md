@@ -39,6 +39,12 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   prediction — mostly buses that have not started their trip yet — the previous
   estimate is still used, because it is the only answer there is.
 
+  A row that takes its time from the agency now drops the lateness badge and
+  prints the scheduled time instead, so the arrival and the schedule beside it
+  always subtract correctly. The bus's overall state is still there in words —
+  "bus 8012 · running very late" — which stays true whether or not the bus makes
+  up time before it reaches you.
+
 ### Fixed
 
 - `node client/data/regenerate.js` could not run at all: it used CommonJS

@@ -111,6 +111,10 @@
         suppressed: suppressed,
         scheduled_at: scheduledAt,
         predicted_at: predictedAt,
+        /* Which of the two sources above this row's time came from. The row
+           renders differently for each, because only one of them keeps the
+           badge and the time in agreement -- see departureRow(). */
+        from_feed: !!fromFeed,
         due_at: dueAt,
         seconds_until: dueAt - now,
         is_special: !!row.trip.is_special
@@ -163,9 +167,38 @@
 
   /* ---- render ---------------------------------------------------------- */
 
+  /*
+   * WHY A FEED-SOURCED ROW DROPS THE BADGE.
+   *
+   * The badge is adherence.view() -- the deviation measured at whatever stop the
+   * bus is currently approaching. While this row's time was scheduled + that
+   * same deviation, the two agreed by construction and the badge was a fair
+   * shorthand for the arithmetic.
+   *
+   * Taking the time from the feed instead made it more accurate and broke that
+   * identity. The row prints a time, a scheduled time and a badge, so a reader
+   * can subtract -- and across the corpus 1,438 of 4,205 rendered rows would
+   * then be off by more than two minutes, with 325 showing a badge and a time
+   * pointing in OPPOSITE directions: "15:17, scheduled 15:20" (three early)
+   * beside a "+1m" late badge.
+   *
+   * So on a feed-sourced row the badge, the state colour and the bare signed
+   * number all go, and the two times speak for themselves -- scheduled is
+   * printed always rather than only when it differs, because it is now the only
+   * thing saying how late the bus is HERE. The bus's overall state survives as
+   * a phrase, where a word can carry the scope a bare number cannot: a bus
+   * running eleven minutes late that reaches this stop five minutes late is not
+   * a contradiction, it is the feed modelling recovery, and "running very late"
+   * says so without claiming to be this stop's deviation.
+   *
+   * An extrapolated row is unchanged: there the badge and the time are still
+   * the same number, so there is nothing to disagree about.
+   */
   function departureRow(d) {
-    var row = el('article', 'nextbus nextbus--' +
-      (d.canceled ? 'canceled' : d.view ? d.view.state : 'scheduled'));
+    var stateClass = d.canceled ? 'canceled'
+      : d.from_feed ? null
+        : d.view ? d.view.state : 'scheduled';
+    var row = el('article', 'nextbus' + (stateClass ? ' nextbus--' + stateClass : ''));
 
     var when = el('p', 'nextbus__when');
     when.appendChild(el('span', 'nextbus__clock', fmt.clock(d.due_at)));
@@ -187,17 +220,22 @@
     row.appendChild(when);
 
     if (d.view && !d.suppressed && d.predicted_at !== null) {
-      row.appendChild(adhLib.badge(d.view, { small: true }));
+      if (!d.from_feed) {
+        row.appendChild(adhLib.badge(d.view, { small: true }));
+      }
       /*
-       * The scheduled time is printed only when it differs from the prediction.
-       * Repeating "10:12, scheduled 10:12" on an on-time bus is noise on the
-       * line a reader is scanning fastest.
+       * On an extrapolated row the scheduled time is printed only when it
+       * differs from the prediction: repeating "10:12, scheduled 10:12" on an
+       * on-time bus is noise on the line a reader is scanning fastest. On a
+       * feed-sourced row it is always printed, because with the badge gone it
+       * is the only thing that says how late the bus is at THIS stop.
        */
-      if (Math.abs(d.predicted_at - d.scheduled_at) >= 60) {
+      if (d.from_feed || Math.abs(d.predicted_at - d.scheduled_at) >= 60) {
         row.appendChild(el('p', 'nextbus__sched', 'scheduled ' + fmt.clock(d.scheduled_at)));
       }
       row.appendChild(el('p', 'nextbus__bus',
-        'bus ' + (d.vehicle.label || d.vehicle.vehicle_id) + ' · ' + d.view.label));
+        'bus ' + (d.vehicle.label || d.vehicle.vehicle_id) + ' · ' +
+        (d.from_feed ? 'running ' + d.view.label : d.view.label)));
     } else if (d.suppressed) {
       row.appendChild(el('p', 'nextbus__sched', 'scheduled · lateness unavailable'));
     } else {
@@ -213,10 +251,19 @@
       row.appendChild(el('p', 'nextbus__note', 'special run · skips some usual stops'));
     }
 
+    /*
+     * The spoken line carries the same split. Saying "eleven minutes late,
+     * scheduled 15:27" over a 15:32 arrival is the screen-reader version of the
+     * contradiction above, so a feed-sourced row scopes the state to the bus.
+     */
     row.appendChild(el('p', 'sr-only',
       fmt.clock(d.due_at) + ', ' + W.untilText(d.seconds_until) +
       (d.view && !d.suppressed && d.predicted_at !== null
-        ? ', ' + d.view.spoken + ', scheduled ' + fmt.clockSpoken(d.scheduled_at)
+        ? (d.from_feed
+          ? ', scheduled ' + fmt.clockSpoken(d.scheduled_at) +
+            '. Bus ' + (d.vehicle.label || d.vehicle.vehicle_id) +
+            ' is running ' + d.view.label + ' overall'
+          : ', ' + d.view.spoken + ', scheduled ' + fmt.clockSpoken(d.scheduled_at))
         : ', scheduled, no live prediction') + '.'));
     return row;
   }
@@ -316,6 +363,9 @@
     GRACE_S: GRACE_S,
     directionsAt: directionsAt,
     upcoming: upcoming,
+    /* Exported so a test can assert what one row actually renders. The
+       badge-versus-time contradiction lived here, not in upcoming(). */
+    departureRow: departureRow,
     nextAtStop: nextAtStop,
     stopMeta: stopMeta,
     render: render

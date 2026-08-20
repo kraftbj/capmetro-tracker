@@ -157,6 +157,18 @@ no tile server, no geocoder, no key, no network call.
   bus inside the 45-minute window (4,528 of 9,865 departures); the rest are
   buses that have not started yet.
 
+  **A stop board row shows its lateness badge only when the badge and the time
+  are the same computation.** Making the time more accurate broke the identity
+  that used to hold — the row prints an arrival, a scheduled time and a badge,
+  so a reader can subtract, and 1,438 of 4,205 rendered rows would have been
+  off by more than two minutes with 325 pointing opposite ways. On a
+  feed-sourced row the badge, the state colour and the signed number go; the
+  scheduled time is printed always instead, since it becomes the only thing
+  saying how late the bus is *here*. The bus's overall state survives as a
+  phrase — "running very late" — because a word can carry the scope a bare
+  number cannot: a bus eleven minutes late at its anchor that reaches this stop
+  five minutes late is the feed modelling recovery, not a contradiction.
+
 Gap 3 above is now partly closed: `Vehicle.predictions` gives per-stop predicted
 times, so a rider-facing arrival time no longer has to be invented. A true
 time-axis string-line would still need scheduled times per timepoint per trip.

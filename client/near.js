@@ -564,7 +564,7 @@
     if (fixStale) {
       var warn = el('p', 'near__caveat near__fixage');
       warn.setAttribute('role', 'status');
-      warn.textContent = 'Your location was taken ' + fmt.age(Math.round(fixAge / 1000)) +
+      warn.textContent = 'Your location is ' + fmt.age(Math.round(fixAge / 1000)) +
         '. If you have moved since, update it before trusting these times.';
       band.appendChild(warn);
     }

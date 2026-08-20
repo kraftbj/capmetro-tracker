@@ -433,8 +433,11 @@ describe('what the panel refuses to answer', () => {
       geo: { status: 'ok', lat: stop.lat, lon: stop.lon, accuracy: 8, at: Date.now() },
     })
 
-    expect(textDeep(old)).toContain('Your location was taken')
-    expect(textDeep(fresh)).not.toContain('Your location was taken')
+    /* "Your location is 3 min old", not "was taken 3 min old": fmt.age() is a
+       duration phrase, and this caveat appears exactly when the panel is asking
+       to be trusted less, so it is the wrong sentence to have read wrong. */
+    expect(textDeep(old)).toMatch(/Your location is \d+ (sec|min|hr) old/)
+    expect(textDeep(fresh)).not.toContain('Your location is')
     /* The times still show — the fix being old is a caveat, not a refusal. */
     expect(all(old, 'near__when').length).toBeGreaterThan(0)
   })

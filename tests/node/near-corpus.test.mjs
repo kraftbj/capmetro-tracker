@@ -12,7 +12,7 @@
  * there is none. tests/run-all.sh generates one before it starts.
  */
 import { describe, expect, it } from 'vitest'
-import { renderClient } from './helpers/client.mjs'
+import { all, renderClient } from './helpers/client.mjs'
 import { API, readGenerated, requireGenerated, routeFiles } from './helpers/webroot.mjs'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
@@ -236,6 +236,57 @@ describe('the two panels tell one story', () => {
       }
     })
     expect(compared, 'no (stop, bus) pair was comparable across both panels').toBeGreaterThan(0)
+  })
+})
+
+describe('a stop board row never argues with itself', () => {
+  t('shows no badge that contradicts the two times printed beside it', (cmb) => {
+    /*
+     * The row prints an arrival time, a scheduled time, and a badge. A reader
+     * can subtract the first two — and once the arrival came from the feed
+     * while the badge still came from the anchor deviation, the answer stopped
+     * matching. Measured over this corpus before the fix: 1,438 of 4,205
+     * rendered rows off by more than two minutes, and 325 where the badge and
+     * the times pointed in OPPOSITE directions — a time three minutes early
+     * beside a late badge.
+     *
+     * The rule now is that a row shows the badge only when the badge and the
+     * time are the same computation, so the subtraction always comes out.
+     */
+    let rendered = 0
+    let withBadge = 0
+    eachRoute((doc, name) => {
+      const rid = name.replace(/\.json$/, '')
+      const depPath = path.join(API, 'departures', `${rid}.json`)
+      if (!existsSync(depPath)) return
+      const dep = readGenerated(depPath)
+      if (dep.service_day_start_epoch === null) return
+
+      for (const stop of dep.stops) {
+        for (const group of cmb.stopboard.nextAtStop(dep, doc, stop.stop_id, doc.generated_at, 2)) {
+          for (const d of group.departures) {
+            if (!d.vehicle || d.canceled || d.suppressed || d.predicted_at === null) continue
+            rendered++
+            const node = cmb.stopboard.departureRow(d)
+            if (!all(node, 'badge').length) continue
+            withBadge++
+
+            /* What the two printed times say, against what the badge asserts. */
+            const shown = d.predicted_at - d.scheduled_at
+            if (d.view.seconds === null) continue
+            expect(
+              Math.abs(shown - d.view.seconds),
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: badge says ` +
+                `${d.view.seconds}s, the printed times say ${shown}s`,
+            ).toBeLessThanOrEqual(1)
+          }
+        }
+      }
+    })
+    expect(rendered, 'no rows were rendered at all').toBeGreaterThan(0)
+    /* Not zero either — otherwise the assertion above is vacuous and the badge
+       could have been dropped everywhere without anything noticing. */
+    expect(withBadge, 'no row kept its badge, so nothing was actually checked').toBeGreaterThan(0)
   })
 })
 

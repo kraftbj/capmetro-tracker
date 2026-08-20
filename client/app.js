@@ -585,7 +585,14 @@
         lat: pos.coords.latitude,
         lon: pos.coords.longitude,
         accuracy: pos.coords.accuracy,
-        at: Date.now()
+        /*
+         * When the OS ACQUIRED the fix, not when the callback ran. Browsers
+         * routinely serve a cached reading that is already minutes old -- that
+         * is what GEO_OPTS.maximumAge asks for -- so stamping delivery time
+         * would start the staleness clock at zero on a fix that is already
+         * stale. Falls back to now where a browser omits the timestamp.
+         */
+        at: pos.timestamp || Date.now()
       };
       render();
     }, function (err) {
