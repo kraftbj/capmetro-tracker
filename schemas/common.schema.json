@@ -501,10 +501,14 @@
         "block": {
           "type": "object",
           "additionalProperties": false,
+          "$comment": "spans_routes, route_ids and is_last_trip are additive: the runtime always writes them, but they stay out of `required` so a capture taken before they existed still validates. Presence on live output is asserted in tests/php/BlockRouteContinuationTest.php, which checks real generated files rather than the shape.",
           "required": [
             "block_id",
             "confidence",
-            "next_trip"
+            "next_trip",
+            "spans_routes",
+            "route_ids",
+            "is_last_trip"
           ],
           "properties": {
             "block_id": {
@@ -519,6 +523,19 @@
                 "low"
               ]
             },
+            "spans_routes": {
+              "type": "boolean"
+            },
+            "route_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              }
+            },
+            "is_last_trip": {
+              "type": "boolean"
+            },
             "next_trip": {
               "oneOf": [
                 {
@@ -527,6 +544,7 @@
                 {
                   "type": "object",
                   "additionalProperties": false,
+                  "$comment": "route_id and route_short_name are additive, for the same reason as the block fields above.",
                   "required": [
                     "trip_id",
                     "direction_id",
@@ -534,11 +552,25 @@
                     "start_epoch",
                     "start_stop_id",
                     "start_stop_name",
-                    "is_direction_flip"
+                    "is_direction_flip",
+                    "route_id",
+                    "route_short_name"
                   ],
                   "properties": {
                     "trip_id": {
                       "type": "string"
+                    },
+                    "route_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "route_short_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "direction_id": {
                       "enum": [
@@ -872,7 +904,8 @@
       "description": "Windowed scheduled arrival times at each timepoint, per direction. Enough to draw scheduled trip diagonals on a time axis.",
       "required": [
         "window",
-        "directions"
+        "directions",
+        "canceled_trips"
       ],
       "properties": {
         "window": {
@@ -935,6 +968,13 @@
               }
             }
           }
+        },
+        "canceled_trips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "$comment": "Trip ids drawn in this window that the agency has canceled. Only the ids actually on screen, not every cancellation on the route: the ladder's job is to explain the diagonals it drew, and a trip it cannot place is noise. Cancellation is a property of a TRIP and reaches a reader only this way - adherence.reason trip_canceled attaches to a vehicle, and a canceled trip has none."
         }
       }
     }

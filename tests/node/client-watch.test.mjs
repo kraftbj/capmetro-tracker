@@ -319,3 +319,43 @@ describe('what the card actually says', () => {
     expect(textDeep(draw([m]))).toMatch(/special run/i)
   })
 })
+
+describe('a saved trip that has been canceled', () => {
+  const canceled = () => {
+    const copy = JSON.parse(JSON.stringify(DEP))
+    copy.trips.forEach((t) => { if (t.id === TRIP_ID) t.canceled = true })
+    return copy
+  }
+
+  t('reports canceled rather than "no bus reporting yet"', (w) => {
+    /*
+     * A canceled trip has no vehicle, so every later check concludes the bus
+     * has not started. That sentence was on screen while a kid waited.
+     */
+    const m = w.resolve(THE_WATCH, canceled(), routeWith(0, 'other-trip'), DUE_AT - 600)
+    expect(m.state).toBe('canceled')
+    expect(m.detail).toMatch(/canceled/i)
+  })
+
+  t('is canceled even inside the live window, where a bus would otherwise show', (w) => {
+    const m = w.resolve(THE_WATCH, canceled(), routeWith(240), DUE_AT - 300)
+    expect(m.state).toBe('canceled')
+  })
+
+  t('sorts above anything already gone but below a bus still coming', (w) => {
+    const order = w.sortModels([
+      { state: 'passed', seconds_until: -600 },
+      { state: 'canceled', seconds_until: 300 },
+      { state: 'live', seconds_until: 400 },
+    ]).map((m) => m.state)
+    expect(order).toEqual(['live', 'canceled', 'passed'])
+  })
+
+  t('says so on the card and to a screen reader', (w) => {
+    const host = client.document.createElement('section')
+    const m = w.resolve(THE_WATCH, canceled(), routeWith(0), DUE_AT - 600)
+    client.cmb.watch.render(host, [m], {})
+    expect(textDeep(host)).toMatch(/CANCELED/)
+    expect(all(host, 'sr-only').map((n) => n.textContent).join(' ')).toMatch(/canceled/i)
+  })
+})

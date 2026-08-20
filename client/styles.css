@@ -915,3 +915,117 @@ button { font: inherit; color: inherit; }
  * heading elements is a screen-reader dead end. Reset the UA heading styling
  * so they match the p-based subband heads everywhere else. */
 h3.subband__head { font: inherit; margin: 0 0 8px; }
+
+/* ===== next buses at a stop ============================================= */
+/*
+ * Two directions side by side where there is room, stacked on a phone. The
+ * arrival time is the largest thing in the band because it is the one number
+ * someone standing at a stop is looking for.
+ */
+.band--nextbus .band__sub {
+  display: flex; align-items: baseline; gap: 10px;
+  margin: 0 0 12px; font-size: var(--fs-lead); color: var(--ink);
+  text-transform: none; letter-spacing: 0;
+}
+.linkbtn {
+  margin-left: auto; padding: 4px 2px;
+  background: none; border: 0; border-bottom: 1px solid var(--hairline);
+  color: var(--ink-dim); font-size: var(--fs-chrome); cursor: pointer;
+}
+.linkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.nextdirs { display: flex; flex-direction: column; gap: 16px; }
+.nextdir__head { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; }
+.nextdir__sign { font-size: var(--fs-meta); color: var(--ink-muted); }
+.nextdir__none { margin: 0; font-size: var(--fs-meta); color: var(--ink-dim); }
+
+.nextbuses { display: flex; flex-direction: column; gap: 8px; }
+.nextbus {
+  padding: 10px 12px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--dia-spine); border-radius: var(--radius);
+}
+/* The first one is the bus you are probably catching. */
+.nextbus:first-child { background: var(--surface-raised-hi); }
+.nextbus--early { border-left-color: var(--adh-early); }
+.nextbus--ontime { border-left-color: var(--adh-ontime); }
+.nextbus--late { border-left-color: var(--adh-late); }
+.nextbus--very_late { border-left-color: var(--adh-vlate); }
+.nextbus--unknown { border-left-color: var(--adh-unknown); }
+.nextbus--scheduled { border-left-style: dashed; }
+
+.nextbus__when { display: flex; align-items: baseline; gap: 10px; margin: 0; }
+.nextbus__clock { font-family: var(--font-figure); font-size: 26px; font-weight: 700; }
+.nextbus:first-child .nextbus__clock { font-size: 30px; }
+.nextbus__until { font-size: var(--fs-meta); color: var(--ink-dim); }
+.nextbus__sched, .nextbus__bus {
+  margin: 4px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome);
+}
+.nextbus__note {
+  margin: 6px 0 0; padding-left: 8px;
+  border-left: 2px solid var(--adh-special);
+  font-size: var(--fs-chrome); color: var(--ink-dim);
+}
+.nextbus .badge { margin-top: 6px; }
+
+@media (min-width: 720px) {
+  .nextdirs { flex-direction: row; }
+  .nextdir { flex: 1 1 0; min-width: 0; }
+}
+
+/* ===== all-buses: the detail a tap opens ================================ */
+.abrow { flex-direction: column; align-items: stretch; padding: 0; }
+.abrow__main {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: var(--tap); padding: 6px 10px;
+  background: none; border: 0; color: inherit; cursor: pointer; text-align: left;
+}
+.abrow__main:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.abrow__caret {
+  margin-left: auto; color: var(--ink-chrome);
+  transition: transform var(--dur-state) var(--ease);
+}
+.abrow.is-open .abrow__caret { transform: rotate(180deg); }
+.abrow.is-open { background: var(--surface-raised-hi); }
+
+.abdet__wrap { padding: 0 10px 10px; }
+.abdet__list { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+.abdet__row { display: contents; }
+.abdet__k {
+  font-size: var(--fs-chrome); color: var(--ink-chrome);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  align-self: baseline;
+}
+.abdet__v { margin: 0; font-size: var(--fs-meta); }
+.abdet__v.dim { color: var(--ink-dim); }
+/* The one fact worth colour: this bus becomes a different route. */
+.abdet__v--change { color: var(--adh-early); font-weight: 600; }
+.abdet__note {
+  margin: 10px 0 0; font-size: var(--fs-chrome);
+  line-height: var(--lh-body); color: var(--ink-dim);
+}
+.abdet__note--special { padding-left: 8px; border-left: 2px solid var(--adh-special); }
+.abchip { padding: 0; }
+.abchip__btn {
+  display: flex; flex-direction: column; gap: 1px; width: 100%;
+  min-height: 40px; padding: 6px 8px;
+  background: none; border: 0; color: inherit; cursor: pointer; text-align: left;
+}
+.abchip__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.abchip.is-open { grid-column: 1 / -1; background: var(--surface-raised-hi); }
+.abchip.is-open .abdet { padding: 0 8px 8px; }
+
+/* A canceled departure is present and unmistakable, never quietly absent. */
+.nextbus--canceled { border-left-color: var(--danger); opacity: 0.85; }
+.nextbus--canceled .nextbus__clock { text-decoration: line-through; color: var(--ink-dim); }
+.nextbus__canceled {
+  font-size: var(--fs-chrome); font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  background: var(--danger); color: var(--adh-ink-dark);
+}
+.watchcard--canceled { border-left-color: var(--danger); }
+.watchcard__canceled {
+  font-family: var(--font-figure); font-size: 20px; font-weight: 700;
+  letter-spacing: 0.08em; padding: 2px 8px; border-radius: var(--radius-sm);
+  background: var(--danger); color: var(--adh-ink-dark);
+}

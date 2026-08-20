@@ -85,6 +85,9 @@
     routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
     routeStatus: {},     /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
+    stopId: null,        /* the stop the Next buses band is answering for */
+    stopPicking: false,
+    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
     /*
      * The chain editor builds forwards: `legs` are the ones already fixed, `start`
      * is the part-made first leg and `onward` the part-made next one. It is a
@@ -227,7 +230,14 @@
    */
   function loadDepartures(routeId) {
     if (!routeId) return;
-    if (state.departures[routeId] || state.depStatus[routeId] === 'loading') return;
+    if (state.departures[routeId]) return;
+    /*
+     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
+     * called render, and render asked again - a fetch-and-repaint loop that
+     * hammered the server and rebuilt the DOM every frame. The 60s refresh
+     * clears the status so a transient failure still recovers.
+     */
+    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
@@ -310,7 +320,7 @@
     var brandRow = el('div', 'topbar__row topbar__row--brand');
     var brand = el('p', 'brand');
     brand.appendChild(el('span', 'brand__mark', '▲'));
-    brand.appendChild(el('span', 'brand__name', 'School Bus Board'));
+    brand.appendChild(el('span', 'brand__name', 'Dillo Bus Board'));
     brandRow.appendChild(brand);
     dom.stamp = el('p', 'stamp');
     brandRow.appendChild(dom.stamp);
@@ -569,8 +579,13 @@
     state.routeId = id;
     state.data = null;
     state.errorDetail = null;
+    /* Each route remembers its own stop, so switching back is one tap and not
+     * a fresh hunt through sixty-six of them. */
+    state.stopId = recall('stop.' + id);
+    state.stopPicking = false;
     store('route', id);
     load(id);
+    loadDepartures(id);
   }
 
   /* ---- render --------------------------------------------------------- */
@@ -652,6 +667,37 @@
     dom.main.appendChild(mapBand);
     global.CMB.map.render(mapBand, d || {}, opts);
 
+    /*
+     * Last, because it answers a narrower question than the rest of the board:
+     * the other panels are "what is this route doing", this one is "I am at
+     * this stop". Anyone who wants it will scroll to it once and then it
+     * remembers their stop.
+     *
+     * The schedule is fetched by selectRoute and boot, NOT here. A render that
+     * starts a fetch is a render that can trigger another render, and the loop
+     * that produced destroyed the alerts disclosure mid-click.
+     */
+    var stopBand = el('section', 'band band--nextbus');
+    stopBand.setAttribute('aria-label', 'Next buses at a stop');
+    dom.main.appendChild(stopBand);
+    global.CMB.stopboard.render(
+      stopBand,
+      state.departures[state.routeId] || null,
+      d,
+      nowEpoch(),
+      {
+        stopId: state.stopId,
+        picking: state.stopPicking,
+        onPick: function (id) {
+          state.stopId = id;
+          state.stopPicking = false;
+          store('stop.' + state.routeId, id);
+          render();
+        },
+        onChange: function () { state.stopPicking = true; render(); }
+      }
+    );
+
     dom.main.appendChild(footer(d));
   }
 
@@ -675,6 +721,26 @@
       onSelectRoute: function (routeId) {
         selectView('board');
         selectRoute(routeId);
+      },
+      /*
+       * api/all.json carries no stops, so the one thing a bus detail cannot
+       * answer from it is "what stop did it just leave". The route file has
+       * that and is already generated, so it is fetched when a reader opens a
+       * bus rather than for all 392 up front.
+       */
+      onWantRoute: loadRouteData,
+      routeFor: function (routeId) { return liveRoute(routeId); },
+      open: state.openBuses,
+      onToggleBus: function (vehicleId) {
+        if (state.openBuses[vehicleId]) { delete state.openBuses[vehicleId]; }
+        else {
+          state.openBuses[vehicleId] = true;
+          var v = ((state.all && state.all.vehicles) || []).filter(function (x) {
+            return x.vehicle_id === vehicleId;
+          })[0];
+          if (v && v.route_id) loadRouteData(v.route_id);
+        }
+        render();
       }
     });
     dom.main.appendChild(footer(state.all));
@@ -906,7 +972,15 @@
 
     var routeId = q.route || recall('route') || '4';
     state.routeId = routeId;
+    state.stopId = q.stop || recall('stop.' + routeId);
     load(routeId);
+    /*
+     * Boot does not go through selectRoute, so it has to ask for the schedule
+     * itself. Moving this out of paint() to stop a render loop left the first
+     * page load with no schedule at all, and the Next buses band sat on
+     * "Loading this route's schedule..." forever.
+     */
+    loadDepartures(routeId);
     loadCatalog();
 
     var view = q.view || recall('view');
@@ -917,6 +991,12 @@
       setInterval(function () {
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
+        /* One retry per minute for a schedule that failed to load, and only
+         * here, where a retry cannot become a render loop. */
+        if (state.depStatus[state.routeId] === 'error') {
+          delete state.depStatus[state.routeId];
+          loadDepartures(state.routeId);
+        }
         if (state.view === 'saved') {
           /* A frozen saved trip is worse than none: it reads as a live prediction,
            * and a frozen chain reports a connection that stopped being true. Every

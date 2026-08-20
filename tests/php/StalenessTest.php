@@ -141,13 +141,21 @@ final class StalenessTest extends TestCase
         self::assertFalse($result['suppress_adherence']);
 
         /*
-         * The oldest of the three feeds is the alerts feed at 100s, not the 43s
-         * the golden file records; its throwaway generator only weighed the two
-         * realtime feeds. Both land inside the 120s fresh window, so nothing
-         * user-visible turns on it, but the runtime job must take the true
-         * oldest or a lagging alerts feed would never register. See tests/NOTES.md.
+         * The age is the OLDEST of all three feeds, alerts included. This used
+         * to assert a literal 100s, which was the gap between the true oldest
+         * and the 43s a hand-made golden file recorded because its throwaway
+         * generator only weighed the two realtime feeds. The fixture is real
+         * generated output now and the two agree, so pinning the number would
+         * pin a coincidence. The invariant is what matters: a lagging alerts
+         * feed must register, so the oldest of the three is the one that counts.
          */
-        self::assertSame(100, $result['oldest_feed_age_s']);
+        $oldest = min(
+            $golden['feeds']['positions_at'],
+            $golden['feeds']['trip_updates_at'],
+            $golden['feeds']['alerts_at']
+        );
+        self::assertSame($golden['generated_at'] - $oldest, $result['oldest_feed_age_s']);
+        self::assertSame($golden['staleness']['oldest_feed_age_s'], $result['oldest_feed_age_s']);
     }
 
     public function testTheDeadCronFixtureCarriesTheShapeADegradedRouteFileMustHave(): void

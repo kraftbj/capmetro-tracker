@@ -202,9 +202,14 @@ enforcement rule the engineering review required: staleness is a rendered state,
 
   "block": {                            // absent when in_service is false
     "block_id": "1010",
-    "confidence": "high",               // high | low  (see §4)
+    "confidence": "low",                // high | low  (see §4)
+    "spans_routes": true,               // this block's trips are not all on one route
+    "route_ids": ["1", "4", "485"],     // every route the block covers, sorted
+    "is_last_trip": false,              // true when the build says this trip ENDS the block (§4)
     "next_trip": {                      // null when this is the last trip of the block
       "trip_id": "3014770_15088",
+      "route_id": "4",                  // the SUCCESSOR's route, which need not be this bus's
+      "route_short_name": "4",          // null only when route_id is null
       "direction_id": 1,
       "start_time": "10:21:00",
       "start_epoch": 1787155260,
@@ -215,6 +220,11 @@ enforcement rule the engineering review required: staleness is a rendered state,
   }
 }
 ```
+
+`spans_routes`, `route_ids`, `is_last_trip`, `next_trip.route_id` and `next_trip.route_short_name`
+are **additive**. The runtime always writes them; the schema deliberately leaves them out of
+`required` so a capture taken before they existed still validates, and `schema` stays `1`. A client
+that does not read them behaves exactly as it did.
 
 ### `adherence.state` decision table
 
@@ -446,6 +456,58 @@ A trip that is the **last** of its block has `next_trip: null` and `confidence: 
 The client renders `low` confidence continuations with hedged language ("likely becomes the
 10:21 EB") or not at all. It never presents a `low` continuation as fact.
 
+### Why the grade is what it is — `spans_routes` and `route_ids`
+
+A `low` grade used to arrive unexplained: a bus could be on time, in service, and graded `low`
+with nothing in the payload saying that its block interlines. `route_ids` is the block's whole
+route set and `spans_routes` is whether that set is larger than one, both copied from `blocks.json`
+rather than recounted from the trip list — the build already decided this, and one definition of a
+fact is the rule (see ISSUE-002).
+
+On the 2026-08-19 capture, 35 of 249 in-service vehicles are on a block that spans routes, and 26
+of the 85 `low` grades cite `block_spans_multiple_routes`. Block 1010 is the worked example: 92
+trips across routes 1, 4 and 485.
+
+`spans_routes: true` does **not** imply `confidence: "low"`. The build grades each handoff, not
+each block, so a same-route handoff inside a multi-route block can still be `high` — 6 of the 35
+are. Read the two fields as what they are: `confidence` grades this continuation, `spans_routes`
+describes the block it sits in.
+
+A vehicle whose trip is not in the schedule at all reports `route_ids: []` and
+`spans_routes: false` alongside the `block_id: null` it already reported. That pairing says "no
+block", which is a different claim from "a block covering no routes".
+
+### `next_trip.route_id` — what the bus becomes
+
+The route of the **successor**, taken from the successor. It is equal to the vehicle's own
+`route_id` on most blocks, and that is exactly the trap: filling it from the current route would
+look correct on all 214 single-route blocks in the capture and be wrong on precisely the 7
+continuations the field exists for. Bus 2754 finishes a 50 and starts a 152; bus 2256 finishes a
+315 and starts a 333.
+
+`next_trip.route_id` is always a member of the enclosing `block.route_ids`. That invariant is
+swept over every generated route file rather than spot-checked, because a successor naming a route
+its own block does not cover is a join bug and would be invisible wherever the two coincide.
+
+Both fields are `null` only if the build named a successor without naming its route. No trip in
+the current feed does that, and the runtime says `null` rather than guessing if one ever does.
+
+### `is_last_trip` — pulling in, versus not knowing
+
+`true` when the build graded the trip `last_trip_of_block`, which is it stating that this bus ends
+its block here.
+
+It is deliberately **not** `next_trip === null`. Those are two different facts: "the bus is pulling
+into the garage" is an assertion, and "we could not resolve a successor" is an absence, and a
+client should not have to guess which one an empty `next_trip` means. In the current feed they
+coincide — all 2,115 null successors across the 71 shards carry `last_trip_of_block` and nothing
+else — so reading the assertion costs nothing today and keeps the two distinguishable if a future
+build starts emitting unresolvable continuations.
+
+A trip missing from the schedule reports `is_last_trip: false`: it is not evidence that the bus is
+done, only that we know nothing. This matters after a GTFS republish, when every live trip id
+stops resolving at once; the failure mode to avoid is rendering the whole fleet as pulling in.
+
 ---
 
 ## 5. Alert object
@@ -559,6 +621,12 @@ a `counts` block added:
 { "counts": { "total": 392, "in_service": 249, "deadhead": 143, "routes_active": 46 } }
 ```
 
+"Same `Vehicle` shape" is literal and is enforced rather than restated: `all.json` republishes the
+objects the route files were built from, and both documents validate the one `vehicle` definition
+in `schemas/common.schema.json`. So `block.spans_routes`, `block.route_ids`, `block.is_last_trip`
+and `block.next_trip.route_id` are here too, and the map cannot end up describing a bus
+differently from the route board.
+
 ---
 
 ## 9. `GET /api/watch/{watch_id}.json`
@@ -655,6 +723,11 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
 3. A route 4 vehicle on the 08:15 or 16:15 trip has `pattern.is_special: true` and names
    Veterans/Atlanta in `adds` and Campbell/5th in `skips`.
 4. At least one route 4 vehicle has `block.next_trip.is_direction_flip: true`.
+4a. Bus 2867 on route 4 reports `block.route_ids: ["1", "4", "485"]` and
+    `block.spans_routes: true`, and at least one vehicle system-wide has a
+    `block.next_trip.route_id` that differs from its own `route_id` (7 do in the fixture).
+    Across every generated route file, `block.next_trip.route_id` is always a member of
+    that vehicle's `block.route_ids`.
 5. Stop `1222` on route 800 has `service_status.source == "realtime_skipped"` and `served: false`.
 6. Stop `1967` on route 4 has `service_status.source == "alert_no_service"` and `served: false`.
 7. No generated file contains the strings `userEmail` or `userFullname`, or any value from those

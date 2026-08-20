@@ -138,7 +138,8 @@ function cm_build_departures(
     array $active_services,
     string $service_date,
     string $feed_version,
-    int $now
+    int $now,
+    array $canceled = []
 ): array {
     $selected = cm_departure_trips($times, $active_services);
     $table = $times['stop_ids'] ?? [];
@@ -174,6 +175,13 @@ function cm_build_departures(
                 $direction_id,
                 (string) ($trip['service_id'] ?? '')
             ),
+            /*
+             * A canceled trip stays IN this document rather than being filtered
+             * out of it. "The 5:40 is canceled" is a usable answer; a 5:40 that
+             * silently does not exist looks like a gap in the timetable and
+             * tells a reader standing at the stop nothing at all.
+             */
+            'canceled'     => isset($canceled[(string) $s['id']]),
         ];
 
         foreach ($trip['stops'] as $row) {

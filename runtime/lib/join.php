@@ -20,6 +20,31 @@ require_once __DIR__ . '/shards.php';
  * at all and 683 carry a vehicle. The index is keyed on tripId because that is the only
  * field present on all of them.
  */
+/*
+ * The trip ids the agency has canceled, from the trip updates feed.
+ *
+ * This is a property of a TRIP, not of a vehicle, and that distinction is the
+ * whole reason the field exists. `adherence.reason: trip_canceled` only ever
+ * attaches to a vehicle, and a canceled trip HAS no vehicle - it is canceled -
+ * so nothing about a cancellation could ever reach a reader through that path.
+ * In the 2026-08-19 capture 100 of 912 trip updates were canceled and not one
+ * of the 249 vehicle trip descriptors was; live at 17:28 the same day it was
+ * 187 system-wide with 17 on route 4 alone. A client that cannot see this shows
+ * a canceled departure as "no bus reporting yet", which reads as "it has not
+ * started" when it means "it is never coming". Someone waited at a stop for
+ * that.
+ */
+function cm_canceled_trip_ids(array $trip_updates): array
+{
+    $ids = [];
+    foreach ($trip_updates as $trip_id => $tu) {
+        if (($tu['trip']['scheduleRelationship'] ?? null) === 'CANCELED') {
+            $ids[(string) $trip_id] = true;
+        }
+    }
+    return $ids;
+}
+
 function cm_index_trip_updates($feed): array
 {
     $out = [];
@@ -287,8 +312,18 @@ function cm_build_vehicle(
         $next = $shard_trip['next_trip'] ?? null;
         if (is_array($next)) {
             $next_epoch = cm_clock_to_epoch((string) $next['start_time'], $service_date);
+            /*
+             * The successor's route comes from the successor, never from the bus reading
+             * this record. They are the same on most blocks and that is exactly the trap:
+             * copying the current route would look correct on every single-route block and
+             * be wrong on precisely the blocks the field exists for. On block 1010 a
+             * route 4 bus finishes and starts the 485.
+             */
+            $next_route_id = $shard_trip['next_route_id'] ?? null;
             $next = [
                 'trip_id'           => (string) $next['trip_id'],
+                'route_id'          => $next_route_id,
+                'route_short_name'  => cm_shard_route_short_name($route_shard, $next_route_id),
                 'direction_id'      => (int) $next['direction_id'],
                 'start_time'        => (string) $next['start_time'],
                 'start_epoch'       => $next_epoch ?? 0,
@@ -302,13 +337,42 @@ function cm_build_vehicle(
         } else {
             $next = null;
         }
+        /*
+         * spans_routes and route_ids are the shard's own statement about the block, copied
+         * rather than counted from the trip list: the build already decided this and one
+         * definition of a fact is the rule. They are also what makes a `low` confidence
+         * grade legible -- section 4 downgrades any block spanning more than one route, and
+         * without the route set the client can only report the downgrade, not explain it.
+         *
+         * A block the shard does not name gets an empty set and false, alongside the
+         * block_id null it already reported. That pairing says "no block", which is a
+         * different claim from "a block on no routes".
+         */
+        $block_id = $shard_trip['block_id'] ?? null;
+        $block_meta = cm_shard_block($route_shard, $block_id === null ? null : (string) $block_id);
         $out['block'] = [
-            'block_id'   => $shard_trip['block_id'] ?? null,
-            'confidence' => (string) ($shard_trip['block_confidence'] ?? 'low'),
-            'next_trip'  => $next,
+            'block_id'     => $block_id,
+            'confidence'   => (string) ($shard_trip['block_confidence'] ?? 'low'),
+            'spans_routes' => (bool) ($block_meta['spans_routes'] ?? false),
+            'route_ids'    => $block_meta['route_ids'] ?? [],
+            'next_trip'    => $next,
+            /*
+             * Not derived from next_trip === null. "This bus is pulling in" is something
+             * the build asserts; "we could not resolve a successor" is an absence. The
+             * client should not have to guess which one it is looking at.
+             */
+            'is_last_trip' => cm_trip_is_last_of_block($shard_trip),
         ];
     } else {
-        $out['block'] = ['block_id' => null, 'confidence' => 'low', 'next_trip' => null];
+        /* Trip not in the schedule at all: no block, and no claim that the bus is done. */
+        $out['block'] = [
+            'block_id'     => null,
+            'confidence'   => 'low',
+            'spans_routes' => false,
+            'route_ids'    => [],
+            'next_trip'    => null,
+            'is_last_trip' => false,
+        ];
     }
 
     return $out;
@@ -537,6 +601,7 @@ function cm_build_schedule(
     $from = max(0, $now - $before_s);
     $until = $now + $after_s;
     $window = ['from' => $from, 'until' => $until, 'before_s' => $before_s, 'after_s' => $after_s];
+    $canceled = cm_canceled_trip_ids($trip_updates);
 
     /*
      * Column order per direction, taken from the rows the client will render rather than
@@ -637,9 +702,25 @@ function cm_build_schedule(
     }
     usort($directions, static fn($a, $b) => $a['direction_id'] <=> $b['direction_id']);
 
+    /*
+     * Only the ids actually drawn in this window, not every cancellation on the
+     * route. The ladder's job is to explain the diagonals it drew; a list of
+     * trips that are not on screen would be noise it cannot place.
+     */
+    $canceled_here = [];
+    foreach ($directions as $d) {
+        foreach ($d['trips'] as $row) {
+            if (isset($canceled[(string) $row[0]])) {
+                $canceled_here[] = (string) $row[0];
+            }
+        }
+    }
+    sort($canceled_here);
+
     return [
-        'window'         => $window,
-        'directions'     => $directions,
-        'next_departure' => $next_departure,
+        'window'          => $window,
+        'directions'      => $directions,
+        'next_departure'  => $next_departure,
+        'canceled_trips'  => $canceled_here,
     ];
 }

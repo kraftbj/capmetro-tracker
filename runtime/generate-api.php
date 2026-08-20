@@ -300,6 +300,9 @@ $routes_written = 0;
 $routes_active = [];
 $watch_targets = [];
 
+/* One derivation for every route: cancellation is a property of a trip. */
+$canceled_trips = cm_canceled_trip_ids($trip_updates);
+
 foreach ($route_ids as $rid) {
     $shard = cm_shard_route($shard_dir, $rid, $index);
     if ($shard === null) {
@@ -415,7 +418,7 @@ foreach ($route_ids as $rid) {
      * same $times that is already in memory for this route, so it costs a serialization
      * and not a second parse of a 440 KB shard.
      */
-    $departures = cm_build_departures($shard, $times, $active_services, $service_date, $feed_version, $now);
+    $departures = cm_build_departures($shard, $times, $active_services, $service_date, $feed_version, $now, $canceled_trips);
     /*
      * Written only when it differs. This document carries no realtime field, so on an
      * ordinary poll it is byte-identical apart from generated_at, and rewriting all 71

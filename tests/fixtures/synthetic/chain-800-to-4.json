@@ -556,7 +556,8 @@
      "headsign": "4 Mopac WB",
      "start_time": "07:45:00",
      "block_id": "4003",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014760_15194",
@@ -564,7 +565,8 @@
      "headsign": "4 Shady EB",
      "start_time": "07:45:00",
      "block_id": "4030",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014699_15603",
@@ -572,7 +574,8 @@
      "headsign": "4 Mopac WB",
      "start_time": "08:00:00",
      "block_id": "4002",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014761_15195",
@@ -580,7 +583,8 @@
      "headsign": "4 Shady EB",
      "start_time": "08:00:00",
      "block_id": "4001",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014701_15768",
@@ -588,7 +592,8 @@
      "headsign": "4 Mopac WB",
      "start_time": "08:14:00",
      "block_id": "4031",
-     "is_special": true
+     "is_special": true,
+     "canceled": false
     },
     {
      "id": "3014700_15472",
@@ -596,7 +601,8 @@
      "headsign": "4 Mopac WB",
      "start_time": "08:15:00",
      "block_id": "1010",
-     "is_special": true
+     "is_special": true,
+     "canceled": false
     },
     {
      "id": "3014762_15196",
@@ -604,7 +610,8 @@
      "headsign": "4 Shady EB",
      "start_time": "08:15:00",
      "block_id": "4003",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014763_15197",
@@ -612,7 +619,8 @@
      "headsign": "4 Shady EB",
      "start_time": "08:30:00",
      "block_id": "4002",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014702_15604",
@@ -620,7 +628,8 @@
      "headsign": "4 Mopac WB",
      "start_time": "08:45:00",
      "block_id": "4001",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014764_15198",
@@ -628,7 +637,8 @@
      "headsign": "4 Shady EB",
      "start_time": "08:45:00",
      "block_id": "4004",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3014765_15065",
@@ -636,7 +646,8 @@
      "headsign": "4 Shady EB",
      "start_time": "08:59:00",
      "block_id": "1010",
-     "is_special": true
+     "is_special": true,
+     "canceled": false
     }
    ],
    "departures": {
@@ -2179,7 +2190,8 @@
      "headsign": "800 Goodnight SB",
      "start_time": "07:40:00",
      "block_id": "800002",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3010796_21714",
@@ -2187,7 +2199,8 @@
      "headsign": "800 Mueller NB",
      "start_time": "07:50:00",
      "block_id": "800004",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3010894_22201",
@@ -2195,7 +2208,8 @@
      "headsign": "800 Goodnight SB",
      "start_time": "07:50:00",
      "block_id": "800005",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3010749_21715",
@@ -2203,7 +2217,8 @@
      "headsign": "800 Mueller NB",
      "start_time": "08:00:00",
      "block_id": "800006",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     },
     {
      "id": "3010847_22202",
@@ -2211,7 +2226,8 @@
      "headsign": "800 Goodnight SB",
      "start_time": "08:00:00",
      "block_id": "800013",
-     "is_special": false
+     "is_special": false,
+     "canceled": false
     }
    ],
    "departures": {
