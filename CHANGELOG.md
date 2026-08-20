@@ -26,9 +26,18 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 - `Vehicle.predictions` added to `/api/route/{id}.json`: the arrival times the
   agency already publishes for every stop still ahead of a bus, within the same
-  45-minute window the schedule uses. `/api/all.json` deliberately does not
-  carry it — the fleet view does not ask the question, and it would cost that
-  document about 190 KB. See api-contract.md §2.
+  45-minute window the schedule uses. Nothing is published for a cancelled trip
+  or for a stop the bus has already passed. Costs 104 KB across all 71 route
+  files; route 4 goes from 16 KB to 17 KB. `/api/all.json` deliberately does not
+  carry it — the fleet view does not ask the question, and it would take that
+  document from 317 KB to 422 KB. See api-contract.md §2.
+- **The Next buses panel now uses the agency's own arrival times** where it has
+  them, instead of adding a bus's current lateness to the scheduled time. That
+  shortcut assumes a bus stays exactly as late as it is now all the way down the
+  line; measured against the real feed it is off by more than a minute on 64% of
+  stops and by more than two minutes on 41%. Where the agency publishes no
+  prediction — mostly buses that have not started their trip yet — the previous
+  estimate is still used, because it is the only answer there is.
 
 ### Fixed
 

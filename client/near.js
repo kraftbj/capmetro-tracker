@@ -85,11 +85,9 @@
     return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)));
   }
 
-  /* 0/0 is the Gulf of Guinea, not Austin — the feed's "no position recorded". */
-  function hasFix(p) {
-    return !!p && typeof p.lat === 'number' && typeof p.lon === 'number' &&
-      isFinite(p.lat) && isFinite(p.lon) && !(p.lat === 0 && p.lon === 0);
-  }
+  /* 0/0 is the Gulf of Guinea, not Austin — the feed's "no position recorded".
+     Shared with map.js through format.js; see the note there. */
+  var hasFix = fmt.hasFix;
 
   /*
    * Every stop the payload publishes for one direction, timepoints and the
@@ -232,19 +230,8 @@
     };
   }
 
-  /* The prediction row for one stop on one vehicle, or null. Matching is on
-     stop_id, not stop_sequence: route 4 runs a 17-stop baseline on five
-     services and a 19-stop one on three others, so the same physical stop does
-     not carry the same sequence on every trip. */
-  function predictionFor(vehicle, stopId) {
-    var rows = (vehicle && vehicle.predictions) || [];
-    for (var i = 0; i < rows.length; i++) {
-      if (rows[i] && String(rows[i][1]) === String(stopId)) {
-        return { stop_sequence: rows[i][0], stop_id: String(rows[i][1]), predicted_at: rows[i][2] };
-      }
-    }
-    return null;
-  }
+  /* Shared with stopboard.js through format.js; see the note there. */
+  var predictionFor = fmt.predictionFor;
 
   /*
    * Buses that still have this stop ahead of them, soonest first.
@@ -300,6 +287,21 @@
    */
   var AT_STOP_M = 25;
 
+  /*
+   * Past this, the fix is not somebody standing near this route.
+   *
+   * nearestStop() always returns SOMETHING -- it is a minimum over a list, and a
+   * minimum has no notion of "too far". A desktop browser geolocating by IP can
+   * land tens of kilometres out, and someone opening the link from out of town
+   * would be snapped to an Austin stop and handed a countdown for it, rendered
+   * exactly like a correct answer.
+   *
+   * 2 km is about a 25-minute walk. Nobody waiting for this bus is that far
+   * from every stop on its route, and anybody who is wants to hear that rather
+   * than a time.
+   */
+  var MAX_SNAP_M = 2000;
+
   function walk(meters) {
     if (!isFinite(meters)) return '';
     if (meters < AT_STOP_M) return 'here';
@@ -310,11 +312,40 @@
 
   /* ---- rendering -------------------------------------------------------- */
 
-  function geoErrorText(err) {
+  /*
+   * Is this page allowed to ask at all?
+   *
+   * Geolocation requires a secure context. https qualifies, and so does
+   * file:// in Chromium — verified, because opening from disk is a stated
+   * requirement of this board and it would be easy to assume otherwise. What
+   * cannot be assumed is that every browser grants a PERMISSION to an opaque
+   * file:// origin: one that refuses reports the same code 1 a person tapping
+   * "Block" produces, and telling somebody they declined when their browser
+   * decided for them sends them hunting through settings they never touched.
+   */
+  function canAsk(win) {
+    var w = win || global;
+    if (!w.navigator || !w.navigator.geolocation) return 'unsupported';
+    if (w.isSecureContext === false) return 'insecure';
+    return 'ok';
+  }
+
+  function isFileOrigin(win) {
+    var w = win || global;
+    return !!(w.location && w.location.protocol === 'file:');
+  }
+
+  function geoErrorText(err, win) {
     if (!err) return 'Your browser did not return a location.';
     /* Codes rather than names: the constants are on the interface, not the
        instance, in some engines. */
     if (err.code === 1) {
+      if (isFileOrigin(win)) {
+        return 'This page is open from a file on disk, and the location was refused. ' +
+          'That may have been you, or the browser refusing to grant a file:// page the ' +
+          'permission at all — some do. Serving the board over https settles which. ' +
+          'Either way nothing was sent anywhere.';
+      }
       return 'Location permission was declined, so the board cannot tell which stop you are at. ' +
         'Nothing was sent anywhere — the check happens entirely in this browser.';
     }
@@ -406,6 +437,39 @@
   }
 
   /*
+   * The panel's whole answer as data: for each direction in view, the stop the
+   * rider was snapped to and what is coming to it.
+   *
+   * render() and highlightedVehicleIds() both need this and used to compute it
+   * separately, which is two chances to disagree about which bus the panel is
+   * naming -- the row would be marked for a bus the panel never mentioned. One
+   * function, called twice per paint, over a few dozen stops.
+   *
+   * `tooFar` rows carry a stop that exists but is not one anybody is standing
+   * at, so the caller can say so rather than counting down to it.
+   */
+  function findPerDirection(data, opts) {
+    var geo = opts && opts.geo;
+    if (!geo || geo.status !== 'ok' || !data || !data.timepoints) return [];
+    var dirs = opts.direction === 'both'
+      ? global.CMB.rows.directionsInLadderOrder(data).map(function (d) { return d.id; })
+      : [opts.direction];
+    var out = [];
+    dirs.forEach(function (dir) {
+      var found = nearestStop(stopsOnRoute(data, dir), geo.lat, geo.lon, geo.accuracy);
+      if (!found) return;
+      var tooFar = found.meters > MAX_SNAP_M;
+      out.push({
+        direction_id: dir,
+        found: found,
+        tooFar: tooFar,
+        arrivals: tooFar ? [] : arrivals(data, found.stop, data.generated_at)
+      });
+    });
+    return out;
+  }
+
+  /*
    * render(host, data, opts)
    *   opts.direction  0 | 1 | 'both'
    *   opts.geo        null | {status, lat, lon, accuracy, at, error}
@@ -443,6 +507,14 @@
       return;
     }
 
+    if (geo.status === 'insecure') {
+      band.appendChild(S.notice('empty', 'This page cannot ask for your location.',
+        'Browsers only hand out a location to a page served over https. This one is not, ' +
+        'so the board never got as far as asking.'));
+      host.appendChild(band);
+      return;
+    }
+
     if (geo.status === 'locating') {
       var wait = el('p', 'near__pitch', 'Getting your location…');
       wait.setAttribute('role', 'status');
@@ -453,16 +525,32 @@
 
     if (geo.status === 'error') {
       band.appendChild(S.notice('error', 'Could not use your location.',
-        geoErrorText(geo.error), S.retryButton('Try again', opts.onLocate)));
+        geoErrorText(geo.error, opts.window), S.retryButton('Try again', opts.onLocate)));
       host.appendChild(band);
       return;
     }
 
     /* status === 'ok' */
+    /*
+     * Is the fix still about where the reader is?
+     *
+     * Both timestamps are the device's, so this is the one age on the board
+     * measured by the device clock rather than generated_at -- comparing a
+     * browser-supplied reading against a server-supplied "now" would be
+     * comparing two different clocks. The board's rule is that payload
+     * freshness comes from the payload, and this is not payload freshness.
+     *
+     * Somebody opens the board at the stop, boards the bus, and half an hour
+     * later the panel is still confidently answering for the corner they left.
+     * Nothing on screen looks broken, which is what makes it worth saying.
+     */
+    var fixAge = typeof geo.at === 'number' ? Date.now() - geo.at : null;
+    var fixStale = fixAge !== null && fixAge > FIX_MAX_AGE_MS;
+
     var head = el('div', 'near__head');
     head.appendChild(el('h2', 'near__title', 'Nearest stop'));
     var tools = el('span', 'near__tools');
-    var again = el('button', 'btn btn--ghost', 'Update');
+    var again = el('button', fixStale ? 'btn btn--primary' : 'btn btn--ghost', 'Update');
     again.type = 'button';
     again.addEventListener('click', opts.onLocate);
     tools.appendChild(again);
@@ -472,6 +560,14 @@
     tools.appendChild(off);
     head.appendChild(tools);
     band.appendChild(head);
+
+    if (fixStale) {
+      var warn = el('p', 'near__caveat near__fixage');
+      warn.setAttribute('role', 'status');
+      warn.textContent = 'Your location was taken ' + fmt.age(Math.round(fixAge / 1000)) +
+        '. If you have moved since, update it before trusting these times.';
+      band.appendChild(warn);
+    }
 
     if (!data || !data.timepoints || !data.timepoints.length) {
       band.appendChild(S.notice('empty', 'No stops published for this route.',
@@ -486,21 +582,38 @@
      * BOTH mode answers for both rather than picking the marginally closer of
      * the pair and being wrong half the time.
      */
-    var dirs = opts.direction === 'both'
-      ? global.CMB.rows.directionsInLadderOrder(data).map(function (d) { return d.id; })
-      : [opts.direction];
-
     var now = data.generated_at;
     var any = false;
-    dirs.forEach(function (dir) {
-      var found = nearestStop(stopsOnRoute(data, dir), geo.lat, geo.lon, geo.accuracy);
-      if (!found) return;
+    var tooFar = null;
+    findPerDirection(data, opts).forEach(function (r) {
+      var dir = r.direction_id;
+      var found = r.found;
+      if (r.tooFar) {
+        /* Remember the closest miss so the message can say how far off it is,
+           rather than just refusing. */
+        if (tooFar === null || found.meters < tooFar) tooFar = found.meters;
+        return;
+      }
       any = true;
-      band.appendChild(stopBlock(data, found, now,
-        dirs.length > 1 ? fmt.directionTagFor(data, dir) : null));
+      /*
+       * The tag is rendered even when the board is filtered to one direction.
+       * That is the case where it matters MOST: Austin's inbound and outbound
+       * kerbs face each other across the street, well inside GPS error, so a
+       * single-direction board is exactly where the panel is most likely to
+       * have picked the wrong side of the road. Naming the stop with no
+       * direction there was the one place a rider could be confidently sent to
+       * the opposite kerb.
+       */
+      band.appendChild(stopBlock(data, found, now, fmt.directionTagFor(data, dir)));
     });
 
-    if (!any) {
+    if (!any && tooFar !== null) {
+      band.appendChild(S.notice('empty',
+        'You do not look like you are on this route.',
+        'The nearest stop on it is ' + walk(tooFar) + ' away. If you are heading there, ' +
+        'the board can still show you every bus on the route — it just will not ' +
+        'pretend to know which stop you are waiting at.'));
+    } else if (!any) {
       band.appendChild(S.notice('empty', 'No stop on this route has a position.',
         'Nothing published for this direction carries coordinates, so you cannot be placed on it.'));
     }
@@ -517,23 +630,13 @@
   /*
    * The vehicles the panel is currently naming, so the rows can be marked. The
    * highlight is a marker on rows that already exist, not a re-sort: the rows
-   * are ordered worst-news-first for a reason and quietly promoting "your" bus
-   * to the top would hide a very late one above it.
+   * run in route order to match the ladder beside them, and pulling "your" bus
+   * out of that order would break the correspondence between the two panels.
    */
   function highlightedVehicleIds(data, opts) {
-    var geo = opts && opts.geo;
-    if (!geo || geo.status !== 'ok' || !data || !data.timepoints) return [];
-    var dirs = opts.direction === 'both'
-      ? global.CMB.rows.directionsInLadderOrder(data).map(function (d) { return d.id; })
-      : [opts.direction];
-    var ids = [];
-    dirs.forEach(function (dir) {
-      var found = nearestStop(stopsOnRoute(data, dir), geo.lat, geo.lon, geo.accuracy);
-      if (!found) return;
-      var list = arrivals(data, found.stop, data.generated_at);
-      if (list.length) ids.push(list[0].vehicle.vehicle_id);
-    });
-    return ids;
+    return findPerDirection(data, opts)
+      .filter(function (r) { return r.arrivals.length; })
+      .map(function (r) { return r.arrivals[0].vehicle.vehicle_id; });
   }
 
   global.CMB.near = {
@@ -543,6 +646,8 @@
     arrivals: arrivals,
     predictionFor: predictionFor,
     metersBetween: metersBetween,
+    canAsk: canAsk,
+    geoErrorText: geoErrorText,
     countdown: countdown,
     countdownSpoken: countdownSpoken,
     walk: walk,

@@ -35,9 +35,9 @@ window.CMB_FIXTURES["4"] =
  "feeds": {
   "positions_at": 1787152239,
   "trip_updates_at": 1787152196,
-  "alerts_at": 1787152139,
+  "alerts_at": 1787152239,
   "gtfs_feed_version": "260818_1456",
-  "gtfs_built_at": 1787100239
+  "gtfs_built_at": 1787082960
  },
  "staleness": {
   "level": "fresh",
@@ -57,6 +57,8 @@ window.CMB_FIXTURES["4"] =
   {
    "vehicle_id": "2216",
    "label": "2216",
+   "route_id": "4",
+   "route_short_name": "4",
    "position": {
     "lat": 30.270388,
     "lon": -97.75505,
@@ -65,8 +67,6 @@ window.CMB_FIXTURES["4"] =
    },
    "position_at": 1787152237,
    "in_service": true,
-   "route_id": "4",
-   "route_short_name": "4",
    "trip": {
     "trip_id": "3014769_15202",
     "start_time": "10:05:00",
@@ -79,6 +79,19 @@ window.CMB_FIXTURES["4"] =
     "current_stop_sequence": 5,
     "current_stop_id": "2107",
     "current_status": "IN_TRANSIT_TO"
+   },
+   "adherence": {
+    "state": "ontime",
+    "seconds": -13,
+    "glyph": "circle",
+    "against": {
+     "stop_id": "2107",
+     "stop_name": "5th/Bowie",
+     "stop_sequence": 5,
+     "scheduled_at": 1787152297,
+     "predicted_at": 1787152284
+    },
+    "reason": null
    },
    "predictions": [
     [
@@ -197,389 +210,47 @@ window.CMB_FIXTURES["4"] =
      1787153917
     ]
    ],
-   "adherence": {
-    "state": "ontime",
-    "seconds": -13,
-    "glyph": "circle",
-    "against": {
-     "stop_id": "2107",
-     "stop_name": "5th/Bowie",
-     "stop_sequence": 5,
-     "scheduled_at": 1787152297,
-     "predicted_at": 1787152284
-    },
-    "reason": null
-   },
    "pattern": {
     "is_baseline": true,
     "is_special": false,
-    "trips_in_pattern": 397,
+    "trips_in_pattern": 58,
     "adds": [],
     "skips": []
    },
    "block": {
     "block_id": "4004",
     "confidence": "high",
+    "spans_routes": false,
+    "route_ids": [
+     "4"
+    ],
     "next_trip": {
-     "trip_id": "3014710_15497",
+     "trip_id": "3014710_15612",
+     "route_id": "4",
+     "route_short_name": "4",
      "direction_id": 0,
      "start_time": "10:53:00",
      "start_epoch": 1787154780,
      "start_stop_id": "1368",
      "start_stop_name": "Pleasant Valley/5th",
      "is_direction_flip": true
-    }
-   }
-  },
-  {
-   "vehicle_id": "2701",
-   "label": "2701",
-   "position": {
-    "lat": 30.261444,
-    "lon": -97.71693,
-    "bearing": null,
-    "speed_mps": 0.0
-   },
-   "position_at": 1787152237,
-   "in_service": true,
-   "route_id": "4",
-   "route_short_name": "4",
-   "trip": {
-    "trip_id": "3014707_15609",
-    "start_time": "10:05:00",
-    "start_epoch": 1787151900,
-    "direction_id": 0,
-    "headsign": "4 Mopac WB",
-    "schedule_relationship": "SCHEDULED"
-   },
-   "progress": {
-    "current_stop_sequence": 5,
-    "current_stop_id": "4181",
-    "current_status": "STOPPED_AT"
-   },
-   "predictions": [
-    [
-     5,
-     "4181",
-     1787152191
-    ],
-    [
-     6,
-     "5119",
-     1787152276
-    ],
-    [
-     7,
-     "5120",
-     1787152343
-    ],
-    [
-     8,
-     "6460",
-     1787152394
-    ],
-    [
-     9,
-     "5949",
-     1787152669
-    ],
-    [
-     10,
-     "5937",
-     1787152787
-    ],
-    [
-     11,
-     "5938",
-     1787152844
-    ],
-    [
-     12,
-     "5499",
-     1787153099
-    ],
-    [
-     13,
-     "1970",
-     1787153116
-    ],
-    [
-     14,
-     "1972",
-     1787153197
-    ],
-    [
-     15,
-     "1973",
-     1787153218
-    ],
-    [
-     16,
-     "1974",
-     1787153239
-    ],
-    [
-     17,
-     "6243",
-     1787153292
-    ]
-   ],
-   "adherence": {
-    "state": "ontime",
-    "seconds": 42,
-    "glyph": "circle",
-    "against": {
-     "stop_id": "4181",
-     "stop_name": "7th/Northwestern",
-     "stop_sequence": 5,
-     "scheduled_at": 1787152149,
-     "predicted_at": 1787152191
     },
-    "reason": null
-   },
-   "pattern": {
-    "is_baseline": true,
-    "is_special": false,
-    "trips_in_pattern": 268,
-    "adds": [],
-    "skips": []
-   },
-   "block": {
-    "block_id": "4001",
-    "confidence": "low",
-    "next_trip": {
-     "trip_id": "3005612_15783",
-     "direction_id": 0,
-     "start_time": "10:25:00",
-     "start_epoch": 1787153100,
-     "start_stop_id": "1368",
-     "start_stop_name": "Pleasant Valley/5th",
-     "is_direction_flip": false
-    }
-   }
-  },
-  {
-   "vehicle_id": "2858",
-   "label": "2858",
-   "position": {
-    "lat": 30.26257,
-    "lon": -97.722305,
-    "bearing": null,
-    "speed_mps": 0.044704
-   },
-   "position_at": 1787152236,
-   "in_service": true,
-   "route_id": "4",
-   "route_short_name": "4",
-   "trip": {
-    "trip_id": "3014768_15201",
-    "start_time": "09:49:00",
-    "start_epoch": 1787150940,
-    "direction_id": 1,
-    "headsign": "4 Shady EB",
-    "schedule_relationship": "SCHEDULED"
-   },
-   "progress": {
-    "current_stop_sequence": 15,
-    "current_stop_id": "934",
-    "current_status": "STOPPED_AT"
-   },
-   "predictions": [
-    [
-     15,
-     "934",
-     1787152218
-    ],
-    [
-     16,
-     "935",
-     1787152248
-    ],
-    [
-     17,
-     "936",
-     1787152294
-    ],
-    [
-     18,
-     "937",
-     1787152338
-    ],
-    [
-     19,
-     "938",
-     1787152381
-    ],
-    [
-     20,
-     "939",
-     1787152439
-    ],
-    [
-     21,
-     "6570",
-     1787152495
-    ],
-    [
-     22,
-     "942",
-     1787152523
-    ],
-    [
-     23,
-     "6450",
-     1787152565
-    ],
-    [
-     24,
-     "6261",
-     1787152708
-    ],
-    [
-     25,
-     "6263",
-     1787152733
-    ],
-    [
-     26,
-     "6265",
-     1787152825
-    ],
-    [
-     27,
-     "1368",
-     1787152904
-    ]
-   ],
-   "adherence": {
-    "state": "ontime",
-    "seconds": -45,
-    "glyph": "circle",
-    "against": {
-     "stop_id": "934",
-     "stop_name": "Chicon/East 7th",
-     "stop_sequence": 15,
-     "scheduled_at": 1787152263,
-     "predicted_at": 1787152218
-    },
-    "reason": null
-   },
-   "pattern": {
-    "is_baseline": true,
-    "is_special": false,
-    "trips_in_pattern": 397,
-    "adds": [],
-    "skips": []
-   },
-   "block": {
-    "block_id": "4002",
-    "confidence": "low",
-    "next_trip": {
-     "trip_id": "3005613_15782",
-     "direction_id": 0,
-     "start_time": "09:55:00",
-     "start_epoch": 1787151300,
-     "start_stop_id": "1368",
-     "start_stop_name": "Pleasant Valley/5th",
-     "is_direction_flip": true
-    }
-   }
-  },
-  {
-   "vehicle_id": "2867",
-   "label": "2867",
-   "position": {
-    "lat": 30.271435,
-    "lon": -97.75368,
-    "bearing": null,
-    "speed_mps": 0.312928
-   },
-   "position_at": 1787152235,
-   "in_service": true,
-   "route_id": "4",
-   "route_short_name": "4",
-   "trip": {
-    "trip_id": "3014706_15608",
-    "start_time": "09:49:00",
-    "start_epoch": 1787150940,
-    "direction_id": 0,
-    "headsign": "4 Mopac WB",
-    "schedule_relationship": "SCHEDULED"
-   },
-   "progress": {
-    "current_stop_sequence": 14,
-    "current_stop_id": "1972",
-    "current_status": "IN_TRANSIT_TO"
-   },
-   "predictions": [
-    [
-     14,
-     "1972",
-     1787152292
-    ],
-    [
-     15,
-     "1973",
-     1787152310
-    ],
-    [
-     16,
-     "1974",
-     1787152327
-    ],
-    [
-     17,
-     "6243",
-     1787152367
-    ]
-   ],
-   "adherence": {
-    "state": "ontime",
-    "seconds": 35,
-    "glyph": "circle",
-    "against": {
-     "stop_id": "1972",
-     "stop_name": "6th/Harthan",
-     "stop_sequence": 14,
-     "scheduled_at": 1787152257,
-     "predicted_at": 1787152292
-    },
-    "reason": null
-   },
-   "pattern": {
-    "is_baseline": true,
-    "is_special": false,
-    "trips_in_pattern": 268,
-    "adds": [],
-    "skips": []
-   },
-   "block": {
-    "block_id": "1010",
-    "confidence": "high",
-    "next_trip": {
-     "trip_id": "3014770_15088",
-     "direction_id": 1,
-     "start_time": "10:21:00",
-     "start_epoch": 1787152860,
-     "start_stop_id": "6243",
-     "start_stop_name": "Campbell/5th",
-     "is_direction_flip": true
-    }
+    "is_last_trip": false
    }
   },
   {
    "vehicle_id": "2641",
    "label": "2641",
+   "route_id": "4",
+   "route_short_name": "4",
    "position": {
     "lat": 30.257483,
     "lon": -97.71062,
     "bearing": null,
-    "speed_mps": 0.0
+    "speed_mps": 0
    },
    "position_at": 1787152236,
    "in_service": true,
-   "route_id": "4",
-   "route_short_name": "4",
    "trip": {
     "trip_id": "3014708_15610",
     "start_time": "10:21:00",
@@ -592,6 +263,19 @@ window.CMB_FIXTURES["4"] =
     "current_stop_sequence": 1,
     "current_stop_id": "1368",
     "current_status": "STOPPED_AT"
+   },
+   "adherence": {
+    "state": "ontime",
+    "seconds": 0,
+    "glyph": "circle",
+    "against": {
+     "stop_id": "1368",
+     "stop_name": "Pleasant Valley/5th",
+     "stop_sequence": 1,
+     "scheduled_at": 1787152860,
+     "predicted_at": 1787152860
+    },
+    "reason": null
    },
    "predictions": [
     [
@@ -680,59 +364,391 @@ window.CMB_FIXTURES["4"] =
      1787154417
     ]
    ],
-   "adherence": {
-    "state": "ontime",
-    "seconds": 0,
-    "glyph": "circle",
-    "against": {
-     "stop_id": "1368",
-     "stop_name": "Pleasant Valley/5th",
-     "stop_sequence": 1,
-     "scheduled_at": 1787152860,
-     "predicted_at": 1787152860
-    },
-    "reason": null
-   },
    "pattern": {
     "is_baseline": true,
     "is_special": false,
-    "trips_in_pattern": 268,
+    "trips_in_pattern": 58,
     "adds": [],
     "skips": []
    },
    "block": {
     "block_id": "4003",
     "confidence": "high",
+    "spans_routes": false,
+    "route_ids": [
+     "4"
+    ],
     "next_trip": {
-     "trip_id": "3014772_15090",
+     "trip_id": "3014772_15205",
+     "route_id": "4",
+     "route_short_name": "4",
      "direction_id": 1,
      "start_time": "10:53:00",
      "start_epoch": 1787154780,
      "start_stop_id": "6243",
      "start_stop_name": "Campbell/5th",
      "is_direction_flip": true
-    }
+    },
+    "is_last_trip": false
    }
   },
   {
-   "vehicle_id": "2305",
-   "label": "2305",
-   "position": {
-    "lat": 30.256681,
-    "lon": -97.70781,
-    "bearing": null,
-    "speed_mps": 0.1536242
-   },
-   "position_at": 1787152229,
-   "in_service": false,
+   "vehicle_id": "2701",
+   "label": "2701",
    "route_id": "4",
    "route_short_name": "4",
+   "position": {
+    "lat": 30.261444,
+    "lon": -97.71693,
+    "bearing": null,
+    "speed_mps": 0
+   },
+   "position_at": 1787152237,
+   "in_service": true,
+   "trip": {
+    "trip_id": "3014707_15609",
+    "start_time": "10:05:00",
+    "start_epoch": 1787151900,
+    "direction_id": 0,
+    "headsign": "4 Mopac WB",
+    "schedule_relationship": "SCHEDULED"
+   },
+   "progress": {
+    "current_stop_sequence": 5,
+    "current_stop_id": "4181",
+    "current_status": "STOPPED_AT"
+   },
    "adherence": {
-    "state": "deadhead",
-    "seconds": null,
-    "glyph": "ring",
-    "against": null,
+    "state": "ontime",
+    "seconds": 42,
+    "glyph": "circle",
+    "against": {
+     "stop_id": "4181",
+     "stop_name": "7th/Northwestern",
+     "stop_sequence": 5,
+     "scheduled_at": 1787152149,
+     "predicted_at": 1787152191
+    },
     "reason": null
+   },
+   "predictions": [
+    [
+     5,
+     "4181",
+     1787152191
+    ],
+    [
+     6,
+     "5119",
+     1787152276
+    ],
+    [
+     7,
+     "5120",
+     1787152343
+    ],
+    [
+     8,
+     "6460",
+     1787152394
+    ],
+    [
+     9,
+     "5949",
+     1787152669
+    ],
+    [
+     10,
+     "5937",
+     1787152787
+    ],
+    [
+     11,
+     "5938",
+     1787152844
+    ],
+    [
+     12,
+     "5499",
+     1787153099
+    ],
+    [
+     13,
+     "1970",
+     1787153116
+    ],
+    [
+     14,
+     "1972",
+     1787153197
+    ],
+    [
+     15,
+     "1973",
+     1787153218
+    ],
+    [
+     16,
+     "1974",
+     1787153239
+    ],
+    [
+     17,
+     "6243",
+     1787153292
+    ]
+   ],
+   "pattern": {
+    "is_baseline": true,
+    "is_special": false,
+    "trips_in_pattern": 58,
+    "adds": [],
+    "skips": []
+   },
+   "block": {
+    "block_id": "4001",
+    "confidence": "high",
+    "spans_routes": false,
+    "route_ids": [
+     "4"
+    ],
+    "next_trip": {
+     "trip_id": "3014771_15204",
+     "route_id": "4",
+     "route_short_name": "4",
+     "direction_id": 1,
+     "start_time": "10:37:00",
+     "start_epoch": 1787153820,
+     "start_stop_id": "6243",
+     "start_stop_name": "Campbell/5th",
+     "is_direction_flip": true
+    },
+    "is_last_trip": false
+   }
+  },
+  {
+   "vehicle_id": "2858",
+   "label": "2858",
+   "route_id": "4",
+   "route_short_name": "4",
+   "position": {
+    "lat": 30.26257,
+    "lon": -97.722305,
+    "bearing": null,
+    "speed_mps": 0.044704
+   },
+   "position_at": 1787152236,
+   "in_service": true,
+   "trip": {
+    "trip_id": "3014768_15201",
+    "start_time": "09:49:00",
+    "start_epoch": 1787150940,
+    "direction_id": 1,
+    "headsign": "4 Shady EB",
+    "schedule_relationship": "SCHEDULED"
+   },
+   "progress": {
+    "current_stop_sequence": 15,
+    "current_stop_id": "934",
+    "current_status": "STOPPED_AT"
+   },
+   "adherence": {
+    "state": "ontime",
+    "seconds": -45,
+    "glyph": "circle",
+    "against": {
+     "stop_id": "934",
+     "stop_name": "Chicon/East 7th",
+     "stop_sequence": 15,
+     "scheduled_at": 1787152263,
+     "predicted_at": 1787152218
+    },
+    "reason": null
+   },
+   "predictions": [
+    [
+     15,
+     "934",
+     1787152218
+    ],
+    [
+     16,
+     "935",
+     1787152248
+    ],
+    [
+     17,
+     "936",
+     1787152294
+    ],
+    [
+     18,
+     "937",
+     1787152338
+    ],
+    [
+     19,
+     "938",
+     1787152381
+    ],
+    [
+     20,
+     "939",
+     1787152439
+    ],
+    [
+     21,
+     "6570",
+     1787152495
+    ],
+    [
+     22,
+     "942",
+     1787152523
+    ],
+    [
+     23,
+     "6450",
+     1787152565
+    ],
+    [
+     24,
+     "6261",
+     1787152708
+    ],
+    [
+     25,
+     "6263",
+     1787152733
+    ],
+    [
+     26,
+     "6265",
+     1787152825
+    ],
+    [
+     27,
+     "1368",
+     1787152904
+    ]
+   ],
+   "pattern": {
+    "is_baseline": true,
+    "is_special": false,
+    "trips_in_pattern": 58,
+    "adds": [],
+    "skips": []
+   },
+   "block": {
+    "block_id": "4002",
+    "confidence": "high",
+    "spans_routes": false,
+    "route_ids": [
+     "4"
+    ],
+    "next_trip": {
+     "trip_id": "3014709_15611",
+     "route_id": "4",
+     "route_short_name": "4",
+     "direction_id": 0,
+     "start_time": "10:37:00",
+     "start_epoch": 1787153820,
+     "start_stop_id": "1368",
+     "start_stop_name": "Pleasant Valley/5th",
+     "is_direction_flip": true
+    },
+    "is_last_trip": false
+   }
+  },
+  {
+   "vehicle_id": "2867",
+   "label": "2867",
+   "route_id": "4",
+   "route_short_name": "4",
+   "position": {
+    "lat": 30.271435,
+    "lon": -97.75368,
+    "bearing": null,
+    "speed_mps": 0.312928
+   },
+   "position_at": 1787152235,
+   "in_service": true,
+   "trip": {
+    "trip_id": "3014706_15608",
+    "start_time": "09:49:00",
+    "start_epoch": 1787150940,
+    "direction_id": 0,
+    "headsign": "4 Mopac WB",
+    "schedule_relationship": "SCHEDULED"
+   },
+   "progress": {
+    "current_stop_sequence": 14,
+    "current_stop_id": "1972",
+    "current_status": "IN_TRANSIT_TO"
+   },
+   "adherence": {
+    "state": "ontime",
+    "seconds": 35,
+    "glyph": "circle",
+    "against": {
+     "stop_id": "1972",
+     "stop_name": "6th/Harthan",
+     "stop_sequence": 14,
+     "scheduled_at": 1787152257,
+     "predicted_at": 1787152292
+    },
+    "reason": null
+   },
+   "predictions": [
+    [
+     14,
+     "1972",
+     1787152292
+    ],
+    [
+     15,
+     "1973",
+     1787152310
+    ],
+    [
+     16,
+     "1974",
+     1787152327
+    ],
+    [
+     17,
+     "6243",
+     1787152367
+    ]
+   ],
+   "pattern": {
+    "is_baseline": true,
+    "is_special": false,
+    "trips_in_pattern": 58,
+    "adds": [],
+    "skips": []
+   },
+   "block": {
+    "block_id": "1010",
+    "confidence": "low",
+    "spans_routes": true,
+    "route_ids": [
+     "1",
+     "4",
+     "485"
+    ],
+    "next_trip": {
+     "trip_id": "3014770_15203",
+     "route_id": "4",
+     "route_short_name": "4",
+     "direction_id": 1,
+     "start_time": "10:21:00",
+     "start_epoch": 1787152860,
+     "start_stop_id": "6243",
+     "start_stop_name": "Campbell/5th",
+     "is_direction_flip": true
+    },
+    "is_last_trip": false
    }
   }
  ],
@@ -876,6 +892,18 @@ window.CMB_FIXTURES["4"] =
      }
     },
     {
+     "stop_id": "1967",
+     "stop_name": "6th/San Antonio",
+     "stop_sequence": 12,
+     "lat": 30.26939,
+     "lon": -97.7472,
+     "service_status": {
+      "served": false,
+      "source": "alert_no_service",
+      "detail": "Stop closed by service alert"
+     }
+    },
+    {
      "stop_id": "5499",
      "stop_name": "6th/West",
      "stop_sequence": 12,
@@ -897,6 +925,18 @@ window.CMB_FIXTURES["4"] =
       "served": true,
       "source": null,
       "detail": null
+     }
+    },
+    {
+     "stop_id": "1971",
+     "stop_name": "6th/Baylor",
+     "stop_sequence": 15,
+     "lat": 30.271955,
+     "lon": -97.754879,
+     "service_status": {
+      "served": false,
+      "source": "alert_no_service",
+      "detail": "Stop closed by service alert"
      }
     },
     {
@@ -933,6 +973,18 @@ window.CMB_FIXTURES["4"] =
       "served": true,
       "source": null,
       "detail": null
+     }
+    },
+    {
+     "stop_id": "1977",
+     "stop_name": "Veterans/Atlanta",
+     "stop_sequence": 17,
+     "lat": 30.276121,
+     "lon": -97.771658,
+     "service_status": {
+      "served": false,
+      "source": "pattern_skip",
+      "detail": "Not served by any trip running today"
      }
     }
    ]
@@ -1205,9 +1257,21 @@ window.CMB_FIXTURES["4"] =
      "lat": 30.255952,
      "lon": -97.701621,
      "service_status": {
+      "served": true,
+      "source": null,
+      "detail": null
+     }
+    },
+    {
+     "stop_id": "1822",
+     "stop_name": "Gardner/Jain Ln.",
+     "stop_sequence": 22,
+     "lat": 30.259882,
+     "lon": -97.681633,
+     "service_status": {
       "served": false,
-      "source": "realtime_skipped",
-      "detail": "Skipped on 1 trips today"
+      "source": "pattern_skip",
+      "detail": "Not served by any trip running today"
      }
     },
     {
@@ -1217,9 +1281,9 @@ window.CMB_FIXTURES["4"] =
      "lat": 30.253397,
      "lon": -97.697886,
      "service_status": {
-      "served": false,
-      "source": "realtime_skipped",
-      "detail": "Skipped on 1 trips today"
+      "served": true,
+      "source": null,
+      "detail": null
      }
     },
     {
@@ -1424,7 +1488,8 @@ window.CMB_FIXTURES["4"] =
      ]
     ]
    }
-  ]
+  ],
+  "canceled_trips": []
  },
  "alerts": [
   {

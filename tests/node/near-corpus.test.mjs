@@ -17,7 +17,15 @@ import { API, readGenerated, requireGenerated, routeFiles } from './helpers/webr
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
-const client = renderClient(['format.js', 'adherence.js', 'states.js', 'rows.js', 'near.js'])
+const client = renderClient([
+  'format.js',
+  'adherence.js',
+  'states.js',
+  'rows.js',
+  'watch.js',
+  'stopboard.js',
+  'near.js',
+])
 
 const t = (name, fn) =>
   it(name, (ctx) => {
@@ -171,6 +179,63 @@ describe('predictions across every generated route', () => {
     for (const v of doc.vehicles) {
       expect(v.predictions, `all.json #${v.vehicle_id}`).toBeUndefined()
     }
+  })
+})
+
+describe('the two panels tell one story', () => {
+  t('never show different arrival times for the same bus at the same stop', (cmb) => {
+    /*
+     * near.js and stopboard.js both answer "when does this bus reach this
+     * stop", on the same screen, for the same rider. Two sources for one
+     * number is the failure this codebase keeps writing comments about
+     * (allbuses.js on bunching, the stop-name pair in CLAUDE.md), and it is
+     * invisible in a fixture: route 4 is small and mostly on time.
+     *
+     * Measured across this corpus, the feed's own prediction and the
+     * scheduled+deviation estimate stopboard used to compute differ by over a
+     * minute on 64% of comparable (stop, bus) pairs and by up to 53 minutes,
+     * so agreement here is a real constraint rather than a rounding check.
+     */
+    let compared = 0
+    eachRoute((doc, name) => {
+      const rid = name.replace(/\.json$/, '')
+      const depPath = path.join(API, 'departures', `${rid}.json`)
+      if (!existsSync(depPath)) return
+      const dep = readGenerated(depPath)
+      if (dep.service_day_start_epoch === null) return
+
+      for (const stop of dep.stops) {
+        const groups = cmb.stopboard.nextAtStop(dep, doc, stop.stop_id, doc.generated_at, 4)
+        for (const group of groups) {
+          for (const d of group.departures) {
+            if (!d.vehicle || d.canceled) continue
+            const feed = cmb.fmt.predictionFor(d.vehicle, stop.stop_id)
+            if (!feed) continue
+            /* The stop board must be showing the feed's number, not its own
+               extrapolation, whenever the feed has one. */
+            expect(
+              d.predicted_at,
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}`,
+            ).toBe(feed.predicted_at)
+
+            const nearStop = cmb.near
+              .stopsOnRoute(doc, d.trip.direction_id)
+              .find((s) => s.stop_id === String(stop.stop_id))
+            if (!nearStop) continue
+            const mine = cmb.near
+              .arrivals(doc, nearStop, doc.generated_at)
+              .find((a) => a.vehicle.vehicle_id === d.vehicle.vehicle_id)
+            if (!mine) continue
+            expect(
+              mine.predicted_at,
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: the two panels disagree`,
+            ).toBe(d.predicted_at)
+            compared++
+          }
+        }
+      }
+    })
+    expect(compared, 'no (stop, bus) pair was comparable across both panels').toBeGreaterThan(0)
   })
 })
 

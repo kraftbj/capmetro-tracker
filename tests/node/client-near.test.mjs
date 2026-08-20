@@ -380,6 +380,168 @@ describe('what the panel renders', () => {
   })
 })
 
+describe('what the panel refuses to answer', () => {
+  t('does not snap somebody who is nowhere near the route', (cmb, document) => {
+    /*
+     * nearestStop() is a minimum over a list and a minimum has no notion of
+     * "too far". A desktop browser geolocating by IP can land tens of
+     * kilometres out, and the panel would hand that person a countdown for an
+     * Austin stop rendered exactly like a correct answer.
+     */
+    const data = goldenRoute4()
+    const host = draw(cmb, document, data, {
+      direction: 0,
+      geo: { status: 'ok', lat: 32.7767, lon: -96.797, accuracy: 20 }, // Dallas
+    })
+    const text = textDeep(host)
+
+    expect(text).toContain('do not look like you are on this route')
+    expect(all(host, 'near__when')).toHaveLength(0)
+    expect(all(host, 'near__arrivals')).toHaveLength(0)
+  })
+
+  t('marks no vehicle row when the fix is too far away', (cmb) => {
+    const data = goldenRoute4()
+    const ids = cmb.near.highlightedVehicleIds(data, {
+      direction: 0,
+      geo: { status: 'ok', lat: 32.7767, lon: -96.797, accuracy: 20 },
+    })
+
+    expect(ids).toEqual([])
+  })
+
+  t('says a fix has gone stale rather than answering for where you were', (cmb, document) => {
+    /*
+     * Somebody opens the board at the stop, boards the bus, and half an hour
+     * later the panel is still confidently answering for the corner they left.
+     * Nothing on screen looks broken, which is exactly why it has to say so.
+     */
+    const data = goldenRoute4()
+    const stop = cmb.near.stopsOnRoute(data, 0)[2]
+    const old = draw(cmb, document, data, {
+      direction: 0,
+      geo: {
+        status: 'ok',
+        lat: stop.lat,
+        lon: stop.lon,
+        accuracy: 8,
+        at: Date.now() - cmb.near.FIX_MAX_AGE_MS - 1000,
+      },
+    })
+    const fresh = draw(cmb, document, data, {
+      direction: 0,
+      geo: { status: 'ok', lat: stop.lat, lon: stop.lon, accuracy: 8, at: Date.now() },
+    })
+
+    expect(textDeep(old)).toContain('Your location was taken')
+    expect(textDeep(fresh)).not.toContain('Your location was taken')
+    /* The times still show — the fix being old is a caveat, not a refusal. */
+    expect(all(old, 'near__when').length).toBeGreaterThan(0)
+  })
+
+  t('names the direction even when the board is filtered to one', (cmb, document) => {
+    /*
+     * Austin's two kerbs face each other across the street, well inside GPS
+     * error, so a single-direction board is where the panel is MOST likely to
+     * have picked the wrong side. Naming a stop with no direction there was the
+     * one place a rider could be confidently sent to the opposite kerb.
+     */
+    const data = goldenRoute4()
+    const stop = cmb.near.stopsOnRoute(data, 0)[2]
+    const host = draw(cmb, document, data, {
+      direction: 0,
+      geo: { status: 'ok', lat: stop.lat, lon: stop.lon, accuracy: 8 },
+    })
+
+    expect(all(host, 'dirtag').length).toBe(1)
+  })
+
+  t('does not blame the reader when the browser refused a file:// page', (cmb, document) => {
+    /*
+     * A browser that will not grant a permission to an opaque file:// origin
+     * reports the same code 1 a person tapping "Block" produces. Telling
+     * somebody they declined when their browser decided for them sends them
+     * hunting through settings they never touched. file:// IS a secure context
+     * in Chromium — verified — so this is about the permission, not the API.
+     */
+    const data = goldenRoute4()
+    const asFile = textDeep(
+      draw(cmb, document, data, {
+        geo: { status: 'error', error: { code: 1 } },
+        window: { location: { protocol: 'file:' } },
+      }),
+    )
+    const asHttps = textDeep(
+      draw(cmb, document, data, {
+        geo: { status: 'error', error: { code: 1 } },
+        window: { location: { protocol: 'https:' } },
+      }),
+    )
+
+    expect(asFile).toContain('open from a file on disk')
+    expect(asHttps).toContain('permission was declined')
+    expect(asHttps).not.toContain('open from a file on disk')
+  })
+
+  t('never asks at all when the page is not a secure context', (cmb, document) => {
+    expect(cmb.near.canAsk({ navigator: { geolocation: {} }, isSecureContext: false }))
+      .toBe('insecure')
+    expect(cmb.near.canAsk({ navigator: {}, isSecureContext: true })).toBe('unsupported')
+    expect(cmb.near.canAsk({ navigator: { geolocation: {} }, isSecureContext: true })).toBe('ok')
+
+    const text = textDeep(draw(cmb, document, goldenRoute4(), { geo: { status: 'insecure' } }))
+    expect(text).toContain('cannot ask for your location')
+    expect(text).toContain('https')
+  })
+
+  t('tells a location failure apart from a browser that cannot locate at all', (cmb, document) => {
+    const data = goldenRoute4()
+    const say = (geo) => textDeep(draw(cmb, document, data, { geo }))
+
+    /* Each branch says something different, because each has a different fix. */
+    expect(say({ status: 'error', error: { code: 2 } })).toContain('could not get a fix')
+    expect(say({ status: 'error', error: { code: 3 } })).toContain('took too long')
+    expect(say({ status: 'unsupported' })).toContain('no location support')
+    /* And none of them implies anything about the buses. */
+    for (const geo of [{ status: 'error', error: { code: 2 } }, { status: 'unsupported' }]) {
+      expect(say(geo)).not.toContain('No bus is approaching')
+    }
+  })
+})
+
+describe('one arrival time, not two', () => {
+  t('agrees with the stop board about when a bus reaches a stop', (cmb) => {
+    /*
+     * near.js and stopboard.js both answer "when does this bus reach this
+     * stop". Before predictions existed there was one answer; publishing a
+     * second source risked two panels on one screen disagreeing about the same
+     * bus. Measured across the corpus, the feed's own prediction and the
+     * scheduled+deviation extrapolation differ by over a minute on 64% of
+     * comparable pairs — so this is a real divergence, not a rounding one.
+     *
+     * Both now read fmt.predictionFor() first, so the accessor is shared and
+     * this test fails the moment either grows its own copy.
+     */
+    const data = goldenRoute4()
+    const vehicle = data.vehicles.find((v) => v.in_service && v.predictions.length)
+    let checked = 0
+
+    for (const [, stopId, predictedAt] of vehicle.predictions) {
+      const viaFmt = cmb.fmt.predictionFor(vehicle, stopId)
+      const stop = stopById(cmb, data, stopId)
+      expect(viaFmt.predicted_at).toBe(predictedAt)
+      if (!stop) continue
+      const mine = cmb.near
+        .arrivals(data, stop, data.generated_at)
+        .find((a) => a.vehicle.vehicle_id === vehicle.vehicle_id)
+      if (!mine) continue
+      expect(mine.predicted_at).toBe(viaFmt.predicted_at)
+      checked++
+    }
+    expect(checked).toBeGreaterThan(0)
+  })
+})
+
 describe('the marked vehicle row', () => {
   t('names the soonest arrival at the nearest stop', (cmb) => {
     const data = goldenRoute4()
@@ -419,9 +581,10 @@ describe('the marked vehicle row', () => {
     }
 
     /*
-     * Rows sort worst-news-first. Promoting your bus to the top would push a
-     * very late one below the fold, which is the failure the sort exists to
-     * prevent — so the marker must be a marker and nothing more.
+     * Rows run in route order so they line up with the ladder beside them.
+     * Promoting your bus to the top would break that correspondence, which is
+     * the whole reason the order exists — so the marker must be a marker and
+     * nothing more.
      */
     expect(order(ids).length).toBe(order([]).length)
     expect(order(ids).filter((c) => c.includes('is-yours')).length).toBe(ids.length)

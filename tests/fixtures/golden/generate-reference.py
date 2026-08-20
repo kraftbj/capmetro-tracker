@@ -1,6 +1,7 @@
 import json, csv, collections, datetime, sys, os
 FX='tests/fixtures/feeds-20260819/'; G='/tmp/gtfs/'
 WINDOW_BEFORE_S, WINDOW_AFTER_S = 900, 2700          # now-15min .. now+45min
+PREDICTION_GRACE_S = 90                              # how far past a prediction may still show
 ROUTE='4'
 def rd(p): return csv.DictReader(open(G+p, encoding='utf-8-sig'))
 stops={s['stop_id']:s for s in rd('stops.txt')}
@@ -103,7 +104,9 @@ for e in vp['entity']:
     # sequence at or ahead of the bus, no SKIPPED, no timeless row, arrival beats departure.
     preds=[]
     cur_seq=v.get('currentStopSequence')
-    if up and cur_seq is not None:
+    canceled = tr.get('scheduleRelationship')=='CANCELED' or \
+        (up or {}).get('trip',{}).get('scheduleRelationship')=='CANCELED'
+    if up and cur_seq is not None and not canceled:
         for s_ in up.get('stopTimeUpdate',[]):
             sq=s_.get('stopSequence')
             if sq is None or int(sq)<int(cur_seq): continue
@@ -111,7 +114,9 @@ for e in vp['entity']:
             t_=(s_.get('arrival') or {}).get('time') or (s_.get('departure') or {}).get('time')
             sid=s_.get('stopId')
             if not t_ or not sid: continue
-            if int(t_)>NOW+WINDOW_AFTER_S: continue
+            # bounded both ways: a stop the bus has already passed keeps its
+            # original time and would sort to the top of a rider's panel as "due"
+            if int(t_)>NOW+WINDOW_AFTER_S or int(t_)<NOW-PREDICTION_GRACE_S: continue
             preds.append([int(sq),str(sid),int(t_)])
     preds.sort(key=lambda r:r[0])
     veh["predictions"]=preds

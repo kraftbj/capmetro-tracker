@@ -137,11 +137,25 @@ no tile server, no geocoder, no key, no network call.
   rows/ladder/map order is settled; this is a stated answer in the slot the
   staleness banners already use. The vehicle rows get a marker, not a re-sort —
   promoting "your" bus above a very late one would defeat the sort.
-- **Verified on `file://`** (the board must open from disk): the panel renders and
-  Chromium returns a fix there. What the harness cannot show is a real
-  permission *prompt* on a `file://` origin, since headless has no prompt UI —
-  if a browser refuses one, `getCurrentPosition` times out at 15s and the panel
-  renders its error state rather than hanging.
+- **Verified on `file://`** (the board must open from disk). Measured, not
+  assumed: Chromium reports `isSecureContext: true` there and exposes
+  `navigator.geolocation`, so the common claim that `file://` is not a secure
+  context does not hold for it. The panel gates on `isSecureContext` itself
+  rather than on the protocol, so a browser where it IS false says "this page
+  cannot ask" instead of blaming the reader. What the harness cannot show is a
+  real permission *prompt* on an opaque `file://` origin, since headless has no
+  prompt UI; a browser that refuses to grant one reports the same code 1 a
+  person tapping Block does, so that message names both possibilities rather
+  than picking one. Still worth ten minutes in a real browser opened from disk.
+- **The arrival time is shared with the stop board.** Both panels answer "when
+  does this bus reach this stop", so both read `fmt.predictionFor()` first.
+  stopboard.js used to add the bus's current lateness to the scheduled time,
+  which assumes the deviation measured at whatever stop the bus is approaching
+  still holds by the time it reaches yours — across the corpus the two disagree
+  by over a minute on 64% of comparable pairs and by up to 53 minutes. It keeps
+  that estimate as a fallback, because predictions only cover stops ahead of a
+  bus inside the 45-minute window (4,528 of 9,865 departures); the rest are
+  buses that have not started yet.
 
 Gap 3 above is now partly closed: `Vehicle.predictions` gives per-stop predicted
 times, so a rider-facing arrival time no longer has to be invented. A true

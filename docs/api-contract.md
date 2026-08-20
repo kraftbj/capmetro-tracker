@@ -243,31 +243,46 @@ Rows are `[stop_sequence, stop_id, predicted_at]`, ascending by `stop_sequence`.
 triples rather than objects because this is bulk repeated data in a document re-fetched
 every 60 seconds; objects cost about three times the bytes.
 
-Included rows are exactly those the §2 anchor rule keeps, in the same order:
+Rows start from the §2 anchor rule — one shared implementation, so the two cannot drift on
+what "the stops ahead of this bus" means:
 
 - `stopSequence` at or after `progress.current_stop_sequence` — at, not after: a bus
   `STOPPED_AT` your stop is still an arrival you can board;
 - no entry whose `scheduleRelationship` is `SKIPPED`;
-- no entry with neither an arrival nor a departure time; arrival wins when both are present;
+- no entry with neither an arrival nor a departure time; arrival wins when both are present.
+
+Publishing then applies three further bounds that the anchor does not:
+
 - no entry without a `stopId`, which nothing could join to a stop;
 - nothing beyond the §3.2 forward window (`generated_at + after_s`, 45 minutes). Predictions
-  decay with horizon and the board already declares that window as how far ahead it looks.
-  On the 2026-08-19 capture the cap takes route 7 from 508 rows to 313 and leaves route 4
-  untouched at 70.
+  decay with horizon and the board already declares that window as how far ahead it looks;
+- nothing more than 90 seconds in the PAST. The sequence filter keeps stops at or ahead of
+  the bus, but the positions feed lags the trip updates feed, so a stop the bus has
+  physically passed keeps its original time and stays in the list. Sorted soonest-first that
+  row lands at the top of a client's panel and a negative countdown reads as "due" — a rider
+  told a bus that left twenty minutes ago is arriving now. The 90s grace is the window a
+  client already treats as "due", so a bus seconds overdue still shows.
 
-`adherence.against` is the first row of this list joined to its scheduled time, by
-construction rather than by convention — one implementation, two readers.
+So `adherence.against` is normally the first row of this list joined to its scheduled time,
+but **a client must not assume `predictions[0]` is the anchor**: the extra bounds can drop
+the anchor row while the adherence number that was measured against it still stands.
 
 **The list is empty, never absent, when the board cannot stand behind a time**: when
-`staleness.suppress_adherence` is true, when `current_stop_sequence` is null, or when the
-trip has no usable prediction left. Suppression matters more here than it does for lateness:
+`staleness.suppress_adherence` is true, when `current_stop_sequence` is null, when the trip
+is `CANCELED` — row 2 of the §2 table already refuses to score one, and a countdown to a bus
+that is never coming is the same error told more confidently — or when the trip has no
+usable prediction left. Suppression matters more here than it does for lateness:
 an arrival time reads as a countdown and a rider acts on it immediately, so a stale one is
 the more confidently wrong of the two.
 
 **`/api/all.json` strips the field entirely** (§8). The fleet view asks whether anything
 unusual is happening, not when a bus reaches a stop, and it carries every vehicle in the
-system — keeping predictions there would add roughly 190 KB to a 292 KB document to answer
-a question that view does not ask.
+system — keeping predictions there takes that document from 317 KB to 422 KB to answer a
+question the view does not ask.
+
+Measured cost where it IS published, over the 2026-08-19 capture: 4,525 rows across all 71
+route files, 104 KB in total. Route 4 goes from 16 KB to 17 KB, route 7 from 42 KB to 49 KB,
+and the worst route in the system (300) from 44 KB to 53 KB.
 
 ### `adherence.state` decision table
 
@@ -847,8 +862,9 @@ misrendering.
 The 2026-08-19 amendment adds fields without bumping `schema`, which is safe in that direction:
 a client built against the earlier document ignores keys it does not know, and every new field is
 either always present or explicitly nullable. It is **not** safe in the other direction — a route
-file written before the amendment no longer validates, because `next_departure` and `schedule`
-are required. Regenerating is the fix; there is no migration, because every file is rewritten
+file written before the amendment no longer validates, because `next_departure`, `schedule` and
+`predictions` are required — the first two at the top level, `predictions` on every in-service
+vehicle of a route document (§2). Regenerating is the fix; there is no migration, because every file is rewritten
 every 60 seconds anyway.
 
 ---

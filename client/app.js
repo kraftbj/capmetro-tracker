@@ -569,8 +569,11 @@
    * endpoint that accepts one.
    */
   function locate() {
-    if (!global.navigator || !global.navigator.geolocation) {
-      state.geo = { status: 'unsupported' };
+    var can = global.CMB.near.canAsk(global);
+    if (can !== 'ok') {
+      /* 'unsupported' (no API) and 'insecure' (not a secure context) are
+         different facts and the panel says so differently. */
+      state.geo = { status: can };
       render();
       return;
     }
@@ -650,6 +653,7 @@
       onRetry: function () { load(state.routeId); },
       onToggle: function () { render(); },
       geo: state.geo,
+      window: global,
       onLocate: locate,
       onClear: function () { state.geo = null; render(); }
     };

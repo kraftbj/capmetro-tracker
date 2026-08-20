@@ -224,6 +224,63 @@ final class StopPredictionsTest extends TestCase
         $this->assertSame([10, 11, 12], array_column($veh['predictions'], 0));
     }
 
+    public function testDropsPredictionsThatHaveAlreadyPassed(): void
+    {
+        /*
+         * The filter keeps stops at or ahead of current_stop_sequence, but the positions
+         * feed lags the trip updates feed, so a stop the bus has physically passed keeps
+         * its original time and stays in the list. Sorted soonest-first, that row lands at
+         * the TOP of the panel and a countdown of "-20 min" renders as "due" -- a rider
+         * told a bus that left twenty minutes ago is arriving now. Reachable on a healthy
+         * feed, not only a stale one.
+         */
+        $stale = [
+            ['stopSequence' => 10, 'stopId' => 'A', 'arrival' => ['time' => '100']],
+            ['stopSequence' => 11, 'stopId' => 'B', 'arrival' => ['time' => '2000']],
+        ];
+
+        $veh = $this->buildVehicle([
+            'now'         => 2000,
+            'trip_update' => ['trip' => ['tripId' => 'T1'], 'stopTimeUpdate' => $stale],
+        ]);
+
+        $this->assertSame([[11, 'B', 2000]], $veh['predictions']);
+    }
+
+    public function testKeepsABusOnlySecondsOverdue(): void
+    {
+        /* The client renders anything under a minute out as "due", and the feed is up to
+           60s stale by design. A bus a few seconds past its time is still pulling in. */
+        $veh = $this->buildVehicle([
+            'now'         => 2030,
+            'trip_update' => ['trip' => ['tripId' => 'T1'], 'stopTimeUpdate' => [
+                ['stopSequence' => 10, 'stopId' => 'A', 'arrival' => ['time' => '2000']],
+            ]],
+        ]);
+
+        $this->assertSame([[10, 'A', 2000]], $veh['predictions']);
+    }
+
+    public function testACanceledTripPublishesNoPredictions(): void
+    {
+        /*
+         * Row 2 of the adherence table already refuses to score a canceled trip. A
+         * countdown to one is the same error told more confidently, and it is the exact
+         * failure the cancellation work existed to close: a kid waited at Austin High for
+         * a 17:02 that had been canceled.
+         */
+        $veh = $this->buildVehicle([
+            'trip_update' => [
+                'trip'           => ['tripId' => 'T1', 'scheduleRelationship' => 'CANCELED'],
+                'stopTimeUpdate' => $this->stopTimeUpdates(),
+            ],
+        ]);
+
+        $this->assertSame('CANCELED', $veh['trip']['schedule_relationship']);
+        $this->assertSame([], $veh['predictions']);
+        $this->assertSame('trip_canceled', $veh['adherence']['reason']);
+    }
+
     public function testDropsPredictionsThatNameNoStop(): void
     {
         /* A prediction nobody can join to a stop cannot answer "when is it at MY stop". */

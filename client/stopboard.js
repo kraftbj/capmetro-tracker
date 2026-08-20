@@ -69,7 +69,36 @@
       var vehicle = route ? W.vehicleForTrip(route, row.trip.id) : null;
       var view = vehicle ? adhLib.view(vehicle, route.staleness) : null;
       var lateness = view && view.seconds !== null && view.seconds !== undefined ? view.seconds : null;
-      var predictedAt = lateness === null ? null : scheduledAt + lateness;
+
+      /*
+       * WHERE THE ARRIVAL TIME COMES FROM, in order of preference.
+       *
+       * 1. Vehicle.predictions -- the agency's own predicted arrival for THIS
+       *    stop on THIS trip.
+       * 2. scheduled + lateness, which is this stop's scheduled time plus the
+       *    deviation measured at whatever stop the bus is currently approaching.
+       *
+       * (2) was the only option before the route document published (1), and it
+       * quietly assumes the deviation at the anchor stop still holds by the time
+       * the bus reaches yours. It does not: across the 2026-08-19 corpus the two
+       * disagree by more than a minute on 64% of comparable (stop, bus) pairs,
+       * by more than two minutes on 41%, and by up to 53 minutes. The feed models
+       * recovery and dwell between the anchor and here; the extrapolation cannot.
+       *
+       * (2) is still needed and is not going away: predictions only cover stops
+       * ahead of a bus inside the 45-minute window, which is 4,528 of the 9,865
+       * departures a rider might be looking at. The rest are buses that have not
+       * started their trip yet, and for those the extrapolation is the only
+       * answer there is.
+       *
+       * The badge beside this time is left alone. It is adherence.view() -- the
+       * bus's own server-owned lateness state -- and recomputing a second
+       * lateness from these numbers is exactly the second vocabulary this file
+       * must not grow.
+       */
+      var fromFeed = fmt.predictionFor(vehicle, stopId);
+      var predictedAt = fromFeed ? fromFeed.predicted_at
+        : lateness === null ? null : scheduledAt + lateness;
       var dueAt = predictedAt === null ? scheduledAt : predictedAt;
 
       if (dueAt < now - GRACE_S) { return; }

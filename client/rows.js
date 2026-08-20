@@ -149,8 +149,9 @@
     /*
      * The near-me panel names one bus per direction; this marks the row it is
      * talking about so the two panels are visibly about the same object. It is
-     * a marker only — the sort stays worst-news-first, because promoting your
-     * bus to the top would push a very late one below the fold.
+     * a marker only, never a re-sort: the rows are in running order so they
+     * match the ladder beside them, and lifting one bus out of that order would
+     * break the correspondence the order exists to create.
      */
     if (highlight) {
       wrap.classList.add('is-yours');
