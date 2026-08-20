@@ -76,7 +76,7 @@
 
       out.push({
         trip: row.trip,
-        canceled: !!row.trip.canceled,
+        canceled: W.isCanceled(row.trip, route),
         vehicle: vehicle,
         view: view,
         suppressed: suppressed,

@@ -194,6 +194,39 @@
    * different reasons applies, because "no bus" and "wrong day" and "this stop is
    * closed today" call for completely different actions from a parent.
    */
+  /*
+   * Whether the agency has called this trip off, reading BOTH carriers.
+   *
+   * `trip.canceled` rides api/departures/{route}.json, which the client fetches
+   * once and keeps: contract section 16 declares that document free of realtime
+   * fields precisely so it can be cached to the end of the service day, and
+   * 0.4.0.0 then added one to it. The two facts are incompatible, and the cached
+   * copy is the side that loses -- a trip canceled at 10:05 for a 10:13
+   * departure cannot reach a tab opened at 07:00. That is the same failure the
+   * cancellation work existed to close, on a longer fuse: it works when you open
+   * the page after the cancellation publishes, and not when you leave it open.
+   *
+   * `route.schedule.canceled_trips` is rebuilt from the live TripUpdates on
+   * every generator run, so it carries what the cached document cannot. It is
+   * scoped to the schedule window (-15/+45 minutes), which is where the
+   * near-term answers this guards are drawn from anyway.
+   *
+   * A union, not a replacement. The cached list still covers a trip canceled
+   * before the page loaded that has since aged out of the live window, and the
+   * live list covers everything announced since. Neither alone is enough.
+   */
+  function isCanceled(trip, route) {
+    if (!trip) { return false; }
+    if (trip.canceled) { return true; }
+    var live = route && route.schedule && route.schedule.canceled_trips;
+    if (!live || !live.length) { return false; }
+    var id = String(trip.id);
+    for (var i = 0; i < live.length; i++) {
+      if (String(live[i]) === id) { return true; }
+    }
+    return false;
+  }
+
   function resolve(watch, dep, route, now) {
     var base = { watch: watch, key: keyFor(watch) };
 
@@ -228,7 +261,7 @@
      * reads as "it has not started" when it means "it is never coming". That
      * exact sentence was on screen while a kid waited at a stop.
      */
-    if (trip.canceled) {
+    if (isCanceled(trip, route)) {
       return extend(base, {
         state: 'canceled',
         trip: trip,
@@ -643,6 +676,7 @@
     departuresAt: departuresAt,
     matchDeparture: matchDeparture,
     vehicleForTrip: vehicleForTrip,
+    isCanceled: isCanceled,
     resolve: resolve,
     untilText: untilText,
     sortModels: sortModels,
