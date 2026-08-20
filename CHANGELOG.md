@@ -123,6 +123,33 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   (`length` on a non-array is `undefined`, and every comparison against it is false)
   and then threw inside `resolve()`, taking out the whole Saved view until the store
   was cleared by hand.
+## [0.4.0.2] - 2026-08-20
+
+### Fixed
+
+- **A cancellation announced after the page loaded never reached the board.**
+  0.4.0.0 shipped `canceled` on each trip in `api/departures/{route}.json`, but
+  contract §16 declares that document free of realtime fields precisely so it
+  can be cached to the end of the service day, and the client fetches it once
+  per session and keeps it. So the feature worked when you opened the page
+  *after* the cancellation published, and not when you left it open -- which is
+  how somebody waiting at a stop actually uses it. A trip canceled at 10:05 for
+  a 10:13 departure could not reach a tab opened at 07:00. The stop board and
+  saved trips now take the union of the cached `trips[].canceled` and the live
+  `schedule.canceled_trips`, and §16 says so instead of claiming the document
+  carries nothing realtime.
+
+- **`schedule.canceled_trips` was empty on every route from the day it shipped.**
+  `cm_build_schedule()` built the map of canceled trip ids into `$canceled`, and
+  the trip loop below it then assigned a per-trip boolean to the same variable
+  name. `isset()` on a bool returns false for every key, so the published list
+  was always `[]`. Nothing caught it: no error, no warning, and the schema only
+  requires the field to exist, so a plausible empty array validated cleanly. It
+  surfaced only by comparing the two carriers over real generated output -- 100
+  cancellations in the feed, 100 in the departures documents, 0 in
+  `canceled_trips`. This is the carrier the fix above depends on, so the first
+  fix was worthless without this one.
+
 ## [0.4.0.1] - 2026-08-20
 
 ### Fixed

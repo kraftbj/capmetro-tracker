@@ -644,8 +644,16 @@ function cm_build_schedule(
          * the agency has already canceled: a canceled departure is not a promise the board
          * should make. Ties break toward the lower direction_id, then the smallest trip id.
          */
-        $canceled = (($trip_updates[(string) $tid]['trip']['scheduleRelationship'] ?? null) === 'CANCELED');
-        if ($start_epoch > $now && !$canceled) {
+        /*
+         * A DIFFERENT name from the $canceled map above, deliberately. This used to be
+         * called $canceled too, which silently overwrote the map of canceled trip ids
+         * with a per-trip boolean before canceled_trips was assembled from it. isset()
+         * on a bool returns false for every key, so the published list was empty on
+         * every route from the day it shipped, with nothing to see in the output but a
+         * plausible [].
+         */
+        $trip_canceled = (($trip_updates[(string) $tid]['trip']['scheduleRelationship'] ?? null) === 'CANCELED');
+        if ($start_epoch > $now && !$trip_canceled) {
             $candidate = [
                 'scheduled_at' => $start_epoch,
                 'stop_id'      => (string) ($table[(int) $first[1]] ?? ''),

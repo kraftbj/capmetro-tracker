@@ -705,10 +705,31 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
   A failed run never writes a partial or empty file.
 - Served with `Cache-Control: no-cache` for `/api/*` (regenerated every 60s) and a long max-age
   for `/data/*` schedule shards (regenerated only when `feed_version` changes).
-- One exception, added with §16: `/api/departures/*` carries nothing from a realtime feed and
-  changes only when `service_date` or `feed_version` changes. Both are in the payload, so it may
-  be served with a max-age up to the end of the service day. Serving it `no-cache` is safe but
-  wasteful — 2.8 MB re-fetched for a document that did not change.
+- One near-exception, added with §16: `/api/departures/*` is almost entirely static — it changes
+  when `service_date` or `feed_version` changes, both of which are in the payload — so it may be
+  served with a max-age up to the end of the service day. Serving it `no-cache` is safe but
+  wasteful: 2.8 MB re-fetched for a document that overwhelmingly did not change.
+
+  **It is not wholly free of realtime fields, and a client must not treat it as such.** Each
+  trip carries `canceled`, added in 0.4.0.0, which is derived from the live TripUpdates feed and
+  can therefore change at any point during a service day. A cached copy freezes it at fetch time.
+
+  A client must read cancellation from **both** carriers and take the union:
+
+  - `departures.trips[].canceled` — the state when the document was fetched. Still needed: it
+    covers a trip canceled before the page loaded that has since aged out of the live window.
+  - `route.schedule.canceled_trips` — rebuilt from live TripUpdates on every generator run, and
+    scoped to the schedule window (−15/+45 minutes). This is the only carrier that can deliver a
+    cancellation announced after the departures document was cached.
+
+  Neither alone is sufficient. Reading only the cached field is the bug this note exists to
+  prevent: a trip canceled at 10:05 for a 10:13 departure never reaches a tab opened at 07:00,
+  which is precisely the case the cancellation work was written for.
+
+  The union only ever adds cancellations. A trip reinstated after being canceled will keep
+  showing as canceled in a client holding a stale document until it refetches. That asymmetry is
+  deliberate — the failure it leaves is "you did not board a bus that was running", against
+  "you waited for a bus that was never coming".
 
   `/api/routes.json` stays `no-cache`: its vehicle counts move every run.
 

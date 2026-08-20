@@ -576,6 +576,40 @@ describe('a canceled leg is never graded', () => {
     DEP4.trips.forEach((x) => expect(x).toHaveProperty('canceled'))
   })
 
+  /*
+   * The cached-document fuse, closed on trunk in 30dd6a9 and inherited here.
+   *
+   * `trip.canceled` rides api/departures/{route}.json, which the client fetches once
+   * and keeps for the session, so it cannot carry a cancellation announced after the
+   * tab was opened — which is exactly how somebody waiting at a stop uses this. The
+   * live `route.schedule.canceled_trips` covers that, and the union of the two is
+   * one rule living in watch.js.
+   */
+  t('a cancellation announced after the tab opened still reaches the chain', (chain) => {
+    const { chain: c } = theChain(chain)
+    /* The cached schedule says nothing is canceled — as it would in a tab opened
+       before the announcement. Every trip's flag is explicitly false so this
+       cannot pass vacuously against a document that simply lacks the field. */
+    const cached = JSON.parse(JSON.stringify(DEPS))
+    Object.values(cached).forEach((doc) => doc.trips.forEach((x) => { x.canceled = false }))
+
+    const live = {
+      800: {
+        staleness: { level: 'fresh', suppress_adherence: false },
+        vehicles: [],
+        schedule: { canceled_trips: [WATCHED_TRIP] },
+      },
+    }
+    const m = chain.resolve(c, cached, live, now)
+    expect(m.state).toBe('canceled')
+    expect(m.transfers[0].state).toBe('void')
+
+    /* Negative control: without the live list the same input grades normally, so
+       the assertion above is about the union and not about the fixture. */
+    const without = chain.resolve(c, cached, {}, now)
+    expect(without.state).not.toBe('canceled')
+  })
+
   t('the FIRST leg canceled does not read as a bus that has yet to start', (chain) => {
     const { chain: c } = theChain(chain)
     const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)

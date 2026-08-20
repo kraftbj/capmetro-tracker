@@ -575,8 +575,14 @@
      * including 14 on route 837 and 8 on route 7 — both legs of "337 to the 7 to
      * the 837", which is one of the three journeys this feature was asked for. This
      * is the shipped path, not a corner.
+     *
+     * `isCanceled` from watch.js, not `trip.canceled`: the flag on the departures
+     * document rides a file the client caches for the whole session, so it cannot
+     * carry a cancellation announced after the tab was opened — which is precisely
+     * the case a chain is open for. The union with the live window is one rule and
+     * it lives in one place.
      */
-    if (out.trip.canceled) {
+    if (watchLib.isCanceled(out.trip, route)) {
       out.canceled = true;
       /*
        * The scheduled time stands as this leg's time — not as a prediction, but
