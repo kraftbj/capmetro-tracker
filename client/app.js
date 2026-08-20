@@ -189,20 +189,33 @@
   function loadRouteData(routeId) {
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
-    if (state.routeStatus[routeId] === 'loading') return;
     /*
-     * Already have it. This guard is load-bearing, not an optimisation: this
-     * function is called from paint(), and its success handler calls render().
-     * Without it, one fetch repaints, the repaint asks for another fetch, and the
-     * Saved view sits in an unthrottled request loop against the origin for as
-     * long as it is open — one round trip per iteration, forever.
+     * ONLY 'idle' proceeds. This guard is load-bearing, not an optimisation: this
+     * function is called from paint(), and both its handlers call render(). Any
+     * status that falls through starts a fetch, which repaints, which asks again —
+     * an unthrottled request loop against the origin for as long as the view is
+     * open.
      *
-     * The refresh interval below deliberately sets the status back to 'idle'
-     * before calling here, which is what makes a re-fetch happen once a minute
-     * instead of never. That handshake is the whole refresh mechanism; changing
-     * either half without the other either freezes the data or restores the loop.
+     * Enumerating the statuses that stop ('loading', 'ok') rather than the one that
+     * proceeds is what made the first version of this wrong: 'error' matched
+     * neither, so a route that could not be fetched looped hardest of all. Two ways
+     * in, both real. On a `file://` board — a stated project requirement — fetch
+     * rejects immediately, so it is a tight spin rather than a network round trip.
+     * And a GTFS republish, about three times a year, can renumber or drop a route
+     * that a saved chain still names, making its payload a permanent 404.
+     *
+     * The refresh interval below sets the status back to 'idle' before calling
+     * here, which is what makes a re-fetch happen once a minute instead of never,
+     * and is also how a transient failure recovers. That handshake is the whole
+     * refresh mechanism; changing either half without the other either freezes the
+     * data or restores the loop.
+     *
+     * Same shape as loadDepartures() below and as the guard in PR 2, deliberately:
+     * three loaders with the same failure mode should not have three different
+     * answers to it.
      */
-    if (state.routeStatus[routeId] === 'ok' && state.routeData[routeId]) return;
+    var status = state.routeStatus[routeId];
+    if (status && status !== 'idle') return;
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
@@ -392,20 +405,31 @@
   }
 
   /*
-   * Every route the Saved view needs, from both stores.
-   *
-   * A saved trip names one route; a chain names two or three, and none of them is
-   * necessarily the route on screen. Both documents are required before anything
-   * can be resolved — the schedule to find the trip, the live payload to find the
-   * bus — and both loaders are idempotent, so this is safe to call on every paint.
+   * Every route id the Saved view needs, from both stores, as a set. A saved trip
+   * names one route; a chain names two or three, and none of them is necessarily
+   * the route on screen.
    */
-  function loadSavedRoutes() {
+  function savedRouteIds() {
     var wanted = {};
     global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
     global.CMB.chain.list().forEach(function (c) {
       global.CMB.chain.routesIn(c).forEach(function (id) { wanted[id] = true; });
     });
-    Object.keys(wanted).forEach(function (id) {
+    return wanted;
+  }
+
+  /*
+   * Fetch both documents every saved thing needs — the schedule to find the trip,
+   * the live payload to find the bus.
+   *
+   * Safe to call on every paint, but only because both loaders refuse to start a
+   * second fetch for any status other than 'idle'. That is a property of THEM, not
+   * of this function: each one's handlers call render(), so a loader that retried
+   * after a failure would turn this call into a request loop. It has been exactly
+   * that bug twice. Do not add a third loader here without checking its guard.
+   */
+  function loadSavedRoutes() {
+    Object.keys(savedRouteIds()).forEach(function (id) {
       loadDepartures(id);
       loadRouteData(id);
     });
@@ -748,9 +772,23 @@
 
   function paintSaved() {
     /* Fetching here rather than only in selectView covers anything saved while the
-     * view is already open. Both loaders are idempotent. */
+     * view is already open. */
     loadSavedRoutes();
     var now = nowEpoch();
+
+    /*
+     * A staleness banner for every route this view depends on, not just the one on
+     * the board.
+     *
+     * This is the view where it matters most and the only one that had none. Its
+     * routes are BY DEFINITION not the route being watched, so nobody is looking at
+     * their board to notice the feed died — and a chain leg on a dead route is
+     * graded against frozen positions while the card reads "not reporting yet, that
+     * is normal until it starts its run". The contract makes staleness a rendered
+     * state, and rendering it for four routes while silently trusting a fifth is
+     * the same failure the whole staleness machinery exists to prevent.
+     */
+    savedStalenessBanners(now).forEach(function (b) { dom.main.appendChild(b); });
 
     /*
      * Chains sit above saved trips. A chain is the higher-stakes item on this
@@ -805,6 +843,39 @@
    * route on screen lives in state.data and the rest in state.routeData, and this
    * is the one place that difference is reconciled.
    */
+  /*
+   * One banner per route whose feed is not fresh, labelled with the route number.
+   *
+   * Labelled because on this view an unlabelled "Data 14 minutes old" is unusable:
+   * there are three or four routes on screen and the reader cannot tell which of
+   * them the warning is about, or therefore which card to stop trusting. The route
+   * board never had that problem — it only ever shows one route.
+   */
+  function savedStalenessBanners() {
+    var live = liveRouteMap();
+    var out = [];
+    Object.keys(live).sort().forEach(function (id) {
+      var d = live[id];
+      if (!d || !d.staleness || d.staleness.level === 'fresh') return;
+      var banner = S.stalenessBanner(d.staleness, d.feeds, function () {
+        state.routeStatus[id] = 'idle';
+        loadRouteData(id);
+      });
+      if (!banner) return;
+      /*
+       * Composed, not mutated. Reaching into the banner to rewrite its headline
+       * would couple this to states.js's internal class names and would silently
+       * do nothing anywhere querySelector is not available — which is exactly the
+       * kind of quietly-skipped labelling this view cannot afford.
+       */
+      var box = el('div', 'savedbanner');
+      box.appendChild(el('p', 'savedbanner__route', 'Route ' + id));
+      box.appendChild(banner);
+      out.push(box);
+    });
+    return out;
+  }
+
   function liveRouteMap() {
     var map = {};
     Object.keys(state.routeData).forEach(function (id) { map[id] = state.routeData[id]; });
@@ -824,6 +895,7 @@
       day_type: ed.day_type,
       start: ed.start,
       onward: ed.onward,
+      saveFailed: ed.saveFailed,
       departures: state.departures,
       connections: global.CMB.chain.connectionsFor(
         ed.legs, state.departures, ed.onward.route_id, ed.onward.direction_id)
@@ -864,7 +936,19 @@
         render();
       },
       onSave: function (chain) {
-        global.CMB.chain.add(chain);
+        /*
+         * Only claim it was saved if it was. A browser that refuses to write —
+         * private mode, quota, storage disabled — used to get the confirmation and
+         * a navigation away from six steps of work, landing on "No transfer chains
+         * yet". Stay in the editor and say what happened instead.
+         */
+        if (!global.CMB.chain.add(chain)) {
+          ed.saveFailed = true;
+          announce('This browser would not save the chain. Nothing has been stored.');
+          render();
+          return;
+        }
+        ed.saveFailed = false;
         state.view = 'saved';
         loadSavedRoutes();
         announce('Saved ' + global.CMB.chain.describe(chain));
@@ -1001,14 +1085,20 @@
           /* A frozen saved trip is worse than none: it reads as a live prediction,
            * and a frozen chain reports a connection that stopped being true. Every
            * route either store names is re-fetched, not just the watched ones. */
-          var stale = {};
-          global.CMB.watch.list().forEach(function (w) { stale[w.route_id] = true; });
-          global.CMB.chain.list().forEach(function (c) {
-            global.CMB.chain.routesIn(c).forEach(function (id) { stale[id] = true; });
-          });
-          Object.keys(stale).forEach(function (id) {
+          Object.keys(savedRouteIds()).forEach(function (id) {
             state.routeStatus[id] = 'idle';
             loadRouteData(id);
+            /*
+             * And one retry per minute for a schedule that failed. The retry above
+             * covers only the route on the board; a chain's other two routes are by
+             * definition not that one, so without this a chain whose second leg's
+             * schedule failed once stayed unresolvable until a reload. Safe here for
+             * the same reason: the interval is not a render.
+             */
+            if (state.depStatus[id] === 'error') {
+              delete state.depStatus[id];
+              loadDepartures(id);
+            }
           });
         }
       }, REFRESH_MS);

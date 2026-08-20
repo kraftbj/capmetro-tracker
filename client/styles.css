@@ -686,6 +686,13 @@ button { font: inherit; color: inherit; }
 .chaincard--live { border-left-color: var(--accent); }
 .chaincard--passed, .chaincard--not-today { opacity: 0.6; border-left-color: var(--dia-spine-dim); }
 .chaincard--broken, .chaincard--no-schedule { border-left-color: var(--warn); }
+/* Cancellation is the strongest thing the feed can say about a chain, so it takes
+   the danger colour outright rather than sharing the missed-connection tint. */
+.chaincard--canceled { border-left-color: var(--adh-vlate); }
+.chaincard__canceled {
+  font-family: var(--font-figure); font-size: 20px; font-weight: 700;
+  letter-spacing: 0.08em; color: var(--adh-vlate);
+}
 /* A missed connection outranks the card's own state: it is the worst news here. */
 .chaincard--conn-missed { border-left-color: var(--adh-vlate); }
 .chaincard--conn-tight { border-left-color: var(--adh-late); }
@@ -735,6 +742,9 @@ button { font: inherit; color: inherit; }
 .chaincard__transfer--tight { border-left-color: var(--adh-late); }
 .chaincard__transfer--missed { border-left-color: var(--adh-vlate); }
 .chaincard__transfer--broken { border-left-color: var(--warn); }
+/* A change nobody reaches is dimmed, not coloured: it is not a second warning to
+   read, it is a row that no longer applies. */
+.chaincard__transfer--void { border-left-color: var(--dia-spine-dim); opacity: 0.55; }
 .chaincard__verdict { display: flex; align-items: baseline; gap: 8px; margin: 0; flex-wrap: wrap; }
 .chaincard__verdictlabel {
   font-size: var(--fs-chrome); letter-spacing: 0.08em; text-transform: uppercase;
@@ -777,6 +787,16 @@ button { font: inherit; color: inherit; }
 .connlist__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .chainsave { margin: 12px 0; }
+
+/* A staleness banner on the Saved view names its route: there are three or four
+   routes on this screen and an unlabelled warning cannot say which card to stop
+   trusting. */
+.savedbanner { margin-bottom: 10px; }
+.savedbanner__route {
+  margin: 0 0 2px; font-family: var(--font-figure);
+  font-size: var(--fs-chrome); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-chrome);
+}
 
 /* ===== map: the route draws its own basemap ============================= */
 /*

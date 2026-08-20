@@ -190,6 +190,39 @@ test.describe('the Saved view does not hammer the origin', () => {
     expect(hits).toBeLessThanOrEqual(3)
   })
 
+  /*
+   * The first fix here enumerated the statuses that STOP ('loading', 'ok'), so
+   * 'error' matched neither and a route that could not be fetched looped hardest of
+   * all — a tight spin, since a rejected fetch has no round trip to slow it down.
+   * A chain names two or three routes, none of which need be the one on screen, so
+   * one unreachable id was enough. Reachable two ways in production: a `file://`
+   * board, and a GTFS republish dropping a route a saved chain still names.
+   */
+  test('a route that 404s is not retried on every paint', async ({ page }) => {
+    let hits = 0
+    /*
+     * Route 800, not route 4. Route 4 is the board's default, and loadRouteData
+     * returns early for the route already in state.data — so 404ing route 4 never
+     * reaches the guard under test and the assertion passes for the wrong reason.
+     * It has to be a route the Saved view fetches on a chain's behalf.
+     */
+    await page.route('**/api/route/800.json', (route) => {
+      hits += 1
+      return route.fulfill({ status: 404, body: '{"error":"gone"}' })
+    })
+
+    await pickFirstLeg(page)
+    await page.locator('.routegrid__item', { hasText: '4' }).first().click()
+    await page.locator('.chipbtn').first().click()
+    await page.locator('.connlist__item').first().click()
+    await page.getByRole('button', { name: 'Save this chain' }).click()
+    await expect(page.locator('.chaincard').first()).toBeVisible()
+
+    const afterSave = hits
+    await page.waitForTimeout(3000)
+    expect(hits - afterSave).toBeLessThanOrEqual(1)
+  })
+
   test('a card stays put long enough to press a button on it', async ({ page }) => {
     await pickFirstLeg(page)
     await page.locator('.routegrid__item', { hasText: '4' }).first().click()
@@ -203,5 +236,79 @@ test.describe('the Saved view does not hammer the origin', () => {
        between Playwright resolving it and clicking it, 59 times in a row. */
     await remove.click({ timeout: 5000 })
     await expect(page.locator('.chaincard')).toHaveCount(0)
+  })
+})
+
+/** Build the fixture's chain and leave the browser on the Saved view. */
+async function saveTheChain(page) {
+  await pickFirstLeg(page)
+  await page.locator('.routegrid__item', { hasText: '4' }).first().click()
+  await page.locator('.chipbtn').first().click()
+  await page.locator('.connlist__item').first().click()
+  await page.getByRole('button', { name: 'Save this chain' }).click()
+  await expect(page.locator('.chaincard').first()).toBeVisible()
+}
+
+/*
+ * Staleness was enforced for the route on the board and for nothing else. The Saved
+ * view is where that matters most: its routes are by definition NOT the one being
+ * watched, so nobody is looking at their board to notice the feed died, and a chain
+ * leg on a dead route was graded against frozen positions.
+ */
+test.describe('a chain leg on a route whose feed died', () => {
+  test('says so, and names which route', async ({ page }) => {
+    await saveTheChain(page)
+
+    /* Same origin, so the saved chain survives the hop to the dead-cron scenario,
+       which serves a 47-minute-old payload for every route id under it. */
+    await page.goto('/dead/index.html?view=saved')
+    const banners = page.locator('.savedbanner')
+    await expect(banners.first()).toBeVisible()
+
+    /* Route 800 is leg 1 and is not the board's route — the case that had none. */
+    await expect(page.locator('.savedbanner', { hasText: 'Route 800' })).toHaveCount(1)
+    await expect(page.locator('.savedbanner', { hasText: 'Route 800' }))
+      .toContainText(/Data|Feed is down/)
+  })
+
+  test('and the card shows no lateness it cannot stand behind', async ({ page }) => {
+    await saveTheChain(page)
+    await page.goto('/dead/index.html?view=saved')
+    await expect(page.locator('.chaincard').first()).toBeVisible()
+
+    /*
+     * suppress_adherence is authoritative. With it set, the chain must fall back to
+     * the timetable and say so, never print a signed lateness on a frozen position.
+     */
+    const card = await page.locator('.chaincard').first().innerText()
+    expect(card).not.toMatch(/[+\u2212-]\s?\d+\s?m\b/)
+  })
+})
+
+/*
+ * The board announced "Saved …" and navigated away from six steps of work even when
+ * localStorage refused, landing the reader on "No transfer chains yet". They cannot
+ * tell that from their own mistake, so they do it again.
+ */
+test.describe('a browser that will not save', () => {
+  test('says the browser refused instead of claiming success', async ({ page }) => {
+    await page.addInitScript(() => {
+      const real = Storage.prototype.setItem
+      Storage.prototype.setItem = function (k, v) {
+        if (String(k) === 'cmb.chains') throw new Error('QuotaExceededError')
+        return real.call(this, k, v)
+      }
+    })
+
+    await pickFirstLeg(page)
+    await page.locator('.routegrid__item', { hasText: '4' }).first().click()
+    await page.locator('.chipbtn').first().click()
+    await page.locator('.connlist__item').first().click()
+    await page.getByRole('button', { name: 'Save this chain' }).click()
+
+    /* Still in the editor, with the choices intact, and told why. */
+    await expect(page.getByText('This browser would not save the chain.')).toBeVisible()
+    await expect(page.locator('.chaincard')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Save this chain' })).toBeVisible()
   })
 })

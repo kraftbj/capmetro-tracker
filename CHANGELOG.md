@@ -31,6 +31,30 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   unresolvable chain cannot be created, which is the same reasoning saved trips use
   for picking a time from a list rather than typing one.
 
+  Review found three ways this could assert something untrue, all fixed before
+  merge and all with a regression test:
+
+  - A **canceled** leg was resolved as though its bus merely had not reported yet,
+    so the card could print "Connection holds" about a trip the agency had already
+    called off. `trip.canceled` is now checked before the vehicle join, as
+    `watch.js` does. On the 2026-08-19 feed that is 100 canceled trips across 10
+    routes, 14 of them on route 837 and 8 on route 7 — both legs of "337 to the 7
+    to the 837". Swept over all 100: every one now reports canceled, none is graded.
+  - On a three-leg chain, **"Connection holds" rendered six lines under "Connection
+    missed"** — the second verdict computed from a bus the rider will not be on.
+    Grading now stops at the first change that cannot be made; everything after it
+    reads "Not reached" and carries no slack figure.
+  - The **tightest connection the editor will ever offer graded "holds"**.
+    `MIN_SLACK_S` and `TIGHT_S` are both two minutes and the comparison was strict,
+    so the case the code itself calls "a coin toss" was presented as comfortable.
+
+  The walk model also charges a **1.4 circuity factor**: the straight line between
+  two stops is not a path anyone walks, and Pleasant Valley — the junction this
+  feature was built for — is a divided arterial. A 300 m hop now costs 5.8 minutes
+  rather than 4.2. Measured over the corpus, 650 of the 2,086 offered connections
+  are wider than the 215 m the hand-picked examples cover, so pricing them honestly
+  is what lets the radius stay at 300 without fitting it to three cases.
+
 ### Fixed
 
 - **The Saved view was fetching route payloads in an unthrottled loop.**
@@ -42,6 +66,30 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   it survived: the numbers were right, they were just being re-fetched forever. Found
   because a transfer-chain card was being rebuilt so fast its Remove button could not
   be clicked. Regression test asserts at most one fetch per route between refreshes.
+
+  The first fix here was itself incomplete, and review caught it: it enumerated the
+  statuses that stop (`loading`, `ok`), so `error` matched neither and a route that
+  could not be fetched looped hardest of all — 178 requests in three seconds, a
+  tight spin rather than a round trip, because a rejected fetch has nothing to wait
+  for. Reachable two ways in production: a `file://` board, which is a stated
+  requirement, and a GTFS republish dropping a route a saved chain still names. Now
+  only `idle` proceeds, matching `loadDepartures`.
+
+- **The Saved view trusted stale feeds it never showed a banner for.** Staleness was
+  rendered for the route on the board and for nothing else — but this view's routes
+  are by definition not the one being watched, so nobody is looking at their board
+  to notice the feed died. A chain leg on a route whose cron stopped an hour ago was
+  graded against frozen positions. Each such route now gets its own banner, labelled
+  with the route number because an unlabelled one cannot say which card to distrust.
+
+- **A refused save was announced as a success.** When `localStorage` says no —
+  private browsing, quota, storage disabled — the board said "Saved …", left a
+  six-step editor, and landed on "No transfer chains yet". `add()` now returns
+  whether the chain is in the store and the editor stays put and says the browser
+  refused. Related: a hand-edited store whose `legs` was an object passed validation
+  (`length` on a non-array is `undefined`, and every comparison against it is false)
+  and then threw inside `resolve()`, taking out the whole Saved view until the store
+  was cleared by hand.
 ## [0.4.0.1] - 2026-08-20
 
 ### Fixed

@@ -146,9 +146,11 @@ describe('what may be offered as a connection', () => {
     found(chain).forEach((c) => {
       /* slack is what is left AFTER walking; the raw gap is always larger. */
       expect(c.board_seconds - c.alight_seconds).toBe(c.slack_s + c.walk_s)
-      /* walk_m is rounded for display, walk_s is derived from the unrounded
-         distance, so the two agree to within the second that rounding cost. */
-      expect(Math.abs(c.walk_s - Math.ceil(c.walk_m / chain.WALK_SPEED_MS))).toBeLessThanOrEqual(1)
+      /* walk_m is rounded for display and walk_s is derived from the unrounded
+         distance THROUGH the circuity factor, so the two agree to within the
+         second or two that rounding cost. */
+      const expected = Math.ceil((c.walk_m * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+      expect(Math.abs(c.walk_s - expected)).toBeLessThanOrEqual(2)
     })
   })
 
@@ -195,8 +197,11 @@ describe('geography', () => {
 
   t('walking time always rounds up', (chain) => {
     expect(chain.walkSeconds(0)).toBe(0)
-    expect(chain.walkSeconds(1)).toBe(1)
-    expect(chain.walkSeconds(78)).toBe(Math.ceil(78 / chain.WALK_SPEED_MS))
+    expect(chain.walkSeconds(78)).toBe(
+      Math.ceil((78 * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+    )
+    /* Never rounds a real walk down to nothing. */
+    expect(chain.walkSeconds(1)).toBeGreaterThanOrEqual(1)
   })
 })
 
@@ -502,5 +507,209 @@ describe('against real generated output', () => {
   it('says so when there is no generated output to check against', (ctx) => {
     if (!hasGeneratedOutput()) ctx.skip(MISSING)
     expect(hasGeneratedOutput()).toBe(true)
+  })
+})
+
+/*
+ * Cancellation. The highest-consequence gap the review found: `trip.canceled` is
+ * published on every departures trip, `resolveLeg` ignored it, and a canceled leg
+ * therefore took the no-vehicle path — lateness null, scheduled time standing in,
+ * the transfer graded against a timetable for a bus that is not running. The card
+ * could print "Connection holds" about a leg the agency had already called off.
+ *
+ * On the 2026-08-19 feed there are 100 canceled trips across 10 routes, 14 of them
+ * on route 837 and 8 on route 7 — both legs of "337 to the 7 to the 837". This is
+ * the shipped path.
+ */
+describe('a canceled leg is never graded', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /** The same fixture with one trip marked canceled, by trip id. */
+  const withCanceled = (tripId) => {
+    const clone = JSON.parse(JSON.stringify(DEPS))
+    let hit = 0
+    for (const doc of Object.values(clone)) {
+      for (const t of doc.trips) if (t.id === tripId) { t.canceled = true; hit += 1 }
+    }
+    expect(hit, `trip ${tripId} is not in the fixture`).toBe(1)
+    return clone
+  }
+
+  t('the fixture publishes the field at all', () => {
+    /* If a feed rebuild ever drops `canceled`, every assertion below would pass
+       vacuously against a field that is always undefined. */
+    DEP800.trips.forEach((x) => expect(x).toHaveProperty('canceled'))
+    DEP4.trips.forEach((x) => expect(x).toHaveProperty('canceled'))
+  })
+
+  t('the FIRST leg canceled does not read as a bus that has yet to start', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    expect(m.state).toBe('canceled')
+    expect(m.detail).toMatch(/canceled the 7:52a route 800/)
+    expect(m.detail).not.toMatch(/normal until it starts its run/)
+  })
+
+  t('and its transfer is void rather than graded', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    expect(m.transfers[0].state).toBe('void')
+    expect(m.transfers[0].slack_s).toBeNull()
+    expect(m.connection.state).toBe('void')
+  })
+
+  t('the ONWARD leg canceled is caught too, and named', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const m = chain.resolve(c, withCanceled(connection.trip.id), {}, now)
+    expect(m.state).toBe('canceled')
+    expect(m.detail).toMatch(/route 4/)
+    expect(m.transfers[0].state).toBe('void')
+  })
+
+  t('the card says CANCELED and never a connection verdict', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    expect(said).toMatch(/CANCELED/)
+    expect(said).toMatch(/No bus is running that trip today/)
+    /* The exact string the bug produced. */
+    expect(said).not.toMatch(/Connection holds/)
+    expect(said).not.toMatch(/normal until it starts its run/)
+  })
+
+  t('and a screen reader hears it, not just the colour', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    /* spoken() is exercised through the card; assert the model carries the words. */
+    expect(m.detail).toMatch(/CapMetro has canceled/)
+  })
+
+  t('a canceled chain outranks a live one that holds', (chain) => {
+    const sorted = chain.sortModels([
+      { state: 'live', seconds_until: 600, connection: { state: 'made', slack_s: 600 } },
+      { state: 'canceled', seconds_until: 900, connection: { state: 'void', slack_s: null } },
+    ])
+    expect(sorted[0].state).toBe('live')
+    /* live still leads, but canceled sits above everything that is merely waiting. */
+    const sorted2 = chain.sortModels([
+      { state: 'upcoming', seconds_until: 60, connection: null },
+      { state: 'canceled', seconds_until: 900, connection: null },
+    ])
+    expect(sorted2[0].state).toBe('canceled')
+  })
+})
+
+/*
+ * The cascade. Grading each transfer independently printed "Connection holds" six
+ * lines under "Connection missed" on a three-leg chain — the second verdict
+ * computed from a bus the rider will not be on.
+ */
+describe('a change nobody reaches is not graded either', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /** A three-leg chain: 800 -> 4 -> 4, the third leg reached from the second. */
+  const threeLeg = (chain) => {
+    const { chain: two, connection } = theChain(chain)
+    const secondIdx = chain.tripIndexOf(DEP4, connection.trip.id)
+    const onward = chain.connections(DEP4, secondIdx, connection.board_seconds, DEP4, 1)
+    if (!onward.length) return null
+    return {
+      legs: two.legs.concat([
+        chain.legFromConnection(onward[0], { route_id: '4', direction_id: 1 }),
+      ]),
+      day_type: 'weekday',
+    }
+  }
+
+  t('a missed first change voids every change after it', (chain, cmb) => {
+    const three = threeLeg(chain)
+    if (!three) return void 0   /* the fixture trim offers no third leg today */
+    const { connection } = theChain(chain)
+    const late = connection.slack_s + 60
+    const m = chain.resolve(three, DEPS,
+      { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+
+    expect(m.transfers).toHaveLength(2)
+    expect(m.transfers[0].state).toBe('missed')
+    expect(m.transfers[1].state).toBe('void')
+    expect(m.transfers[1].slack_s).toBeNull()
+
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    expect(said).toMatch(/Connection missed/)
+    /* The whole point: no second, contradictory verdict underneath the first. */
+    expect(said).not.toMatch(/Connection holds/)
+    expect(said).toMatch(/Not reached/)
+  })
+})
+
+describe('the boundary between tight and fine', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  t('slack of exactly MIN_SLACK_S is tight, not holding', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    /* Eat the spare time down to exactly the floor the editor will still offer. */
+    const late = connection.slack_s - chain.MIN_SLACK_S
+    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'late') }, now)
+    expect(m.connection.slack_s).toBe(chain.MIN_SLACK_S)
+    /*
+     * The two constants are equal, which is what made this invisible: with a
+     * strict `<` the tightest connection the board will ever offer graded "made".
+     */
+    expect(chain.TIGHT_S).toBe(chain.MIN_SLACK_S)
+    expect(m.connection.state).toBe('tight')
+  })
+
+  t('one second more is holding', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const late = connection.slack_s - chain.MIN_SLACK_S - 1
+    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'late') }, now)
+    expect(m.connection.state).toBe('made')
+  })
+})
+
+describe('the walk is longer than the straight line', () => {
+  t('circuity is charged, so a walk costs more than distance over pace', (chain) => {
+    /* The straight line between two stops is not a path anyone walks. Pleasant
+       Valley, the junction this feature was built for, is a divided arterial. */
+    expect(chain.WALK_CIRCUITY).toBeGreaterThan(1)
+    expect(chain.walkSeconds(300)).toBe(
+      Math.ceil((300 * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+    )
+    expect(chain.walkSeconds(300)).toBeGreaterThan(300 / chain.WALK_SPEED_MS)
+  })
+
+  t('a nought-metre walk still costs nothing', (chain) => {
+    expect(chain.walkSeconds(0)).toBe(0)
+  })
+
+  t('the widest offered walk is priced past the tight threshold', (chain) => {
+    /* A 300 m hop is near six minutes, not four. That pricing is the whole reason
+       the radius may stay at 300 rather than being cut to the 215 m the three
+       hand-picked examples cover. */
+    expect(chain.walkSeconds(chain.WALK_RADIUS_M)).toBeGreaterThan(300)
+  })
+})
+
+describe('a store somebody edited by hand', () => {
+  t('legs that are not an array are rejected, not thrown on', (chain) => {
+    /* `legs.length` on an object is undefined, and every comparison against
+       undefined is false — so this passed validation and then threw inside
+       resolve(), taking out the whole Saved view until the store was cleared. */
+    expect(chain.isWellFormed({ legs: { 0: LEG1, 1: LEG1 }, day_type: 'weekday' })).toBe(false)
+    expect(chain.isWellFormed({ legs: 'two', day_type: 'weekday' })).toBe(false)
+    expect(chain.isWellFormed({ legs: null, day_type: 'weekday' })).toBe(false)
+  })
+
+  t('add reports whether the chain is actually in the store', (chain) => {
+    const { chain: c } = theChain(chain)
+    /*
+     * The board announced "Saved …" and navigated away from six steps of work even
+     * when localStorage refused, landing the reader on "No transfer chains yet".
+     */
+    expect(typeof chain.add(c)).toBe('boolean')
   })
 })

@@ -161,6 +161,34 @@ unresolved decision.
   screen for another forty minutes on the 800. The cost is that the card cannot say
   "she gets in at 8:40" — see `TODOS.md`.
 
+- **A canceled leg is never graded.** `resolveLeg()` checks `trip.canceled` before
+  the vehicle join, because every check after it concludes "not reporting yet" —
+  which reads as *not yet* when it means *never*, and would then grade the transfer
+  against a timetable for a bus that is not running. Same order `watch.js` uses, and
+  for the same reason its comment records. Transfers either side of a canceled leg
+  are `void`, not graded.
+
+- **Grading stops at the first change that cannot be made.** Everything downstream
+  of a missed, broken or canceled change is `void` and says why, rather than showing
+  a slack figure computed from a bus the rider will not be on. Grading each transfer
+  independently printed "Connection holds" six lines under "Connection missed" on a
+  three-leg chain, which is the shipped path for "337 to the 7 to the 837".
+
+- **`TIGHT_S` compares with `<=`, and that is load-bearing.** It equals
+  `MIN_SLACK_S`, and the editor offers a connection at `>= MIN_SLACK_S`, so a strict
+  `<` graded the tightest connection the board will ever offer as comfortable. The
+  two constants being equal is what makes this invisible on a read; there is a test
+  asserting the verdict at exactly that value.
+
+- **The walk is charged with a 1.4 circuity factor.** Great-circle distance is
+  accurate to centimetres here and still wrong for the purpose: the straight line
+  between two stops is not a path anyone walks, and Pleasant Valley is a divided
+  arterial. Kept as a separate constant from `WALK_SPEED_MS` because they are
+  different claims — one about the street, one about the rider — and a blended
+  number would leave neither checkable. This is also what lets `WALK_RADIUS_M` stay
+  at 300 m when the cited examples only cover 215: the wide pairs are offered but
+  priced, at 5.8 minutes for a 300 m hop.
+
 - **A connection's verdict is computed from predicted times, and says which halves
   are predictions.** A bus that is not reporting contributes its scheduled time and
   the card prints "the timetable, not a prediction". A suppressed lateness is treated

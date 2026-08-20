@@ -66,12 +66,26 @@
   /* ---- the numbers that decide whether a connection is offered ---------- */
 
   /*
-   * How far a transfer may walk. 300 m is about a four minute walk and it is
-   * chosen from the feed rather than from a standard: every real connection this
-   * household makes lands under 100 m, and the widest genuine one — 7th/Calles
-   * across to the MetroRapid platform — is 215 m. Beyond 300 m the pairs stop
-   * being transfers and start being coincidences of geography, and a picker full
-   * of coincidences is a picker nobody reads.
+   * How far a transfer may walk, as the crow flies.
+   *
+   * The three connections this household actually makes land under 100 m, and the
+   * widest one anybody has pointed at — 7th/Calles across to the MetroRapid
+   * platform — is 215 m. Those numbers do NOT on their own justify 300: measured
+   * over the whole feed, a 300 m radius offers 2,086 connections across the six
+   * watched routes, and 650 of them are wider than 215 m. That is the majority of
+   * the extra reach, not a rounding.
+   *
+   * It is still 300, deliberately, and the defence is the cost model rather than
+   * the radius. A hard 215 m cap would be fitted to three examples nobody checked
+   * against the other sixty-five routes, and it would silently drop genuine
+   * transfers the same way an id intersection dropped 800-to-4. Instead the wide
+   * ones are OFFERED but PRICED: with WALK_CIRCUITY below, a 300 m hop is charged
+   * 350 seconds — near six minutes — so it only survives against a departure with
+   * real slack behind it, and the reader sees the metres on the row before they
+   * pick it.
+   *
+   * Beyond 300 m the pairs stop being transfers and start being coincidences of
+   * geography, and a picker full of coincidences is a picker nobody reads.
    */
   var WALK_RADIUS_M = 300;
 
@@ -82,6 +96,27 @@
    * promises and the pavement does not deliver.
    */
   var WALK_SPEED_MS = 1.2;
+
+  /*
+   * Straight-line metres are not walked metres.
+   *
+   * metres() returns a great-circle distance, and the spherical approximation in it
+   * is accurate to centimetres at this range — but the straight line between two
+   * stops is not a path anyone can walk. Pleasant Valley, the junction this whole
+   * feature was built for, is a divided arterial: the two stops are 27 m apart and
+   * the walk between them crosses six lanes at a signal.
+   *
+   * 1.4 is the standard circuity factor for a street grid and it is the honest
+   * multiplier on a rectilinear detour (a two-leg right-angle walk is √2 ≈ 1.41 of
+   * the diagonal). It does not model a signal cycle; the slow pace above absorbs
+   * some of that.
+   *
+   * Charged as a separate factor rather than folded into WALK_SPEED_MS because they
+   * are different claims — one about the rider, one about the street — and a single
+   * blended number would leave neither checkable. Both errors ran the same way:
+   * making a connection look easier than it is.
+   */
+  var WALK_CIRCUITY = 1.4;
 
   /*
    * The least slack a connection may be built with. Below two minutes it is not a
@@ -175,6 +210,14 @@
    */
   function isWellFormed(chain) {
     var legs = legsOf(chain);
+    /*
+     * Type before shape. `legs.length` on a non-array is `undefined`, and every
+     * comparison below against `undefined` is false — so an object slipped through
+     * validation and then threw on `legs[0].route_id` inside resolve(), taking the
+     * whole Saved view down until the store was cleared by hand. A hand-edited
+     * store is the declared threat model two comments up; this is the hole in it.
+     */
+    if (Object.prototype.toString.call(legs) !== '[object Array]') return false;
     if (legs.length < 2 || legs.length > MAX_LEGS) return false;
     if (!chain.day_type) return false;
     for (var i = 0; i < legs.length; i++) {
@@ -189,19 +232,30 @@
     return readStore().filter(isWellFormed);
   }
 
+  /*
+   * Returns whether the chain is now in the store, NOT the list.
+   *
+   * The caller has to be able to tell a refusal from a success. When localStorage
+   * says no — Safari private browsing, quota, storage switched off — the old
+   * signature made that indistinguishable from a save, so the board announced
+   * "Saved …", navigated away from a six-step editor, and landed on a view reading
+   * "No transfer chains yet". The reader cannot tell that from their own mistake,
+   * so they do it again.
+   *
+   * An already-saved duplicate is a success: the chain is in the store, which is
+   * what the caller asked for.
+   */
   function add(chain) {
     var all = list();
     var k = keyFor(chain);
-    if (all.filter(function (x) { return keyFor(x) === k; }).length) return all;
+    if (all.filter(function (x) { return keyFor(x) === k; }).length) return true;
     all.push(chain);
-    writeStore(all);
-    return all;
+    return writeStore(all);
   }
 
   function remove(k) {
     var all = list().filter(function (x) { return keyFor(x) !== k; });
-    writeStore(all);
-    return all;
+    return writeStore(all);
   }
 
   /* Every route id a chain names, deduplicated, so the caller knows what to fetch. */
@@ -245,10 +299,14 @@
       isFinite(s.lat) && isFinite(s.lon) && !(s.lat === 0 && s.lon === 0);
   }
 
-  /* Always rounded up. A transfer that needs 66.4 seconds of walking needs 67. */
+  /*
+   * How long the walk actually takes: the straight-line distance stretched by the
+   * circuity factor, at the slow pace, always rounded up. A transfer that needs
+   * 66.4 seconds of walking needs 67.
+   */
   function walkSeconds(distanceM) {
     if (distanceM === null || distanceM === undefined) return null;
-    return Math.ceil(distanceM / WALK_SPEED_MS);
+    return Math.ceil((distanceM * WALK_CIRCUITY) / WALK_SPEED_MS);
   }
 
   /* ---- reading a departures document ----------------------------------- */
@@ -436,6 +494,9 @@
       leg: leg,
       resolved: false,
       reason: null,
+      /* The agency has called this trip off. Distinct from "no bus is reporting":
+         one means not yet, the other means never. */
+      canceled: false,
       trip: null,
       trip_index: -1,
       vehicle: null,
@@ -462,6 +523,36 @@
     out.drift = match.drift;
     out.board_seconds = match.row.seconds;
     out.board_at = dep.service_day_start_epoch + match.row.seconds;
+
+    /*
+     * Before the vehicle join, and before anything can stand in for it.
+     *
+     * A canceled trip has no vehicle, so every line below would conclude "not
+     * reporting yet" and the transfer would then be graded against the timetable
+     * for a bus that is not running — which is how this card could print
+     * "Connection holds" about a leg the agency has already called off. watch.js
+     * checks cancellation first for the same reason, and its comment records that
+     * the "not reporting yet" sentence was on screen while a kid waited at a stop.
+     *
+     * On the 2026-08-19 feed there are 100 canceled trips across 10 routes,
+     * including 14 on route 837 and 8 on route 7 — both legs of "337 to the 7 to
+     * the 837", which is one of the three journeys this feature was asked for. This
+     * is the shipped path, not a corner.
+     */
+    if (out.trip.canceled) {
+      out.canceled = true;
+      /*
+       * The scheduled time stands as this leg's time — not as a prediction, but
+       * because the window arithmetic above (is this chain upcoming, or already
+       * over?) needs SOME time for the leg and the timetable is the only one there
+       * is. Leaving it null made `endAt` null, so `now > null + AFTER_S` was true
+       * for any clock past 00:15 and a canceled chain rendered as "passed. Back
+       * tomorrow" — which is a different wrong answer, not a safer one. Nothing
+       * grades against it: every transfer touching a canceled leg is void.
+       */
+      out.predicted_board_at = out.board_at;
+      return out;
+    }
 
     out.vehicle = watchLib.vehicleForTrip(route, out.trip.id);
     if (out.vehicle) {
@@ -531,8 +622,15 @@
     if (prev.lateness === null) out.assumed.push('arriving');
     if (next.lateness === null) out.assumed.push('onward');
 
+    /*
+     * `<=`, not `<`. MIN_SLACK_S and TIGHT_S are both two minutes, and the editor
+     * offers a connection when slack is >= MIN_SLACK_S — so with a strict `<` the
+     * tightest connection this board will ever offer, the one the comment on
+     * MIN_SLACK_S calls "a coin toss", was graded "Connection holds". The two
+     * constants being equal is exactly what made that invisible on a read.
+     */
     if (out.slack_s < 0) out.state = 'missed';
-    else if (out.slack_s < TIGHT_S) out.state = 'tight';
+    else if (out.slack_s <= TIGHT_S) out.state = 'tight';
     else out.state = 'made';
     return out;
   }
@@ -579,10 +677,39 @@
       });
     }
 
+    /*
+     * Transfers are graded in order, and grading STOPS at the first one that
+     * cannot be made.
+     *
+     * Grading each independently is what the first version did, and on a three-leg
+     * chain it printed "Connection holds" six lines under "Connection missed" — the
+     * second verdict computed from a bus the rider will not be on, rendered at the
+     * same weight as the first. That is not a weaker claim, it is a claim about
+     * nothing, and "337 to the 7 to the 837" is one of the three journeys this
+     * feature was asked for, so it is the shipped path.
+     *
+     * A void transfer says why it is void rather than showing a number nobody
+     * should read.
+     */
     var transfers = [];
+    var dead = null;
     for (var i = 1; i < resolvedLegs.length; i++) {
-      transfers.push(resolveTransfer(resolvedLegs[i - 1], resolvedLegs[i],
-        deps[resolvedLegs[i - 1].leg.route_id]));
+      var prev = resolvedLegs[i - 1];
+      var next = resolvedLegs[i];
+      var t;
+      if (dead) {
+        t = voidTransfer(next, dead);
+      } else if (prev.canceled || next.canceled) {
+        t = voidTransfer(next, 'canceled');
+      } else {
+        t = resolveTransfer(prev, next, deps[prev.leg.route_id]);
+      }
+      transfers.push(t);
+      /* Everything downstream of a change that cannot be made is unreachable. */
+      if (dead === null && (t.state === 'missed' || t.state === 'broken' ||
+          t.state === 'void')) {
+        dead = t.state === 'void' ? 'canceled' : t.state;
+      }
     }
     base.transfers = transfers;
 
@@ -592,6 +719,7 @@
           'The schedule has changed since this was saved.' });
     }
 
+    var canceledLegs = resolvedLegs.filter(function (r) { return r.canceled; });
     var first = resolvedLegs[0];
     var last = resolvedLegs[resolvedLegs.length - 1];
     /*
@@ -619,12 +747,23 @@
       /* The worst news among the transfers, because a chain is only as good as its
          weakest change and the card must not lead with the one that holds. */
       connection: worstTransfer(transfers),
+      canceled: canceledLegs,
       shifted: resolvedLegs.filter(function (r) { return r.shifted; }).length > 0,
       is_special: resolvedLegs.filter(function (r) { return r.trip && r.trip.is_special; }).length > 0
     });
 
     if (now > endAt + AFTER_S) model.state = 'passed';
-    else if (now < first.board_at - BEFORE_S) model.state = 'upcoming';
+    /*
+     * Cancellation outranks every live state but not "already gone". A canceled
+     * leg is the strongest thing the feed can say about this chain — stronger than
+     * where the buses are, because there is no bus — and it needs its own state
+     * rather than a badge on a live card, or the card leads with a due time for
+     * something that is not coming.
+     */
+    else if (canceledLegs.length) {
+      model.state = 'canceled';
+      model.detail = canceledDetail(canceledLegs);
+    } else if (now < first.board_at - BEFORE_S) model.state = 'upcoming';
     else if (!first.vehicle) model.state = 'no-vehicle';
     else model.state = 'live';
     return model;
@@ -643,7 +782,52 @@
       fmt.serviceClock(leg.leg.scheduled_time) + ' today. The schedule may have changed.';
   }
 
-  var TRANSFER_RANK = { missed: 0, tight: 1, broken: 2, unknown: 3, made: 4 };
+  /*
+   * A change nobody reaches, or one either side of a canceled bus. It carries no
+   * slack because there is no honest number to put there: computing one against a
+   * departure the rider cannot reach would produce a figure that looks like the
+   * others and means nothing.
+   */
+  function voidTransfer(next, because) {
+    return {
+      state: 'void',
+      because: because,
+      alight_stop_id: next.leg.alight_stop_id,
+      alight_stop_name: next.leg.alight_stop_name || next.leg.alight_stop_id,
+      walk_m: typeof next.leg.walk_m === 'number' ? next.leg.walk_m : null,
+      walk_s: typeof next.leg.walk_s === 'number' ? next.leg.walk_s
+        : walkSeconds(next.leg.walk_m),
+      alight_at: null,
+      predicted_alight_at: null,
+      board_at: next.board_at,
+      predicted_board_at: next.predicted_board_at,
+      slack_s: null,
+      scheduled_slack_s: null,
+      assumed: []
+    };
+  }
+
+  /*
+   * Which bus was called off, by route and scheduled time. A bare "canceled" would
+   * leave the reader to work out which of two or three buses it was, which on a
+   * chain is the whole question — the first leg being canceled means leave now for
+   * a different route, the last leg means the journey is fine until the end.
+   */
+  function canceledDetail(canceled) {
+    var which = canceled.map(function (r) {
+      return 'the ' + fmt.serviceClock(watchLib.clockOf(r.board_seconds)) + ' route ' +
+        r.leg.route_id;
+    });
+    var list = which.length === 1 ? which[0]
+      : which.slice(0, -1).join(', ') + ' and ' + which[which.length - 1];
+    return 'CapMetro has canceled ' + list + '. ' +
+      (canceled.length === 1 ? 'No bus is running that trip today.'
+        : 'No buses are running those trips today.');
+  }
+
+  /* void ranks below the real verdicts: a change nobody reaches is not the news,
+     the thing upstream of it is. */
+  var TRANSFER_RANK = { missed: 0, tight: 1, broken: 2, void: 3, unknown: 4, made: 5 };
 
   function worstTransfer(transfers) {
     var sorted = transfers.slice().sort(function (a, b) {
@@ -689,6 +873,7 @@
     tight: 'Tight connection',
     missed: 'Connection missed',
     broken: 'Chain broken',
+    void: 'Not reached',
     unknown: 'Connection unknown'
   };
 
@@ -701,6 +886,20 @@
     if (!t) return '';
     var walk = t.walk_m === null ? '' :
       (t.walk_m === 0 ? 'Same stop' : 'A ' + t.walk_m + ' m walk') + ' at ' + t.alight_stop_name + '. ';
+    /*
+     * Void first, and with no walk sentence in front of it. Describing the walk to
+     * a change nobody reaches is the same mistake as grading it: true of the
+     * timetable, irrelevant to today.
+     */
+    if (t.state === 'void') {
+      if (t.because === 'canceled') {
+        return 'Not reached — one of these buses is canceled.';
+      }
+      if (t.because === 'broken') {
+        return 'Not reached — the change before this one no longer exists.';
+      }
+      return 'Not reached — the change before this one is missed.';
+    }
     if (t.state === 'missed') {
       return walk + 'The first bus gets in after the second one leaves, by ' +
         minutesWord(t.slack_s) + '. Plan on the next one.';
@@ -803,10 +1002,17 @@
     box.appendChild(head);
 
     if (model.state === 'live' || model.state === 'no-vehicle' ||
-        model.state === 'upcoming' || model.state === 'passed') {
+        model.state === 'upcoming' || model.state === 'passed' ||
+        model.state === 'canceled') {
       var line = el('p', 'chaincard__line');
       if (model.state === 'passed') {
         line.textContent = 'Gone · ' + watchLib.untilText(model.seconds_until);
+      } else if (model.state === 'canceled') {
+        /*
+         * No due time on this line. Printing one beside the word CANCELED invites
+         * the reader to act on it, and there is nothing coming at that time.
+         */
+        line.appendChild(el('span', 'chaincard__canceled', 'CANCELED'));
       } else {
         line.appendChild(el('span', 'chaincard__due', fmt.clock(model.due_at)));
         line.appendChild(el('span', 'chaincard__until',
@@ -830,6 +1036,8 @@
       } else if (model.state === 'passed') {
         box.appendChild(el('p', 'chaincard__detail',
           'The last bus was due to leave at ' + fmt.clock(model.end_at) + '. Back tomorrow.'));
+      } else if (model.state === 'canceled') {
+        box.appendChild(el('p', 'chaincard__detail', model.detail || ''));
       }
 
       /* Legs and the changes between them, in the order they are ridden. */
@@ -874,6 +1082,7 @@
   function spoken(model) {
     var head = describe(model.chain) + '. ';
     if (model.state === 'passed') return head + 'Already gone.';
+    if (model.state === 'canceled') return head + (model.detail || 'Canceled.');
     if (model.state === 'upcoming') return head + 'Due ' + fmt.clockSpoken(model.due_at) + '.';
     if (model.state === 'live' || model.state === 'no-vehicle') {
       var t = model.connection;
@@ -924,8 +1133,8 @@
    * the only card on the screen that needs a decision made about it.
    */
   var RANK = {
-    live: 0, 'no-vehicle': 1, upcoming: 2, passed: 3,
-    broken: 4, 'not-today': 5, 'no-schedule': 6
+    live: 0, canceled: 1, 'no-vehicle': 2, upcoming: 3, passed: 4,
+    broken: 5, 'not-today': 6, 'no-schedule': 7
   };
 
   function sortModels(models) {
@@ -1122,6 +1331,18 @@
       opts.onSave({ legs: (state.legs || []).slice(), day_type: state.day_type });
     });
     wrap.appendChild(b);
+    /*
+     * Named as the browser's refusal, not as an error in the chain. The chain is
+     * fine; the store would not take it, and nothing the reader changes about the
+     * journey will help.
+     */
+    if (state.saveFailed) {
+      wrap.appendChild(S.notice('warn',
+        'This browser would not save the chain.',
+        'Private browsing and full storage both do this. Nothing has been stored, ' +
+        'and your choices above are still here if you can free some space or ' +
+        'open a normal window.'));
+    }
     wrap.appendChild(el('p', 'hint',
       'Saved for a ' + (state.day_type || 'weekday') + '. Weekday, Saturday and Sunday ' +
       'run different schedules, so each one is its own chain.'));
@@ -1273,6 +1494,7 @@
     STORE_KEY: STORE_KEY,
     WALK_RADIUS_M: WALK_RADIUS_M,
     WALK_SPEED_MS: WALK_SPEED_MS,
+    WALK_CIRCUITY: WALK_CIRCUITY,
     MIN_SLACK_S: MIN_SLACK_S,
     MAX_WAIT_S: MAX_WAIT_S,
     TIGHT_S: TIGHT_S,
