@@ -300,7 +300,7 @@
     var brandRow = el('div', 'topbar__row topbar__row--brand');
     var brand = el('p', 'brand');
     brand.appendChild(el('span', 'brand__mark', '▲'));
-    brand.appendChild(el('span', 'brand__name', 'School Bus Board'));
+    brand.appendChild(el('span', 'brand__name', 'Dillo Bus Board'));
     brandRow.appendChild(brand);
     dom.stamp = el('p', 'stamp');
     brandRow.appendChild(dom.stamp);
