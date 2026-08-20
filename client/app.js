@@ -1148,6 +1148,18 @@
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
       setInterval(function () {
+        /*
+         * Not while an editor is open.
+         *
+         * Every refresh ends in render(), and render() rebuilds the band from
+         * scratch — which on a six-step editor throws away focus, scroll position
+         * and any half-made tap, once a minute, silently. Nothing an editor shows
+         * is live: it is built entirely from the service-day schedule, which does
+         * not change while someone is standing in it. The board repaints with
+         * current data the moment they leave.
+         */
+        if (state.view === 'chain-edit' || state.view === 'saved-edit') return;
+
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
         /* One retry per minute for a schedule that failed to load, and only

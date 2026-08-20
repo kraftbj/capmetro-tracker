@@ -286,6 +286,29 @@ test.describe('a chain leg on a route whose feed died', () => {
 })
 
 /*
+ * Every refresh ends in render(), which rebuilds the band from scratch. On a
+ * six-step editor that discards focus, scroll and any half-made tap once a minute.
+ */
+test.describe('the editor is not rebuilt underneath the reader', () => {
+  test('a mid-edit choice survives a refresh tick', async ({ page }) => {
+    await pickFirstLeg(page)
+    await page.locator('.routegrid__item', { hasText: '4' }).first().click()
+    await page.locator('.chipbtn').first().click()
+    await expect(page.locator('.connlist__item').first()).toBeVisible()
+
+    /* Longer than one 60s tick would need if the guard were missing; the point is
+       that no repaint replaces the node under us. */
+    const before = await page.locator('.step__chosen').first().innerText()
+    await page.waitForTimeout(2000)
+    const row = page.locator('.connlist__item').first()
+    await expect(row).toBeVisible()
+    await row.click({ timeout: 5000 })
+    await expect(page.locator('.step__chosen').first()).toHaveText(before)
+    await expect(page.getByRole('button', { name: 'Save this chain' })).toBeVisible()
+  })
+})
+
+/*
  * The staleness machinery covered routes that loaded. The route most in need of a
  * banner is the one that did NOT: with no payload it drew nothing, no status, and
  * resolveLeg graded it against the timetable with full confidence — so a leg the
