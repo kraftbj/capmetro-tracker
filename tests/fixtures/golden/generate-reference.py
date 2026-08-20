@@ -1,5 +1,7 @@
 import json, csv, collections, datetime, sys, os
 FX='tests/fixtures/feeds-20260819/'; G='/tmp/gtfs/'
+WINDOW_BEFORE_S, WINDOW_AFTER_S = 900, 2700          # now-15min .. now+45min
+PREDICTION_GRACE_S = 90                              # how far past a prediction may still show
 ROUTE='4'
 def rd(p): return csv.DictReader(open(G+p, encoding='utf-8-sig'))
 stops={s['stop_id']:s for s in rd('stops.txt')}
@@ -94,11 +96,32 @@ for e in vp['entity']:
     veh["trip"]={"trip_id":tid,"start_time":tr['startTime'],"start_epoch":clock2epoch(tr['startTime']),
       "direction_id":int(tr['directionId']),"headsign":rtrips.get(tid,{}).get('trip_headsign'),
       "schedule_relationship":tr.get('scheduleRelationship','SCHEDULED')}
+    up=tuidx.get(tid)
     veh["progress"]={"current_stop_sequence":v.get('currentStopSequence'),
       "current_stop_id":v.get('stopId'),"current_status":v.get('currentStatus')}
+    # predictions: every usable stop prediction still ahead of the bus, bounded by the
+    # same 45-minute forward window section 3.2 uses. Same filter as the adherence anchor:
+    # sequence at or ahead of the bus, no SKIPPED, no timeless row, arrival beats departure.
+    preds=[]
+    cur_seq=v.get('currentStopSequence')
+    canceled = tr.get('scheduleRelationship')=='CANCELED' or \
+        (up or {}).get('trip',{}).get('scheduleRelationship')=='CANCELED'
+    if up and cur_seq is not None and not canceled:
+        for s_ in up.get('stopTimeUpdate',[]):
+            sq=s_.get('stopSequence')
+            if sq is None or int(sq)<int(cur_seq): continue
+            if s_.get('scheduleRelationship')=='SKIPPED': continue
+            t_=(s_.get('arrival') or {}).get('time') or (s_.get('departure') or {}).get('time')
+            sid=s_.get('stopId')
+            if not t_ or not sid: continue
+            # bounded both ways: a stop the bus has already passed keeps its
+            # original time and would sort to the top of a rider's panel as "due"
+            if int(t_)>NOW+WINDOW_AFTER_S or int(t_)<NOW-PREDICTION_GRACE_S: continue
+            preds.append([int(sq),str(sid),int(t_)])
+    preds.sort(key=lambda r:r[0])
+    veh["predictions"]=preds
     # adherence
     st,secs,against,reason=None,None,None,None
-    up=tuidx.get(tid)
     if tr.get('scheduleRelationship')=='CANCELED': st,reason="unknown","trip_canceled"
     elif not up: st,reason="unknown","no_trip_update"
     elif not up.get('stopTimeUpdate'): st,reason="unknown","no_stop_predictions"
@@ -212,7 +235,6 @@ if cands:
 
 # ---- windowed timepoint schedule (contract 3.2) --------------------------------------------
 # Scheduled arrival at every TIMEPOINT, for every trip whose span overlaps the schedule window.
-WINDOW_BEFORE_S, WINDOW_AFTER_S = 900, 2700          # now-15min .. now+45min
 w_from, w_until = NOW-WINDOW_BEFORE_S, NOW+WINDOW_AFTER_S
 sched_dirs=[]
 for DIR in ('0','1'):

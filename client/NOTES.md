@@ -109,6 +109,72 @@ unresolved decision.
 
 ---
 
+## Nearest stop / "when is my bus here" (`near.js`)
+
+Answers a rider's question rather than a dispatcher's: which bus is coming to the
+stop I am standing at, and when. Uses `navigator.geolocation` and nothing else —
+no tile server, no geocoder, no key, no network call.
+
+- **The fix never leaves the browser and is never stored.** Not sent, not logged,
+  and deliberately not in `localStorage` next to the saved route and direction.
+  A saved route is a preference; a saved position is a record of where somebody
+  was. The permission prompt is only ever raised by tapping the button.
+- **It does not measure the distance to a bus.** That number is wrong in a way
+  that looks right: the nearest bus by metres is routinely one on the parallel
+  street going the other way. Instead the USER is snapped to a stop, and
+  `Vehicle.predictions` says which buses still have that stop ahead of them —
+  presence in that list IS "approaching", so there is no distance derivative to
+  get wrong. `bearing` could not have helped either: 208 of 392 vehicles in the
+  capture do not report one.
+- **Stops are matched by `stop_id`, never `stop_sequence`**, because route 4 runs
+  a 17-stop baseline on five services and a 19-stop one on three others.
+- **Every time shown is the agency's own `predicted_at`.** Nothing here adds a
+  deviation to a scheduled time or divides a distance by a speed, and the
+  countdown is measured against `generated_at` like every other age on the board.
+  When the feed is stale the server sends an empty list and the panel says why,
+  because a countdown is the number a rider acts on fastest.
+- **It renders in the banner slot above the rows, not as a fourth panel.** The
+  rows/ladder/map order is settled; this is a stated answer in the slot the
+  staleness banners already use. The vehicle rows get a marker, not a re-sort —
+  promoting "your" bus above a very late one would defeat the sort.
+- **Verified on `file://`** (the board must open from disk). Measured, not
+  assumed: Chromium reports `isSecureContext: true` there and exposes
+  `navigator.geolocation`, so the common claim that `file://` is not a secure
+  context does not hold for it. The panel gates on `isSecureContext` itself
+  rather than on the protocol, so a browser where it IS false says "this page
+  cannot ask" instead of blaming the reader. What the harness cannot show is a
+  real permission *prompt* on an opaque `file://` origin, since headless has no
+  prompt UI; a browser that refuses to grant one reports the same code 1 a
+  person tapping Block does, so that message names both possibilities rather
+  than picking one. Still worth ten minutes in a real browser opened from disk.
+- **The arrival time is shared with the stop board.** Both panels answer "when
+  does this bus reach this stop", so both read `fmt.predictionFor()` first.
+  stopboard.js used to add the bus's current lateness to the scheduled time,
+  which assumes the deviation measured at whatever stop the bus is approaching
+  still holds by the time it reaches yours — across the corpus the two disagree
+  by over a minute on 64% of comparable pairs and by up to 53 minutes. It keeps
+  that estimate as a fallback, because predictions only cover stops ahead of a
+  bus inside the 45-minute window (4,528 of 9,865 departures); the rest are
+  buses that have not started yet.
+
+  **A stop board row shows its lateness badge only when the badge and the time
+  are the same computation.** Making the time more accurate broke the identity
+  that used to hold — the row prints an arrival, a scheduled time and a badge,
+  so a reader can subtract, and 1,438 of 4,205 rendered rows would have been
+  off by more than two minutes with 325 pointing opposite ways. On a
+  feed-sourced row the badge, the state colour and the signed number go; the
+  scheduled time is printed always instead, since it becomes the only thing
+  saying how late the bus is *here*. The bus's overall state survives as a
+  phrase — "running very late" — because a word can carry the scope a bare
+  number cannot: a bus eleven minutes late at its anchor that reaches this stop
+  five minutes late is the feed modelling recovery, not a contradiction.
+
+Gap 3 above is now partly closed: `Vehicle.predictions` gives per-stop predicted
+times, so a rider-facing arrival time no longer has to be invented. A true
+time-axis string-line would still need scheduled times per timepoint per trip.
+
+---
+
 ## Decisions I made that reviewers should check
 
 - **The badge sits in the leftmost column, not after the vehicle id.** The approved

@@ -607,6 +607,32 @@
             "string",
             "null"
           ]
+        },
+        "predictions": {
+          "type": "array",
+          "description": "When this vehicle reaches each stop still ahead of it: [stop_sequence, stop_id, predicted_at] triples, ascending by stop_sequence, straight from the trip update's stopTimeUpdate entries. Rows start from the same rule adherence.against is anchored with (section 2): stop_sequence at or after progress.current_stop_sequence, no SKIPPED entries, no entry without a time, arrival preferred over departure. Publishing then applies three further bounds the anchor does not, so a client must NOT assume predictions[0] is the anchor row: no entry without a stop_id; nothing beyond the section 3.2 forward window (generated_at + after_s); and nothing more than 90 seconds in the past, because the positions feed lags the trip updates feed and a stop the bus has already passed keeps its original time, sorts first, and reads as 'due'. Empty -- never absent -- when staleness.suppress_adherence is true, when current_stop_sequence is null, when the trip is CANCELED (row 2 of the section 2 table already refuses to score one, and a countdown to a bus that is never coming is the same error told more confidently), or when the trip has no usable prediction left. Present on route documents only; all.json strips it. Compact triples rather than objects because this is bulk data in a document re-fetched every 60 seconds.",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "description": "stop_sequence"
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "description": "stop_id"
+              },
+              {
+                "$ref": "#/$defs/epoch",
+                "description": "predicted_at"
+              }
+            ],
+            "items": false
+          }
         }
       },
       "allOf": [
@@ -656,6 +682,11 @@
                 {
                   "required": [
                     "block"
+                  ]
+                },
+                {
+                  "required": [
+                    "predictions"
                   ]
                 }
               ]

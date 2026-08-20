@@ -58,6 +58,109 @@ const routeWith = (perTrip, suppress = false) => ({
   })),
 })
 
+/**
+ * The same helper, plus a feed prediction for stop 6293 on one trip — so the
+ * row's time and the vehicle's anchor deviation disagree, which is the case the
+ * panel had no coverage for.
+ */
+const routeWithFeed = (tripId, lateSeconds, predictedAt, stopId = '6293') => {
+  const route = routeWith({ [tripId]: lateSeconds })
+  route.vehicles[0].predictions = [[9, stopId, predictedAt]]
+  return route
+}
+
+describe('a row never argues with itself', () => {
+  /*
+   * The arrival time comes from the agency's per-stop prediction; the badge
+   * comes from the deviation measured at whatever stop the bus is currently
+   * approaching. Those are different numbers — across the corpus they differ by
+   * more than two minutes on a third of rendered rows — so a row that shows
+   * both invites a subtraction that does not come out.
+   *
+   * The real example that made this concrete: a bus 11 minutes late at its
+   * anchor, arriving 15:32 against a 15:27 schedule. Badge says 11, the times
+   * say 5. And in 325 cases across the corpus they point opposite ways: a time
+   * three minutes EARLY beside a late badge.
+   */
+  const NOW = at(7, 25)
+  /* TRIP_0732 is scheduled 07:32:09 at stop 6293. The anchor says 20 minutes
+     late, which would extrapolate to 07:52. The feed says it reaches this stop
+     at 07:29 — three minutes EARLY. Opposite signs, which is the 325-row case. */
+  const FEED_AT = at(7, 29)
+
+  t('takes its time from the feed when the feed has one', (sb) => {
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const row = rows.find((r) => r.trip.id === TRIP_0732)
+
+    expect(row.from_feed).toBe(true)
+    expect(row.due_at).toBe(FEED_AT)
+    /* And NOT the extrapolation, which is what it would have been before. */
+    expect(row.due_at).not.toBe(row.scheduled_at + 1200)
+  })
+
+  t('shows no anchor badge on a row whose time came from the feed', (sb) => {
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const row = rows.find((r) => r.trip.id === TRIP_0732)
+    const node = sb.departureRow(row)
+
+    /*
+     * The badge is the signed number a reader would check the two times
+     * against. With the times sourced elsewhere it can only contradict them.
+     */
+    expect(all(node, 'badge')).toHaveLength(0)
+    expect(textDeep(node)).not.toMatch(/[+−-]\d+m/)
+  })
+
+  t('still shows the badge on an extrapolated row, where the two agree', (sb) => {
+    /* No predictions at all, so the time IS scheduled + deviation and the badge
+       is exactly the difference between the two times printed. */
+    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0732]: 1200 }), '6293', 1, NOW, 4)
+    const row = rows.find((r) => r.trip.id === TRIP_0732)
+    const node = sb.departureRow(row)
+
+    expect(row.from_feed).toBe(false)
+    expect(row.due_at).toBe(row.scheduled_at + 1200)
+    expect(all(node, 'badge').length).toBeGreaterThan(0)
+  })
+
+  t('always prints the scheduled time on a feed-sourced row', (sb) => {
+    /*
+     * With the badge gone, the scheduled time is the only thing left saying how
+     * late the bus is HERE — so it is printed even when the difference is under
+     * the minute that would normally suppress it as noise.
+     */
+    const almostOnTime = at(7, 32, 40)   /* 31s late: under the 60s noise cut */
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, almostOnTime), '6293', 1, NOW, 4)
+    const node = sb.departureRow(rows.find((r) => r.trip.id === TRIP_0732))
+
+    expect(textDeep(node)).toContain('scheduled')
+  })
+
+  t('scopes the bus state to the bus rather than to this stop', (sb) => {
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const node = sb.departureRow(rows.find((r) => r.trip.id === TRIP_0732))
+    const text = textDeep(node)
+
+    /*
+     * "running very late" is a fact about the bus and survives; a bare "very
+     * late" next to a time that is early at this stop does not. A bus recovering
+     * six minutes between its anchor and here is the feed doing its job, not a
+     * contradiction — but only the scoped wording says so.
+     */
+    expect(text).toContain('running very late')
+  })
+
+  t('speaks the same split to a screen reader', (sb) => {
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const node = sb.departureRow(rows.find((r) => r.trip.id === TRIP_0732))
+    const spoken = all(node, 'sr-only').map(textDeep).join(' ')
+
+    /* The spoken line used to carry the same contradiction as the visual one. */
+    expect(spoken).toContain('is running very late overall')
+    expect(spoken).not.toMatch(/\d+ minutes late, scheduled/)
+  })
+})
+
 describe('"next" is when the bus arrives, not when it was due', () => {
   t('keeps a late bus whose scheduled time has already passed', (sb) => {
     /*

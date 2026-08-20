@@ -43,19 +43,28 @@ function cm_adherence_classify(int $seconds): string
 }
 
 /*
- * Pick the stopTimeUpdate the lateness is measured against.
+ * Every usable stop prediction at or ahead of the bus, in stop order.
  *
- * "The first stop in the trip update whose stopSequence >= current_stop_sequence, skipping
- * any entry whose scheduleRelationship is SKIPPED and any entry with neither an arrival
- * nor a departure time. When both arrival and departure are present, arrival wins."
+ * This is the contract's anchor rule (section 2) stated once, as a list rather than a
+ * single pick: "entries whose stopSequence >= current_stop_sequence, skipping any entry
+ * whose scheduleRelationship is SKIPPED and any entry with neither an arrival nor a
+ * departure time. When both arrival and departure are present, arrival wins."
  *
- * Returns ['stop_sequence' => int, 'stop_id' => ?string, 'predicted_at' => int] or null.
- * Entries are sorted by stopSequence first so a feed that emits them out of order still
- * yields the first stop ahead of the bus rather than the first array element.
+ * Both readers of that rule live here on purpose. cm_adherence_pick_anchor() takes the
+ * first row to measure lateness against, and the route document publishes the whole list
+ * as Vehicle.predictions so a client can ask "when does this bus reach MY stop". Written
+ * twice they would drift, and the symptom would be a board whose arrival time is measured
+ * against a stop its own lateness number says the bus already passed.
+ *
+ * Entries are sorted by stopSequence rather than trusted in array order: the feed is not
+ * required to emit them sorted, and "the first stop ahead of the bus" must mean the
+ * lowest sequence, not the first array element.
+ *
+ * Returns a list of ['stop_sequence' => int, 'stop_id' => ?string, 'predicted_at' => int].
  */
-function cm_adherence_pick_anchor(array $stop_time_updates, int $current_stop_sequence): ?array
+function cm_stop_predictions(array $stop_time_updates, int $current_stop_sequence): array
 {
-    $candidates = [];
+    $rows = [];
     foreach ($stop_time_updates as $stu) {
         if (!is_array($stu)) {
             continue;
@@ -76,17 +85,23 @@ function cm_adherence_pick_anchor(array $stop_time_updates, int $current_stop_se
         if ($time === null || $time === '') {
             continue;
         }
-        $candidates[] = [
+        $rows[] = [
             'stop_sequence' => $seq,
             'stop_id'       => isset($stu['stopId']) ? (string) $stu['stopId'] : null,
             'predicted_at'  => (int) $time,
         ];
     }
-    if ($candidates === []) {
-        return null;
-    }
-    usort($candidates, static fn($a, $b) => $a['stop_sequence'] <=> $b['stop_sequence']);
-    return $candidates[0];
+    usort($rows, static fn($a, $b) => $a['stop_sequence'] <=> $b['stop_sequence']);
+    return $rows;
+}
+
+/*
+ * Pick the stopTimeUpdate the lateness is measured against: the first row of the list
+ * above. Returns null when the trip has no usable prediction ahead of the bus.
+ */
+function cm_adherence_pick_anchor(array $stop_time_updates, int $current_stop_sequence): ?array
+{
+    return cm_stop_predictions($stop_time_updates, $current_stop_sequence)[0] ?? null;
 }
 
 /*

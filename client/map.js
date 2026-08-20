@@ -77,11 +77,9 @@
    * Guinea, not Austin: the feed uses it for "no position recorded", and
    * plotting it would drag the whole frame 3,000km south and shrink the route
    * to a speck. A stop with no fix is dropped, never placed at the origin.
+   * The test itself lives in format.js, because near.js needs the same one.
    */
-  function hasFix(p) {
-    return !!p && typeof p.lat === 'number' && typeof p.lon === 'number' &&
-      isFinite(p.lat) && isFinite(p.lon) && !(p.lat === 0 && p.lon === 0);
-  }
+  var hasFix = fmt.hasFix;
 
   /*
    * Every stop of one direction in the order the bus drives them. The minor

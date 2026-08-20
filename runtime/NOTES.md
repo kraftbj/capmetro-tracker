@@ -14,7 +14,7 @@ contract wins and this document is a bug.
 |---|---|
 | `generate-api.php` | The entry point. One cron run = one invocation. ASCII data-flow diagram in its header. |
 | `lib/servicetime.php` | Service-clock to epoch, DST-correct. Pure. |
-| `lib/adherence.php` | The 10-row decision table. Pure. |
+| `lib/adherence.php` | The 10-row decision table, and the shared stop-prediction filter it shares with `Vehicle.predictions`. Pure. |
 | `lib/alerts.php` | Socrata alert parser and the PII allowlist. Pure. |
 | `lib/stopstatus.php` | Stop service status precedence. Pure. |
 | `lib/stopnames.php` | Stop name shortening, contract section 7. Pure. |
