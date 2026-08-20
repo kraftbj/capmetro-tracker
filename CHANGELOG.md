@@ -1,7 +1,27 @@
 # Changelog
 
-All notable changes to the CapMetro dispatch board are recorded here.
+All notable changes to the Dillo Bus Board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
+
+## [0.4.0.1] - 2026-08-20
+
+### Fixed
+
+- **The vhost served the board with no CSP.** nginx inherits `add_header` from
+  an enclosing level only when the current level declares none of its own, so a
+  single `add_header` inside a `location` silently discards every inherited one.
+  Each location sets its own `Cache-Control`, which meant the four security
+  headers declared at server level reached only `location /` -- and
+  `location = /index.html` shadows it. The one HTML document on the origin, and
+  every script, stylesheet and API response, went out with no
+  Content-Security-Policy, no Referrer-Policy and no X-Frame-Options. Confirmed
+  against `nginx:alpine`: zero of the three on `/index.html`, `/styles.css` and
+  `/api/health.json` before, all four present on all five paths after. The
+  Apache vhost was never affected -- `mod_headers` is additive across scopes.
+
+### Changed
+
+- The board is called **Dillo Bus Board**, matching the host it runs on.
 
 ## [0.4.0.0] - 2026-08-19
 
