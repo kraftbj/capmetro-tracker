@@ -182,6 +182,37 @@ describe('predictions across every generated route', () => {
   })
 })
 
+describe('a canceled trip counts down nowhere', () => {
+  t('publishes no predictions for a trip the schedule says is canceled', () => {
+    /*
+     * Two carriers now say a trip is canceled: the cached trips[].canceled in
+     * the departures document, and schedule.canceled_trips rebuilt from live
+     * TripUpdates every run. Predictions are gated on the vehicle's own
+     * schedule_relationship, which is a third reading of the same feed — so
+     * this asserts the three cannot disagree, because the visible failure is
+     * the stop board printing CANCELED while the nearest-stop panel counts down
+     * to the same bus on the same screen.
+     *
+     * Only testable since canceled_trips started being populated: it was []
+     * on every route from the day it shipped, so this invariant held vacuously.
+     */
+    let canceledIds = 0
+    eachRoute((doc, name) => {
+      const canceled = new Set((doc.schedule && doc.schedule.canceled_trips) || [])
+      canceledIds += canceled.size
+      for (const v of doc.vehicles) {
+        if (!v.in_service || !v.trip) continue
+        if (!canceled.has(v.trip.trip_id)) continue
+        expect(
+          v.predictions,
+          `${name} #${v.vehicle_id} is on canceled trip ${v.trip.trip_id} and still counts down`,
+        ).toEqual([])
+      }
+    })
+    expect(canceledIds, 'no canceled trip in the corpus, so nothing was checked').toBeGreaterThan(0)
+  })
+})
+
 describe('the two panels tell one story', () => {
   t('never show different arrival times for the same bus at the same stop', (cmb) => {
     /*

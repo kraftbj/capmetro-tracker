@@ -91,10 +91,11 @@
        * started their trip yet, and for those the extrapolation is the only
        * answer there is.
        *
-       * The badge beside this time is left alone. It is adherence.view() -- the
-       * bus's own server-owned lateness state -- and recomputing a second
-       * lateness from these numbers is exactly the second vocabulary this file
-       * must not grow.
+       * Which of the two a row used decides whether it may also show the
+       * adherence badge -- see departureRow(). The badge is not recomputed from
+       * these numbers either way: adherence.view() is the one lateness
+       * vocabulary, and a second one derived here is exactly what this file must
+       * not grow.
        */
       var fromFeed = fmt.predictionFor(vehicle, stopId);
       var predictedAt = fromFeed ? fromFeed.predicted_at
@@ -105,7 +106,7 @@
 
       out.push({
         trip: row.trip,
-        canceled: !!row.trip.canceled,
+        canceled: W.isCanceled(row.trip, route),
         vehicle: vehicle,
         view: view,
         suppressed: suppressed,
