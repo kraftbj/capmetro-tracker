@@ -673,7 +673,7 @@ button { font: inherit; color: inherit; }
  * only thing on the card that is genuinely at risk and the only thing the reader
  * can still do something about.
  *
- * The verdict colour is the adherence palette, reused rather than re-invented:
+ * The verdict color is the adherence palette, reused rather than re-invented:
  * red already means "this has gone wrong" everywhere else on this board, and a
  * second vocabulary for the same idea would have to be learned twice.
  */
@@ -687,7 +687,7 @@ button { font: inherit; color: inherit; }
 .chaincard--passed, .chaincard--not-today { opacity: 0.6; border-left-color: var(--dia-spine-dim); }
 .chaincard--broken, .chaincard--no-schedule { border-left-color: var(--warn); }
 /* Cancellation is the strongest thing the feed can say about a chain, so it takes
-   the danger colour outright rather than sharing the missed-connection tint. */
+   the danger color outright rather than sharing the missed-connection tint. */
 .chaincard--canceled { border-left-color: var(--adh-vlate); }
 .chaincard__canceled {
   font-family: var(--font-figure); font-size: 20px; font-weight: 700;
@@ -742,7 +742,7 @@ button { font: inherit; color: inherit; }
 .chaincard__transfer--tight { border-left-color: var(--adh-late); }
 .chaincard__transfer--missed { border-left-color: var(--adh-vlate); }
 .chaincard__transfer--broken { border-left-color: var(--warn); }
-/* A change nobody reaches is dimmed, not coloured: it is not a second warning to
+/* A change nobody reaches is dimmed, not colored: it is not a second warning to
    read, it is a row that no longer applies. */
 .chaincard__transfer--void { border-left-color: var(--dia-spine-dim); opacity: 0.55; }
 .chaincard__verdict { display: flex; align-items: baseline; gap: 8px; margin: 0; flex-wrap: wrap; }
@@ -1018,7 +1018,7 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 }
 .abdet__v { margin: 0; font-size: var(--fs-meta); }
 .abdet__v.dim { color: var(--ink-dim); }
-/* The one fact worth colour: this bus becomes a different route. */
+/* The one fact worth color: this bus becomes a different route. */
 .abdet__v--change { color: var(--adh-early); font-weight: 600; }
 .abdet__note {
   margin: 10px 0 0; font-size: var(--fs-chrome);

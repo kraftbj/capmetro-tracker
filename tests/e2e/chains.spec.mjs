@@ -86,7 +86,7 @@ test.describe('building a chain', () => {
     await expect(card).toContainText('800 → 4')
     await expect(card).toContainText('1 change')
 
-    /* The verdict is the point of the card, and it must be words, not a colour. */
+    /* The verdict is the point of the card, and it must be words, not a color. */
     const verdict = card.locator('.chaincard__verdictlabel').first()
     await expect(verdict).toBeVisible()
     await expect(verdict).toHaveText(/Connection|Chain/)
@@ -139,7 +139,7 @@ test.describe('the card at 412 pixels', () => {
     expect(overflow).toBeLessThanOrEqual(0)
   })
 
-  test('the whole chain is spoken for a screen reader, not only coloured', async ({ page }) => {
+  test('the whole chain is spoken for a screen reader, not only colored', async ({ page }) => {
     await pickFirstLeg(page)
     await page.locator('.routegrid__item', { hasText: '4' }).first().click()
     await page.locator('.chipbtn').first().click()
@@ -286,6 +286,29 @@ test.describe('a chain leg on a route whose feed died', () => {
 })
 
 /*
+ * The staleness machinery covered routes that loaded. The route most in need of a
+ * banner is the one that did NOT: with no payload it drew nothing, no status, and
+ * resolveLeg graded it against the timetable with full confidence — so a leg the
+ * board knows nothing about rendered identically to a leg running exactly on time.
+ */
+test.describe('a chain leg whose route will not load at all', () => {
+  test('is visible as missing rather than silently trusted', async ({ page }) => {
+    await saveTheChain(page)
+
+    /* A republish renumbering the route is the real-world version of this. */
+    await page.route('**/api/route/800.json', (route) =>
+      route.fulfill({ status: 404, body: '{"error":"gone"}' })
+    )
+    await page.goto(SAVED)
+
+    const missing = page.locator('.savedbanner', { hasText: 'Route 800' })
+    await expect(missing).toHaveCount(1)
+    await expect(missing).toContainText('No live data for route 800')
+    await expect(missing.getByRole('button', { name: 'Try again' })).toBeVisible()
+  })
+})
+
+/*
  * The board announced "Saved …" and navigated away from six steps of work even when
  * localStorage refused, landing the reader on "No transfer chains yet". They cannot
  * tell that from their own mistake, so they do it again.
@@ -306,9 +329,18 @@ test.describe('a browser that will not save', () => {
     await page.locator('.connlist__item').first().click()
     await page.getByRole('button', { name: 'Save this chain' }).click()
 
-    /* Still in the editor, with the choices intact, and told why. */
-    await expect(page.getByText('This browser would not save the chain.')).toBeVisible()
+    /* Still in the editor, with the choices intact, and told why — on screen... */
+    await expect(page.locator('.notice__head', {
+      hasText: 'This browser would not save the chain.',
+    })).toBeVisible()
+    /* ...and out loud, since a reader using a screen reader gets no other signal
+       that the button they just pressed did nothing. */
+    await expect(page.locator('[role="status"][aria-live="polite"]'))
+      .toContainText('would not save')
+
     await expect(page.locator('.chaincard')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Save this chain' })).toBeVisible()
+    /* The legs picked over six steps are still there to save or amend. */
+    await expect(page.locator('.step__chosen').first()).toContainText('7:52a')
   })
 })

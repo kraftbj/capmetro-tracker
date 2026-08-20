@@ -276,28 +276,62 @@ describe('the verdict, which is the whole product', () => {
     expect(held.connection.state).toBe('made')
   })
 
-  t('a suppressed lateness is not a zero', (chain) => {
+  /*
+   * This test used to assert that a suppressed lateness fell back to the timetable
+   * and recorded the assumption — which it did, and which is the WRONG outcome. It
+   * checked the guard (a null is not a zero) and never followed where the null led:
+   * to `board_at`, and to a confident verdict built on it. Rewritten to assert the
+   * outcome, which is what a reader of the card actually gets.
+   */
+  t('a suppressed lateness refuses to grade rather than grading optimistically',
+    (chain) => {
+      const { chain: c, connection } = theChain(chain)
+      const late = connection.slack_s + 60 /* enough to miss it, and known */
+      const vehicle = {
+        vehicle_id: '8021',
+        label: '8021',
+        trip: { trip_id: WATCHED_TRIP },
+        adherence: { state: 'very_late', seconds: late, reason: null },
+      }
+
+      const fresh = chain.resolve(c, DEPS, {
+        800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [vehicle] },
+      }, now)
+      expect(fresh.connection.state).toBe('missed')
+
+      /*
+       * Same chain, same bus, same lateness in the payload — only the feed's
+       * staleness differs. Before this fix the verdict flipped from 'missed' to
+       * 'made' with +480 s of slack: the timetable stood in for a measurement that
+       * existed and was lost, and the substitution always reads "on time".
+       */
+      const dead = chain.resolve(c, DEPS, {
+        800: { staleness: { level: 'dead', suppress_adherence: true }, vehicles: [vehicle] },
+      }, now)
+      expect(dead.connection.state).toBe('unknown')
+      expect(dead.connection.state).not.toBe('made')
+      expect(dead.connection.slack_s).toBeNull()
+      expect(dead.connection.suppressed_legs).toContain('arriving')
+    })
+
+  t('and never calls a suppressed bus one that has not reported', (chain) => {
     const { chain: c } = theChain(chain)
-    /*
-     * suppress_adherence means the feed will not stand behind a number. Reading
-     * that as "on time" would print a confident prediction built on nothing — the
-     * one thing this board is not allowed to do — so the transfer must fall back to
-     * the timetable and admit it.
-     */
-    const stale = {
-      staleness: { level: 'stale', suppress_adherence: true },
-      vehicles: [
-        {
-          vehicle_id: '8021',
-          label: '8021',
-          trip: { trip_id: WATCHED_TRIP },
+    const m = chain.resolve(c, DEPS, {
+      800: {
+        staleness: { level: 'dead', suppress_adherence: true },
+        vehicles: [{
+          vehicle_id: '8021', label: '8021', trip: { trip_id: WATCHED_TRIP },
           adherence: { state: 'very_late', seconds: 900, reason: null },
-        },
-      ],
-    }
-    const m = chain.resolve(c, DEPS, { 800: stale }, now)
-    expect(m.connection.assumed).toContain('arriving')
-    expect(m.connection.slack_s).toBe(m.connection.scheduled_slack_s)
+        }],
+      },
+    }, now)
+    /* The bus reported, and its badge is drawn on the same screen. */
+    expect(chain.assumptionNote(m.connection)).toBeNull()
+    const said = chain.connectionDetail(m.connection)
+    expect(said).toMatch(/feed has stopped updating/)
+    expect(said).not.toMatch(/not reporting yet/)
+    /* The timetable gap may be quoted, but never as slack. */
+    expect(said).toMatch(/timetable allows/)
   })
 })
 
@@ -579,7 +613,7 @@ describe('a canceled leg is never graded', () => {
     expect(said).not.toMatch(/normal until it starts its run/)
   })
 
-  t('and a screen reader hears it, not just the colour', (chain) => {
+  t('and a screen reader hears it, not just the color', (chain) => {
     const { chain: c } = theChain(chain)
     const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
     /* spoken() is exercised through the card; assert the model carries the words. */
@@ -711,5 +745,138 @@ describe('a store somebody edited by hand', () => {
      * when localStorage refused, landing the reader on "No transfer chains yet".
      */
     expect(typeof chain.add(c)).toBe('boolean')
+  })
+})
+
+describe('MAX_WAIT_S caps the wait, which is what its name says', () => {
+  t('no offered connection waits longer than the constant, walk included', (chain) => {
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    const found = chain.connections(
+      DEP800, index, chain.tripTimeAt(DEP800, index, BOARD_STOP), DEP4, 0
+    )
+    expect(found.length).toBeGreaterThan(0)
+    found.forEach((c) => {
+      /*
+       * Measured from stepping off the first bus, not from finishing the walk.
+       * Capping post-walk slack made the real ceiling MAX_WAIT_S plus the walk —
+       * 49 minutes before circuity and 50.8 after, against a stated 45 — so the
+       * walk-model fix silently widened the gap.
+       */
+      expect(c.board_seconds - c.alight_seconds).toBeLessThanOrEqual(chain.MAX_WAIT_S)
+    })
+  })
+})
+
+describe('the walk is recomputed, not inherited from the store', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  t('a chain saved before the circuity factor gets today\'s cost anyway', (chain) => {
+    const { chain: c } = theChain(chain)
+    const legs = [c.legs[0], { ...c.legs[1] }]
+    /* What the old model would have stored: distance over pace, no circuity. */
+    const stale = Math.ceil(legs[1].walk_m / chain.WALK_SPEED_MS)
+    legs[1].walk_s = stale
+
+    const m = chain.resolve({ legs, day_type: 'weekday' }, DEPS, {}, now)
+    const t0 = m.transfers[0]
+    expect(t0.walk_source).toBe('current')
+    expect(t0.walk_s).toBeGreaterThan(stale)
+    /* walk_m is rounded for display; walk_s comes off the unrounded distance. */
+    const expected = Math.ceil((t0.walk_m * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+    expect(Math.abs(t0.walk_s - expected)).toBeLessThanOrEqual(2)
+  })
+
+  t('and a stop with no fix falls back to the stored metres, re-priced', (chain) => {
+    const { chain: c } = theChain(chain)
+    const legs = [c.legs[0], { ...c.legs[1], alight_stop_id: 'no-such-stop', walk_m: 100,
+      walk_s: 1 }]
+    const walk = chain.walkFor(DEP800, DEP4, legs[1])
+    expect(walk.source).toBe('stored')
+    expect(walk.m).toBe(100)
+    /* The stored SECONDS are not trusted — they are re-derived from the metres, so
+       an old chain still gets the current model. */
+    expect(walk.s).toBe(Math.ceil((100 * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS))
+    expect(walk.s).not.toBe(1)
+  })
+})
+
+describe('a cancellation nobody reaches is not the headline', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  const threeLeg = (chain) => {
+    const { chain: two, connection } = theChain(chain)
+    const secondIdx = chain.tripIndexOf(DEP4, connection.trip.id)
+    const onward = chain.connections(DEP4, secondIdx, connection.board_seconds, DEP4, 1)
+    if (!onward.length) return null
+    return {
+      chain: {
+        legs: two.legs.concat([
+          chain.legFromConnection(onward[0], { route_id: '4', direction_id: 1 }),
+        ]),
+        day_type: 'weekday',
+      },
+      connection,
+      third: onward[0],
+    }
+  }
+
+  t('a missed change at transfer 1 outranks a cancelled leg 3', (chain) => {
+    const built = threeLeg(chain)
+    if (!built) return void 0
+    const clone = JSON.parse(JSON.stringify(DEPS))
+    let hit = 0
+    for (const tr of clone['4'].trips) {
+      if (tr.id === built.third.trip.id) { tr.canceled = true; hit += 1 }
+    }
+    expect(hit).toBe(1)
+
+    const late = built.connection.slack_s + 60
+    const m = chain.resolve(built.chain, clone,
+      { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+
+    /*
+     * The reader was never going to be on leg 3, so its cancellation is not news.
+     * Leading with it erased the due time and buried the missed change at transfer
+     * 1 — the earlier problem, and the one that decides the morning.
+     */
+    expect(m.state).not.toBe('canceled')
+    expect(m.transfers[0].state).toBe('missed')
+    expect(m.connection.state).toBe('missed')
+  })
+
+  t('but a cancellation on a leg still reachable does lead', (chain) => {
+    const built = threeLeg(chain)
+    if (!built) return void 0
+    const clone = JSON.parse(JSON.stringify(DEPS))
+    for (const tr of clone['4'].trips) {
+      if (tr.id === built.third.trip.id) tr.canceled = true
+    }
+    /* Nothing upstream is broken this time, so leg 3 is reached. */
+    const m = chain.resolve(built.chain, clone, {}, now)
+    expect(m.state).toBe('canceled')
+  })
+})
+
+describe('two service days must not be subtracted from each other', () => {
+  t('refuses rather than reporting a day of spare time', (chain) => {
+    const { chain: c } = theChain(chain)
+    /*
+     * Departures documents are cached for the session and change only when the
+     * service date does, so a board left open across 3 a.m. holds one from
+     * yesterday and fetches one from today. Subtracting across the two anchors gave
+     * "Connection holds — 1448 minutes spare".
+     */
+    const yesterday = {
+      ...DEPS,
+      4: {
+        ...DEP4,
+        service_date: '20260818',
+        service_day_start_epoch: DEP4.service_day_start_epoch - 86400,
+      },
+    }
+    const m = chain.resolve(c, yesterday, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+    expect(m.state).toBe('no-schedule')
+    expect(m.detail).toMatch(/different service/)
+    expect(m.connection).toBeUndefined()
   })
 })

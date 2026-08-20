@@ -61,6 +61,19 @@
   var watchLib = global.CMB.watch;
   if (!watchLib) throw new Error('chain.js requires watch.js to be loaded first');
 
+  /*
+   * The step-based editor's presentation, used from watch.js rather than copied.
+   * Both editors speak the same visual language — numbered steps that collapse to
+   * their answer — so two copies would eventually number or label them differently
+   * on one screen, which is the ISSUE-002 failure this file's header describes and
+   * which it was already avoiding for departure matching.
+   */
+  var step = watchLib.step;
+  var cleanName = watchLib.cleanName;
+  var routeLabel = watchLib.routeLabel;
+  var dirLabel = watchLib.dirLabel;
+  var stopName = watchLib.stopName;
+
   var STORE_KEY = 'cmb.chains';
 
   /* ---- the numbers that decide whether a connection is offered ---------- */
@@ -126,11 +139,14 @@
   var MIN_SLACK_S = 120;
 
   /*
-   * The most a connection may wait. Forty-five minutes is generous, deliberately:
-   * on the suburban half of this network the real 337-to-350 connection waits
-   * twenty-one minutes and a tighter cap would have called it impossible. Past
-   * this it is not a connection either, it is two trips that happen to share a
-   * kerb.
+   * The most a connection may wait, measured from stepping off the first bus to
+   * the second one leaving — walking time included, because the walk is part of
+   * the time a child is out of a seat and not part of a discount against it.
+   *
+   * Forty-five minutes is generous, deliberately: on the suburban half of this
+   * network the real 337-to-350 connection waits twenty-one minutes and a tighter
+   * cap would have called it impossible. Past this it is not a connection either,
+   * it is two trips that happen to share a kerb.
    */
   var MAX_WAIT_S = 2700;
 
@@ -149,12 +165,21 @@
    */
   var MAX_LEGS = 3;
 
-  /* The watch window, and the same reasoning: before it a chain is a plan, inside
-   * it a chain is news. Measured from the FIRST leg's departure. */
+  /*
+   * The window, same reasoning as a saved trip: before it a chain is a plan, inside
+   * it a chain is news. Measured from the FIRST leg's departure.
+   *
+   * These deliberately do NOT reuse watch.js's constants even though the values
+   * currently match. There they are measured from one departure; here BEFORE_S is
+   * measured from the first leg and AFTER_S from the last, so a chain's window is
+   * as long as the journey. Aliasing them would tie two spans that answer different
+   * questions to one number and make a future change to either silently move both.
+   * Departure matching IS shared, because that is one rule; this is two.
+   */
   var BEFORE_S = 3600;
 
-  /* Measured from the LAST leg's arrival, not the first leg's departure: a chain
-   * is not over until the last bus has been and gone. */
+  /* Measured from the LAST leg's BOARDING — see the note in resolve() on why a
+   * chain is over once the final bus has been caught. */
   var AFTER_S = 900;
 
   /* ---- storage --------------------------------------------------------- */
@@ -410,7 +435,16 @@
         var best = null;
         watchLib.departuresAt(toDep, board.stop_id, toDirectionId).forEach(function (row) {
           if (row.seconds < ready + MIN_SLACK_S) return;
-          if (row.seconds > ready + MAX_WAIT_S) return;
+          /*
+           * Measured from ALIGHTING, not from `ready`. MAX_WAIT_S is a judgement
+           * about how long a child is standing around between buses, and the walk
+           * is part of that time, not a discount against it. Capping `ready +
+           * MAX_WAIT_S` made the real ceiling the stated 45 minutes PLUS the walk —
+           * 49 minutes before circuity landed and 50.8 after, so the walk-model fix
+           * silently widened the gap between what this constant does and what its
+           * own comment says it does.
+           */
+          if (row.seconds - hop.seconds > MAX_WAIT_S) return;
           if (best === null || row.seconds < best.seconds) best = row;
         });
         if (best === null) return;
@@ -497,6 +531,9 @@
       /* The agency has called this trip off. Distinct from "no bus is reporting":
          one means not yet, the other means never. */
       canceled: false,
+      /* The feed will not stand behind this bus's lateness any more. Distinct
+         again: not "no bus" but "a bus we have stopped being able to judge". */
+      suppressed: false,
       trip: null,
       trip_index: -1,
       vehicle: null,
@@ -563,8 +600,28 @@
        * null is not a zero: treating it as "on time" would print a confident
        * prediction built on nothing, which is the one thing a board like this
        * must not do.
+       *
+       * But refusing the zero is only half the job, and the other half is what
+       * `suppressed` is for. "Not reporting" and "reporting, but the feed has
+       * stopped updating" are different facts and only one of them makes the
+       * timetable a reasonable stand-in:
+       *
+       *   no vehicle at all — the bus has not started its run. There is nothing
+       *     to know yet, the timetable is the honest prior, and the verdict may
+       *     be asserted with `assumed` recording that it rests on one.
+       *   suppressed       — there IS a bus, its position is drawn on this very
+       *     screen, and we knew its lateness until the feed went stale. Falling
+       *     back to the timetable here does not mean "assume the schedule", it
+       *     means "assume on time" about a bus last seen ten minutes down. That
+       *     moves the verdict in the optimistic direction on the exact input
+       *     that should make it cautious.
+       *
+       * So suppression is recorded and the transfer refuses to grade, rather
+       * than grading against a schedule nobody has confirmed.
        */
-      if (out.view.seconds !== null && out.view.seconds !== undefined) {
+      if (out.view.suppressed) {
+        out.suppressed = true;
+      } else if (out.view.seconds !== null && out.view.seconds !== undefined) {
         out.lateness = out.view.seconds;
       }
     }
@@ -582,21 +639,24 @@
    * stands in and `assumed` records that it did, so the card can say which half of
    * the sum is a measurement and which half is a timetable.
    */
-  function resolveTransfer(prev, next, prevDep) {
+  function resolveTransfer(prev, next, prevDep, nextDep) {
+    var walk = walkFor(prevDep, nextDep, next.leg);
     var out = {
       state: 'unknown',
       alight_stop_id: next.leg.alight_stop_id,
       alight_stop_name: next.leg.alight_stop_name || next.leg.alight_stop_id,
-      walk_m: typeof next.leg.walk_m === 'number' ? next.leg.walk_m : null,
-      walk_s: typeof next.leg.walk_s === 'number' ? next.leg.walk_s
-        : walkSeconds(next.leg.walk_m),
+      walk_m: walk.m,
+      walk_s: walk.s,
+      walk_source: walk.source,
       alight_at: null,
       predicted_alight_at: null,
       board_at: next.board_at,
       predicted_board_at: next.predicted_board_at,
       slack_s: null,
       scheduled_slack_s: null,
-      assumed: []
+      assumed: [],
+      /* which side, if either, has a bus the feed has stopped judging */
+      suppressed_legs: []
     };
     if (!prev.resolved || !next.resolved) return out;
 
@@ -615,9 +675,32 @@
       ? out.alight_at
       : out.alight_at + prev.lateness;
 
-    var walk = out.walk_s === null ? 0 : out.walk_s;
-    out.scheduled_slack_s = out.board_at - out.alight_at - walk;
-    out.slack_s = out.predicted_board_at - out.predicted_alight_at - walk;
+    var walkCost = out.walk_s === null ? 0 : out.walk_s;
+    out.scheduled_slack_s = out.board_at - out.alight_at - walkCost;
+    out.slack_s = out.predicted_board_at - out.predicted_alight_at - walkCost;
+
+    /*
+     * A bus whose lateness is suppressed cannot be graded at all.
+     *
+     * Every other branch here degrades to the timetable and says so. That is fine
+     * when there is no bus yet. It is not fine when there IS one and the feed has
+     * merely stopped telling us about it: the timetable then stands in for a
+     * measurement that existed and was lost, and the substitution always reads
+     * "on time", which is the optimistic end of the range. Reproduced before this
+     * was written: the same chain with the same ten-minutes-late bus graded
+     * "missed, 2 minutes short" on a fresh feed and "holds, 8 minutes spare" on a
+     * dead one.
+     *
+     * So there is no slack figure here at all. `scheduled_slack_s` survives for the
+     * copy to quote as a timetable fact, clearly labelled as one.
+     */
+    if (prev.suppressed || next.suppressed) {
+      out.state = 'unknown';
+      out.slack_s = null;
+      if (prev.suppressed) out.suppressed_legs.push('arriving');
+      if (next.suppressed) out.suppressed_legs.push('onward');
+      return out;
+    }
 
     if (prev.lateness === null) out.assumed.push('arriving');
     if (next.lateness === null) out.assumed.push('onward');
@@ -659,6 +742,27 @@
         detail: 'The schedule for route ' + (legs[0] ? legs[0].route_id : '?') +
           ' has not loaded yet.' });
     }
+    /*
+     * Every leg's schedule must describe the SAME service day.
+     *
+     * Departures documents are cached for the session and only change when the
+     * service date does, so a board left open across 3 a.m. can hold one document
+     * from yesterday and fetch another from today. The two anchor their seconds to
+     * different midnights, and subtracting across them gave a transfer twenty-four
+     * hours of slack: "Connection holds — 1448 minutes spare". Refusing is the only
+     * safe answer; the caller re-fetches and the card recovers on the next paint.
+     */
+    var dates = {};
+    for (var d = 0; d < legs.length; d++) {
+      var doc = deps[legs[d].route_id];
+      if (doc && doc.service_date) dates[doc.service_date] = true;
+    }
+    if (Object.keys(dates).length > 1) {
+      return extend(base, { state: 'no-schedule',
+        detail: 'The schedules loaded for these routes are from different service ' +
+          'days, so the times cannot be compared. Reload the board.' });
+    }
+
     if (firstDep.day_type !== chain.day_type) {
       return extend(base, { state: 'not-today',
         detail: 'Saved for a ' + chain.day_type + '. Today is a ' + firstDep.day_type + '.' });
@@ -693,22 +797,29 @@
      */
     var transfers = [];
     var dead = null;
+    /* Index of the first leg the rider cannot reach; null while the chain holds. */
+    var deadFrom = null;
     for (var i = 1; i < resolvedLegs.length; i++) {
       var prev = resolvedLegs[i - 1];
       var next = resolvedLegs[i];
+      var prevDep = deps[prev.leg.route_id];
+      var nextDep = deps[next.leg.route_id];
       var t;
       if (dead) {
-        t = voidTransfer(next, dead);
+        t = voidTransfer(next, dead, walkFor(prevDep, nextDep, next.leg));
       } else if (prev.canceled || next.canceled) {
-        t = voidTransfer(next, 'canceled');
+        t = voidTransfer(next, 'canceled', walkFor(prevDep, nextDep, next.leg));
       } else {
-        t = resolveTransfer(prev, next, deps[prev.leg.route_id]);
+        t = resolveTransfer(prev, next, prevDep, nextDep);
       }
       transfers.push(t);
       /* Everything downstream of a change that cannot be made is unreachable. */
       if (dead === null && (t.state === 'missed' || t.state === 'broken' ||
           t.state === 'void')) {
         dead = t.state === 'void' ? 'canceled' : t.state;
+        /* Leg i is the first one beyond the break. A cancellation ON leg i still
+           counts — it may be the very reason the change is void. */
+        deadFrom = i;
       }
     }
     base.transfers = transfers;
@@ -719,7 +830,18 @@
           'The schedule has changed since this was saved.' });
     }
 
-    var canceledLegs = resolvedLegs.filter(function (r) { return r.canceled; });
+    /*
+     * Only cancellations the reader would actually run into.
+     *
+     * `dead` is the index of the first leg the cascade could not reach, so a
+     * cancellation at or beyond it is not news: they were never going to be on that
+     * bus. Counting every leg meant a 3-leg chain with a missed change at transfer 1
+     * and a canceled leg 3 led with the cancellation and erased the due time,
+     * burying the earlier problem — the one that actually decides the morning.
+     */
+    var canceledLegs = resolvedLegs.filter(function (r, i) {
+      return r.canceled && (deadFrom === null || i <= deadFrom);
+    });
     var first = resolvedLegs[0];
     var last = resolvedLegs[resolvedLegs.length - 1];
     /*
@@ -783,27 +905,62 @@
   }
 
   /*
+   * The walk for a stored transfer, recomputed from where the stops are TODAY.
+   *
+   * A chain stores `walk_m`/`walk_s` at save time, and everything else about a
+   * chain is re-resolved from current documents on every render — the trip, the
+   * times, the vehicle. The walk was the one frozen value, which meant the
+   * circuity factor reached chains created after it landed and not the ones people
+   * were already relying on: at 300 m that is 100 seconds of slack the current
+   * model says is not there, with nothing on screen distinguishing the two.
+   *
+   * Recomputing also picks up a stop that moved in a GTFS republish. The stored
+   * value survives only as a fallback for a stop with no fix, which is the one case
+   * `metres()` cannot answer.
+   */
+  function walkFor(prevDep, nextDep, leg) {
+    var from = stopIndex(prevDep)[leg.alight_stop_id];
+    var to = stopIndex(nextDep)[leg.stop_id];
+    var distance = metres(from, to);
+    if (distance !== null) {
+      return { m: Math.round(distance), s: walkSeconds(distance), source: 'current' };
+    }
+    var stored = typeof leg.walk_m === 'number' ? leg.walk_m : null;
+    return {
+      m: stored,
+      /* Recompute the seconds from the stored METRES rather than trusting the
+         stored seconds, so an old chain still gets today's cost model. */
+      s: stored === null
+        ? (typeof leg.walk_s === 'number' ? leg.walk_s : null)
+        : walkSeconds(stored),
+      source: 'stored'
+    };
+  }
+
+  /*
    * A change nobody reaches, or one either side of a canceled bus. It carries no
    * slack because there is no honest number to put there: computing one against a
    * departure the rider cannot reach would produce a figure that looks like the
    * others and means nothing.
    */
-  function voidTransfer(next, because) {
+  function voidTransfer(next, because, walk) {
+    walk = walk || { m: null, s: null, source: 'stored' };
     return {
       state: 'void',
       because: because,
       alight_stop_id: next.leg.alight_stop_id,
       alight_stop_name: next.leg.alight_stop_name || next.leg.alight_stop_id,
-      walk_m: typeof next.leg.walk_m === 'number' ? next.leg.walk_m : null,
-      walk_s: typeof next.leg.walk_s === 'number' ? next.leg.walk_s
-        : walkSeconds(next.leg.walk_m),
+      walk_m: walk.m,
+      walk_s: walk.s,
+      walk_source: walk.source,
       alight_at: null,
       predicted_alight_at: null,
       board_at: next.board_at,
       predicted_board_at: next.predicted_board_at,
       slack_s: null,
       scheduled_slack_s: null,
-      assumed: []
+      assumed: [],
+      suppressed_legs: []
     };
   }
 
@@ -910,6 +1067,22 @@
     if (t.state === 'made') {
       return walk + 'There is room here for the first bus to run a little late.';
     }
+    if (t.suppressed_legs && t.suppressed_legs.length) {
+      /*
+       * Names the timetable gap, and refuses to call it slack. The number is real
+       * — it is what the schedule says — but the thing the reader wants is the gap
+       * after lateness, and that is exactly what has gone missing.
+       */
+      var scheduled = t.scheduled_slack_s === null ? ''
+        : ' The timetable allows ' + minutesWord(t.scheduled_slack_s) + ' here.';
+      return walk + (t.suppressed_legs.length === 2
+        ? 'Neither bus\u2019s feed is updating, so how late they are running is unknown.'
+        : t.suppressed_legs[0] === 'arriving'
+          ? 'The first bus is on the road but its feed has stopped updating, so how ' +
+            'late it is running is unknown.'
+          : 'The onward bus is on the road but its feed has stopped updating, so how ' +
+            'late it is running is unknown.') + scheduled;
+    }
     return walk + 'Not enough is known about these buses to say.';
   }
 
@@ -920,6 +1093,10 @@
    * one they are looking at.
    */
   function assumptionNote(t) {
+    /* A suppressed leg is not an assumption, it is a refusal — connectionDetail
+     * already says so, and "not reporting yet" would be false twice over about a
+     * bus whose badge is drawn on the same screen. */
+    if (t && t.suppressed_legs && t.suppressed_legs.length) return null;
     if (!t || !t.assumed || !t.assumed.length) return null;
     if (t.assumed.length === 2) {
       return 'Neither bus is reporting yet, so this is the timetable, not a prediction.';
@@ -1078,7 +1255,7 @@
     return box;
   }
 
-  /* Everything the verdict colour and the badge carry, said in words. */
+  /* Everything the verdict color and the badge carry, said in words. */
   function spoken(model) {
     var head = describe(model.chain) + '. ';
     if (model.state === 'passed') return head + 'Already gone.';
@@ -1462,33 +1639,10 @@
     return host;
   }
 
-  function step(n, label, chosen, build, open) {
-    var box = el('section', 'step' + (open ? ' step--open' : ''));
-    var head = el('p', 'step__head');
-    head.appendChild(el('span', 'step__n', String(n)));
-    head.appendChild(el('span', 'step__label', label));
-    if (chosen) head.appendChild(el('span', 'step__chosen', chosen));
-    box.appendChild(head);
-    if (open && build) box.appendChild(build());
-    return box;
-  }
 
-  function cleanName(s) { return String(s || '').replace(/^\d+-/, ''); }
 
-  function routeLabel(routes, id) {
-    var r = routes.filter(function (x) { return x.id === id; })[0];
-    return r ? (r.short_name || r.id) + ' · ' + cleanName(r.long_name) : String(id);
-  }
 
-  function dirLabel(dirs, id) {
-    var d = dirs.filter(function (x) { return x.id === id; })[0];
-    return d && d.headsign ? d.headsign : 'Direction ' + id;
-  }
 
-  function stopName(stops, id) {
-    var s = stops.filter(function (x) { return x.stop_id === id; })[0];
-    return s ? s.stop_name : id;
-  }
 
   global.CMB.chain = {
     STORE_KEY: STORE_KEY,
@@ -1509,6 +1663,7 @@
     routesIn: routesIn,
     metres: metres,
     walkSeconds: walkSeconds,
+    walkFor: walkFor,
     stopIndex: stopIndex,
     downstreamStops: downstreamStops,
     tripTimeAt: tripTimeAt,

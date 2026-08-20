@@ -190,7 +190,7 @@
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
     /*
-     * ONLY 'idle' proceeds. This guard is load-bearing, not an optimisation: this
+     * ONLY 'idle' proceeds. This guard is load-bearing, not an optimization: this
      * function is called from paint(), and both its handlers call render(). Any
      * status that falls through starts a fetch, which repaints, which asks again —
      * an unthrottled request loop against the origin for as long as the view is
@@ -429,10 +429,39 @@
    * that bug twice. Do not add a third loader here without checking its guard.
    */
   function loadSavedRoutes() {
+    evictStaleDepartures();
     Object.keys(savedRouteIds()).forEach(function (id) {
       loadDepartures(id);
       loadRouteData(id);
     });
+  }
+
+  /*
+   * Drop any cached schedule that belongs to a different service day than the one
+   * the board is currently on.
+   *
+   * These documents are cached for the whole session because they only change when
+   * the service date does — but a board left open across 3 a.m. crosses that line,
+   * and then one route's schedule counts from yesterday's midnight while the next
+   * one fetched counts from today's. A chain subtracting across the two reported a
+   * day of slack. chain.js refuses to grade a mismatch; this is what makes the
+   * refusal temporary rather than permanent.
+   */
+  function evictStaleDepartures() {
+    var today = state.data && state.data.service_day && state.data.service_day.date;
+    if (!today) return;
+    Object.keys(state.departures).forEach(function (id) {
+      var doc = state.departures[id];
+      if (doc && doc.service_date && doc.service_date !== today) {
+        delete state.departures[id];
+        delete state.depStatus[id];
+      }
+    });
+  }
+
+  /* No origin to fetch from, so api/* is not merely slow — it is absent. */
+  function fromDisk() {
+    return global.location.protocol === 'file:' || typeof fetch !== 'function';
   }
 
   function selectView(id) {
@@ -851,15 +880,61 @@
    * them the warning is about, or therefore which card to stop trusting. The route
    * board never had that problem — it only ever shows one route.
    */
+  /*
+   * Permit one more fetch for a route, without disturbing one in flight.
+   *
+   * Resetting to 'idle' unconditionally defeats loadRouteData's own single-flight
+   * guard: the reset lands while a request is open, the next paint starts a second,
+   * and the older response can arrive last and revert a verdict to stale data. Same
+   * helper and same condition as PR 2, so the two do not drift.
+   */
+  function refreshRoute(routeId) {
+    if (state.routeStatus[routeId] === 'loading') return;
+    state.routeStatus[routeId] = 'idle';
+    loadRouteData(routeId);
+  }
+
   function savedStalenessBanners() {
     var live = liveRouteMap();
     var out = [];
-    Object.keys(live).sort().forEach(function (id) {
+    /*
+     * Driven by the routes this view NEEDS, not by the payloads it happens to hold.
+     *
+     * A route whose payload never arrived — a 404 after a republish renumbered it,
+     * a dead network — has no entry in liveRouteMap() and so drew no banner at all,
+     * while resolveLeg graded it against the timetable with full confidence. That
+     * is the case most in need of one: a leg the board knows nothing about rendered
+     * identically to a leg running exactly on schedule.
+     */
+    Object.keys(savedRouteIds()).sort().forEach(function (id) {
       var d = live[id];
-      if (!d || !d.staleness || d.staleness.level === 'fresh') return;
+      if (!d) {
+        /*
+         * From disk this is not a failure and Try again cannot help: there is no
+         * origin, so api/* is absent rather than slow. Saying "could not be loaded"
+         * there would send the reader hunting for a problem with their network.
+         */
+        var disk = fromDisk();
+        var why = disk
+          ? 'This board is open from a file, so there is no live feed to read. ' +
+            'Saved chains need the board as it is served.'
+          : state.routeStatus[id] === 'error'
+            ? 'Its data could not be loaded, so nothing here reflects where its buses are.'
+            : 'Its data has not loaded yet, so nothing here reflects where its buses are.';
+        var miss = el('div', 'savedbanner');
+        miss.appendChild(el('p', 'savedbanner__route', 'Route ' + id));
+        miss.appendChild(S.notice(
+          disk ? 'empty' : state.routeStatus[id] === 'error' ? 'warn' : 'empty',
+          disk ? 'No live data from a file.' : 'No live data for route ' + id + '.',
+          why,
+          disk ? null : S.retryButton('Try again', function () { refreshRoute(id); })
+        ));
+        out.push(miss);
+        return;
+      }
+      if (!d.staleness || d.staleness.level === 'fresh') return;
       var banner = S.stalenessBanner(d.staleness, d.feeds, function () {
-        state.routeStatus[id] = 'idle';
-        loadRouteData(id);
+        refreshRoute(id);
       });
       if (!banner) return;
       /*
@@ -1086,8 +1161,7 @@
            * and a frozen chain reports a connection that stopped being true. Every
            * route either store names is re-fetched, not just the watched ones. */
           Object.keys(savedRouteIds()).forEach(function (id) {
-            state.routeStatus[id] = 'idle';
-            loadRouteData(id);
+            refreshRoute(id);
             /*
              * And one retry per minute for a schedule that failed. The retry above
              * covers only the route on the board; a chain's other two routes are by

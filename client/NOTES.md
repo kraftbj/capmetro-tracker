@@ -147,7 +147,7 @@ unresolved decision.
   example cannot be found any other way: routes 800 and 4 share **zero** stop ids
   and meet at Pleasant Valley under two ids 27 m apart. Radius 300 m, walking pace
   1.2 m/s charged against the slack, minimum 2 minutes of slack, maximum 45 minutes
-  of wait. All four numbers are read off this feed rather than off a standard, and
+  from alighting to the onward departure, walk included. All four numbers are read off this feed rather than off a standard, and
   all four are exported so a test can assert against them instead of restating them.
 
 - **`chain.js` uses `watch.js` rather than copying it.** Departure matching, the
@@ -160,6 +160,21 @@ unresolved decision.
   only honest end marker. Using the trip's final stop would leave a finished chain on
   screen for another forty minutes on the 800. The cost is that the card cannot say
   "she gets in at 8:40" — see `TODOS.md`.
+
+- **A suppressed lateness refuses the verdict, it does not fall back to the
+  timetable.** Refusing to read `null` as zero is only half the job; the other half
+  is where the `null` leads. "No bus yet" and "a bus whose feed has stopped
+  updating" are different facts, and only the first makes the schedule a fair
+  stand-in — the second substitutes *on time* for a measurement that existed and
+  was lost, which moves the verdict optimistically on exactly the input that should
+  make it cautious. Measured: the same chain, same ten-minutes-late bus, graded
+  `missed` fresh and `made` dead. `unknown` is now a reachable verdict.
+
+- **The walk is recomputed from current stop positions on every render.** Everything
+  else in a chain is re-resolved from current documents; the walk was the one frozen
+  value, so a cost-model change reached new chains and not saved ones. The stored
+  metres survive only as a fallback for a stop with no fix, and even then the
+  seconds are re-derived rather than trusted.
 
 - **A canceled leg is never graded.** `resolveLeg()` checks `trip.canceled` before
   the vehicle join, because every check after it concludes "not reporting yet" —

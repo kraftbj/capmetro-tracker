@@ -55,6 +55,39 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   are wider than the 215 m the hand-picked examples cover, so pricing them honestly
   is what lets the radius stay at 300 without fitting it to three cases.
 
+  A second review round found four more places the card could assert something it
+  could not support, all fixed with regression tests:
+
+  - **A dead feed flipped "Connection missed" to "Connection holds".** A suppressed
+    lateness was correctly refused as a number and then fell through to the
+    timetable — which always reads *on time*. The same chain with the same bus ten
+    minutes down graded `missed, 2 minutes short` on a fresh feed and `holds,
+    8 minutes spare` on a dead one. Suppression now refuses to grade at all: the
+    verdict reads **Connection unknown**, no slack figure is printed, and the copy
+    says the feed has stopped updating instead of claiming the bus "is not
+    reporting yet" — which was false twice over, since its badge is on the same
+    screen. "No bus yet" and "a bus we have stopped being able to judge" are
+    different facts and only the first makes the timetable a fair stand-in.
+  - **`MAX_WAIT_S` capped post-walk slack rather than the wait**, so the real
+    ceiling was the stated 45 minutes *plus* the walk — and the circuity factor
+    widened it to 50.8. Now measured from stepping off the first bus, which drops
+    21 of the 2,086 offered connections.
+  - **The circuity factor never reached a chain already saved.** `walk_s` was frozen
+    at save time while everything else in a chain is re-resolved each render, so
+    existing chains kept up to 100 s of phantom slack. The walk is now recomputed
+    from current stop positions — which also picks up a stop moved by a republish —
+    falling back to the stored metres, re-priced, only when a stop has no fix.
+  - **A cancellation on a leg nobody reaches became the headline**, burying an
+    earlier missed connection and erasing the due time. Cancellations are now
+    filtered to legs still reachable given the first failure.
+
+  Also: a chain whose routes' schedules come from **different service days** now
+  refuses to compare them rather than reporting "1448 minutes spare", and the board
+  evicts a schedule that outlived its service day; a chain route whose payload
+  **404s** is shown as missing rather than silently graded against the timetable;
+  and from a `file://` board the missing data is explained as a limitation rather
+  than a failure with a useless Try again.
+
 ### Fixed
 
 - **The Saved view was fetching route payloads in an unthrottled loop.**
