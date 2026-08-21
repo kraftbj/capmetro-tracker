@@ -157,8 +157,19 @@ Three published facts answer it, and the card says which one it is using:
 | A vehicle is on the outbound trip and `STOPPED_AT` the stop | "Bus 2867 is at the stop now." |
 | A vehicle is on the inbound leg and `STOPPED_AT` the stop | "Bus 2867 is standing at this stop now, in on the 3:04p WB, and goes back out as this trip." |
 | A vehicle is running the inbound leg elsewhere | "Bus 2867 brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds late." |
-| The inbound leg itself is cancelled | "The 3:04p WB that would bring this bus in is canceled, and nothing in the schedule says what runs this trip instead." |
+| The inbound leg itself is canceled, and nothing is reporting | "The 3:04p WB that would bring this bus in is canceled, and nothing in the schedule says what runs this trip instead." |
+| The inbound leg is canceled but a bus is reporting on it anyway | "Bus 2867 is standing at this stop now, and goes back out as this trip. The 3:04p WB it was scheduled to come in on is canceled." |
 | Only the schedule knows | "Comes in on the 3:04p WB. No bus is reporting on that trip yet." |
+
+**Live evidence is read before the cancellation, not after it.** The last two rows
+are the same schedule fact and they read very differently, because a bus you can
+see out of the window settles the question and a withdrawn leg does not. The
+ladder in `decorate()` therefore asks what is reporting — `at_stop`, then any
+vehicle at all — before it asks what was planned, and the cancellation comes back
+as a trailing clause rather than the whole sentence. Both facts get said; neither
+gets to delete the other. Ordering these the other way round told a reader nothing
+was coming for a trip whose bus was idling in front of them, which is the failure
+this board exists to prevent, inverted.
 
 **A continuation the feed has not confirmed is a likelihood, not a fact** —
 contract §4, and the same hedge `rows.js` `continuationText()` makes: "Bus 8021

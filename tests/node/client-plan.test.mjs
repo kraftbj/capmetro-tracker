@@ -408,6 +408,156 @@ describe('a cancelled inbound leg is not a bus that has not started yet', () => 
   })
 })
 
+/*
+ * A cancellation on paper against a bus you can see out of the window.
+ *
+ * The ladder in decorate() used to test `inbound.canceled` above `at_stop` and
+ * above `vehicle`, so a bus STOPPED_AT the turnaround whose block names this very
+ * trip as the next one it runs was answered with "nothing in the schedule says
+ * what runs this trip instead". That is the failure this board exists to prevent,
+ * inverted: not a bus missing from the screen, but a screen denying a bus that is
+ * standing in front of the reader.
+ */
+describe('live evidence outranks the schedule saying the leg is off', () => {
+  const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
+  const TURN_837 = '2112'
+
+  const tripAt = (dep, seconds, dir) => {
+    const row = dep.departures[TURN_837].find(
+      ([s, i]) => s === seconds && dep.trips[i].direction_id === dir,
+    )
+    return dep.trips[row[1]]
+  }
+
+  /*
+   * The real capture only ever cancels a whole block, so the outbound goes with
+   * the inbound and the reasoning under test is never reached. One leg called off
+   * alone is possible and is the case here, so the fixture is edited rather than
+   * pretended into existence — the same approach the describe above takes.
+   */
+  const withCanceledLeg = () => {
+    const dep = fixture('departures-837-turnaround-canceled.json')
+    const pair = dep._expected.pairs.find(
+      (x) => x.inbound_arrival_s !== null && !tripAt(dep, x.outbound_departure_s, 1).canceled,
+    )
+    tripAt(dep, pair.inbound_arrival_s, 0).canceled = true
+    return {
+      dep,
+      pair,
+      inboundTrip: tripAt(dep, pair.inbound_arrival_s, 0),
+      outboundTrip: tripAt(dep, pair.outbound_departure_s, 1),
+      now: dep.service_day_start_epoch + pair.outbound_departure_s - 600,
+    }
+  }
+
+  /* The bus the block continuity names: it is finishing the canceled leg and its
+   * next_trip is our departure. `confidence: high` so the copy is not hedged and
+   * the assertions are about the cancellation rather than about the word
+   * "likely". */
+  const feeder = (dep, inboundTrip, outboundTrip, { status, stopId = TURN_837 }) => ({
+    vehicle_id: '2867',
+    label: '2867',
+    route_id: '837',
+    route_short_name: '837',
+    in_service: true,
+    position: { lat: 30.27, lon: -97.75, bearing: null, speed: null },
+    position_at: dep.service_day_start_epoch,
+    trip: {
+      trip_id: inboundTrip.id,
+      start_time: inboundTrip.start_time,
+      start_epoch: dep.service_day_start_epoch,
+      direction_id: inboundTrip.direction_id,
+      headsign: inboundTrip.headsign,
+      schedule_relationship: 'SCHEDULED',
+    },
+    progress: { current_stop_sequence: 20, current_stop_id: stopId, current_status: status },
+    pattern: { is_baseline: true, is_special: false, trips_in_pattern: 20, adds: [], skips: [] },
+    block: {
+      block_id: inboundTrip.block_id,
+      confidence: 'high',
+      next_trip: {
+        trip_id: outboundTrip.id,
+        direction_id: 1,
+        start_time: outboundTrip.start_time,
+        start_epoch: dep.service_day_start_epoch,
+        start_stop_id: TURN_837,
+        start_stop_name: 'Republic Square',
+        is_direction_flip: true,
+      },
+    },
+    adherence: { state: 'ontime', seconds: 30, glyph: 'circle', reason: null },
+  })
+
+  const departureUnderTest = (p, dep, pair, route, now) => {
+    const m = p.resolve(AT_837, dep, route, now)
+    const d = m.departures.find(
+      (x) => x.scheduled_at - dep.service_day_start_epoch === pair.outbound_departure_s,
+    )
+    return { m, d }
+  }
+
+  t('a bus standing at the stop is "waiting", not "inbound-canceled"', (p) => {
+    const { dep, pair, inboundTrip, outboundTrip, now } = withCanceledLeg()
+    const route = routeWith(feeder(dep, inboundTrip, outboundTrip, { status: 'STOPPED_AT' }))
+    const { d } = departureUnderTest(p, dep, pair, route, now)
+
+    expect(d.canceled, 'the departure itself is running').toBe(false)
+    expect(d.inbound.canceled, 'and its scheduled feeder leg is not').toBe(true)
+    expect(d.inbound.at_stop).toBe(true)
+    expect(d.boarding).toBe('waiting')
+  })
+
+  t('names the bus that is there AND the leg that was canceled', (p) => {
+    const { dep, pair, inboundTrip, outboundTrip, now } = withCanceledLeg()
+    const route = routeWith(feeder(dep, inboundTrip, outboundTrip, { status: 'STOPPED_AT' }))
+    const { m, d } = departureUnderTest(p, dep, pair, route, now)
+
+    const said = p.boardingText(d, m)
+    expect(said).toContain('Bus 2867 is standing at this stop now')
+    expect(said).toContain('goes back out as this trip')
+    /* Both facts. Suppressing the cancellation would be the same mistake in the
+     * other direction. */
+    expect(said).toContain('is canceled')
+    expect(said).toMatch(/The \d{1,2}:\d{2}[ap] SB it was scheduled to come in on is canceled\./)
+    /* And never the sentence that told the reader nothing was coming. */
+    expect(said).not.toContain('nothing in the schedule says')
+    expect(said).not.toMatch(/the the/i)
+  })
+
+  t('a bus reporting on the canceled leg elsewhere is "inbound", and still said', (p) => {
+    const { dep, pair, inboundTrip, outboundTrip, now } = withCanceledLeg()
+    const route = routeWith(
+      feeder(dep, inboundTrip, outboundTrip, { status: 'IN_TRANSIT_TO', stopId: '2282' }),
+    )
+    const { m, d } = departureUnderTest(p, dep, pair, route, now)
+
+    expect(d.boarding).toBe('inbound')
+    const said = p.boardingText(d, m)
+    expect(said).toContain('Bus 2867')
+    expect(said).toContain('is canceled')
+    expect(said).not.toContain('nothing in the schedule says')
+  })
+
+  t('with nothing reporting, the cancellation is still the whole answer', (p) => {
+    const { dep, pair, now } = withCanceledLeg()
+    const { m, d } = departureUnderTest(p, dep, pair, EMPTY_ROUTE, now)
+
+    expect(d.boarding).toBe('inbound-canceled')
+    expect(p.boardingText(d, m)).toContain('nothing in the schedule says what runs this trip instead')
+  })
+
+  t('the screen-reader summary carries the same pair of facts', (p) => {
+    const { dep, pair, inboundTrip, outboundTrip, now } = withCanceledLeg()
+    const route = routeWith(feeder(dep, inboundTrip, outboundTrip, { status: 'STOPPED_AT' }))
+    const { m } = departureUnderTest(p, dep, pair, route, now)
+    const spoken = textDeep(
+      all(p.render(client.document.createElement('div'), [m], {}), 'sr-only')[0],
+    )
+    expect(spoken).toContain('Bus 2867 is standing at this stop now')
+    expect(spoken).not.toContain('nothing in the schedule says')
+  })
+})
+
 describe('what a screen reader is told', () => {
   const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
   const spokenOf = (p, model) =>

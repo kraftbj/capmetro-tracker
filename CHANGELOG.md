@@ -64,6 +64,16 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   up time before it reaches you.
 
 ### Fixed
+
+- **A bus standing at the stop was answered with "nothing is coming."** The
+  boarding ladder read the schedule's cancellation before it read anything live,
+  so a turnaround departure whose feeder bus was `STOPPED_AT` the stop — its
+  block naming this very trip as the next one it runs — printed "the 10:00a SB
+  that would bring this bus in is canceled, and nothing in the schedule says what
+  runs this trip instead" while that bus idled in front of the reader. That is
+  the failure this board exists to prevent, inverted. Live evidence is read
+  first now, and the cancellation is still said, as the trailing clause it is:
+  both facts, and neither one deleting the other.
 - **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
   call `render()` from their callbacks, and the views that need them call the
   loaders from inside `paint()`. Both treated any status other than `loading` as

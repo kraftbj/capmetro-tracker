@@ -614,11 +614,27 @@
     }
 
     var here = atStop(vehicle, entry.stop_id);
+    /*
+     * LIVE EVIDENCE OUTRANKS THE SCHEDULE'S CANCELLATION.
+     *
+     * The cancellation used to be tested above at_stop and above vehicle, so a
+     * bus standing at the stop with its block naming this trip as the next one
+     * it runs was answered with "the 10:00a SB that would bring this bus in is
+     * canceled, and nothing in the schedule says what runs this trip instead" —
+     * while that bus idled in front of the reader.
+     *
+     * That is the inverse of the failure this board exists to prevent. The
+     * 'waiting' and 'here' states were added for a bus you can see out of the
+     * window, and a schedule that has withdrawn a leg cannot outvote one. So the
+     * ladder now asks what is reporting before it asks what was planned, and the
+     * cancellation is still said — as the caveat it is, in boardingText — rather
+     * than replacing the sentence.
+     */
     var boarding = here ? 'here'
       : vehicle ? 'enroute'
-        : inbound && inbound.canceled ? 'inbound-canceled'
-          : inbound && inbound.at_stop ? 'waiting'
-            : inbound && inbound.vehicle ? 'inbound'
+        : inbound && inbound.at_stop ? 'waiting'
+          : inbound && inbound.vehicle ? 'inbound'
+            : inbound && inbound.canceled ? 'inbound-canceled'
               : inbound && inbound.trip ? 'scheduled'
                 : 'none';
 
@@ -773,11 +789,17 @@
      * somebody a wait in the dark.
      */
     var sure = m.inbound && m.inbound.confirmed;
+    /*
+     * The leg is not named as the thing the bus came in on once the schedule has
+     * withdrawn it — canceledClause() names it instead, as the fact it now is.
+     */
+    var legCanceledHere = !!(m.inbound && m.inbound.canceled);
     if (m.boarding === 'waiting') {
       return feederName + ' is standing at this stop now' +
-        (leg ? ', in on ' + leg : '') +
+        (leg && !legCanceledHere ? ', in on ' + leg : '') +
         (sure ? ', and goes back out as this trip.'
-          : ', and is likely the one that goes back out as this trip.');
+          : ', and is likely the one that goes back out as this trip.') +
+        canceledClause(m);
     }
     if (m.boarding === 'inbound') {
       var eta = m.inbound.seconds_until === null || m.inbound.seconds_until === undefined
@@ -790,10 +812,11 @@
        * times, which are what the card is for.
        */
       var verb = sure ? ' brings it in on ' : ' likely brings it in on ';
-      return leg
+      return (leg && !legCanceledHere
         ? feederName + verb + leg + eta + late + '.'
         : feederName + (sure ? ' runs this trip next' : ' likely runs this trip next') +
-          '; it is finishing another one first' + late + '.';
+          '; it is finishing another one first' + late + '.') +
+        canceledClause(m);
     }
     if (m.boarding === 'scheduled') {
       return leg
@@ -806,6 +829,22 @@
     return model && model.is_turnaround
       ? 'No bus is reporting on this trip yet, and the schedule does not say which one brings it in.'
       : 'No bus is reporting on this trip yet. That is normal until it starts its run.';
+  }
+
+  /*
+   * The cancellation, when a bus is reporting in spite of it.
+   *
+   * Both facts, and in that order. The bus is what somebody at the stop can
+   * check for themselves, so it leads; the withdrawn leg is what the schedule
+   * has to say about it, so it follows. Suppressing either was the choice this
+   * clause exists to avoid — the old ladder printed the cancellation and nothing
+   * about the bus, which is how a reader ends up walking away from a departure
+   * that is standing there.
+   */
+  function canceledClause(m) {
+    if (!m.inbound || !m.inbound.canceled) return '';
+    var name = legName(m);
+    return ' The ' + (name || 'inbound trip') + ' it was scheduled to come in on is canceled.';
   }
 
   /* ", running 4 minutes late" — but "and on time", because "running on time to
