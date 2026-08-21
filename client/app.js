@@ -1308,11 +1308,20 @@
     state.stopId = q.stop || recall('stop.' + routeId);
 
     /*
-     * Before any fetch. A '?plan=' link is scrubbed into the fragment in here,
-     * and a request issued while the query string is still in the address bar
-     * can carry it onward in a Referer header. The vhost and the meta tag in
-     * index.html both say no-referrer, but ordering is the part this file
-     * controls, and it costs nothing to put the scrub first.
+     * BEFORE ANY FETCH, AND THAT ORDERING IS THE POINT.
+     *
+     * A '?plan=' link is scrubbed into the fragment in here, and any request
+     * issued while the query string is still in the address bar can carry it
+     * onward in a Referer header — a legible description of a child's daily
+     * routine, arriving at whatever the request was addressed to. The vhost and
+     * the meta tag in index.html both say no-referrer; ordering is the part this
+     * file controls, and it costs nothing to put the scrub first.
+     *
+     * So nothing below this line may move above it. load(), loadDepartures() and
+     * loadCatalog() all reach getJson, and moving adoptPlan() after any of them
+     * reopens the leak while changing nothing on screen. That is exactly why it
+     * has a test of its own rather than only a comment — stops.spec.mjs watches
+     * the address bar at the moment the first request leaves.
      */
     adoptPlan();
 

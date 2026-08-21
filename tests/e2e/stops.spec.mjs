@@ -136,6 +136,57 @@ test.describe('the plan never reaches the server', () => {
     expect(shared.split('#')[0]).not.toContain('?')
   })
 
+  /*
+   * AND IT IS MOVED BEFORE THE FIRST REQUEST GOES OUT, NOT MERELY BEFORE THE
+   * SECOND REPAINT.
+   *
+   * A Referer header carries the query string of the page that issued the
+   * request. Every fetch made while '?plan=' is still in the address bar can
+   * therefore hand a legible description of a child's routine to whatever it was
+   * addressed to. index.html and the vhost both declare no-referrer, so this is
+   * the third lock on the same door — but it is the one boot() controls, and it
+   * is free.
+   *
+   * Nothing pinned it. adoptPlan() could be moved below loadCatalog() and the
+   * whole suite stayed green, because by the time anything is on screen the
+   * scrub has happened either way. So this watches the address bar at the moment
+   * each request leaves, which is the only moment that decides it.
+   */
+  test('scrubs the query before the first request leaves, not after', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__leaks = []
+      const realFetch = window.fetch
+      window.fetch = function (...args) {
+        window.__leaks.push({
+          kind: 'fetch',
+          url: String(args[0]),
+          search: window.location.search,
+        })
+        return realFetch.apply(this, args)
+      }
+      const realReplace = window.History.prototype.replaceState
+      window.History.prototype.replaceState = function (...args) {
+        const out = realReplace.apply(this, args)
+        window.__leaks.push({ kind: 'scrub', search: window.location.search })
+        return out
+      }
+    })
+
+    await page.goto(`/fresh/index.html?plan=${encodeURIComponent(PLAN)}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const events = await page.evaluate(() => window.__leaks)
+    const fetches = events.filter((e) => e.kind === 'fetch')
+    expect(fetches.length, 'nothing was fetched, so nothing was proved').toBeGreaterThan(0)
+
+    /* The scrub is first, and every request after it went out clean. */
+    expect(events[0].kind, 'a request left before the query string was scrubbed').toBe('scrub')
+    for (const f of fetches) {
+      expect(f.search, `${f.url} was requested with the plan still in the query`)
+        .not.toContain('plan')
+    }
+  })
+
   test('moves a plan out of the query string, so a reload stops leaking it', async ({ page }) => {
     await page.goto(`/fresh/index.html?plan=${encodeURIComponent(PLAN)}`)
     await expect(page.locator('.stopcard').first()).toBeVisible()
