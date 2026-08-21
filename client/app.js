@@ -90,6 +90,13 @@
     depStatus: {},       /* route id -> loading | ok | error | stale */
     routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
     routeStatus: {},     /* route id -> loading | ok | error */
+    /*
+     * route id -> the device clock when that payload arrived. Not the payload's
+     * own generated_at: this measures how long THIS browser has been holding the
+     * document, which is the one thing the document itself cannot say. See
+     * agedStaleness().
+     */
+    routeFetchedAt: {},
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
@@ -227,6 +234,7 @@
       .then(function (d) {
         state.routeData[routeId] = d;
         state.routeStatus[routeId] = 'ok';
+        state.routeFetchedAt[routeId] = heldClock();
         renderLive();
       })
       .catch(function () {
@@ -318,6 +326,7 @@
         state.data = d;
         state.lastGoodAt = d.generated_at;
         state.status = 'ok';
+        state.routeFetchedAt[routeId] = heldClock();
         renderLive();
       })
       .catch(function (err) {
@@ -1093,10 +1102,92 @@
     return out;
   }
 
+  /*
+   * The device clock, in whole seconds, and used for exactly one thing: measuring
+   * how long this browser has held a document.
+   *
+   * Everything a reader SEES is timed against the feed's own generated_at, so a
+   * phone two minutes fast cannot shave two minutes off an arrival. That rule is
+   * about comparing our clock with the agency's, and it does not apply here: this
+   * subtracts two readings of the same local clock and never compares either with
+   * anything in a payload. A device clock is the only instrument that can answer
+   * "how long ago did this arrive", and a skewed one still measures elapsed time.
+   */
+  function heldClock() {
+    return Math.floor(Date.now() / 1000);
+  }
+
+  /* The contract's staleness ladder, worst last, so a level is never downgraded. */
+  var STALE_RANK = { fresh: 0, aging: 1, stale: 2, dead: 3 };
+
+  /*
+   * A payload's staleness as it is NOW, rather than as the server stamped it.
+   *
+   * `staleness` describes the feed at the moment the file was generated, and the
+   * contract is right that `suppress_adherence` is authoritative — about the
+   * document as delivered. It cannot speak for the minutes since. A route the
+   * board fetched once and has failed to refresh ever since keeps saying `fresh`
+   * for as long as the tab is open, so it drew no banner and its chain leg was
+   * graded with full confidence against positions frozen an hour ago. That is
+   * precisely the "the cron stopped an hour ago" case, and it was the one case the
+   * new banner could not see: it watched for a payload that reports staleness, and
+   * for a route with no payload at all, and this is neither.
+   *
+   * So the feed age is the age the server measured PLUS the time we have been
+   * holding the answer, and the contract's own thresholds (section 1) are applied
+   * to that sum. This is not second-guessing the server; it is finishing the
+   * server's sentence with the only term the server could not know. The level is
+   * never lowered, only raised.
+   */
+  function agedStaleness(d, id) {
+    var st = d && d.staleness;
+    if (!st) return st;
+    var fetchedAt = state.routeFetchedAt[id];
+    var held = typeof fetchedAt === 'number' ? Math.max(0, heldClock() - fetchedAt) : 0;
+    if (!held) return st;
+
+    var age = (typeof st.oldest_feed_age_s === 'number' ? st.oldest_feed_age_s : 0) + held;
+    var level = age > 3600 ? 'dead' : age > 600 ? 'stale' : age > 120 ? 'aging' : 'fresh';
+    if ((STALE_RANK[level] || 0) <= (STALE_RANK[st.level] || 0)) return st;
+
+    var reason = 'The board has not been able to refresh route ' + id + ' for ' +
+      fmt.age(held) + '.';
+    return {
+      level: level,
+      oldest_feed_age_s: age,
+      schedule_age_days: st.schedule_age_days,
+      /* The same flag the contract makes authoritative, set for the same reason:
+         past ten minutes of feed age no lateness may be rendered. */
+      suppress_adherence: st.suppress_adherence || age > 600,
+      reason: st.reason ? st.reason + ' ' + reason : reason
+    };
+  }
+
+  /*
+   * Every live route payload this browser currently holds, keyed by route id, each
+   * one aged by how long it has been held. Chain resolution spans routes, so it
+   * takes a map rather than one payload; the route on screen lives in state.data
+   * and the rest in state.routeData, and this is the one place that difference —
+   * and the aging — is reconciled, so the banners and the verdicts cannot disagree
+   * about which routes are still worth believing.
+   */
   function liveRouteMap() {
     var map = {};
-    Object.keys(state.routeData).forEach(function (id) { map[id] = state.routeData[id]; });
-    if (state.routeId && state.data) map[state.routeId] = state.data;
+    var age = function (d, id) {
+      if (!d) return d;
+      var st = agedStaleness(d, id);
+      if (st === d.staleness) return d;
+      /* A copy, because the cached document must keep saying what it was sent
+         saying; only this view's reading of it changes. */
+      var copy = {};
+      Object.keys(d).forEach(function (k) { copy[k] = d[k]; });
+      copy.staleness = st;
+      return copy;
+    };
+    Object.keys(state.routeData).forEach(function (id) {
+      map[id] = age(state.routeData[id], id);
+    });
+    if (state.routeId && state.data) map[state.routeId] = age(state.data, state.routeId);
     return map;
   }
 

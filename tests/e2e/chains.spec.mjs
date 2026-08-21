@@ -510,3 +510,49 @@ test.describe('an open editor stops the repaint, not the clock', () => {
       await expect(page.getByRole('button', { name: 'Save this chain' })).toBeVisible()
     })
 })
+
+/*
+ * The banner covers a route whose payload SAYS it is stale, and a route with no
+ * payload at all. It missed the one in between: a route that loaded once and has
+ * not refreshed since. Its payload still says `fresh`, because it was, an hour
+ * ago -- so no banner drew, and the chain leg on it was graded with full
+ * confidence against frozen positions. That is the "cron stopped an hour ago"
+ * case the banner claims to cover, and it is the one it cannot see, because a
+ * document cannot report how long the client has been holding it.
+ */
+test.describe('a route that loaded once and then stopped refreshing', () => {
+  test('goes stale on the clock, draws a banner, and stops being graded',
+    async ({ page }) => {
+      /* Wall-clock, compressed. The code measures how long it has held a payload
+         with Date.now(), so that is the clock the test moves. Route 4 keeps
+         refreshing and stays inside its 120 s fresh window throughout. */
+      await page.addInitScript(() => {
+        const t0 = Date.now()
+        const real = Date.now.bind(Date)
+        Date.now = () => t0 + (real() - t0) * 200
+        const realInterval = window.setInterval.bind(window)
+        window.setInterval = (fn, ms) => realInterval(fn, ms >= 60000 ? 300 : ms)
+      })
+
+      await saveTheChain(page)
+      await expect(page.locator('.chaincard').first()).toBeVisible()
+
+      /* From here on route 800 is unreachable. The payload already fetched stays
+         in memory, saying `fresh`, exactly as it would if the cron had died. */
+      await page.route('**/api/route/800.json', (route) =>
+        route.fulfill({ status: 404, body: '{"error":"gone"}' })
+      )
+
+      /* Past 600 s of held time -- the age at which the contract calls a feed
+         stale and suppresses lateness. */
+      await page.waitForTimeout(4500)
+
+      const banner = page.locator('.savedbanner', { hasText: 'Route 800' })
+      await expect(banner).toHaveCount(1)
+      await expect(banner).toContainText('Lateness is hidden')
+
+      /* And the verdict stops being asserted from the frozen positions. */
+      await expect(page.locator('.chaincard__verdictlabel').first())
+        .toHaveText('Connection unknown')
+    })
+})
