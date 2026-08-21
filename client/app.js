@@ -896,6 +896,9 @@
       return global.CMB.chain.resolve(c, state.departures, live, now);
     });
     global.CMB.chain.render(chainBand, global.CMB.chain.sortModels(chains), {
+      /* A chain that cannot resolve from disk is not waiting on anything. The
+         banner above already says so; the cards have to agree with it. */
+      fromDisk: fromDisk(),
       onAdd: function () {
         state.chainEditor = { legs: [], day_type: null, start: {}, onward: {} };
         state.view = 'chain-edit';

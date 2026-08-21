@@ -65,7 +65,10 @@ test.describe('building a chain', () => {
      * only have matched by accident.
      */
     await expect(rows.first()).toContainText('walk')
-    await expect(rows.first()).toContainText('min wait')
+    /* "spare", not "wait": the figure is what is left AFTER the walk is charged,
+       and calling it the wait understated the standing-around by the whole walk. */
+    await expect(rows.first()).toContainText('min spare')
+    await expect(rows.first()).not.toContainText('min wait')
   })
 
   test('the route already being ridden is not offered as a change', async ({ page }) => {

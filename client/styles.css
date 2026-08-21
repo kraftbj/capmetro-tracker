@@ -781,7 +781,7 @@ button { font: inherit; color: inherit; }
 }
 .connlist__times { display: flex; align-items: baseline; gap: 10px; }
 .connlist__board { font-family: var(--font-figure); font-size: var(--fs-lead); font-weight: 600; }
-.connlist__wait { font-size: var(--fs-chrome); color: var(--ink-chrome); }
+.connlist__slack { font-size: var(--fs-chrome); color: var(--ink-chrome); }
 .connlist__where { font-size: var(--fs-meta); color: var(--ink-dim); }
 .connlist__headsign { font-size: var(--fs-chrome); color: var(--ink-chrome); }
 .connlist__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

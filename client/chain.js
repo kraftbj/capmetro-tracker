@@ -820,7 +820,7 @@
           ' has not loaded yet.' });
     }
     /*
-     * Every leg's schedule must describe the SAME service day.
+     * Every leg's schedule must count from the SAME midnight.
      *
      * Departures documents are cached for the session and only change when the
      * service date does, so a board left open across 3 a.m. can hold one document
@@ -828,15 +828,39 @@
      * different midnights, and subtracting across them gave a transfer twenty-four
      * hours of slack: "Connection holds — 1448 minutes spare". Refusing is the only
      * safe answer; the caller re-fetches and the card recovers on the next paint.
+     *
+     * The guard reads `service_day_start_epoch` because that is the quantity every
+     * time on the card is built out of: `board_at` is this epoch plus an offset,
+     * and the slack is one such sum minus another. It used to read `service_date`,
+     * which is a LABEL beside that quantity rather than the quantity itself —
+     * agreeing on the label proves nothing about the anchor, and a document
+     * carrying no label was SKIPPED rather than refused, so the one document least
+     * able to say which service day it described was the one exempted from being
+     * asked. With no anchor at all every time on the leg is NaN, and a NaN
+     * comparison is false, so the chain rendered as an ordinary live card with
+     * blank times rather than as a refusal.
      */
-    var dates = {};
+    var anchors = {};
+    var anchorless = null;
     for (var d = 0; d < legs.length; d++) {
       var doc = deps[legs[d].route_id];
-      if (doc && doc.service_date) dates[doc.service_date] = true;
+      /* A leg with no document at all is resolveLeg's to report, not this guard's. */
+      if (!doc) continue;
+      if (typeof doc.service_day_start_epoch !== 'number') {
+        anchorless = legs[d].route_id;
+        break;
+      }
+      anchors[doc.service_day_start_epoch] = true;
     }
-    if (Object.keys(dates).length > 1) {
+    if (anchorless !== null) {
       return extend(base, { state: 'no-schedule',
-        detail: 'The schedules loaded for these routes are from different service ' +
+        detail: 'The schedule loaded for route ' + anchorless + ' does not say which ' +
+          'service day it counts from, so its times cannot be compared with the ' +
+          'others. Reload the board.' });
+    }
+    if (Object.keys(anchors).length > 1) {
+      return extend(base, { state: 'no-schedule',
+        detail: 'The schedules loaded for these routes count from different service ' +
           'days, so the times cannot be compared. Reload the board.' });
     }
 
@@ -1219,6 +1243,25 @@
     return 'The onward bus is not reporting yet, so it is assumed to run on time.';
   }
 
+  /*
+   * What a missing schedule means depends on whether one can ever arrive.
+   *
+   * From a file there is no origin to read api/departures/ from at all, so every
+   * chain lands on `no-schedule` and every card said "has not loaded yet" — a
+   * promise, and one nothing on the page will keep. The Saved view's own banner
+   * already gets this right and drops the Try again button for an explanation; the
+   * card sat beside it contradicting it. Environment belongs to the renderer, not
+   * to resolve(), which stays a pure function of the documents it is handed.
+   */
+  function detailFor(model, opts) {
+    if (opts && opts.fromDisk && model.state === 'no-schedule') {
+      return 'This board is open from a file, so there is no origin to read the ' +
+        'schedule from. A chain needs the board as it is served — nothing here is ' +
+        'broken, and there is nothing to retry.';
+    }
+    return model.detail || '';
+  }
+
   function describe(chain) {
     var legs = legsOf(chain);
     return fmt.serviceClock(legs[0].scheduled_time) + ' ' +
@@ -1359,7 +1402,7 @@
       box.appendChild(body);
     } else {
       box.appendChild(el('p', 'chaincard__line', 'Nothing to show'));
-      box.appendChild(el('p', 'chaincard__detail', model.detail || ''));
+      box.appendChild(el('p', 'chaincard__detail', detailFor(model, opts)));
     }
 
     if (model.shifted) {
@@ -1373,7 +1416,7 @@
         'pattern of stops.'));
     }
 
-    box.appendChild(el('p', 'sr-only', spoken(model)));
+    box.appendChild(el('p', 'sr-only', spoken(model, opts)));
 
     var del = el('button', 'chaincard__remove');
     del.type = 'button';
@@ -1388,7 +1431,7 @@
   }
 
   /* Everything the verdict color and the badge carry, said in words. */
-  function spoken(model) {
+  function spoken(model, opts) {
     var head = describe(model.chain) + '. ';
     if (model.state === 'passed') return head + 'Already gone.';
     if (model.state === 'canceled') return head + (model.detail || 'Canceled.');
@@ -1403,7 +1446,7 @@
       return head + due +
         (t ? (CONNECTION_LABEL[t.state] || t.state) + ', ' + slackText(t.slack_s) + '.' : '');
     }
-    return head + (model.detail || 'Nothing to show.');
+    return head + (detailFor(model, opts) || 'Nothing to show.');
   }
 
   function render(host, models, opts) {
@@ -1592,8 +1635,14 @@
         var top = el('span', 'connlist__times');
         top.appendChild(el('span', 'connlist__board',
           fmt.serviceClock(watchLib.clockOf(c.board_seconds))));
-        top.appendChild(el('span', 'connlist__wait',
-          Math.round(c.slack_s / 60) + ' min wait'));
+        /*
+         * `slack_s` is what is left AFTER the walk is paid for, and calling it the
+         * wait understated the time a child is out of a seat by exactly the walk —
+         * near six minutes at the 300 m radius. It is the same conflation
+         * MAX_WAIT_S was just corrected for, in the row that offers the connection.
+         */
+        top.appendChild(el('span', 'connlist__slack',
+          Math.round(c.slack_s / 60) + ' min spare'));
         b.appendChild(top);
         b.appendChild(el('span', 'connlist__where',
           'off at ' + c.alight_stop_name + ' ' +
@@ -1607,7 +1656,7 @@
           (c.walk_m === 0 ? ', same stop' : ', walk ' + c.walk_m + ' metres to ' + c.board_stop_name) +
           ', board route ' + onward.route_id + ' at ' +
           fmt.serviceClock(watchLib.clockOf(c.board_seconds)) +
-          ', ' + Math.round(c.slack_s / 60) + ' minutes to wait');
+          ', ' + Math.round(c.slack_s / 60) + ' minutes spare once the walk is paid for');
         b.addEventListener('click', function () {
           opts.onPickConnection(legFromConnection(c, onward, onwardDep, routes));
         });

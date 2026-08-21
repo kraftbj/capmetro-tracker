@@ -1104,3 +1104,119 @@ describe('a refused verdict does not leak back in as a confident number', () => 
     expect(said).not.toMatch(/(^|[^a-zA-Z])In \d+:\d+/)
   })
 })
+
+/*
+ * The guard on two service days compared the `service_date` LABEL while the
+ * arithmetic subtracts `service_day_start_epoch`. They are different fields, and
+ * defending one does not defend the other.
+ */
+describe('the service-day guard defends the quantity actually subtracted', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  t('two schedules anchored to different midnights are refused, label or no label',
+    (chain) => {
+      const { chain: c } = theChain(chain)
+      /* Same label on both documents, anchors a day apart. The old guard saw one
+         date, waved it through, and subtracted across twenty-four hours. */
+      const skewed = {
+        ...DEPS,
+        4: { ...DEP4, service_day_start_epoch: DEP4.service_day_start_epoch - 86400 },
+      }
+      const m = chain.resolve(c, skewed, {}, now)
+      expect(m.state).toBe('no-schedule')
+      expect(m.detail).toMatch(/service day/)
+      expect(m.connection).toBeUndefined()
+    })
+
+  t('and a schedule that does not say which midnight it counts from is refused too',
+    (chain) => {
+      const { chain: c } = theChain(chain)
+      /*
+       * The old guard skipped a document with no `service_date` rather than
+       * refusing it -- so the one document least able to answer "which service day
+       * is this?" was the one exempted from being asked. Without an anchor every
+       * time on the leg is NaN.
+       */
+      const anchorless = { ...DEPS, 4: { ...DEP4 } }
+      delete anchorless['4'].service_day_start_epoch
+      delete anchorless['4'].service_date
+      const m = chain.resolve(c, anchorless, {}, now)
+      expect(m.state).toBe('no-schedule')
+      expect(m.detail).toMatch(/service day/)
+      expect(m.connection).toBeUndefined()
+    })
+})
+
+/*
+ * MAX_WAIT_S was fixed to cap the wait rather than the post-walk slack; the editor
+ * row that offers the connection still called the post-walk slack "wait".
+ */
+describe('the editor calls post-walk slack what it is', () => {
+  const editorState = (connection) => ({
+    routes: [
+      { id: '800', short_name: '800', long_name: '800-North Lamar', directions: [] },
+      { id: '4', short_name: '4', long_name: '4-7th Street', directions: [] },
+    ],
+    legs: [LEG1],
+    day_type: 'weekday',
+    start: {},
+    onward: { route_id: '4', direction_id: 0 },
+    departures: DEPS,
+    connections: [connection],
+  })
+  const noop = {
+    onPickOnwardRoute() {}, onPickOnwardDirection() {}, onPickConnection() {},
+    onSave() {},
+  }
+
+  t('a row says how much is spare after the walk, not how long the wait is',
+    (chain, cmb) => {
+      const { connection } = theChain(chain)
+      const host = cmb.states.el('div')
+      chain.renderEditor(host, editorState(connection), noop)
+      const said = textOf(host)
+      const spare = Math.round(connection.slack_s / 60)
+      expect(said).toMatch(new RegExp(`${spare} min spare`))
+      /*
+       * The actual wait is longer than the figure by the whole walk -- at 300 m
+       * that is nearly six minutes -- so calling the figure "wait" understated the
+       * time a child stands around by exactly the amount the walk model was
+       * corrected to charge.
+       */
+      expect(said).not.toMatch(/min wait/)
+      expect(said).not.toMatch(/minutes to wait/)
+    })
+})
+
+/*
+ * From a file there is no origin to fetch api/departures/ from, so a chain can
+ * never resolve. The Saved view's banner already says that in as many words; the
+ * card beside it went on saying the schedule "has not loaded yet", which is a
+ * promise. It reads as a spinner, and the reader waits for something that is not
+ * coming.
+ */
+describe('a chain on a board opened from a file', () => {
+  t('says the schedule cannot arrive, not that it has not arrived yet',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = chain.resolve(c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+      expect(m.state).toBe('no-schedule')
+
+      const host = cmb.states.el('div')
+      chain.render(host, [m], { fromDisk: true })
+      const said = textOf(host)
+      expect(said).not.toMatch(/has not loaded yet/)
+      expect(said).toMatch(/open from a file/)
+      /* And the sentence is spoken too, not only drawn. */
+      expect(said.match(/open from a file/g).length).toBeGreaterThanOrEqual(2)
+    })
+
+  t('and still says "not loaded yet" when there IS an origin to wait on',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = chain.resolve(c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+      const host = cmb.states.el('div')
+      chain.render(host, [m], {})
+      expect(textOf(host)).toMatch(/has not loaded yet/)
+    })
+})
