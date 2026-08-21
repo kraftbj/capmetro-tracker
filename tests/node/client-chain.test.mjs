@@ -1019,3 +1019,88 @@ describe('a leg the feed cannot answer for is not graded, however it fails', () 
       })
   })
 })
+
+/*
+ * What a card that has refused to grade may still assert.
+ *
+ * The refusal fixed the verdict and left three other places reading the timetable
+ * out loud as though it were a prediction: the retirement clock, the headline
+ * countdown, and the pair of times printed under the verdict.
+ */
+describe('a refused verdict does not leak back in as a confident number', () => {
+  const deadRoute = (tripId, late) => ({
+    staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
+    vehicles: [{
+      vehicle_id: '8021', label: '8021', trip: { trip_id: tripId },
+      adherence: { state: 'very_late', seconds: late, reason: null },
+    }],
+  })
+  const freshRoute = (tripId, late) => ({
+    staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
+    vehicles: [{
+      vehicle_id: '8021', label: '8021', trip: { trip_id: tripId },
+      adherence: { state: 'very_late', seconds: late, reason: null },
+    }],
+  })
+
+  t('a chain it cannot grade is not retired on the timetable it refused', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    /*
+     * `end_at` retires a card by asserting the last bus has been boarded, and the
+     * prediction it normally uses IS that assertion. Refusing the prediction sent
+     * predicted_board_at back to the scheduled time -- which reads exactly like a
+     * bus running on time -- so a chain whose onward bus was last seen ten minutes
+     * down went to "Gone. Back tomorrow" while that bus was still at the kerb.
+     */
+    const boardAt = MIDNIGHT + connection.board_seconds
+    const justPastScheduled = boardAt + chain.AFTER_S + 100
+
+    const dead = chain.resolve(c, DEPS, { 4: deadRoute(connection.trip.id, 600) },
+      justPastScheduled)
+    expect(dead.state).not.toBe('passed')
+
+    /* And the hold is bounded: far enough past and it does retire. */
+    const later = boardAt + chain.AFTER_S + chain.UNGRADED_HOLD_S + 100
+    expect(chain.resolve(c, DEPS, { 4: deadRoute(connection.trip.id, 600) }, later).state)
+      .toBe('passed')
+  })
+
+  t('but a chain it CAN grade still retires on time', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const boardAt = MIDNIGHT + connection.board_seconds
+    const m = chain.resolve(c, DEPS, { 4: freshRoute(connection.trip.id, 0) },
+      boardAt + chain.AFTER_S + 100)
+    expect(m.state).toBe('passed')
+  })
+
+  t('the headline does not count down to a time it refused to predict', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    /* First leg suppressed, and the card is inside its live window. */
+    const m = chain.resolve(c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
+      MIDNIGHT + 7 * 3600 + 40 * 60)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    /*
+     * "due 7:52a · in 12 minutes" about a bus last seen twelve minutes down is the
+     * same optimistic substitution the verdict just refused, printed larger.
+     */
+    expect(said).not.toMatch(/in \d+ minutes?/)
+    expect(said).toMatch(/scheduled/)
+  })
+
+  t('and the two times under the verdict are labeled as the timetable', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
+      MIDNIGHT + 7 * 3600 + 40 * 60)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    /*
+     * The card withholds the conclusion and then prints both operands of it in the
+     * slot it uses for real predictions, which reads as one.
+     */
+    expect(said).toMatch(/Timetable only · in /)
+    expect(said).not.toMatch(/(^|[^a-zA-Z])In \d+:\d+/)
+  })
+})

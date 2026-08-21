@@ -182,6 +182,27 @@
    * chain is over once the final bus has been caught. */
   var AFTER_S = 900;
 
+  /*
+   * Extra time a chain stays on screen when the last leg could not be graded.
+   *
+   * `end_at` retires a card by asserting the final bus has been boarded, and the
+   * prediction it normally uses IS that assertion. Where the leg is ungraded there
+   * is no prediction: `predicted_board_at` falls back to the timetable, which reads
+   * exactly like a bus running on time, and the card retired to "Gone. Back
+   * tomorrow" on the strength of a number this same file declined to trust one
+   * screen earlier. A bus last seen ten minutes down had not left.
+   *
+   * So an ungraded chain stands down on the clock instead, and the window is the
+   * one the feed itself defines: `stale` begins at 600 s of feed age (contract
+   * section 1), so a suppressed feed is by definition at least ten minutes behind
+   * what it describes and the bus may be at least that much further along than
+   * anything visible. The errors are not symmetric — retiring late leaves a card up
+   * a few minutes too long, retiring early tells a parent a bus has gone while it
+   * is still at the kerb — so the hold is deliberately the whole window rather than
+   * a fraction of it.
+   */
+  var UNGRADED_HOLD_S = 600;
+
   /* ---- storage --------------------------------------------------------- */
 
   function readStore() {
@@ -930,7 +951,12 @@
       is_special: resolvedLegs.filter(function (r) { return r.trip && r.trip.is_special; }).length > 0
     });
 
-    if (now > endAt + AFTER_S) model.state = 'passed';
+    /*
+     * The stand-down, not the prediction, when the last leg could not be graded.
+     * See UNGRADED_HOLD_S: without it, refusing to grade a connection also quietly
+     * retired the chain on the timetable the refusal was about.
+     */
+    if (now > endAt + AFTER_S + (last.ungraded ? UNGRADED_HOLD_S : 0)) model.state = 'passed';
     /*
      * Cancellation outranks every live state but not "already gone". A canceled
      * leg is the strongest thing the feed can say about this chain — stronger than
@@ -1234,13 +1260,20 @@
     if (t.alight_at !== null && t.board_at !== null) {
       /*
        * The two times the slack is the difference between, printed so the reader
-       * can check the arithmetic rather than take it on trust. Predicted where
-       * there is a prediction; the scheduled pair is what the walk is measured
-       * between when there is not.
+       * can check the arithmetic rather than take it on trust.
+       *
+       * Named when they are the timetable. On an ungraded change these are the
+       * scheduled pair — there is nothing else for them to be — and printing them
+       * unlabeled in the slot the card uses for real predictions put the conclusion
+       * back on screen in pieces immediately after withholding it. Two clock times
+       * side by side subtract to a slack figure in the reader's head whether or not
+       * the card was willing to do it for them.
        */
+      var ungraded = !!(t.ungraded_legs && t.ungraded_legs.length);
       row.appendChild(el('p', 'chaincard__transfertimes',
-        'In ' + fmt.clock(t.predicted_alight_at) + ' · out ' +
-        fmt.clock(t.predicted_board_at) +
+        (ungraded ? 'Timetable only · in ' : 'In ') +
+        fmt.clock(ungraded ? t.alight_at : t.predicted_alight_at) + ' · out ' +
+        fmt.clock(ungraded ? t.board_at : t.predicted_board_at) +
         (t.walk_s ? ' · ' + Math.round(t.walk_s / 60) + ' min walk' : '')));
     }
     var note = assumptionNote(t);
@@ -1276,6 +1309,19 @@
          * the reader to act on it, and there is nothing coming at that time.
          */
         line.appendChild(el('span', 'chaincard__canceled', 'CANCELED'));
+      } else if (model.first && model.first.ungraded) {
+        /*
+         * The scheduled time, said as the schedule.
+         *
+         * `due_at` is `predicted_board_at`, and on an ungraded leg that IS the
+         * timetable — so the headline read "due 7:52a · in 12 minutes" about a bus
+         * last seen twelve minutes down, in the largest type on the card, while the
+         * verdict two lines below refused to grade the same bus. A countdown is a
+         * prediction whatever it is built from; this one is not available, so the
+         * slot says what the number actually is instead of pretending.
+         */
+        line.appendChild(el('span', 'chaincard__due', fmt.clock(model.scheduled_at)));
+        line.appendChild(el('span', 'chaincard__until', 'scheduled'));
       } else {
         line.appendChild(el('span', 'chaincard__due', fmt.clock(model.due_at)));
         line.appendChild(el('span', 'chaincard__until',
@@ -1349,7 +1395,12 @@
     if (model.state === 'upcoming') return head + 'Due ' + fmt.clockSpoken(model.due_at) + '.';
     if (model.state === 'live' || model.state === 'no-vehicle') {
       var t = model.connection;
-      return head + 'Due ' + fmt.clockSpoken(model.due_at) + '. ' +
+      /* Same refusal as the headline: a screen reader must not be handed a
+         prediction the card itself would not print. */
+      var due = model.first && model.first.ungraded
+        ? 'Scheduled ' + fmt.clockSpoken(model.scheduled_at) + ', with no live time. '
+        : 'Due ' + fmt.clockSpoken(model.due_at) + '. ';
+      return head + due +
         (t ? (CONNECTION_LABEL[t.state] || t.state) + ', ' + slackText(t.slack_s) + '.' : '');
     }
     return head + (model.detail || 'Nothing to show.');
@@ -1741,6 +1792,7 @@
     MAX_LEGS: MAX_LEGS,
     BEFORE_S: BEFORE_S,
     AFTER_S: AFTER_S,
+    UNGRADED_HOLD_S: UNGRADED_HOLD_S,
     list: list,
     add: add,
     remove: remove,
