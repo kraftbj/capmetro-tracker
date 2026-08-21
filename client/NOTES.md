@@ -139,6 +139,36 @@ ever saw internal state. `departures['constructor']` on a plain object returns t
 Guarded once in `watch.rowsFor()`, which every caller goes through, and the
 route-keyed caches in `app.js` are `Object.create(null)`.
 
+The same string reaches the ROUTE field, where it becomes a request path. That one
+did not blank the board; it killed the e2e fixture server, which looked its route
+ids up in a bare object and then handed `path.join()` a function. An uncaught throw
+in a request handler ends the process, so one hostile link took the server down and
+every test scheduled after it failed for reasons of its own. Guarded there too, with
+a `try`/`catch` behind it so the next one is a 500 on one request rather than an
+invisible cause for a whole run.
+
+### A second link, and what it must not do to the first
+
+Keeping is an ADD, never a replace. The case is a parent with one child's stops kept
+who opens the other child's link: `save()` overwrites, so the obvious button threw
+the first set away with no warning and no way back but the original link. `merge()`
+puts the existing entries first, so if a cap bites it bites on what is arriving —
+and returns what it dropped rather than swallowing it, because 12 entries across 6
+routes is a limit somebody can actually reach with two children. The offer says
+which case it is in: "This phone already keeps 3 stops", and the button reads "Add
+to this phone".
+
+A decline is about a SET OF STOPS, not about a page load. `adoptPlan()` rebuilds the
+offer from the link and storage every time it runs, and anything that sends the
+reader through it a second time — a detour to another link and Back is the ordinary
+way — used to put the offer they had just dismissed back on screen. Asking twice is
+how a board teaches somebody to stop reading it.
+
+And a fragment carrying no plan is not about this view at all, so nothing reacts to
+it. Rebuilding the plan whenever the board had been opened from a link meant an
+in-page anchor, or a Back onto the URL as it was before the link, replaced the stops
+on screen with "No stops on this phone yet".
+
 ### Turnarounds, which are the reason this is not a list of times
 
 Three of the five stops this was built for are turnaround points: route 4 eastbound

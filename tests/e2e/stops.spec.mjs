@@ -295,6 +295,74 @@ test.describe('the board never claims a save it did not make', () => {
      * back to these stops. */
     await expect(page.locator('.offer')).toBeVisible()
   })
+
+  /*
+   * A DELETE IS A WRITE, AND CAN BE REFUSED THE SAME WAY.
+   *
+   * Both of these announced that something had been removed, and left it in
+   * storage. The stops came back on the next load having been declared gone,
+   * which is the same lie as claiming a save that never happened, told in the
+   * other direction — and it was told by the two call sites the save fix did not
+   * reach.
+   */
+  const refuseWrites = (page, kinds) =>
+    page.addInitScript((k) => {
+      const setItem = Storage.prototype.setItem
+      const removeItem = Storage.prototype.removeItem
+      if (k.includes('set')) {
+        Storage.prototype.setItem = function (key, v) {
+          if (String(key).indexOf('cmb.plan') === 0) throw new Error('QuotaExceededError')
+          return setItem.call(this, key, v)
+        }
+      }
+      if (k.includes('remove')) {
+        Storage.prototype.removeItem = function (key) {
+          if (String(key).indexOf('cmb.plan') === 0) throw new Error('SecurityError')
+          return removeItem.call(this, key)
+        }
+      }
+    }, kinds)
+
+  test('says storage refused instead of announcing stops were forgotten', async ({ page }) => {
+    /* Kept first, with writes still working, so there is something real to
+     * refuse to remove. */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await refuseWrites(page, ['remove'])
+    await page.reload()
+    await page.getByRole('button', { name: 'Forget these stops' }).click()
+
+    await expect(page.getByText('Nothing could be saved on this phone.')).toBeVisible()
+    /* Still kept, and still SAYING it is kept — the button is the proof, because
+     * it only appears for a set that storage holds. */
+    await expect(page.getByRole('button', { name: 'Forget these stops' })).toBeVisible()
+
+    /* And they really are still there, which is the half the reader would have
+     * discovered tomorrow. */
+    await page.goto('/fresh/index.html')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  test('says storage refused instead of announcing a stop was removed', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    await refuseWrites(page, ['set'])
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+
+    await expect(page.getByText('Nothing could be saved on this phone.')).toBeVisible()
+    /* The stop stays on screen, because it stayed in storage. Taking it off and
+     * then discarding the refusal put it back on the next load, which reads as
+     * the board undoing an edit by itself. */
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await expect(page.getByText('Simond SB').first()).toBeVisible()
+  })
 })
 
 test.describe('a link is untrusted input', () => {
@@ -768,5 +836,114 @@ test.describe('pasting a link into a tab that is already open', () => {
     await page.evaluate(() => { window.location.hash = 'somewhere-else' })
     await page.waitForTimeout(300)
     await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+  })
+
+  test('an unrelated fragment does not empty a board opened from a link', async ({ page }) => {
+    /*
+     * Declined, so the stops live nowhere but this page. A fragment naming
+     * something else - an in-page anchor, or a Back onto the URL as it was
+     * before the link - used to drag the plan through a rebuild, find no link
+     * and nothing in storage, and replace two stops the reader was looking at
+     * with "No stops on this phone yet". Nothing about that fragment said the
+     * stops had stopped being the right answer.
+     */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    await page.evaluate(() => { window.location.hash = 'somewhere-else' })
+    await page.waitForTimeout(300)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await expect(page.getByText('No stops on this phone yet')).toHaveCount(0)
+  })
+
+  test('a declined offer does not come back after a detour through another link', async ({ page }) => {
+    /*
+     * Back onto the same fragment is the easy half, and the early return above
+     * covers it: the plan on screen still matches, so nothing is rebuilt.
+     *
+     * This is the half that needs the decline to be remembered. A second,
+     * DIFFERENT link in between makes the plan on screen no longer match, so
+     * coming back does run adoptPlan() — which builds `offer` from the link and
+     * storage and knows nothing about what the reader has already answered. A
+     * decline is about a set of stops, so it is remembered as one.
+     */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /* Somewhere else entirely, with its own stops, and offered as it should be. */
+    await page.evaluate(() => { window.location.hash = 'plan=1;837.1.2112.all' })
+    await expect(page.locator('.offer')).toBeVisible()
+
+    await page.goBack()
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.locator('.offer'), 'the declined offer came back').toHaveCount(0)
+  })
+
+  test('a declined offer does not come back on Back', async ({ page }) => {
+    /*
+     * Going somewhere and pressing Back is the ordinary way to arrive at the
+     * link's own URL a second time, and adoptPlan() rebuilds `offer` from
+     * scratch every time it runs. A decline was a property of that one run, so
+     * the offer the reader had just dismissed came straight back. Asking twice
+     * is how a board teaches somebody to stop reading it.
+     */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await page.evaluate(() => { window.location.hash = 'somewhere-else' })
+    await page.waitForTimeout(200)
+    await page.goBack()
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.offer'), 'the declined offer came back').toHaveCount(0)
+  })
+})
+
+/*
+ * A SECOND LINK MUST NOT QUIETLY UNDO THE FIRST.
+ *
+ * The case is a parent with one child's stops kept who opens the other child's
+ * link. save() replaces, so tapping the one obvious button threw the first set
+ * away - no warning, no undo, and the only way back is finding the original
+ * link again. That is the feature destroying the exact thing it exists to keep.
+ */
+test.describe('keeping a second link', () => {
+  const FIRST = '/fresh/index.html#plan=1;4.1.6243.all'
+  const SECOND = '/fresh/index.html#plan=1;800.1.6293.all'
+
+  test('adds to the stops already kept instead of replacing them', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await page.goto(SECOND)
+    /* It says what is about to happen, and the button says ADD. */
+    const offer = page.locator('.offer')
+    await expect(offer).toContainText('already keeps 1 stop')
+    await expect(offer).toContainText('Nothing already on this phone is removed')
+    await page.getByRole('button', { name: 'Add to this phone' }).click()
+
+    /* Both sets, on the board with no link in the address bar - which is the
+     * only place the answer actually matters. */
+    await page.goto('/fresh/index.html')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.getByText('Simond SB').first()).toBeVisible()
+  })
+
+  test('offers plainly to keep, not to add, when nothing is kept yet', async ({ page }) => {
+    await page.goto(FIRST)
+    await expect(page.locator('.offer')).not.toContainText('already keeps')
+    await expect(page.getByRole('button', { name: 'Keep on this phone' })).toBeVisible()
+  })
+
+  test('does not re-offer a link whose stops are all already kept', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await page.reload()
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.offer')).toHaveCount(0)
   })
 })

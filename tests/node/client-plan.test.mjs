@@ -600,6 +600,74 @@ describe('live evidence outranks the schedule saying the leg is off', () => {
   })
 })
 
+/*
+ * merge(), which is what a second link does to a phone that already keeps stops.
+ *
+ * save() replaces, and that is correct when the reader is editing the set in
+ * front of them. It is not what a second link means, and it used to be what a
+ * second link did: one child's stops kept, the other child's link opened, the
+ * obvious button tapped, and the first set gone with no warning and no undo.
+ *
+ * The caps are the interesting part, because a merge is the one operation that
+ * can hit them. What is already kept must never be what gets dropped.
+ */
+describe('adding a second link to stops already kept', () => {
+  const entry = (route, stop) => ({
+    route_id: String(route), direction_id: 1, stop_id: String(stop), window: 'all',
+  })
+
+  t('keeps both sets, existing first', (p) => {
+    const out = p.merge([entry(4, 6243)], [entry(800, 6293)])
+    expect(out.entries).toEqual([entry(4, 6243), entry(800, 6293)])
+    expect(out.added).toBe(1)
+    expect(out.dropped).toBe(0)
+  })
+
+  t('does not duplicate a stop that is in both', (p) => {
+    const out = p.merge([entry(4, 6243)], [entry(4, 6243), entry(800, 6293)])
+    expect(out.entries).toEqual([entry(4, 6243), entry(800, 6293)])
+    expect(out.added).toBe(1)
+  })
+
+  t('treats a different window at the same stop as a different entry', (p) => {
+    const am = { ...entry(4, 6243), window: 'am' }
+    const out = p.merge([entry(4, 6243)], [am])
+    expect(out.entries).toHaveLength(2)
+  })
+
+  t('drops what is ARRIVING when the entry cap bites, never what is kept', (p) => {
+    const kept = Array.from({ length: p.MAX_ENTRIES }, (_, i) => entry(4, 1000 + i))
+    const out = p.merge(kept, [entry(4, 9999)])
+    expect(out.entries).toEqual(kept)
+    expect(out.added).toBe(0)
+    expect(out.dropped, 'a dropped stop must be reported, not swallowed').toBe(1)
+  })
+
+  t('drops what is arriving when the ROUTE cap bites too', (p) => {
+    const kept = Array.from({ length: p.MAX_ROUTES }, (_, i) => entry(i, 1000 + i))
+    const out = p.merge(kept, [entry('newroute', 4242)])
+    expect(out.entries).toEqual(kept)
+    expect(out.dropped).toBe(1)
+    /* A stop on a route already kept still fits: the cap is on routes, and that
+     * one is paid for. */
+    expect(p.merge(kept, [entry(0, 4242)]).added).toBe(1)
+  })
+
+  t('handles an empty or absent store, which is the ordinary first link', (p) => {
+    expect(p.merge(null, [entry(4, 6243)]).entries).toEqual([entry(4, 6243)])
+    expect(p.merge([], [entry(4, 6243)]).added).toBe(1)
+    expect(p.merge([entry(4, 6243)], null).entries).toEqual([entry(4, 6243)])
+  })
+
+  t('never returns more than a link is allowed to carry', (p) => {
+    const kept = Array.from({ length: p.MAX_ENTRIES }, (_, i) => entry(4, 1000 + i))
+    const more = Array.from({ length: 20 }, (_, i) => entry(4, 5000 + i))
+    const out = p.merge(kept, more)
+    expect(out.entries.length).toBeLessThanOrEqual(p.MAX_ENTRIES)
+    expect(p.routesIn(out.entries).length).toBeLessThanOrEqual(p.MAX_ROUTES)
+  })
+})
+
 describe('what a screen reader is told', () => {
   const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
   const spokenOf = (p, model) =>

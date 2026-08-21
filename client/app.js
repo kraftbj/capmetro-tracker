@@ -118,7 +118,10 @@
      * `offer` is the set a link is proposing and is null once it is answered
      * either way, so the banner does not come back on every repaint.
      */
-    plan: { entries: null, saved: false, offer: null, fromQuery: false, fromLink: false },
+    /* `declined` is the set of stops the reader has already said no to, not a
+     * boolean about this page load — see adoptPlan(). */
+    plan: { entries: null, saved: false, offer: null, fromQuery: false, fromLink: false,
+      declined: null },
     storageFailed: false
   };
 
@@ -455,7 +458,17 @@
        * there was no offer to make, so nothing switched the view and the link
        * looked like it had done nothing.
        */
-      state.plan.offer = state.plan.saved ? null : link.entries;
+      /*
+       * A decline is about a SET OF STOPS, not about a page load, so it is
+       * remembered as one. adoptPlan() rebuilds `offer` from scratch, and
+       * anything that sends the reader through it again — going to another
+       * fragment and pressing Back is the ordinary way — put the offer they had
+       * just dismissed back on screen. Asking twice is how a board teaches
+       * somebody to stop reading it.
+       */
+      state.plan.offer = state.plan.saved ||
+        (state.plan.declined && global.CMB.plan.sameSet(state.plan.declined, link.entries))
+        ? null : link.entries;
     } else if (saved) {
       state.plan.entries = saved;
       state.plan.saved = true;
@@ -468,6 +481,21 @@
       state.plan.fromQuery = false;
     }
     loadPlanRoutes();
+  }
+
+  /*
+   * What storage holds that is not already on screen.
+   *
+   * Everything the offer and onKeep need to know about the stops this phone
+   * already keeps, in one place, because reading localStorage twice in a click
+   * handler and once in a paint is how the two get out of step.
+   */
+  function keptOther() {
+    var kept = global.CMB.plan.stored() || [];
+    if (!state.plan.entries || !state.plan.entries.length) return kept;
+    var here = Object.create(null);
+    state.plan.entries.forEach(function (e) { here[global.CMB.plan.keyFor(e)] = true; });
+    return kept.filter(function (e) { return !here[global.CMB.plan.keyFor(e)]; });
   }
 
   /*
@@ -1072,7 +1100,21 @@
         ? global.CMB.plan.linkFor(entries, global.location.href)
         : null,
       storageFailed: state.storageFailed,
+      /* What is already on the phone, so the offer can say so rather than
+       * quietly deciding what happens to it. */
+      keptCount: keptOther().length,
       onKeep: function () {
+        /*
+         * ADD, never replace.
+         *
+         * save() overwrites, which is right when the reader is editing the set in
+         * front of them and wrong when a second link arrives. Somebody keeping one
+         * child's stops who opened the other child's link and tapped the obvious
+         * button lost the first set, with nothing on screen having mentioned it
+         * and no way back but the original link. plan.merge() puts the existing
+         * ones first so a cap can only ever bite what is arriving.
+         */
+        var merged = global.CMB.plan.merge(keptOther(), state.plan.entries);
         /*
          * The write is allowed to fail, so its answer decides what is said. This
          * used to dismiss the offer and announce success on a save that never
@@ -1080,25 +1122,48 @@
          * having suggested anything went wrong. The offer stays up on a refusal,
          * because the link in the address bar is still the way back.
          */
-        if (!global.CMB.plan.save(state.plan.entries)) {
+        if (!global.CMB.plan.save(merged.entries)) {
           state.storageFailed = true;
           announce(STORAGE_REFUSED);
           render();
           return;
         }
         state.storageFailed = false;
+        state.plan.entries = merged.entries;
         state.plan.saved = true;
         state.plan.offer = null;
-        announce('Kept ' + fmt.plural(state.plan.entries.length, 'stop', 'stops') +
-          ' on this phone.');
+        state.plan.declined = null;
+        syncFragment();
+        announce('Kept ' + fmt.plural(merged.entries.length, 'stop', 'stops') +
+          ' on this phone.' + (merged.dropped
+            ? ' ' + fmt.plural(merged.dropped, 'stop', 'stops') +
+              ' could not be added: this phone keeps at most ' +
+              global.CMB.plan.MAX_ENTRIES + ' stops on at most ' +
+              global.CMB.plan.MAX_ROUTES + ' routes.'
+            : ''));
         render();
       },
       onDismiss: function () {
+        state.plan.declined = state.plan.offer;
         state.plan.offer = null;
         render();
       },
       onForget: function () {
-        global.CMB.plan.clear();
+        /*
+         * A delete is a write and can be refused the same way a save can, and the
+         * two must be equally honest. This announced that the stops were no
+         * longer kept, cleared the flag that says they are, and left them sitting
+         * in storage — so they came back on the next load, having been declared
+         * gone. The save path was already fixed for exactly this; these are its
+         * siblings and were missed.
+         */
+        if (!global.CMB.plan.clear()) {
+          state.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.storageFailed = false;
         state.plan.saved = false;
         /* The link, if there is one, is still on screen: forgetting is about the
          * store, not about what is being looked at. */
@@ -1107,10 +1172,22 @@
         render();
       },
       onRemove: function (key) {
-        state.plan.entries = (state.plan.entries || []).filter(function (e) {
+        var left = (state.plan.entries || []).filter(function (e) {
           return global.CMB.plan.keyFor(e) !== key;
         });
-        if (state.plan.saved) global.CMB.plan.save(state.plan.entries);
+        /*
+         * Same rule as onForget, and the state is not touched until the write has
+         * agreed. Taking the stop off screen first and then discarding a refusal
+         * put it back on the next load, which reads as the board undoing an edit
+         * on its own.
+         */
+        if (state.plan.saved && !global.CMB.plan.save(left)) {
+          state.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.plan.entries = left;
         if (state.plan.offer) state.plan.offer = state.plan.entries;
         syncFragment();
         render();
@@ -1393,15 +1470,19 @@
      */
     global.addEventListener('hashchange', function () {
       var found = global.CMB.plan.fromLocation(global.location);
-      if (!found) {
-        /* The plan left the address bar. Kept stops stay on screen; a link-only
-         * plan falls back to whatever storage says. An unrelated fragment on a
-         * board that was never showing a link is left alone entirely. */
-        if (!state.plan.fromLink) return;
-        adoptPlan();
-        render();
-        return;
-      }
+      /*
+       * A fragment that carries no plan is not about this view, so nothing here
+       * reacts to it.
+       *
+       * It used to rebuild the plan from scratch whenever the board had been
+       * opened from a link, which emptied the screen: an in-page anchor, or a
+       * Back onto the URL as it was before the link, took a set of stops the
+       * reader was looking at and replaced it with "No stops on this phone yet".
+       * The stops are still the right answer — they were a moment ago, and a
+       * fragment naming something else says nothing to the contrary. Kept ones
+       * are in storage and unaffected either way.
+       */
+      if (!found) return;
       if (state.plan.entries && global.CMB.plan.sameSet(state.plan.entries, found.entries)) {
         state.plan.fromLink = true;
       } else {

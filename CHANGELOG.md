@@ -95,6 +95,21 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   roll the live payload can still be from before it while a schedule fetched a
   moment later is from after, and the fresher of the two was re-requested every
   sixty seconds until the payload caught up. Expiry means older, not different.
+- **"Forget these stops" and "Remove" announced success on a write that was
+  refused**, leaving the stops in storage to reappear on the next load having
+  been declared gone. The save path was already honest about this; these are its
+  siblings.
+- **Keeping a second link silently threw away the stops already kept.** Someone
+  with one child's stops on their phone who opened the other child's link and
+  tapped the obvious button lost the first set, with no warning and no way back
+  short of finding the original link again. The two sets are merged now, the
+  offer says so before it is tapped, and the button reads "Add to this phone".
+  If a cap is reached it is what is arriving that does not fit, never what is
+  already kept, and the board says how many did not.
+- An offer the reader had already declined came back after a detour to another
+  link and a Back, and a fragment carrying no plan at all — an in-page anchor, a
+  Back onto the URL from before the link — emptied a board that was showing
+  stops.
 - **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
   call `render()` from their callbacks, and the views that need them call the
   loaders from inside `paint()`. Both treated any status other than `loading` as

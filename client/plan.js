@@ -357,6 +357,51 @@
     try { global.localStorage.removeItem(STORE_KEY); return true; } catch (e) { return false; }
   }
 
+  /*
+   * What a second link should leave on a phone that already keeps stops.
+   *
+   * save() replaces, which is right when the reader is editing the set they are
+   * looking at and wrong when they are adding to one they are not. Somebody with
+   * one child's stops kept who opened the other child's link and tapped the
+   * obvious button lost the first set, silently, with no way back short of
+   * finding the original link again. Destroying the thing the feature exists to
+   * preserve is the worst of the options on the table.
+   *
+   * So the two sets are merged, existing first. Existing first is the whole
+   * ordering rule: if a cap is going to bite, it bites on what is arriving, never
+   * on what is already kept. The caps are decode()'s, applied here for the same
+   * reasons - MAX_ENTRIES because every entry is fetched and refreshed once a
+   * minute, MAX_ROUTES because the route count is what drives the fetching - and
+   * `dropped` is returned rather than swallowed so the caller can say what did
+   * not fit instead of quietly losing it.
+   */
+  function merge(existing, incoming) {
+    var out = [];
+    var seen = Object.create(null);
+    var routes = Object.create(null);
+    var routeCount = 0;
+    var added = 0;
+    var dropped = 0;
+
+    function take(e, isNew) {
+      var k = keyFor(e);
+      if (seen[k]) return;
+      if (out.length >= MAX_ENTRIES) { if (isNew) dropped++; return; }
+      if (routes[e.route_id] === undefined) {
+        if (routeCount >= MAX_ROUTES) { if (isNew) dropped++; return; }
+        routes[e.route_id] = true;
+        routeCount++;
+      }
+      seen[k] = true;
+      out.push(e);
+      if (isNew) added++;
+    }
+
+    (existing || []).forEach(function (e) { take(e, false); });
+    (incoming || []).forEach(function (e) { take(e, true); });
+    return { entries: out, added: added, dropped: dropped };
+  }
+
   /* Every route a plan touches, so the caller can fetch them all up front rather
    * than one at a time as cards paint. */
   function routesIn(entries) {
@@ -1086,15 +1131,25 @@
   function offerBanner(opts) {
     var box = el('div', 'offer');
     box.setAttribute('role', 'status');
+    /*
+     * When this phone already keeps a different set, the offer says so and the
+     * button says ADD. The word on the button used to be "Keep", and it replaced
+     * what was there without a word about it — the reader had no way to know a
+     * choice was being made on their behalf, let alone which way.
+     */
+    var already = opts.keptCount || 0;
     box.appendChild(el('strong', 'offer__head',
-      'This link carries ' + fmt.plural(opts.offer.length, 'stop', 'stops') + '.'));
-    box.appendChild(el('span', 'offer__detail',
-      'Keep them on this phone and the board opens on them next time, with no link.'));
+      'This link carries ' + fmt.plural(opts.offer.length, 'stop', 'stops') + '.' +
+      (already ? ' This phone already keeps ' +
+        fmt.plural(already, 'stop', 'stops') + '.' : '')));
+    box.appendChild(el('span', 'offer__detail', already
+      ? 'Adding these keeps both sets. Nothing already on this phone is removed.'
+      : 'Keep them on this phone and the board opens on them next time, with no link.'));
 
     var row = el('div', 'offer__row');
     var keep = el('button', 'btn btn--primary');
     keep.type = 'button';
-    keep.textContent = 'Keep on this phone';
+    keep.textContent = already ? 'Add to this phone' : 'Keep on this phone';
     keep.addEventListener('click', opts.onKeep);
     row.appendChild(keep);
 
@@ -1150,6 +1205,7 @@
     stored: stored,
     save: save,
     clear: clear,
+    merge: merge,
     routesIn: routesIn,
     windowRange: windowRange,
     windowLabel: windowLabel,
