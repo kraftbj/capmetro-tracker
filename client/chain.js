@@ -531,9 +531,21 @@
       /* The agency has called this trip off. Distinct from "no bus is reporting":
          one means not yet, the other means never. */
       canceled: false,
-      /* The feed will not stand behind this bus's lateness any more. Distinct
-         again: not "no bus" but "a bus we have stopped being able to judge". */
-      suppressed: false,
+      /*
+       * Why this leg's lateness may not be used, or null when it may be. Distinct
+       * again from cancellation: not "no bus" but "a bus we cannot judge".
+       *
+       *   'feed_stale'  — the ROUTE's feed has stopped updating. Nothing it says,
+       *     and nothing it fails to say, can be read as current.
+       *   'no_lateness' — the feed is current and a bus IS joined to this trip,
+       *     but it publishes no lateness for it: any of the unknown reasons in
+       *     the contract's decision table other than staleness.
+       *
+       * Both refuse the verdict. They are kept apart because the card has to say
+       * which one it is, and the two sentences are not interchangeable — one is
+       * about the feed, the other is about one bus on a working feed.
+       */
+      ungraded: null,
       trip: null,
       trip_index: -1,
       vehicle: null,
@@ -597,37 +609,64 @@
       return out;
     }
 
+    /*
+     * Read BEFORE the join, and independently of how the join goes.
+     *
+     * `suppress_adherence` is a property of the ROUTE — it says this route's feed
+     * has stopped updating — and it was previously only consulted inside `if
+     * (out.vehicle)`, so the refusal below could only ever fire when the frozen
+     * snapshot happened to contain a bus for this trip. Same dead feed, same
+     * route: with the vehicle in the snapshot the transfer refused to grade, and
+     * without it the transfer graded against the timetable and printed a
+     * confident "Connection holds".
+     *
+     * That is the exact case the reasoning below rules out, and the reasoning was
+     * right; it was the code that could not reach it. When a feed dies before a
+     * bus appears, "no vehicle at all" and "a vehicle we have stopped hearing
+     * from" are the SAME observation, and the vehicle join alone cannot tell them
+     * apart. Only the route's own staleness can.
+     */
+    var routeStale = !!(route && route.staleness && route.staleness.suppress_adherence);
+
     out.vehicle = watchLib.vehicleForTrip(route, out.trip.id);
-    if (out.vehicle) {
-      out.view = adhLib.view(out.vehicle, route && route.staleness);
-      /*
-       * `seconds` is null whenever the feed will not stand behind a number —
-       * an unknown state, a deadhead, or adherence suppressed for staleness. A
-       * null is not a zero: treating it as "on time" would print a confident
-       * prediction built on nothing, which is the one thing a board like this
-       * must not do.
-       *
-       * But refusing the zero is only half the job, and the other half is what
-       * `suppressed` is for. "Not reporting" and "reporting, but the feed has
-       * stopped updating" are different facts and only one of them makes the
-       * timetable a reasonable stand-in:
-       *
-       *   no vehicle at all — the bus has not started its run. There is nothing
-       *     to know yet, the timetable is the honest prior, and the verdict may
-       *     be asserted with `assumed` recording that it rests on one.
-       *   suppressed       — there IS a bus, its position is drawn on this very
-       *     screen, and we knew its lateness until the feed went stale. Falling
-       *     back to the timetable here does not mean "assume the schedule", it
-       *     means "assume on time" about a bus last seen ten minutes down. That
-       *     moves the verdict in the optimistic direction on the exact input
-       *     that should make it cautious.
-       *
-       * So suppression is recorded and the transfer refuses to grade, rather
-       * than grading against a schedule nobody has confirmed.
-       */
-      if (out.view.suppressed) {
-        out.suppressed = true;
-      } else if (out.view.seconds !== null && out.view.seconds !== undefined) {
+    if (out.vehicle) out.view = adhLib.view(out.vehicle, route && route.staleness);
+
+    /*
+     * `seconds` is null whenever the feed will not stand behind a number — any of
+     * the unknown states, a deadhead, or adherence suppressed for staleness. A
+     * null is not a zero: treating it as "on time" would print a confident
+     * prediction built on nothing, which is the one thing a board like this must
+     * not do.
+     *
+     * But refusing the zero is only half the job, and the other half is deciding
+     * when the TIMETABLE may stand in for the missing number. It always reads "on
+     * time", so substituting it is never neutral — it moves the verdict in the
+     * optimistic direction, which is the direction that strands somebody. There is
+     * exactly one case where that is still the honest answer:
+     *
+     *   no vehicle, live feed — the bus has not started its run. There is nothing
+     *     to know yet, the timetable is the honest prior, and the verdict may be
+     *     asserted with `assumed` recording that it rests on one.
+     *
+     * Everything else is a refusal:
+     *
+     *   feed stale  — whatever the snapshot holds, it is a photograph of some
+     *     minutes ago. A bus in it was last seen ten minutes down; a bus missing
+     *     from it may have been running all along. Neither is a reason to reach
+     *     for the schedule.
+     *   no lateness — there IS a bus, its position is drawn on this very screen,
+     *     and the feed simply does not say how late it is. That was previously
+     *     narrowed to staleness alone, so a bus with `no_trip_update` — about 7%
+     *     of active vehicle trips on this feed — was graded against the timetable
+     *     with full confidence and described as "not reporting yet" while its
+     *     badge sat on the same card.
+     */
+    if (routeStale) {
+      out.ungraded = 'feed_stale';
+    } else if (out.vehicle) {
+      if (out.view.seconds === null || out.view.seconds === undefined) {
+        out.ungraded = 'no_lateness';
+      } else {
         out.lateness = out.view.seconds;
       }
     }
@@ -661,8 +700,14 @@
       slack_s: null,
       scheduled_slack_s: null,
       assumed: [],
-      /* which side, if either, has a bus the feed has stopped judging */
-      suppressed_legs: []
+      /*
+       * Which side, if either, could not be judged, and why. Entries are
+       * `{ side, why, vehicle }`: the side so the copy can name the right bus, the
+       * reason so it can say the right thing about it, and whether a vehicle was
+       * actually found so it never describes a bus that is not in the snapshot as
+       * being on the road.
+       */
+      ungraded_legs: []
     };
     if (!prev.resolved || !next.resolved) return out;
 
@@ -686,25 +731,30 @@
     out.slack_s = out.predicted_board_at - out.predicted_alight_at - walkCost;
 
     /*
-     * A bus whose lateness is suppressed cannot be graded at all.
+     * A leg whose lateness the feed will not supply cannot be graded at all.
      *
      * Every other branch here degrades to the timetable and says so. That is fine
-     * when there is no bus yet. It is not fine when there IS one and the feed has
-     * merely stopped telling us about it: the timetable then stands in for a
-     * measurement that existed and was lost, and the substitution always reads
-     * "on time", which is the optimistic end of the range. Reproduced before this
-     * was written: the same chain with the same ten-minutes-late bus graded
+     * when there is no bus yet on a working feed. It is not fine when the feed has
+     * stopped updating, and it is not fine when the feed is current but simply
+     * carries no lateness for this trip: in both, the timetable stands in for a
+     * measurement that was never made or was lost, and the substitution always
+     * reads "on time", which is the optimistic end of the range. Reproduced before
+     * this was written: the same chain with the same ten-minutes-late bus graded
      * "missed, 2 minutes short" on a fresh feed and "holds, 8 minutes spare" on a
      * dead one.
      *
      * So there is no slack figure here at all. `scheduled_slack_s` survives for the
-     * copy to quote as a timetable fact, clearly labelled as one.
+     * copy to quote as a timetable fact, clearly labeled as one.
      */
-    if (prev.suppressed || next.suppressed) {
+    if (prev.ungraded || next.ungraded) {
       out.state = 'unknown';
       out.slack_s = null;
-      if (prev.suppressed) out.suppressed_legs.push('arriving');
-      if (next.suppressed) out.suppressed_legs.push('onward');
+      if (prev.ungraded) {
+        out.ungraded_legs.push({ side: 'arriving', why: prev.ungraded, vehicle: !!prev.vehicle });
+      }
+      if (next.ungraded) {
+        out.ungraded_legs.push({ side: 'onward', why: next.ungraded, vehicle: !!next.vehicle });
+      }
       return out;
     }
 
@@ -966,7 +1016,7 @@
       slack_s: null,
       scheduled_slack_s: null,
       assumed: [],
-      suppressed_legs: []
+      ungraded_legs: []
     };
   }
 
@@ -1041,6 +1091,42 @@
   };
 
   /*
+   * Why a change could not be graded, in words that stay true about the bus in
+   * question — which is the whole difficulty here.
+   *
+   * There are three different situations and they were all previously rendered as
+   * one sentence about a stale feed, or worse, as "not reporting yet":
+   *
+   *   a bus in the snapshot on a dead feed — it IS on the road, its badge is drawn
+   *     on this very card, and only the feed has gone quiet.
+   *   no bus in the snapshot on a dead feed — we cannot even say whether it is
+   *     running. Saying it "is on the road" would invent a bus; saying it "is not
+   *     reporting yet" would read the silence of a dead feed as news about a bus.
+   *   a bus on a LIVE feed carrying no lateness — the feed is current and the bus
+   *     is in it, so nothing is late or missing except the one number this card
+   *     needs. "Not reporting" is flatly false.
+   *
+   * Every clause below is checkable against what is on screen beside it.
+   */
+  var UNGRADED_SUBJECT = { arriving: 'The first bus', onward: 'The onward bus' };
+
+  function ungradedClause(u) {
+    if (u.why === 'feed_stale') {
+      return u.vehicle
+        ? UNGRADED_SUBJECT[u.side] + ' is on the road but its feed has stopped updating'
+        : UNGRADED_SUBJECT[u.side] + ' is not in the feed at all, and that feed has ' +
+          'stopped updating, so its absence says nothing either way';
+    }
+    return UNGRADED_SUBJECT[u.side] + ' is on the road but the feed carries no ' +
+      'lateness for its trip';
+  }
+
+  function ungradedSentence(list) {
+    return list.map(ungradedClause).join('. ') +
+      '. There is no lateness to grade this change with.';
+  }
+
+  /*
    * The sentence under the verdict. Each state gets its own, because "tight" and
    * "missed" call for completely different actions and a shared phrasing would
    * blur the one distinction the card is for.
@@ -1073,7 +1159,7 @@
     if (t.state === 'made') {
       return walk + 'There is room here for the first bus to run a little late.';
     }
-    if (t.suppressed_legs && t.suppressed_legs.length) {
+    if (t.ungraded_legs && t.ungraded_legs.length) {
       /*
        * Names the timetable gap, and refuses to call it slack. The number is real
        * — it is what the schedule says — but the thing the reader wants is the gap
@@ -1081,13 +1167,7 @@
        */
       var scheduled = t.scheduled_slack_s === null ? ''
         : ' The timetable allows ' + minutesWord(t.scheduled_slack_s) + ' here.';
-      return walk + (t.suppressed_legs.length === 2
-        ? 'Neither bus\u2019s feed is updating, so how late they are running is unknown.'
-        : t.suppressed_legs[0] === 'arriving'
-          ? 'The first bus is on the road but its feed has stopped updating, so how ' +
-            'late it is running is unknown.'
-          : 'The onward bus is on the road but its feed has stopped updating, so how ' +
-            'late it is running is unknown.') + scheduled;
+      return walk + ungradedSentence(t.ungraded_legs) + scheduled;
     }
     return walk + 'Not enough is known about these buses to say.';
   }
@@ -1099,10 +1179,10 @@
    * one they are looking at.
    */
   function assumptionNote(t) {
-    /* A suppressed leg is not an assumption, it is a refusal — connectionDetail
+    /* An ungraded leg is not an assumption, it is a refusal — connectionDetail
      * already says so, and "not reporting yet" would be false twice over about a
      * bus whose badge is drawn on the same screen. */
-    if (t && t.suppressed_legs && t.suppressed_legs.length) return null;
+    if (t && t.ungraded_legs && t.ungraded_legs.length) return null;
     if (!t || !t.assumed || !t.assumed.length) return null;
     if (t.assumed.length === 2) {
       return 'Neither bus is reporting yet, so this is the timetable, not a prediction.';

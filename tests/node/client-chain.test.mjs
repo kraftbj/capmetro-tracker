@@ -311,7 +311,9 @@ describe('the verdict, which is the whole product', () => {
       expect(dead.connection.state).toBe('unknown')
       expect(dead.connection.state).not.toBe('made')
       expect(dead.connection.slack_s).toBeNull()
-      expect(dead.connection.suppressed_legs).toContain('arriving')
+      expect(dead.connection.ungraded_legs).toEqual([
+        { side: 'arriving', why: 'feed_stale', vehicle: true },
+      ])
     })
 
   t('and never calls a suppressed bus one that has not reported', (chain) => {
@@ -912,5 +914,108 @@ describe('two service days must not be subtracted from each other', () => {
     expect(m.state).toBe('no-schedule')
     expect(m.detail).toMatch(/different service/)
     expect(m.connection).toBeUndefined()
+  })
+})
+
+/*
+ * Round three of the same failure.
+ *
+ * The refusal to grade a bus the feed will not stand behind was written twice and
+ * reached through the vehicle join both times, so it only ever fired when the frozen
+ * snapshot happened to contain a bus for that trip. Suppression is a property of the
+ * ROUTE — it is the route's feed that has stopped updating — and a leg on a suppressed
+ * route cannot be graded whether or not a vehicle was found for it.
+ *
+ * And the refusal covered exactly one of the six ways `adherence.state` can be unknown.
+ * Every other one still fell through to the timetable, which always reads on time,
+ * about a bus whose position is drawn on the same screen.
+ */
+describe('a leg the feed cannot answer for is not graded, however it fails', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  const deadRoute = (vehicles) => ({
+    staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
+    vehicles,
+  })
+
+  t('a dead feed refuses even when the snapshot holds no bus for the leg', (chain) => {
+    const { chain: c } = theChain(chain)
+    /*
+     * The whole point. On a dead cron "no vehicle" and "a vehicle that stopped being
+     * reported" are the same observation, so the absence of a bus is not evidence the
+     * bus has not started — and the timetable is not a fair stand-in for either.
+     */
+    const m = chain.resolve(c, DEPS, { 800: deadRoute([]) }, now)
+    expect(m.legs[0].vehicle).toBeNull()
+    expect(m.connection.state).toBe('unknown')
+    expect(m.connection.slack_s).toBeNull()
+    expect(['made', 'tight', 'missed']).not.toContain(m.connection.state)
+  })
+
+  t('and says the feed stopped rather than that the bus has not started', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, { 800: deadRoute([]) }, now)
+    const said = chain.connectionDetail(m.connection)
+    expect(said).toMatch(/feed has stopped updating/)
+    /* There is no bus in the snapshot, so it must not be described as being on one. */
+    expect(said).not.toMatch(/is on the road/)
+    expect(chain.assumptionNote(m.connection)).toBeNull()
+  })
+
+  t('the same chain grades normally the moment the feed is fresh again', (chain) => {
+    const { chain: c } = theChain(chain)
+    /* Guards the fix against becoming "never grade": with no vehicle and a LIVE feed
+       the timetable is the honest prior and the verdict may still be asserted. */
+    const m = chain.resolve(c, DEPS, {
+      800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] },
+    }, now)
+    expect(['made', 'tight', 'missed']).toContain(m.connection.state)
+    expect(chain.assumptionNote(m.connection)).toMatch(/reporting yet/)
+  })
+
+  /* Every unknown reason the contract's decision table can produce with a bus
+     joined to the trip. None of them is a lateness, so none of them may be graded. */
+  const UNKNOWN_REASONS = [
+    'no_trip_update',
+    'no_stop_predictions',
+    'trip_not_in_schedule',
+    'no_progress',
+  ]
+
+  UNKNOWN_REASONS.forEach((reason) => {
+    t(`a reporting bus with reason "${reason}" is refused, not graded`, (chain) => {
+      const { chain: c } = theChain(chain)
+      const m = chain.resolve(c, DEPS, {
+        800: {
+          staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
+          vehicles: [{
+            vehicle_id: '8021', label: '8021', trip: { trip_id: WATCHED_TRIP },
+            adherence: { state: 'unknown', seconds: null, reason },
+          }],
+        },
+      }, now)
+      expect(m.legs[0].vehicle).not.toBeNull()
+      expect(m.connection.state).toBe('unknown')
+      expect(m.connection.slack_s).toBeNull()
+    })
+
+    t(`and a bus reporting with "${reason}" is never called one that is not reporting`,
+      (chain) => {
+        const { chain: c } = theChain(chain)
+        const m = chain.resolve(c, DEPS, {
+          800: {
+            staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
+            vehicles: [{
+              vehicle_id: '8021', label: '8021', trip: { trip_id: WATCHED_TRIP },
+              adherence: { state: 'unknown', seconds: null, reason },
+            }],
+          },
+        }, now)
+        const said = chain.connectionDetail(m.connection)
+        /* Its badge is on the same screen. "Not reporting yet" is false twice over. */
+        expect(said).not.toMatch(/not reporting/)
+        expect(said).toMatch(/is on the road/)
+        expect(chain.assumptionNote(m.connection)).toBeNull()
+      })
   })
 })
