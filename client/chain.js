@@ -1522,6 +1522,43 @@
    * `state` is owned by the caller and passed back in, so this stays a pure
    * function of it and app.js remains the single owner of what is on screen.
    */
+  /*
+   * The schedule a step is waiting on — or why it is not coming.
+   *
+   * A failed fetch rendered as "Loading the schedule for route 800…" and stayed
+   * there for the life of the tab. Nothing retried it: the refresh interval's
+   * retry covers the route on the board and the routes a saved chain names, and
+   * the route somebody is part-way through picking is neither. So there was no
+   * error, no button and no way forward — and from a file, where there is no
+   * origin to read api/departures/ from at all, every route took that path every
+   * time.
+   *
+   * The three states are genuinely different actions for the reader, so they get
+   * three different notices rather than one hedged one.
+   */
+  function scheduleNotice(routeId, state, opts) {
+    if (state.from_disk) {
+      return S.notice('empty',
+        'No schedule for route ' + routeId + ' from a file.',
+        'This board is open from a file, so there is no origin to read the ' +
+        'schedule from — the request is never made. A chain can only be built on ' +
+        'the board as it is served; nothing here is broken and there is nothing ' +
+        'to retry.');
+    }
+    if ((state.dep_status || {})[routeId] === 'error') {
+      return S.notice('warn',
+        'Route ' + routeId + '’s schedule could not be loaded.',
+        'Without it there is no list of real departures to build this step from, ' +
+        'and a chain assembled from anything else would be permanently broken.',
+        opts.onRetrySchedule
+          ? S.retryButton('Try again', function () { opts.onRetrySchedule(routeId); })
+          : null);
+    }
+    return S.notice('empty',
+      'Loading the schedule for route ' + routeId + '…',
+      'This is one file for the whole service day, so it only loads once.');
+  }
+
   function renderEditor(host, state, opts) {
     opts = opts || {};
     S.clear(host);
@@ -1581,9 +1618,7 @@
 
     var onwardDep = deps[onward.route_id];
     if (!onwardDep) {
-      host.appendChild(S.notice('empty',
-        'Loading the schedule for route ' + onward.route_id + '…',
-        'This is one file for the whole service day, so it only loads once.'));
+      host.appendChild(scheduleNotice(onward.route_id, state, opts));
       return host;
     }
 
@@ -1617,7 +1652,7 @@
     host.appendChild(step(n++, 'Connection', null, function () {
       var wrap = el('div', 'connlist');
       if (!lastDep) {
-        wrap.appendChild(S.notice('empty', 'The first leg’s schedule is still loading.', null));
+        wrap.appendChild(scheduleNotice(last.route_id, state, opts));
         return wrap;
       }
       if (!found.length) {
@@ -1745,9 +1780,7 @@
 
     var dep = deps[start.route_id];
     if (!dep) {
-      host.appendChild(S.notice('empty',
-        'Loading the schedule for route ' + start.route_id + '…',
-        'This is one file for the whole service day, so it only loads once.'));
+      host.appendChild(scheduleNotice(start.route_id, state, opts));
       return host;
     }
 

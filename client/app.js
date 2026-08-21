@@ -430,6 +430,23 @@
    * names one route; a chain names two or three, and none of them is necessarily
    * the route on screen.
    */
+  /*
+   * The routes an open editor names or is part-way through naming: the legs
+   * already fixed, the first leg being built, and the onward route being chosen.
+   * Empty unless an editor is open.
+   */
+  function editorRouteIds() {
+    if (!editing()) return [];
+    var ids = [];
+    var push = function (id) { if (id && ids.indexOf(id) === -1) ids.push(id); };
+    var chainEd = state.chainEditor || {};
+    (chainEd.legs || []).forEach(function (leg) { push(leg.route_id); });
+    push((chainEd.start || {}).route_id);
+    push((chainEd.onward || {}).route_id);
+    push((state.editor || {}).route_id);
+    return ids;
+  }
+
   function savedRouteIds() {
     var wanted = {};
     global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
@@ -1205,9 +1222,17 @@
       onward: ed.onward,
       saveFailed: ed.saveFailed,
       departures: state.departures,
+      /* A step waiting on a schedule has to be able to tell "not yet" from "not
+         ever", and from a file it is always the second. */
+      dep_status: state.depStatus,
+      from_disk: fromDisk(),
       connections: global.CMB.chain.connectionsFor(
         ed.legs, state.departures, ed.onward.route_id, ed.onward.direction_id)
     }, {
+      onRetrySchedule: function (id) {
+        retrySchedule(id);
+        render();
+      },
       onPickStartRoute: function (id) {
         ed.start = { route_id: id };
         loadDepartures(id);
@@ -1398,6 +1423,13 @@
          * as belonging to another service day, and only here, where a retry cannot
          * become a render loop. */
         retrySchedule(state.routeId);
+        /*
+         * The routes an open editor is part-way through picking. They are not the
+         * board's route and not yet in either store, so without this a schedule
+         * that failed once left the editor on "Loading…" until the tab was closed.
+         */
+        editorRouteIds().forEach(retrySchedule);
+
         if (state.view === 'saved' || editing()) {
           /* A frozen saved trip is worse than none: it reads as a live prediction,
            * and a frozen chain reports a connection that stopped being true. Every

@@ -12,7 +12,15 @@
  * no stop ids, so the connection step is only populated at all if the walk radius
  * works end to end.
  */
+import path from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { expect, test } from '@playwright/test'
+
+/* The board opened straight off disk, which index.html states is a requirement
+   and not a convenience. Nothing about it is simulated: no origin, so no api/*. */
+const FILE_BOARD = pathToFileURL(
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../client/index.html')
+).href
 
 /* The fixture's own service day; the client's clock follows the feed, not the
  * device, so nothing here depends on when the suite is run. */
@@ -555,4 +563,87 @@ test.describe('a route that loaded once and then stopped refreshing', () => {
       await expect(page.locator('.chaincard__verdictlabel').first())
         .toHaveText('Connection unknown')
     })
+})
+
+/*
+ * A schedule that fails to load leaves the editor on "Loading the schedule for
+ * route 800…" for the life of the tab. Nothing retries it -- the interval's retry
+ * covers the route on the board and the routes a saved chain names, and the route
+ * somebody is part-way through picking is neither -- so there is no error, no
+ * button, and no way forward. On a file:// board, which is a supported way to open
+ * this, every route takes that path every time.
+ */
+test.describe('a schedule the editor cannot load is not a dead end', () => {
+  test('says what happened and offers a way out', async ({ page }) => {
+    let failing = true
+    await page.route('**/api/departures/800.json', (route) =>
+      failing
+        ? route.fulfill({ status: 500, body: '{"error":"upstream"}' })
+        : route.continue()
+    )
+
+    await page.goto(SAVED)
+    await page.getByRole('button', { name: 'Save a chain' }).click()
+    await page.locator('.routegrid__item', { hasText: '800' }).first().click()
+
+    /* Named, so the reader knows which of the three routes is the problem. */
+    const notice = page.locator('.notice', { hasText: 'route 800' })
+    await expect(notice).toContainText('could not be loaded')
+    await expect(notice).not.toContainText('Loading the schedule')
+    const retry = notice.getByRole('button', { name: 'Try again' })
+    await expect(retry).toBeVisible()
+
+    /* And the way out actually leads out. */
+    failing = false
+    await retry.click()
+    await expect(page.locator('.chipbtn').filter({ hasText: /SB/ }).first()).toBeVisible()
+  })
+
+  test('and from a file it explains rather than offering a button that cannot help',
+    async ({ page }) => {
+      /*
+       * There is no origin to read api/departures/ from, so the request never
+       * happens and Try again has nothing to try. Saying "could not be loaded"
+       * there sends the reader hunting for a fault in their network.
+       */
+      await page.goto(`${FILE_BOARD}?view=saved`)
+      await page.getByRole('button', { name: 'Save a chain' }).click()
+      await page.locator('.routegrid__item', { hasText: '800' }).first().click()
+
+      const notice = page.locator('.notice', { hasText: 'route 800' })
+      await expect(notice).toContainText('open from a file')
+      await expect(notice.getByRole('button', { name: 'Try again' })).toHaveCount(0)
+    })
+})
+
+/*
+ * The Saved view's banner already gets the file:// case right: no Try again, and
+ * an explanation instead. The chain card sitting under it went on saying the
+ * schedule "has not loaded yet", which is a promise, and one nothing on the page
+ * will keep.
+ */
+test.describe('a saved chain on a board opened from a file', () => {
+  test('is explained rather than left looking like it is loading', async ({ page }) => {
+    /* Seeded, because the editor cannot be driven from a file -- which is the
+       neighbouring half of the same problem. */
+    await page.addInitScript(() => {
+      window.localStorage.setItem('cmb.chains', JSON.stringify([{
+        day_type: 'weekday',
+        legs: [
+          { route_id: '800', direction_id: 1, direction_tag: 'SB', stop_id: '6293',
+            stop_name: 'Simond SB', scheduled_time: '07:52:09' },
+          { route_id: '4', direction_id: 0, direction_tag: 'WB', stop_id: '938',
+            stop_name: 'Pleasant Valley', scheduled_time: '08:16:00',
+            alight_stop_id: '1369', alight_stop_name: '7th Street SB',
+            walk_m: 78, walk_s: 91 },
+        ],
+      }]))
+    })
+    await page.goto(`${FILE_BOARD}?view=saved`)
+
+    const card = page.locator('.chaincard').first()
+    await expect(card).toBeVisible()
+    await expect(card).not.toContainText('has not loaded yet')
+    await expect(card).toContainText('open from a file')
+  })
 })
