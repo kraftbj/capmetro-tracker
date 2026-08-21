@@ -113,7 +113,15 @@ test.describe('the offer to keep them', () => {
   test('does not offer a link that is already kept', async ({ page }) => {
     await page.goto(LINK)
     await page.getByRole('button', { name: 'Keep on this phone' }).click()
-    await page.goto(LINK)
+    /*
+     * reload(), not goto(LINK) again. The address bar is already at LINK, so a
+     * second goto to the same URL is a same-document no-op: nothing re-boots,
+     * and the assertions below read the DOM the FIRST load left behind — which
+     * still has no offer on it because the button was just clicked. The test
+     * passed with the dedupe deleted. It has to be a real load or it is not
+     * testing the second visit at all.
+     */
+    await page.reload()
     await expect(page.locator('.stopcard').first()).toBeVisible()
     await expect(page.locator('.offer')).toHaveCount(0)
   })
@@ -270,9 +278,24 @@ test.describe('the link and the screen stay in step', () => {
     await page.getByRole('button', { name: 'Keep on this phone' }).click()
     await expect(page.locator('.offer')).toHaveCount(0)
 
-    /* The switch used to hang off the offer, so once there was nothing to offer
-     * the same bookmarked link landed on the route board and looked inert. */
-    await page.goto(LINK)
+    /*
+     * Then go and look at the route board, which is what somebody does between
+     * one commute and the next, and which is what the board REMEMBERS.
+     *
+     * Both halves of this setup are load-bearing. A second goto(LINK) while the
+     * address bar is already at LINK navigates nothing at all — the assertions
+     * would read the DOM the first load left. And leaving the remembered view on
+     * Stops lets the tab land on Stops out of memory, so the test held even with
+     * the link's own switch deleted. The link has to win against a remembered
+     * view pointing elsewhere or it is not being tested.
+     */
+    await page.locator('.viewtabs__btn[data-view="board"]').click()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+
+    /* The switch used to hang off the offer, so once "Keep on this phone" had
+     * been tapped there was nothing to offer, nothing switched the view, and the
+     * same bookmarked link landed on the route board looking inert. */
+    await page.reload()
     await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
   })
