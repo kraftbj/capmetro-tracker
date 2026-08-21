@@ -79,6 +79,10 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   and then the parameter was percent-decoded whole before the split ran, which
   undid the escaping exactly. Every id in this feed is digits today, which is
   why nobody noticed and why it is now a test rather than an assumption.
+- The once-a-minute schedule retry could clear the status of a request that was
+  still in flight, firing a duplicate alongside it — the same bug already fixed
+  for the route payload, on a slow connection, which is the only place either
+  one happens.
 - **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
   call `render()` from their callbacks, and the views that need them call the
   loaders from inside `paint()`. Both treated any status other than `loading` as

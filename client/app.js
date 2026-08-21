@@ -472,7 +472,15 @@
      * The service day rolled over under a document that fetched cleanly. Only the
      * timer may clear an 'ok' status, because paint() calls loadDepartures and a
      * status that paint could clear is a fetch-and-render loop.
+     *
+     * And never while a fetch is in flight, which is the same rule refreshRoute()
+     * applies to the route payload and for the same reason. A slow connection
+     * holding a request open past sixty seconds is exactly when this fires, and
+     * clearing the status there fired a second request alongside the first, then
+     * a third — with nothing tracking any of them, so the older response could
+     * land last and install the document the newer one had already replaced.
      */
+    if (state.depStatus[routeId] === 'loading') return;
     if (scheduleExpired(state.departures[routeId])) state.depStatus[routeId] = 'idle';
   }
 
@@ -1239,6 +1247,38 @@
     return foot;
   }
 
+  /*
+   * One turn of the refresh timer.
+   *
+   * A named function rather than the interval's own body, because the rules it
+   * enforces — a schedule is re-asked for once a minute and only here, where a
+   * retry cannot become a render loop — are the ones most easily lost, and the
+   * end-to-end suite has no way to observe them if the only way to take a turn
+   * is to wait sixty seconds for one. It is exported for that, and calling it is
+   * the same thing the timer does, not a shortcut around it.
+   */
+  function tick() {
+    if (state.status !== 'loading') load(state.routeId);
+    if (state.view === 'all') loadAll();
+    /* One retry per minute for a schedule that failed to load, or that came
+     * back describing a service day that is no longer today — and only here,
+     * where a retry cannot become a render loop. */
+    retryDepartures(state.routeId);
+    loadDepartures(state.routeId);
+    if (state.view === 'saved') {
+      /* A frozen saved trip is worse than none: it reads as a live prediction. */
+      global.CMB.watch.list().forEach(function (w) {
+        refreshRoute(w.route_id);
+      });
+    }
+    if (state.view === 'stops') {
+      /* Same rule, and it bites harder here: a stops card names the bus that
+       * is bringing your trip in, and a frozen one puts it eight minutes away
+       * for as long as the tab stays open. */
+      global.CMB.plan.routesIn(state.plan.entries || []).forEach(refreshRoute);
+    }
+  }
+
   /* ---- boot ----------------------------------------------------------- */
   function boot() {
     var q = query();
@@ -1297,27 +1337,7 @@
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
-      setInterval(function () {
-        if (state.status !== 'loading') load(state.routeId);
-        if (state.view === 'all') loadAll();
-        /* One retry per minute for a schedule that failed to load, or that came
-         * back describing a service day that is no longer today — and only here,
-         * where a retry cannot become a render loop. */
-        retryDepartures(state.routeId);
-        loadDepartures(state.routeId);
-        if (state.view === 'saved') {
-          /* A frozen saved trip is worse than none: it reads as a live prediction. */
-          global.CMB.watch.list().forEach(function (w) {
-            refreshRoute(w.route_id);
-          });
-        }
-        if (state.view === 'stops') {
-          /* Same rule, and it bites harder here: a stops card names the bus that
-           * is bringing your trip in, and a frozen one puts it eight minutes away
-           * for as long as the tab stays open. */
-          global.CMB.plan.routesIn(state.plan.entries || []).forEach(refreshRoute);
-        }
-      }, REFRESH_MS);
+      setInterval(tick, REFRESH_MS);
     }
 
     /*
@@ -1374,6 +1394,7 @@
   global.CMB.app = {
     state: state,
     load: load,
+    tick: tick,
     selectView: selectView,
     matchesFilter: matchesFilter,
     FAVOURITES: FAVOURITES,

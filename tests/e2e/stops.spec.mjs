@@ -367,6 +367,206 @@ test.describe('a failed route fetch must not destroy a good schedule', () => {
   })
 })
 
+/*
+ * A DEPARTURES DOCUMENT DESCRIBES ONE SERVICE DAY, AND IS KEPT FOR EXACTLY THAT
+ * LONG.
+ *
+ * It is a whole service day of scheduled stop times, so it is fetched once and
+ * held. It used to be held for the life of the tab: a phone left on the counter
+ * overnight and picked up at seven still had yesterday's, with every stop reading
+ * "the last one today has gone" on the surface someone consults at breakfast and
+ * has no reason to doubt.
+ *
+ * The eviction that fixed it had no test at all — the whole block, and the
+ * scheduleExpired line in retryDepartures, could be deleted and the suite stayed
+ * green. The three cases below are the three the code actually distinguishes, and
+ * the third is the one that matters most: a replacement that FAILS must leave the
+ * document that is already there. The first attempt at this deleted before it
+ * fetched, which loses a whole service day to a connection that has just proved
+ * it cannot fetch anything.
+ *
+ * The service date comes from the LIVE route payload, never a device clock, so
+ * these drive the two documents against each other rather than touching a clock.
+ * Requests are answered per page — no shared server state, nothing another test
+ * running beside this one can disturb.
+ */
+test.describe('a schedule is kept for the service day it describes, and no longer', () => {
+  const TODAY = '20260819' /* what the golden route payload says it is */
+  const YESTERDAY = '20260818'
+  const TOMORROW = '20260820'
+  const STOPS = '/fresh/index.html#plan=1;4.1.6243.all'
+
+  /*
+   * The two real fixtures, read once up front rather than through route.fetch()
+   * inside each handler. A handler that awaits the network can still be running
+   * when the page it was serving has gone, and the response it was holding is
+   * disposed out from under it — a flake, and a flake in a test about a dead
+   * connection is worse than no test.
+   */
+  const fixtures = async (page) => ({
+    route: await (await page.request.get('/fresh/api/route/4.json')).json(),
+    departures: await (await page.request.get('/fresh/api/departures/4.json')).json(),
+  })
+
+  /*
+   * Serve api/departures/4.json through a handler that may change its mind.
+   *
+   * The first answer is held until the live route payload has actually landed in
+   * the client. That is not a convenience: the live payload is the only thing
+   * that says what service day it is, and a schedule judged before one has
+   * arrived is deliberately judged against nothing and marked 'ok'. Which of two
+   * independent requests returns first would otherwise decide the state every
+   * assertion below starts from. Holding it pins the ordinary case — the one
+   * where the board knows what day it is — and leaves the other to the test that
+   * is actually about it.
+   */
+  const departuresServedBy = async (page, answer) => {
+    let n = 0
+    await page.route('**/api/departures/4.json', async (route) => {
+      n += 1
+      if (n === 1) {
+        await page.waitForFunction(() => !!(window.CMB && window.CMB.app && window.CMB.app.state.data))
+      }
+      await answer(route, n)
+    })
+    return () => n
+  }
+
+  /** The real fixture, re-dated. */
+  const dated = (route, doc, date) => route.fulfill({ json: { ...doc, service_date: date } })
+
+  const statusOf = (page) => page.evaluate(() => window.CMB.app.state.depStatus['4'])
+  const dateHeld = (page) =>
+    page.evaluate(() => {
+      const d = window.CMB.app.state.departures['4']
+      return d ? d.service_date : null
+    })
+  const tick = (page, times = 1) =>
+    page.evaluate((n) => {
+      for (let i = 0; i < n; i += 1) window.CMB.app.tick()
+    }, times)
+
+  test('keeps one dated today, and does not ask for it again', async ({ page }) => {
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route) => dated(route, fix.departures, TODAY))
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    expect(await statusOf(page)).toBe('ok')
+
+    await tick(page, 3)
+    await page.waitForTimeout(400)
+    expect(asked(), 'a current schedule was re-fetched').toBe(1)
+    expect(await statusOf(page)).toBe('ok')
+    expect(await dateHeld(page)).toBe(TODAY)
+  })
+
+  test('replaces one describing a service day that has passed', async ({ page }) => {
+    /* Yesterday's on the first ask, today's on the second — so a swap is visible
+     * as a swap rather than as the same bytes arriving twice. */
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route, n) =>
+      dated(route, fix.departures, n === 1 ? YESTERDAY : TODAY),
+    )
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    /* Shown, because it is still the best answer there is — but marked, so the
+     * timer asks again instead of trusting it for the session. */
+    expect(await statusOf(page)).toBe('stale')
+    expect(await dateHeld(page)).toBe(YESTERDAY)
+
+    await tick(page)
+    await expect.poll(() => dateHeld(page)).toBe(TODAY)
+    expect(asked()).toBe(2)
+    expect(await statusOf(page)).toBe('ok')
+  })
+
+  test('a replacement that fails leaves the schedule already in hand', async ({ page }) => {
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route, n) =>
+      n === 1
+        ? dated(route, fix.departures, YESTERDAY)
+        : route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"gone"}' }),
+    )
+    await page.goto(STOPS)
+    const departure = page.locator('.stopcard .stopdep').first()
+    await expect(departure).toBeVisible()
+    expect(await statusOf(page)).toBe('stale')
+
+    await tick(page)
+    await expect.poll(() => statusOf(page)).toBe('error')
+    expect(asked()).toBe(2)
+
+    /*
+     * The whole point. On a dead connection the old code deleted a good schedule
+     * and then could not fetch one back, and the card that had a service day on
+     * it a second earlier said "Schedule not loaded".
+     */
+    expect(await dateHeld(page), 'the schedule was destroyed by a failed refetch')
+      .toBe(YESTERDAY)
+    await expect(departure).toBeVisible()
+    await expect(page.getByText('Schedule not loaded')).toHaveCount(0)
+  })
+
+  test('re-asks when the service day rolls over under a document that fetched cleanly', async ({ page }) => {
+    /*
+     * The one case the 'stale' marking does not cover: the document was current
+     * when it arrived and stopped being so while the tab stayed open. Only the
+     * timer may clear an 'ok' status — paint() calls loadDepartures, so a status
+     * paint could clear is a fetch-and-render loop — which is why this lives in
+     * retryDepartures and not anywhere a repaint can reach.
+     */
+    const fix = await fixtures(page)
+    let routeAsked = 0
+    await page.route('**/api/route/4.json', (route) => {
+      routeAsked += 1
+      route.fulfill({
+        json: routeAsked > 1
+          ? { ...fix.route, service_day: { ...fix.route.service_day, date: TOMORROW } }
+          : fix.route,
+      })
+    })
+    const asked = await departuresServedBy(page, (route) => dated(route, fix.departures, TODAY))
+
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    expect(await statusOf(page)).toBe('ok')
+    expect(asked()).toBe(1)
+
+    /* One turn to pick up the new date, one to act on it. */
+    await tick(page)
+    await expect.poll(() =>
+      page.evaluate(() => window.CMB.app.state.data.service_day.date)).toBe(TOMORROW)
+    await tick(page)
+    await expect.poll(() => asked(), { message: 'yesterday was kept for the life of the tab' })
+      .toBe(2)
+  })
+
+  test('does not fire a second request while one is still in flight', async ({ page }) => {
+    /*
+     * The retry runs once a minute against a document that is still expired,
+     * because the request replacing it has not come back yet. Clearing the status
+     * there fired a duplicate alongside it, then a third — and with nothing
+     * tracking any of them the older response could land last and reinstate what
+     * the newer one had already replaced. A slow connection is the only place
+     * this happens, and is exactly the place it must not.
+     */
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, async (route, n) => {
+      if (n > 1) await new Promise((resolve) => setTimeout(resolve, 1500))
+      await dated(route, fix.departures, YESTERDAY)
+    })
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    expect(await statusOf(page)).toBe('stale')
+
+    await tick(page)
+    await page.waitForFunction(() => window.CMB.app.state.depStatus['4'] === 'loading')
+    await tick(page, 3)
+    await page.waitForTimeout(300)
+    expect(asked(), 'a request in flight was forgotten and re-issued').toBe(2)
+  })
+})
+
 test.describe('pasting a link into a tab that is already open', () => {
   /*
    * The commonest way a link actually gets used: the board is open, the link
