@@ -188,6 +188,48 @@ describe('the link, which is the only part of this feature the server could ever
       .toEqual(ENTRIES)
   })
 
+  /*
+   * The escaping only holds if nothing decodes the value before decode() splits
+   * it. paramOf() used to percent-decode the whole parameter on the way out, so
+   * a stop id of '62;93' arrived as '1;4.1.62;93.pm', the ';' was read as
+   * structural, and the link resolved to stop '62' — a real stop, a different
+   * place, a different bus, and nothing on screen suggesting anything was wrong.
+   *
+   * Every id in this feed is digits today. That is exactly why this is a test
+   * and not an assumption.
+   */
+  describe('an id carrying the separators survives a real URL', () => {
+    const NASTY = [
+      { route_id: '4', direction_id: 1, stop_id: '62;93', window: 'pm' },
+      { route_id: 'a.b', direction_id: 0, stop_id: '50%2F1', window: 'am' },
+      { route_id: '8+0', direction_id: 1, stop_id: 'c;d.e%f+g', window: 'all' },
+    ]
+
+    t('through the fragment, which is where linkFor puts it', (p) => {
+      const url = new URL(p.linkFor(NASTY, 'https://bus.dillo.dev/'))
+      expect(url.hash).toContain('%3B')
+      const found = p.fromLocation({ hash: url.hash, search: url.search })
+      expect(found.fromQuery).toBe(false)
+      expect(found.entries).toEqual(NASTY)
+    })
+
+    t('through the query string, which is the shape that gets rescued', (p) => {
+      const raw = p.encode(NASTY)
+      const url = new URL('https://bus.dillo.dev/?plan=' + raw)
+      const found = p.fromLocation({ hash: url.hash, search: url.search })
+      expect(found.fromQuery).toBe(true)
+      expect(found.entries).toEqual(NASTY)
+      /* `raw` is written straight back into the fragment by the caller, so it
+       * has to survive being read a second time from where it lands. */
+      expect(p.fromLocation({ hash: '#plan=' + found.raw, search: '' }).entries).toEqual(NASTY)
+    })
+
+    t('and the escaped-whole shape still opens, without decoding a good link twice', (p) => {
+      const escaped = encodeURIComponent(p.encode(NASTY))
+      expect(p.fromLocation({ hash: '#plan=' + escaped, search: '' }).entries).toEqual(NASTY)
+    })
+  })
+
   t('prefers the fragment, and reports a query so the caller can move it out of one', (p) => {
     const viaHash = p.fromLocation({ hash: '#plan=1;4.1.6243.pm', search: '' })
     expect(viaHash.fromQuery).toBe(false)

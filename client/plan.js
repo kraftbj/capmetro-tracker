@@ -260,26 +260,52 @@
     var hash = String((loc && loc.hash) || '').replace(/^#/, '');
     var found = paramOf(hash, 'plan');
     if (found) {
-      var viaHash = decode(found);
+      var viaHash = planIn(found);
       if (viaHash) return { entries: viaHash, fromQuery: false, raw: found };
     }
     var search = String((loc && loc.search) || '').replace(/^\?/, '');
     var q = paramOf(search, 'plan');
     if (q) {
-      var viaQuery = decode(q);
+      var viaQuery = planIn(q);
       if (viaQuery) return { entries: viaQuery, fromQuery: true, raw: q };
     }
     return null;
   }
 
-  /* One key out of an '&'-joined parameter string, in either half of a URL. */
+  /*
+   * The plan out of one parameter value, in the ordinary shape first.
+   *
+   * decode() splits on ';' and '.' and then percent-decodes each field, which is
+   * the whole reason enc() escapes those two characters: a stop id of '62;93'
+   * travels as '62%3B93' and comes back whole. Decoding the value BEFORE the
+   * split undoes that — the '%3B' becomes a ';', the split treats it as
+   * structural, and the link resolves to stop '62', a different place with a
+   * different bus. So the raw slice goes to decode() untouched.
+   *
+   * The second attempt is the tolerance linkFor() documents: a link something in
+   * between has escaped whole, where every separator is a '%3B' or a '%2E' and
+   * nothing structural is left to split on. That form cannot parse raw, so it
+   * only ever reaches this fallback after the honest reading has already failed,
+   * and a well-formed link never gets decoded twice.
+   */
+  function planIn(value) {
+    return decode(value) || decode(safeDecode(value));
+  }
+
+  /*
+   * One key out of an '&'-joined parameter string, in either half of a URL.
+   *
+   * The VALUE comes back exactly as it appeared. Only the key is decoded, since
+   * that is a plain word being compared to a plain word; what to do with the
+   * value is the caller's business, and for 'plan' the answer is "not yet".
+   */
   function paramOf(text, name) {
     var bits = String(text || '').split('&');
     for (var i = 0; i < bits.length; i++) {
       var eq = bits[i].indexOf('=');
       if (eq === -1) continue;
       if (safeDecode(bits[i].slice(0, eq)) !== name) continue;
-      return safeDecode(bits[i].slice(eq + 1));
+      return bits[i].slice(eq + 1);
     }
     return null;
   }

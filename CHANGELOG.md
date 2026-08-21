@@ -74,6 +74,11 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   the failure this board exists to prevent, inverted. Live evidence is read
   first now, and the cancellation is still said, as the trailing clause it is:
   both facts, and neither one deleting the other.
+- **A stop id containing a `;` resolved to a different stop.** The link escapes
+  its separators precisely so an id carrying one cannot split an entry in half,
+  and then the parameter was percent-decoded whole before the split ran, which
+  undid the escaping exactly. Every id in this feed is digits today, which is
+  why nobody noticed and why it is now a test rather than an assumption.
 - **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
   call `render()` from their callbacks, and the views that need them call the
   loaders from inside `paint()`. Both treated any status other than `loading` as
