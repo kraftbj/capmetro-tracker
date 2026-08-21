@@ -791,10 +791,18 @@ the last cron run raised an error. This is the endpoint an uptime check hits.
   prevent: a trip canceled at 10:05 for a 10:13 departure never reaches a tab opened at 07:00,
   which is precisely the case the cancellation work was written for.
 
-  The union only ever adds cancellations. A trip reinstated after being canceled will keep
-  showing as canceled in a client holding a stale document until it refetches. That asymmetry is
-  deliberate — the failure it leaves is "you did not board a bus that was running", against
-  "you waited for a bus that was never coming".
+  The union only ever adds cancellations, and a client cannot currently take one back. A trip
+  reinstated after being canceled keeps showing as canceled for as long as the cached departures
+  document lives — which today means until the page is reloaded, because `loadDepartures()`
+  returns early on any document it already holds and nothing evicts one. "Until it refetches" is
+  not an escape hatch a reader can rely on; say the reload out loud rather than implying a refresh
+  that does not happen.
+
+  The asymmetry itself is deliberate. The failure it leaves is "you did not board a bus that was
+  running", against "you waited for a bus that was never coming", and only the second one leaves
+  somebody at a stop. A client that adds eviction — refetching a document whose `service_date` has
+  passed, or aging one out — narrows the window and should, but it does not change which direction
+  the union is allowed to err in.
 
   `/api/routes.json` stays `no-cache`: its vehicle counts move every run.
 
