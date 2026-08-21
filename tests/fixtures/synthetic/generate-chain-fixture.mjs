@@ -51,7 +51,7 @@ function trim(doc, keepTrip) {
 }
 
 /* The 07:52:09 southbound from Simond SB is the contract's own worked example.
-   Two neighbours either side keep the trip indices off zero. */
+   Two neighbors either side keep the trip indices off zero. */
 const WATCHED_TRIP = '3010894_22201'
 const dep800 = read('800')
 const watchedIndex = dep800.trips.findIndex((t) => t.id === WATCHED_TRIP)

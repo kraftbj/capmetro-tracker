@@ -856,7 +856,7 @@ describe('a cancellation nobody reaches is not the headline', () => {
     }
   }
 
-  t('a missed change at transfer 1 outranks a cancelled leg 3', (chain) => {
+  t('a missed change at transfer 1 outranks a canceled leg 3', (chain) => {
     const built = threeLeg(chain)
     if (!built) return void 0
     const clone = JSON.parse(JSON.stringify(DEPS))

@@ -88,7 +88,7 @@
    * watched routes, and 650 of them are wider than 215 m. That is the majority of
    * the extra reach, not a rounding.
    *
-   * It is still 300, deliberately, and the defence is the cost model rather than
+   * It is still 300, deliberately, and the defense is the cost model rather than
    * the radius. A hard 215 m cap would be fitted to three examples nobody checked
    * against the other sixty-five routes, and it would silently drop genuine
    * transfers the same way an id intersection dropped 800-to-4. Instead the wide
@@ -153,7 +153,7 @@
   /*
    * Live slack below this reads as "tight" rather than "fine". It is the same two
    * minutes MIN_SLACK_S uses, because the threshold for offering a connection and
-   * the threshold for trusting one are the same judgement.
+   * the threshold for trusting one are the same judgment.
    */
   var TIGHT_S = 120;
 
@@ -457,7 +457,7 @@
         watchLib.departuresAt(toDep, board.stop_id, toDirectionId).forEach(function (row) {
           if (row.seconds < ready + MIN_SLACK_S) return;
           /*
-           * Measured from ALIGHTING, not from `ready`. MAX_WAIT_S is a judgement
+           * Measured from ALIGHTING, not from `ready`. MAX_WAIT_S is a judgment
            * about how long a child is standing around between buses, and the walk
            * is part of that time, not a discount against it. Capping `ready +
            * MAX_WAIT_S` made the real ceiling the stated 45 minutes PLUS the walk —

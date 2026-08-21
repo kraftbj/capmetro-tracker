@@ -625,7 +625,7 @@ test.describe('a schedule the editor cannot load is not a dead end', () => {
 test.describe('a saved chain on a board opened from a file', () => {
   test('is explained rather than left looking like it is loading', async ({ page }) => {
     /* Seeded, because the editor cannot be driven from a file -- which is the
-       neighbouring half of the same problem. */
+       neighboring half of the same problem. */
     await page.addInitScript(() => {
       window.localStorage.setItem('cmb.chains', JSON.stringify([{
         day_type: 'weekday',

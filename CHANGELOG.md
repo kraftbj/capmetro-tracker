@@ -88,6 +88,39 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   and from a `file://` board the missing data is explained as a limitation rather
   than a failure with a useless Try again.
 
+  A third round found the same failure had survived twice, both times because the
+  code could not reach the reasoning written above it:
+
+  - **The refusal to grade a dead feed was only reachable through the vehicle
+    join.** `suppress_adherence` describes a *route*, and it was read inside the
+    branch that runs when a bus was found — so the same dead feed refused to grade
+    when the frozen snapshot happened to hold that leg's bus and graded confidently
+    when it did not. On a cron that died before the bus appeared those two are the
+    same observation. It is read from the route now, before the join.
+  - **And the refusal covered one of the six ways lateness can be unknown.** A bus
+    with `no_trip_update` — about 7% of active vehicle trips — was graded against
+    the timetable and described as "not reporting yet" with its own badge on the
+    same card. Every unknown state is a refusal now, and the copy has three
+    sentences rather than one, because a bus in a dead feed's snapshot, a bus
+    *missing* from one, and a bus reporting fine on a live feed with no lateness
+    published are three different facts.
+  - **A refused verdict was still being asserted as three numbers.** The chain
+    retired to "Gone. Back tomorrow" on the scheduled time it had just declined to
+    trust, while the onward bus — last seen ten minutes down — was still at the
+    kerb; the headline counted down to that same time in the largest type on the
+    card; and the two times under the verdict were printed unlabeled in the slot
+    used for real predictions, which subtract to the withheld answer in the
+    reader's head. The retirement now stands down on the clock, and both times say
+    they are the timetable.
+  - **The service-day guard defended the wrong field.** It compared the
+    `service_date` label while the arithmetic subtracts `service_day_start_epoch`,
+    and skipped a document carrying no label rather than refusing it.
+  - **The editor called post-walk slack "wait"**, understating the standing-around
+    by the whole walk — the same conflation `MAX_WAIT_S` was corrected for.
+  - **A schedule the editor could not load was a dead end** for the life of the
+    tab: no error, no retry, no way forward, and guaranteed for every route on a
+    `file://` board.
+
 - **Nearest stop, and when the next bus reaches it.** Tap "Use my location" and
   the board finds the stop you are standing at on the route you are looking at,
   then shows when each approaching bus is due there — "4 min", "due" — with the
@@ -146,12 +179,33 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   requirement, and a GTFS republish dropping a route a saved chain still names. Now
   only `idle` proceeds, matching `loadDepartures`.
 
+- **A route that loaded once and then stopped refreshing was trusted completely.**
+  Its payload still says `fresh`, because it was — an hour ago. So the new banner
+  did not draw and the chain leg on it was graded against positions frozen an hour
+  back. That is the "the cron stopped an hour ago" case the banner exists for, and
+  the one case it structurally could not see: no document can report how long the
+  client has been holding it. The feed age used on the Saved view is now the age
+  the server measured plus the time this browser has held the answer, judged
+  against the contract's own thresholds.
+
+- **A cached schedule from another service day was a request loop.** Evicting it
+  also deleted the route's fetch guard, so the eviction refetched inside the paint
+  that evicted, the refetch repainted, and the repaint evicted again — 143 requests
+  in three seconds. It also evicted schedules *newer* than the board, which after a
+  republish means the board's own year-old fallback fixture throwing away today's
+  perfectly good schedule, forever. The third loop of this exact shape in one file.
+
+- **Not rebuilding the open editor had stopped the board's clock.** The guard
+  returned before the refreshes as well as before the repaint, so ten minutes spent
+  in the editor left the Saved view behind it counting down from a ten-minute-old
+  payload. The repaint is deferred now; the fetches keep running.
+
 - **The Saved view trusted stale feeds it never showed a banner for.** Staleness was
   rendered for the route on the board and for nothing else — but this view's routes
   are by definition not the one being watched, so nobody is looking at their board
   to notice the feed died. A chain leg on a route whose cron stopped an hour ago was
-  graded against frozen positions. Each such route now gets its own banner, labelled
-  with the route number because an unlabelled one cannot say which card to distrust.
+  graded against frozen positions. Each such route now gets its own banner, labeled
+  with the route number because an unlabeled one cannot say which card to distrust.
 
 - **A refused save was announced as a success.** When `localStorage` says no —
   private browsing, quota, storage disabled — the board said "Saved …", left a

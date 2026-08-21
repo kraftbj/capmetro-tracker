@@ -789,7 +789,7 @@ button { font: inherit; color: inherit; }
 .chainsave { margin: 12px 0; }
 
 /* A staleness banner on the Saved view names its route: there are three or four
-   routes on this screen and an unlabelled warning cannot say which card to stop
+   routes on this screen and an unlabeled warning cannot say which card to stop
    trusting. */
 .savedbanner { margin-bottom: 10px; }
 .savedbanner__route {

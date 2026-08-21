@@ -1025,9 +1025,9 @@
    * is the one place that difference is reconciled.
    */
   /*
-   * One banner per route whose feed is not fresh, labelled with the route number.
+   * One banner per route whose feed is not fresh, labeled with the route number.
    *
-   * Labelled because on this view an unlabelled "Data 14 minutes old" is unusable:
+   * Labeled because on this view an unlabeled "Data 14 minutes old" is unusable:
    * there are three or four routes on screen and the reader cannot tell which of
    * them the warning is about, or therefore which card to stop trusting. The route
    * board never had that problem — it only ever shows one route.
@@ -1109,7 +1109,7 @@
        * Composed, not mutated. Reaching into the banner to rewrite its headline
        * would couple this to states.js's internal class names and would silently
        * do nothing anywhere querySelector is not available — which is exactly the
-       * kind of quietly-skipped labelling this view cannot afford.
+       * kind of quietly-skipped labeling this view cannot afford.
        */
       var box = el('div', 'savedbanner');
       box.appendChild(el('p', 'savedbanner__route', 'Route ' + id));

@@ -689,7 +689,7 @@
      * The step-based editor's presentation, exported because chain.js builds the
      * same one. They were copy-pasted there first, which is the shape CLAUDE.md
      * forbids after ISSUE-002: two implementations of one rule drift, and here the
-     * first symptom would be the two editors numbering or labelling their steps
+     * first symptom would be the two editors numbering or labeling their steps
      * differently on one screen.
      */
     step: step,
