@@ -278,10 +278,23 @@
     return null;
   }
 
-  /* A departures document describes one service day. This one is not today's. */
+  /*
+   * A departures document describes one service day. This one describes an
+   * EARLIER one.
+   *
+   * Older, not merely different. `!==` also condemned a document from the future,
+   * and the two are not the same news: around the service-day roll, `state.data`
+   * can still be from before it while a schedule fetched a moment later is from
+   * after, and calling the fresher of the two expired re-fetched it once a minute
+   * until the live payload caught up. Any skew in that direction has the shape.
+   *
+   * Service dates are `YYYYMMDD` strings, so comparing them as strings compares
+   * them as dates. That holds only because of the format, which is why it is
+   * written down here rather than left to be noticed.
+   */
   function scheduleExpired(doc) {
     var today = currentServiceDate();
-    return !!(today && doc && doc.service_date !== today);
+    return !!(today && doc && doc.service_date < today);
   }
 
   /*
@@ -326,10 +339,12 @@
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
         state.departures[routeId] = d;
-        /* A document for a day that is not today is kept and shown — it is still
-         * the best answer available — but marked so it is asked for again on the
-         * timer rather than trusted, and so a server stuck on yesterday cannot
-         * spin this into a fetch-and-render loop. */
+        /* A document for an earlier day is KEPT — deleting it is how a failed
+         * refetch loses a whole service day — and marked so it is asked for again
+         * on the timer rather than trusted, and so a server stuck on yesterday
+         * cannot spin this into a fetch-and-render loop. Kept is not the same as
+         * believed: paintStops tells the card the document is out of date, and
+         * the card stops making claims about today. */
         state.depStatus[routeId] = scheduleExpired(d) ? 'stale' : 'ok';
         render();
       })
@@ -1034,7 +1049,18 @@
         state.departures[e.route_id] || null,
         liveRoute(e.route_id),
         now,
-        { schedule_detail: scheduleDetail(e.route_id) }
+        {
+          schedule_detail: scheduleDetail(e.route_id),
+          /*
+           * Whatever scheduleExpired() decides has to reach the COPY, not only
+           * the fetch logic. A document from a previous service day has every
+           * one of today's times behind it, so nothing is upcoming and the card
+           * said "The last one today has gone. Back tomorrow." — a claim about
+           * today's service, made from a document that does not describe today,
+           * at breakfast, on a board somebody left open overnight.
+           */
+          schedule_expired: scheduleExpired(state.departures[e.route_id])
+        }
       );
     });
 

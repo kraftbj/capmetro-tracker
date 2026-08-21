@@ -532,6 +532,30 @@
     var meta = stopMeta(dep, entry.stop_id, entry.direction_id);
     if (meta) base.stop_name = meta.stop_name;
 
+    /*
+     * A document describing an earlier service day answers no question about
+     * this one, and every answer it would give is wrong in the same direction:
+     * its times are measured from yesterday's midnight, so nothing is ever
+     * upcoming and the card fell through to "The last one today has gone. Back
+     * tomorrow." That sentence sends somebody home. It was being said, at
+     * breakfast, on a board left open overnight, out of a document the fetch
+     * logic had already marked as not describing today.
+     *
+     * The document is kept — the caller is right not to delete it before a
+     * replacement lands — but it is not read as though it were current. The card
+     * says what it actually knows: this is out of date and is being replaced.
+     */
+    if (opts.schedule_expired) {
+      return extend(base, {
+        state: 'no-schedule',
+        schedule_expired: true,
+        detail: 'The schedule on this phone is for an earlier service day' +
+          (dep.service_date ? ' (' + dep.service_date + ')' : '') +
+          '. It is being refreshed; until it is, this stop cannot say what is ' +
+          'running today.'
+      });
+    }
+
     var nowS = now - dep.service_day_start_epoch;
     base.in_window = inWindow(entry.window, nowS);
     base.day_type = dep.day_type;
@@ -948,6 +972,9 @@
   }
 
   function headlineFor(model) {
+    /* Not "Schedule not loaded": one IS loaded, for the wrong day, and a reader
+     * told it has not loaded would wait for something that has already arrived. */
+    if (model.schedule_expired) return 'Schedule out of date';
     if (model.state === 'done') return 'Nothing left today';
     if (model.state === 'unserved') return 'Not served today';
     if (model.state === 'no-schedule') return 'Schedule not loaded';

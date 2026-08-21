@@ -83,6 +83,18 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   still in flight, firing a duplicate alongside it — the same bug already fixed
   for the route payload, on a slow connection, which is the only place either
   one happens.
+- **A schedule left over from yesterday said today's service was over.** A
+  departures document from a previous service day has every one of today's times
+  behind it, so nothing resolved and every stop read "The last one today has
+  gone. Back tomorrow." — a claim about today, made from a document that does not
+  describe today, on a board left open overnight and picked up at breakfast. It
+  is still kept, because deleting it is how a failed refetch loses a whole service
+  day, but it no longer answers as though it were current: the card says the
+  schedule is out of date and is being refreshed.
+- A document from AHEAD of today counted as expired too. Around the service-day
+  roll the live payload can still be from before it while a schedule fetched a
+  moment later is from after, and the fresher of the two was re-requested every
+  sixty seconds until the payload caught up. Expiry means older, not different.
 - **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
   call `render()` from their callbacks, and the views that need them call the
   loaders from inside `paint()`. Both treated any status other than `loading` as

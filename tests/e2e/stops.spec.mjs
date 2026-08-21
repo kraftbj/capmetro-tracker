@@ -559,9 +559,9 @@ test.describe('a schedule is kept for the service day it describes, and no longe
       dated(route, fix.departures, n === 1 ? YESTERDAY : TODAY),
     )
     await page.goto(STOPS)
-    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
-    /* Shown, because it is still the best answer there is — but marked, so the
-     * timer asks again instead of trusting it for the session. */
+    /* Held, so a failed replacement cannot lose it — but not believed, so the
+     * card says it is out of date instead of answering out of it. */
+    await expect(page.locator('.stopcard')).toContainText('Schedule out of date')
     expect(await statusOf(page)).toBe('stale')
     expect(await dateHeld(page)).toBe(YESTERDAY)
 
@@ -569,6 +569,8 @@ test.describe('a schedule is kept for the service day it describes, and no longe
     await expect.poll(() => dateHeld(page)).toBe(TODAY)
     expect(asked()).toBe(2)
     expect(await statusOf(page)).toBe('ok')
+    /* And the card answers again the moment a current document arrives. */
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
   })
 
   test('a replacement that fails leaves the schedule already in hand', async ({ page }) => {
@@ -579,8 +581,8 @@ test.describe('a schedule is kept for the service day it describes, and no longe
         : route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"gone"}' }),
     )
     await page.goto(STOPS)
-    const departure = page.locator('.stopcard .stopdep').first()
-    await expect(departure).toBeVisible()
+    const card = page.locator('.stopcard').first()
+    await expect(card).toContainText('Schedule out of date')
     expect(await statusOf(page)).toBe('stale')
 
     await tick(page)
@@ -589,13 +591,71 @@ test.describe('a schedule is kept for the service day it describes, and no longe
 
     /*
      * The whole point. On a dead connection the old code deleted a good schedule
-     * and then could not fetch one back, and the card that had a service day on
-     * it a second earlier said "Schedule not loaded".
+     * and then could not fetch one back.
+     *
+     * The two outcomes are distinguishable on screen, which is what makes this a
+     * test and not an inspection of a variable: a document that is still there
+     * reads "Schedule out of date", and one that was destroyed reads "Schedule
+     * not loaded" — the card having nothing at all to describe.
      */
     expect(await dateHeld(page), 'the schedule was destroyed by a failed refetch')
       .toBe(YESTERDAY)
-    await expect(departure).toBeVisible()
+    await expect(card).toContainText('Schedule out of date')
     await expect(page.getByText('Schedule not loaded')).toHaveCount(0)
+  })
+
+  test('does not treat a document from the FUTURE as expired', async ({ page }) => {
+    /*
+     * Older, not merely different. Around the service-day roll the live payload
+     * can still be from before it while a schedule fetched a moment later is from
+     * after; testing for `!==` called the fresher of the two expired and re-asked
+     * for it every sixty seconds until the live payload caught up. Any skew in
+     * that direction has the same shape.
+     */
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route) => dated(route, fix.departures, TOMORROW))
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    expect(await statusOf(page), 'a schedule from ahead of today was called expired').toBe('ok')
+    await tick(page, 3)
+    await page.waitForTimeout(400)
+    expect(asked()).toBe(1)
+  })
+
+  test('an out-of-date schedule never claims today’s service is over', async ({ page }) => {
+    /*
+     * The sentence at issue is "The last one today has gone. Back tomorrow."
+     *
+     * A document from a previous service day measures its times from yesterday's
+     * midnight, so nothing on it is ever upcoming and every stop falls through to
+     * that sentence — a claim about TODAY made out of a document that does not
+     * describe today. On a board left open overnight and picked up at breakfast,
+     * it is the sentence that sends somebody home.
+     */
+    const fix = await fixtures(page)
+    await departuresServedBy(page, (route) =>
+      route.fulfill({
+        json: {
+          ...fix.departures,
+          service_date: YESTERDAY,
+          /* Genuinely yesterday's document: the day start goes back with the
+             date, which is what puts every departure behind the clock. */
+          service_day_start_epoch: fix.departures.service_day_start_epoch - 86400,
+        },
+      }),
+    )
+    await page.goto(STOPS)
+    const card = page.locator('.stopcard').first()
+    await expect(card).toBeVisible()
+
+    await expect(card).not.toContainText('Back tomorrow')
+    await expect(card).not.toContainText('Nothing left today')
+    await expect(card).toContainText('Schedule out of date')
+    await expect(card).toContainText('earlier service day')
+    /* And it is not passed off as a schedule that has not arrived, which would
+     * have the reader waiting for something already on the phone. */
+    await expect(card).not.toContainText('Schedule not loaded')
   })
 
   test('re-asks when the service day rolls over under a document that fetched cleanly', async ({ page }) => {
@@ -647,7 +707,7 @@ test.describe('a schedule is kept for the service day it describes, and no longe
       await dated(route, fix.departures, YESTERDAY)
     })
     await page.goto(STOPS)
-    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    await expect(page.locator('.stopcard')).toContainText('Schedule out of date')
     expect(await statusOf(page)).toBe('stale')
 
     await tick(page)
