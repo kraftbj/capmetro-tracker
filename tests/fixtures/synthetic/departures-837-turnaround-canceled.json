@@ -1,0 +1,1818 @@
+{
+ "_comment": "A turnaround that also carries a cancellation and low-confidence blocks: route 837 at stop 2112, 5th/Guadalupe (Republic Square), on service day 20260819. Southbound arrives here as its last stop and northbound leaves as its first. The six northbound departures between 10:00 and 11:00 include the 10:13, which CapMetro canceled - a stops card must say so rather than let it read as a bus that has not started yet. Every 837 block in this capture is confidence \"low\", so a card claiming a confirmed continuation here would be stating a guess as fact, which contract section 4 forbids.",
+ "_expected": {
+  "boarding_direction_id": 1,
+  "canceled_departure_s": [
+   36780
+  ],
+  "every_boarding_departure_starts_here": true,
+  "inbound_direction_id": 0,
+  "pairs": [
+   {
+    "block_id": "837003",
+    "inbound_arrival_s": 36000,
+    "outbound_departure_s": 36180
+   },
+   {
+    "block_id": "837050",
+    "inbound_arrival_s": 36600,
+    "outbound_departure_s": 36780
+   },
+   {
+    "block_id": "837001",
+    "inbound_arrival_s": 37200,
+    "outbound_departure_s": 37380
+   },
+   {
+    "block_id": "837010",
+    "inbound_arrival_s": 37800,
+    "outbound_departure_s": 37980
+   },
+   {
+    "block_id": "837002",
+    "inbound_arrival_s": 38400,
+    "outbound_departure_s": 38580
+   },
+   {
+    "block_id": "837011",
+    "inbound_arrival_s": 39000,
+    "outbound_departure_s": 39180
+   }
+  ],
+  "turnaround_stop_id": "2112"
+ },
+ "_now": 1787151600,
+ "day_type": "weekday",
+ "departures": {
+  "1179": [
+   [
+    35251,
+    0
+   ],
+   [
+    35851,
+    1
+   ],
+   [
+    36451,
+    2
+   ],
+   [
+    37051,
+    3
+   ],
+   [
+    37651,
+    4
+   ],
+   [
+    38251,
+    5
+   ]
+  ],
+  "1578": [
+   [
+    37039,
+    6
+   ],
+   [
+    37639,
+    7
+   ],
+   [
+    38239,
+    8
+   ],
+   [
+    38839,
+    9
+   ],
+   [
+    39439,
+    10
+   ],
+   [
+    40039,
+    11
+   ]
+  ],
+  "1582": [
+   [
+    37126,
+    6
+   ],
+   [
+    37726,
+    7
+   ],
+   [
+    38326,
+    8
+   ],
+   [
+    38926,
+    9
+   ],
+   [
+    39526,
+    10
+   ],
+   [
+    40126,
+    11
+   ]
+  ],
+  "1594": [
+   [
+    37846,
+    6
+   ],
+   [
+    38446,
+    7
+   ],
+   [
+    39046,
+    8
+   ],
+   [
+    39646,
+    9
+   ],
+   [
+    40246,
+    10
+   ],
+   [
+    40846,
+    11
+   ]
+  ],
+  "1599": [
+   [
+    38041,
+    6
+   ],
+   [
+    38641,
+    7
+   ],
+   [
+    39241,
+    8
+   ],
+   [
+    39841,
+    9
+   ],
+   [
+    40441,
+    10
+   ],
+   [
+    41041,
+    11
+   ]
+  ],
+  "1601": [
+   [
+    38160,
+    6
+   ],
+   [
+    38760,
+    7
+   ],
+   [
+    39360,
+    8
+   ],
+   [
+    39960,
+    9
+   ],
+   [
+    40560,
+    10
+   ],
+   [
+    41160,
+    11
+   ]
+  ],
+  "1603": [
+   [
+    38321,
+    6
+   ],
+   [
+    38921,
+    7
+   ],
+   [
+    39521,
+    8
+   ],
+   [
+    40121,
+    9
+   ],
+   [
+    40721,
+    10
+   ],
+   [
+    41321,
+    11
+   ]
+  ],
+  "1608": [
+   [
+    38587,
+    6
+   ],
+   [
+    39187,
+    7
+   ],
+   [
+    39787,
+    8
+   ],
+   [
+    40387,
+    9
+   ],
+   [
+    40987,
+    10
+   ],
+   [
+    41587,
+    11
+   ]
+  ],
+  "1614": [
+   [
+    33299,
+    0
+   ],
+   [
+    33899,
+    1
+   ],
+   [
+    34499,
+    2
+   ],
+   [
+    35099,
+    3
+   ],
+   [
+    35699,
+    4
+   ],
+   [
+    36299,
+    5
+   ]
+  ],
+  "1616": [
+   [
+    33423,
+    0
+   ],
+   [
+    34023,
+    1
+   ],
+   [
+    34623,
+    2
+   ],
+   [
+    35223,
+    3
+   ],
+   [
+    35823,
+    4
+   ],
+   [
+    36423,
+    5
+   ]
+  ],
+  "1618": [
+   [
+    33498,
+    0
+   ],
+   [
+    34098,
+    1
+   ],
+   [
+    34698,
+    2
+   ],
+   [
+    35298,
+    3
+   ],
+   [
+    35898,
+    4
+   ],
+   [
+    36498,
+    5
+   ]
+  ],
+  "1622": [
+   [
+    33700,
+    0
+   ],
+   [
+    34300,
+    1
+   ],
+   [
+    34900,
+    2
+   ],
+   [
+    35500,
+    3
+   ],
+   [
+    36100,
+    4
+   ],
+   [
+    36700,
+    5
+   ]
+  ],
+  "1627": [
+   [
+    33844,
+    0
+   ],
+   [
+    34444,
+    1
+   ],
+   [
+    35044,
+    2
+   ],
+   [
+    35644,
+    3
+   ],
+   [
+    36244,
+    4
+   ],
+   [
+    36844,
+    5
+   ]
+  ],
+  "1631": [
+   [
+    33950,
+    0
+   ],
+   [
+    34550,
+    1
+   ],
+   [
+    35150,
+    2
+   ],
+   [
+    35750,
+    3
+   ],
+   [
+    36350,
+    4
+   ],
+   [
+    36950,
+    5
+   ]
+  ],
+  "1639": [
+   [
+    34776,
+    0
+   ],
+   [
+    35376,
+    1
+   ],
+   [
+    35976,
+    2
+   ],
+   [
+    36576,
+    3
+   ],
+   [
+    37176,
+    4
+   ],
+   [
+    37776,
+    5
+   ]
+  ],
+  "1642": [
+   [
+    34937,
+    0
+   ],
+   [
+    35537,
+    1
+   ],
+   [
+    36137,
+    2
+   ],
+   [
+    36737,
+    3
+   ],
+   [
+    37337,
+    4
+   ],
+   [
+    37937,
+    5
+   ]
+  ],
+  "2006": [
+   [
+    36900,
+    6
+   ],
+   [
+    37500,
+    7
+   ],
+   [
+    38100,
+    8
+   ],
+   [
+    38700,
+    9
+   ],
+   [
+    39300,
+    10
+   ],
+   [
+    39900,
+    11
+   ]
+  ],
+  "2112": [
+   [
+    36000,
+    0
+   ],
+   [
+    36180,
+    6
+   ],
+   [
+    36600,
+    1
+   ],
+   [
+    36780,
+    7
+   ],
+   [
+    37200,
+    2
+   ],
+   [
+    37380,
+    8
+   ],
+   [
+    37800,
+    3
+   ],
+   [
+    37980,
+    9
+   ],
+   [
+    38400,
+    4
+   ],
+   [
+    38580,
+    10
+   ],
+   [
+    39000,
+    5
+   ],
+   [
+    39180,
+    11
+   ]
+  ],
+  "2282": [
+   [
+    33053,
+    0
+   ],
+   [
+    33653,
+    1
+   ],
+   [
+    34253,
+    2
+   ],
+   [
+    34853,
+    3
+   ],
+   [
+    35453,
+    4
+   ],
+   [
+    36053,
+    5
+   ]
+  ],
+  "2416": [
+   [
+    38919,
+    6
+   ],
+   [
+    39519,
+    7
+   ],
+   [
+    40119,
+    8
+   ],
+   [
+    40719,
+    9
+   ],
+   [
+    41319,
+    10
+   ],
+   [
+    41919,
+    11
+   ]
+  ],
+  "3491": [
+   [
+    36749,
+    6
+   ],
+   [
+    37349,
+    7
+   ],
+   [
+    37949,
+    8
+   ],
+   [
+    38549,
+    9
+   ],
+   [
+    39149,
+    10
+   ],
+   [
+    39749,
+    11
+   ]
+  ],
+  "3655": [
+   [
+    38403,
+    6
+   ],
+   [
+    39003,
+    7
+   ],
+   [
+    39603,
+    8
+   ],
+   [
+    40203,
+    9
+   ],
+   [
+    40803,
+    10
+   ],
+   [
+    41403,
+    11
+   ]
+  ],
+  "4614": [
+   [
+    38798,
+    6
+   ],
+   [
+    39398,
+    7
+   ],
+   [
+    39998,
+    8
+   ],
+   [
+    40598,
+    9
+   ],
+   [
+    41198,
+    10
+   ],
+   [
+    41798,
+    11
+   ]
+  ],
+  "5616": [
+   [
+    37175,
+    6
+   ],
+   [
+    37775,
+    7
+   ],
+   [
+    38375,
+    8
+   ],
+   [
+    38975,
+    9
+   ],
+   [
+    39575,
+    10
+   ],
+   [
+    40175,
+    11
+   ]
+  ],
+  "5644": [
+   [
+    33144,
+    0
+   ],
+   [
+    33744,
+    1
+   ],
+   [
+    34344,
+    2
+   ],
+   [
+    34944,
+    3
+   ],
+   [
+    35544,
+    4
+   ],
+   [
+    36144,
+    5
+   ]
+  ],
+  "5925": [
+   [
+    37440,
+    6
+   ],
+   [
+    38040,
+    7
+   ],
+   [
+    38640,
+    8
+   ],
+   [
+    39240,
+    9
+   ],
+   [
+    39840,
+    10
+   ],
+   [
+    40440,
+    11
+   ]
+  ],
+  "5926": [
+   [
+    34140,
+    0
+   ],
+   [
+    34740,
+    1
+   ],
+   [
+    35340,
+    2
+   ],
+   [
+    35940,
+    3
+   ],
+   [
+    36540,
+    4
+   ],
+   [
+    37140,
+    5
+   ]
+  ],
+  "5982": [
+   [
+    39101,
+    6
+   ],
+   [
+    39701,
+    7
+   ],
+   [
+    40301,
+    8
+   ],
+   [
+    40901,
+    9
+   ],
+   [
+    41501,
+    10
+   ],
+   [
+    42101,
+    11
+   ]
+  ],
+  "6091": [
+   [
+    37279,
+    6
+   ],
+   [
+    37879,
+    7
+   ],
+   [
+    38479,
+    8
+   ],
+   [
+    39079,
+    9
+   ],
+   [
+    39679,
+    10
+   ],
+   [
+    40279,
+    11
+   ]
+  ],
+  "6291": [
+   [
+    34460,
+    0
+   ],
+   [
+    35060,
+    1
+   ],
+   [
+    35660,
+    2
+   ],
+   [
+    36260,
+    3
+   ],
+   [
+    36860,
+    4
+   ],
+   [
+    37460,
+    5
+   ]
+  ],
+  "6292": [
+   [
+    37357,
+    6
+   ],
+   [
+    37957,
+    7
+   ],
+   [
+    38557,
+    8
+   ],
+   [
+    39157,
+    9
+   ],
+   [
+    39757,
+    10
+   ],
+   [
+    40357,
+    11
+   ]
+  ],
+  "6293": [
+   [
+    34315,
+    0
+   ],
+   [
+    34915,
+    1
+   ],
+   [
+    35515,
+    2
+   ],
+   [
+    36115,
+    3
+   ],
+   [
+    36715,
+    4
+   ],
+   [
+    37315,
+    5
+   ]
+  ],
+  "6315": [
+   [
+    36395,
+    6
+   ],
+   [
+    36995,
+    7
+   ],
+   [
+    37595,
+    8
+   ],
+   [
+    38195,
+    9
+   ],
+   [
+    38795,
+    10
+   ],
+   [
+    39395,
+    11
+   ]
+  ],
+  "6494": [
+   [
+    33600,
+    0
+   ],
+   [
+    34200,
+    1
+   ],
+   [
+    34800,
+    2
+   ],
+   [
+    35400,
+    3
+   ],
+   [
+    36000,
+    4
+   ],
+   [
+    36600,
+    5
+   ]
+  ],
+  "6495": [
+   [
+    37695,
+    6
+   ],
+   [
+    38295,
+    7
+   ],
+   [
+    38895,
+    8
+   ],
+   [
+    39495,
+    9
+   ],
+   [
+    40095,
+    10
+   ],
+   [
+    40695,
+    11
+   ]
+  ],
+  "6497": [
+   [
+    34698,
+    0
+   ],
+   [
+    35298,
+    1
+   ],
+   [
+    35898,
+    2
+   ],
+   [
+    36498,
+    3
+   ],
+   [
+    37098,
+    4
+   ],
+   [
+    37698,
+    5
+   ]
+  ],
+  "6499": [
+   [
+    35658,
+    0
+   ],
+   [
+    36258,
+    1
+   ],
+   [
+    36858,
+    2
+   ],
+   [
+    37458,
+    3
+   ],
+   [
+    38058,
+    4
+   ],
+   [
+    38658,
+    5
+   ]
+  ],
+  "6500": [
+   [
+    36450,
+    6
+   ],
+   [
+    37050,
+    7
+   ],
+   [
+    37650,
+    8
+   ],
+   [
+    38250,
+    9
+   ],
+   [
+    38850,
+    10
+   ],
+   [
+    39450,
+    11
+   ]
+  ],
+  "6501": [
+   [
+    35742,
+    0
+   ],
+   [
+    36342,
+    1
+   ],
+   [
+    36942,
+    2
+   ],
+   [
+    37542,
+    3
+   ],
+   [
+    38142,
+    4
+   ],
+   [
+    38742,
+    5
+   ]
+  ],
+  "6502": [
+   [
+    35812,
+    0
+   ],
+   [
+    36412,
+    1
+   ],
+   [
+    37012,
+    2
+   ],
+   [
+    37612,
+    3
+   ],
+   [
+    38212,
+    4
+   ],
+   [
+    38812,
+    5
+   ]
+  ],
+  "6503": [
+   [
+    36322,
+    6
+   ],
+   [
+    36922,
+    7
+   ],
+   [
+    37522,
+    8
+   ],
+   [
+    38122,
+    9
+   ],
+   [
+    38722,
+    10
+   ],
+   [
+    39322,
+    11
+   ]
+  ],
+  "6551": [
+   [
+    32760,
+    0
+   ],
+   [
+    33360,
+    1
+   ],
+   [
+    33960,
+    2
+   ],
+   [
+    34560,
+    3
+   ],
+   [
+    35160,
+    4
+   ],
+   [
+    35760,
+    5
+   ],
+   [
+    39300,
+    6
+   ],
+   [
+    39900,
+    7
+   ],
+   [
+    40500,
+    8
+   ],
+   [
+    41100,
+    9
+   ],
+   [
+    41700,
+    10
+   ],
+   [
+    42300,
+    11
+   ]
+  ],
+  "866": [
+   [
+    36563,
+    6
+   ],
+   [
+    37163,
+    7
+   ],
+   [
+    37763,
+    8
+   ],
+   [
+    38363,
+    9
+   ],
+   [
+    38963,
+    10
+   ],
+   [
+    39563,
+    11
+   ]
+  ],
+  "916": [
+   [
+    35458,
+    0
+   ],
+   [
+    36058,
+    1
+   ],
+   [
+    36658,
+    2
+   ],
+   [
+    37258,
+    3
+   ],
+   [
+    37858,
+    4
+   ],
+   [
+    38458,
+    5
+   ]
+  ]
+ },
+ "feed_version": "260818_1456",
+ "generated_at": 1787152239,
+ "route_id": "837",
+ "schema": 1,
+ "service_date": "20260819",
+ "service_day_start_epoch": 1787115600,
+ "stops": [
+  {
+   "direction_id": 0,
+   "is_timepoint": true,
+   "lat": 30.294247,
+   "lon": -97.625006,
+   "stop_id": "6551",
+   "stop_name": "Expo Center Bay D",
+   "stop_name_full": "Expo Center Bay D",
+   "stop_sequence": 1
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.297971,
+   "lon": -97.64216,
+   "stop_id": "2282",
+   "stop_name": "Colony Park SB",
+   "stop_name_full": "Colony Park SB (Loyola/Colony Loop)",
+   "stop_sequence": 2
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.300569,
+   "lon": -97.648626,
+   "stop_id": "5644",
+   "stop_name": "Johnny Morris SB",
+   "stop_name_full": "Johnny Morris SB (Loyola/Johnny Morris)",
+   "stop_sequence": 3
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.308573,
+   "lon": -97.652374,
+   "stop_id": "1614",
+   "stop_name": "Purple Sage SB",
+   "stop_name_full": "Purple Sage SB (Crystalbrook/Purple Sage)",
+   "stop_sequence": 4
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.314638,
+   "lon": -97.655825,
+   "stop_id": "1616",
+   "stop_name": "LBJ High School SB",
+   "stop_name_full": "LBJ High School SB (Pecan Brook/Uray)",
+   "stop_sequence": 5
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.317947,
+   "lon": -97.659681,
+   "stop_id": "1618",
+   "stop_name": "Delco Center SB",
+   "stop_name_full": "Delco Center SB (Pecan Brook/Springdale)",
+   "stop_sequence": 6
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": true,
+   "lat": 30.31337,
+   "lon": -97.665007,
+   "stop_id": "6494",
+   "stop_name": "Springdale Center SB",
+   "stop_name_full": "Springdale Center SB (Manor/Susquehanna)",
+   "stop_sequence": 7
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.3085,
+   "lon": -97.671213,
+   "stop_id": "1622",
+   "stop_name": "University Hills SB",
+   "stop_name_full": "University Hills SB (Manor/Northeast)",
+   "stop_sequence": 8
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.304383,
+   "lon": -97.681613,
+   "stop_id": "1627",
+   "stop_name": "Manor at Rogge SB",
+   "stop_name_full": "Manor at Rogge SB (Manor/Rogge)",
+   "stop_sequence": 9
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.298358,
+   "lon": -97.687017,
+   "stop_id": "1631",
+   "stop_name": "51st/Manor SB",
+   "stop_name_full": "51st/Manor SB (Manor/51st)",
+   "stop_sequence": 10
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": true,
+   "lat": 30.302693,
+   "lon": -97.699868,
+   "stop_id": "5926",
+   "stop_name": "Barbara Jordan SB",
+   "stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+   "stop_sequence": 11
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.296149,
+   "lon": -97.700385,
+   "stop_id": "6293",
+   "stop_name": "Simond SB",
+   "stop_name_full": "Simond SB (Berkman/Simond)",
+   "stop_sequence": 12
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.290214,
+   "lon": -97.699019,
+   "stop_id": "6291",
+   "stop_name": "Mueller Tower Station SB",
+   "stop_name_full": "Mueller Tower Station SB (Berkman/Tom Miller)",
+   "stop_sequence": 13
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.286266,
+   "lon": -97.707029,
+   "stop_id": "6497",
+   "stop_name": "Manor WB",
+   "stop_name_full": "Manor Westbound (Manor/Airport)",
+   "stop_sequence": 14
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.285663,
+   "lon": -97.710921,
+   "stop_id": "1639",
+   "stop_name": "Alexander SB",
+   "stop_name_full": "Alexander SB (Manor/Alexander)",
+   "stop_sequence": 15
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.284554,
+   "lon": -97.717984,
+   "stop_id": "1642",
+   "stop_name": "Cherrywood SB",
+   "stop_name_full": "Cherrywood SB (Manor/Cherrywood)",
+   "stop_sequence": 16
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.285506,
+   "lon": -97.733782,
+   "stop_id": "1179",
+   "stop_name": "UT Stadium SB",
+   "stop_name_full": "UT Stadium SB (San Jacinto/23rd)",
+   "stop_sequence": 17
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.277723,
+   "lon": -97.736643,
+   "stop_id": "916",
+   "stop_name": "Medical School SB",
+   "stop_name_full": "Medical School SB (San Jacinto/17th)",
+   "stop_sequence": 18
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.271368,
+   "lon": -97.739026,
+   "stop_id": "6499",
+   "stop_name": "Capitol/Waterloo SB",
+   "stop_name_full": "Capitol/Waterloo SB (San Jacinto/10th)",
+   "stop_sequence": 19
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.268964,
+   "lon": -97.739881,
+   "stop_id": "6501",
+   "stop_name": "8th Street SB",
+   "stop_name_full": "8th Street SB (San Jacinto/8th)",
+   "stop_sequence": 20
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": false,
+   "lat": 30.266258,
+   "lon": -97.740904,
+   "stop_id": "6502",
+   "stop_name": "Brush Square SB",
+   "stop_name_full": "Brush Square SB (San Jacinto/5th)",
+   "stop_sequence": 21
+  },
+  {
+   "direction_id": 0,
+   "is_timepoint": true,
+   "lat": 30.268054,
+   "lon": -97.74679,
+   "stop_id": "2112",
+   "stop_name": "5th/Guadalupe",
+   "stop_name_full": "5th/Guadalupe (Republic Square)",
+   "stop_sequence": 22
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.268054,
+   "lon": -97.74679,
+   "stop_id": "2112",
+   "stop_name": "5th/Guadalupe",
+   "stop_name_full": "5th/Guadalupe (Republic Square)",
+   "stop_sequence": 1
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.26565,
+   "lon": -97.739798,
+   "stop_id": "6503",
+   "stop_name": "Brush Square NB",
+   "stop_name_full": "Brush Square NB (Trinity/4th)",
+   "stop_sequence": 2
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.269216,
+   "lon": -97.738446,
+   "stop_id": "6315",
+   "stop_name": "8th Street NB",
+   "stop_name_full": "8th Street NB (Trinity/8th)",
+   "stop_sequence": 3
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.271964,
+   "lon": -97.737436,
+   "stop_id": "6500",
+   "stop_name": "Capitol/Waterloo NB",
+   "stop_name_full": "Capitol/Waterloo NB (Trinity/11th)",
+   "stop_sequence": 4
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.27751,
+   "lon": -97.735397,
+   "stop_id": "866",
+   "stop_name": "Medical School NB",
+   "stop_name_full": "Medical School NB (Trinity/17th)",
+   "stop_sequence": 5
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.28555,
+   "lon": -97.733531,
+   "stop_id": "3491",
+   "stop_name": "UT Stadium NB",
+   "stop_name_full": "UT Stadium NB (San Jacinto/23rd)",
+   "stop_sequence": 6
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.287924,
+   "lon": -97.728763,
+   "stop_id": "2006",
+   "stop_name": "East Dean Keaton NB",
+   "stop_name_full": "East Dean Keaton NB (Dean Keeton/Robert Dedman)",
+   "stop_sequence": 7
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.284437,
+   "lon": -97.717846,
+   "stop_id": "1578",
+   "stop_name": "Cherrywood NB",
+   "stop_name_full": "Cherrywood NB (Manor/Chestnut)",
+   "stop_sequence": 8
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.285647,
+   "lon": -97.709889,
+   "stop_id": "1582",
+   "stop_name": "Alexander Station NB",
+   "stop_name_full": "Alexander Station NB (Manor/Alexander)",
+   "stop_sequence": 9
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.286327,
+   "lon": -97.705715,
+   "stop_id": "5616",
+   "stop_name": "Airport Blvd NB",
+   "stop_name_full": "Airport Blvd NB (Manor/Airport)",
+   "stop_sequence": 10
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.290322,
+   "lon": -97.698669,
+   "stop_id": "6091",
+   "stop_name": "Mueller Tower NB",
+   "stop_name_full": "Mueller Tower NB (Berkman/Tom Miller)",
+   "stop_sequence": 11
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.296343,
+   "lon": -97.700088,
+   "stop_id": "6292",
+   "stop_name": "Simond NB",
+   "stop_name_full": "Simond NB (Berkman/Simond)",
+   "stop_sequence": 12
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.302547,
+   "lon": -97.699539,
+   "stop_id": "5925",
+   "stop_name": "Barbara Jordan NB",
+   "stop_name_full": "Barbara Jordan NB (Berkman/Barbara Jordan)",
+   "stop_sequence": 13
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.298344,
+   "lon": -97.68687,
+   "stop_id": "6495",
+   "stop_name": "51st/Manor NB",
+   "stop_name_full": "51st/Manor NB (Manor/51st)",
+   "stop_sequence": 14
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.30476,
+   "lon": -97.68108,
+   "stop_id": "1594",
+   "stop_name": "Manor at Rogge NB",
+   "stop_name_full": "Manor at Rogge NB (Manor/Rogge)",
+   "stop_sequence": 15
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.308569,
+   "lon": -97.67035,
+   "stop_id": "1599",
+   "stop_name": "University Hills NB",
+   "stop_name_full": "University Hills NB (Manor/Northeast)",
+   "stop_sequence": 16
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.312849,
+   "lon": -97.665031,
+   "stop_id": "1601",
+   "stop_name": "Springdale Center NB",
+   "stop_name_full": "Springdale Center NB (Manor/Susquehanna)",
+   "stop_sequence": 17
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.317671,
+   "lon": -97.659431,
+   "stop_id": "1603",
+   "stop_name": "Delco Center NB",
+   "stop_name_full": "Delco Center NB (Pecan Brook/Springdale)",
+   "stop_sequence": 18
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.314586,
+   "lon": -97.656099,
+   "stop_id": "3655",
+   "stop_name": "LBJ High School NB",
+   "stop_name_full": "LBJ High School NB (Pecan Brook/Rio)",
+   "stop_sequence": 19
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.308,
+   "lon": -97.652679,
+   "stop_id": "1608",
+   "stop_name": "Purple Sage NB",
+   "stop_name_full": "Purple Sage NB (Crystalbrook/Purple Sage)",
+   "stop_sequence": 20
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.299874,
+   "lon": -97.647843,
+   "stop_id": "4614",
+   "stop_name": "Johnny Morris NB",
+   "stop_name_full": "Johnny Morris NB (Loyola/Johnny Morris)",
+   "stop_sequence": 21
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.297576,
+   "lon": -97.641351,
+   "stop_id": "2416",
+   "stop_name": "Colony Park NB",
+   "stop_name_full": "Colony Park NB (Loyola/Cielo Vista)",
+   "stop_sequence": 22
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": false,
+   "lat": 30.292743,
+   "lon": -97.631318,
+   "stop_id": "5982",
+   "stop_name": "Loyola/Wentworth",
+   "stop_name_full": "8309 Loyola/Wentworth",
+   "stop_sequence": 23
+  },
+  {
+   "direction_id": 1,
+   "is_timepoint": true,
+   "lat": 30.294247,
+   "lon": -97.625006,
+   "stop_id": "6551",
+   "stop_name": "Expo Center Bay D",
+   "stop_name_full": "Expo Center Bay D",
+   "stop_sequence": 24
+  }
+ ],
+ "trips": [
+  {
+   "block_id": "837003",
+   "canceled": false,
+   "direction_id": 0,
+   "headsign": "837 Downtown SB",
+   "id": "3012115_23760",
+   "is_special": false,
+   "start_time": "09:06:00"
+  },
+  {
+   "block_id": "837050",
+   "canceled": true,
+   "direction_id": 0,
+   "headsign": "837 Downtown SB",
+   "id": "3012158_23761",
+   "is_special": false,
+   "start_time": "09:16:00"
+  },
+  {
+   "block_id": "837001",
+   "canceled": false,
+   "direction_id": 0,
+   "headsign": "837 Downtown SB",
+   "id": "3012116_23762",
+   "is_special": false,
+   "start_time": "09:26:00"
+  },
+  {
+   "block_id": "837010",
+   "canceled": false,
+   "direction_id": 0,
+   "headsign": "837 Downtown SB",
+   "id": "3012159_23763",
+   "is_special": false,
+   "start_time": "09:36:00"
+  },
+  {
+   "block_id": "837002",
+   "canceled": false,
+   "direction_id": 0,
+   "headsign": "837 Downtown SB",
+   "id": "3012117_23764",
+   "is_special": false,
+   "start_time": "09:46:00"
+  },
+  {
+   "block_id": "837011",
+   "canceled": false,
+   "direction_id": 0,
+   "headsign": "837 Downtown SB",
+   "id": "3012160_23765",
+   "is_special": false,
+   "start_time": "09:56:00"
+  },
+  {
+   "block_id": "837003",
+   "canceled": false,
+   "direction_id": 1,
+   "headsign": "837 Expo Center NB",
+   "id": "3012222_23349",
+   "is_special": false,
+   "start_time": "10:03:00"
+  },
+  {
+   "block_id": "837050",
+   "canceled": true,
+   "direction_id": 1,
+   "headsign": "837 Expo Center NB",
+   "id": "3012223_23350",
+   "is_special": false,
+   "start_time": "10:13:00"
+  },
+  {
+   "block_id": "837001",
+   "canceled": false,
+   "direction_id": 1,
+   "headsign": "837 Expo Center NB",
+   "id": "3012224_23351",
+   "is_special": false,
+   "start_time": "10:23:00"
+  },
+  {
+   "block_id": "837010",
+   "canceled": false,
+   "direction_id": 1,
+   "headsign": "837 Expo Center NB",
+   "id": "3012225_23352",
+   "is_special": false,
+   "start_time": "10:33:00"
+  },
+  {
+   "block_id": "837002",
+   "canceled": false,
+   "direction_id": 1,
+   "headsign": "837 Expo Center NB",
+   "id": "3012226_23353",
+   "is_special": false,
+   "start_time": "10:43:00"
+  },
+  {
+   "block_id": "837011",
+   "canceled": false,
+   "direction_id": 1,
+   "headsign": "837 Expo Center NB",
+   "id": "3012227_23354",
+   "is_special": false,
+   "start_time": "10:53:00"
+  }
+ ]
+}

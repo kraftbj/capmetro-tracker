@@ -981,3 +981,126 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   font-size: var(--fs-chrome-sm); color: var(--accent);
   text-transform: uppercase; letter-spacing: 0.05em;
 }
+
+/* ===== the stops view: places, not departures =========================== */
+/*
+ * A watch card is one named departure. A stop card is a PLACE, and the several
+ * next buses from it — because a commute is "the 4 eastbound from Campbell in
+ * the afternoons", and which of the afternoon's buses you catch is decided by
+ * how the morning went, not in advance.
+ *
+ * The layout carries one idea the watch card does not have to: at a turnaround
+ * the bus that answers the question is going the OTHER WAY right now. That is
+ * what stopdep__note is for, and why it is a full sentence indented under the
+ * time rather than a chip beside it — it is the second half of the answer, not
+ * a label on the first half.
+ */
+.stopcards { display: flex; flex-direction: column; gap: 10px; }
+.stopcards__head {
+  margin: 18px 0 8px; font-size: var(--fs-chrome); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-chrome);
+}
+
+.stopcard {
+  position: relative; padding: 12px 14px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--accent); border-radius: var(--radius);
+}
+.stopcard--done, .stopcard--unserved { border-left-color: var(--warn); }
+.stopcard--no-schedule { border-left-color: var(--dia-spine-dim); }
+/*
+ * Out of its window and still on the page. Dimmed enough to fall out of the
+ * glance, legible enough that "where did my afternoon stop go" is never a
+ * question anyone has to ask.
+ */
+.stopcard--later { opacity: 0.62; border-left-color: var(--dia-spine-dim); }
+
+.stopcard__head { display: flex; flex-direction: column; gap: 4px; padding-right: 76px; }
+.stopcard__title { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 0; }
+.stopcard__route {
+  font-family: var(--font-figure); font-size: 20px; font-weight: 700;
+  color: var(--ink-strong);
+}
+.stopcard__dir {
+  font-size: var(--fs-chrome); letter-spacing: 0.06em;
+  padding: 1px 5px; border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  color: var(--ink-dim);
+}
+.stopcard__stop { font-size: var(--fs-meta); color: var(--ink-muted); }
+.stopcard__tags { display: flex; align-items: center; gap: 8px; margin: 0; flex-wrap: wrap; }
+.stopcard__when {
+  font-size: var(--fs-chrome); letter-spacing: 0.06em; color: var(--ink-chrome);
+}
+/* The turnaround tag is a warning about the geometry, not decoration: it is why
+ * the note under the time talks about a bus going the other way. */
+.stopcard__turn {
+  font-size: var(--fs-chrome-sm); letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: var(--radius-sm);
+  background: var(--surface-raised-hi); color: var(--adh-special);
+}
+
+.stopcard__deps { display: flex; flex-direction: column; margin-top: 10px; }
+.stopdep { padding: 8px 0; border-top: 1px solid var(--hairline-soft); }
+.stopdep:first-child { border-top: 0; padding-top: 2px; }
+.stopdep__line { display: flex; align-items: baseline; gap: 10px; margin: 0; flex-wrap: wrap; }
+.stopdep__due { font-family: var(--font-figure); font-size: 20px; color: var(--ink); }
+/* The next bus is the whole reason the card exists; the ones after it are
+ * context. Size is what separates them, so the ordering survives grayscale. */
+.stopdep--next .stopdep__due { font-size: 28px; font-weight: 700; color: var(--ink-strong); }
+.stopdep__until { font-size: var(--fs-meta); color: var(--ink-dim); }
+.stopdep__sched { margin: 4px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome); }
+.stopdep__note {
+  margin: 4px 0 0; font-size: var(--fs-chrome); line-height: var(--lh-body);
+  color: var(--ink-dim);
+}
+.stopdep--next .stopdep__note { font-size: var(--fs-meta); color: var(--ink-muted); }
+.stopdep__note--flag { color: var(--adh-special); }
+
+.stopcard__remove {
+  position: absolute; top: 8px; right: 8px;
+  min-height: 32px; padding: 4px 10px;
+  background: none; border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  color: var(--ink-chrome); font-size: var(--fs-chrome-sm); cursor: pointer;
+}
+.stopcard__remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The offer to keep a link's stops. Both buttons leave the reader looking at
+ * their stops, so this is an offer and never a gate. */
+.offer {
+  margin-bottom: 14px; padding: 12px 14px;
+  background: var(--tint-info); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--accent); border-radius: var(--radius);
+}
+.offer__head { display: block; font-size: var(--fs-lead); color: var(--ink-strong); }
+.offer__detail {
+  display: block; margin-top: 4px; font-size: var(--fs-meta);
+  line-height: var(--lh-body); color: var(--ink-dim);
+}
+.offer__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.offer__row .btn { flex: 1 1 auto; }
+
+.share { margin-top: 16px; }
+.share__head {
+  margin: 0 0 6px; font-size: var(--fs-chrome); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-chrome);
+}
+.share__field {
+  width: 100%; min-height: var(--tap); padding: 8px 12px;
+  background: var(--surface-raised); color: var(--ink-dim);
+  border: 1px solid var(--hairline); border-radius: var(--radius);
+  font-family: var(--font-figure); font-size: var(--fs-chrome);
+}
+.share__field:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* A canceled departure keeps its slot and its time, and says the word. Same
+ * treatment as the Next buses band, because it is the same fact and it must not
+ * read as two different severities on two screens. */
+.stopdep--canceled .stopdep__due { color: var(--ink-dim); text-decoration: line-through; }
+.stopdep--canceled .stopdep__note { color: var(--ink-muted); }
+/* Said once per card, not once per departure: three identical caveats in a row
+ * buried the times the card exists to show. */
+.stopcard__caveat {
+  margin: 8px 0 0; padding-left: 10px;
+  border-left: 2px solid var(--hairline);
+  font-size: var(--fs-chrome); line-height: var(--lh-body); color: var(--ink-chrome);
+}
