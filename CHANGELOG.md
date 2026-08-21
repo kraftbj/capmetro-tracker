@@ -7,6 +7,120 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Added
 
+- **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
+  the 350, the 337 to the 7 to the 837 — saved and shown as one card instead of two
+  or three route boards to compare by hand. The card leads with when the first bus
+  is actually due and with whether the change holds: **connection holds**, **tight**,
+  or **missed**, computed from predicted times rather than the timetable, so a first
+  bus nine minutes down turns a comfortable eight-minute change into a missed one an
+  hour before anyone reaches the stop. Where a bus is not reporting, its scheduled
+  time stands in and the card says so rather than passing a timetable off as a
+  prediction. Up to three buses per chain. Chains live only in this browser and are
+  never sent anywhere, exactly as saved trips are.
+
+  A transfer is a **pair of stops within a short walk**, not a shared stop id. This
+  is not a refinement: routes 800 and 4 share **zero** stop ids on this feed, so the
+  obvious implementation would have reported "these routes do not connect" about the
+  change this feature was asked for. They meet at Pleasant Valley where the
+  MetroRapid platform and the local kerb are 27 m apart under different ids. The walk
+  is charged against the slack at a deliberately slow 1.2 m/s rather than assumed
+  free.
+
+  The editor only ever offers connections that exist — it walks the real downstream
+  stops of the real trip picked and the real departures of the onward route — so an
+  unresolvable chain cannot be created, which is the same reasoning saved trips use
+  for picking a time from a list rather than typing one.
+
+  Review found three ways this could assert something untrue, all fixed before
+  merge and all with a regression test:
+
+  - A **canceled** leg was resolved as though its bus merely had not reported yet,
+    so the card could print "Connection holds" about a trip the agency had already
+    called off. `trip.canceled` is now checked before the vehicle join, as
+    `watch.js` does. On the 2026-08-19 feed that is 100 canceled trips across 10
+    routes, 14 of them on route 837 and 8 on route 7 — both legs of "337 to the 7
+    to the 837". Swept over all 100: every one now reports canceled, none is graded.
+  - On a three-leg chain, **"Connection holds" rendered six lines under "Connection
+    missed"** — the second verdict computed from a bus the rider will not be on.
+    Grading now stops at the first change that cannot be made; everything after it
+    reads "Not reached" and carries no slack figure.
+  - The **tightest connection the editor will ever offer graded "holds"**.
+    `MIN_SLACK_S` and `TIGHT_S` are both two minutes and the comparison was strict,
+    so the case the code itself calls "a coin toss" was presented as comfortable.
+
+  The walk model also charges a **1.4 circuity factor**: the straight line between
+  two stops is not a path anyone walks, and Pleasant Valley — the junction this
+  feature was built for — is a divided arterial. A 300 m hop now costs 5.8 minutes
+  rather than 4.2. Measured over the corpus, 650 of the 2,086 offered connections
+  are wider than the 215 m the hand-picked examples cover, so pricing them honestly
+  is what lets the radius stay at 300 without fitting it to three cases.
+
+  A second review round found four more places the card could assert something it
+  could not support, all fixed with regression tests:
+
+  - **A dead feed flipped "Connection missed" to "Connection holds".** A suppressed
+    lateness was correctly refused as a number and then fell through to the
+    timetable — which always reads *on time*. The same chain with the same bus ten
+    minutes down graded `missed, 2 minutes short` on a fresh feed and `holds,
+    8 minutes spare` on a dead one. Suppression now refuses to grade at all: the
+    verdict reads **Connection unknown**, no slack figure is printed, and the copy
+    says the feed has stopped updating instead of claiming the bus "is not
+    reporting yet" — which was false twice over, since its badge is on the same
+    screen. "No bus yet" and "a bus we have stopped being able to judge" are
+    different facts and only the first makes the timetable a fair stand-in.
+  - **`MAX_WAIT_S` capped post-walk slack rather than the wait**, so the real
+    ceiling was the stated 45 minutes *plus* the walk — and the circuity factor
+    widened it to 50.8. Now measured from stepping off the first bus, which drops
+    21 of the 2,086 offered connections.
+  - **The circuity factor never reached a chain already saved.** `walk_s` was frozen
+    at save time while everything else in a chain is re-resolved each render, so
+    existing chains kept up to 100 s of phantom slack. The walk is now recomputed
+    from current stop positions — which also picks up a stop moved by a republish —
+    falling back to the stored metres, re-priced, only when a stop has no fix.
+  - **A cancellation on a leg nobody reaches became the headline**, burying an
+    earlier missed connection and erasing the due time. Cancellations are now
+    filtered to legs still reachable given the first failure.
+
+  Also: a chain whose routes' schedules come from **different service days** now
+  refuses to compare them rather than reporting "1448 minutes spare", and the board
+  evicts a schedule that outlived its service day; a chain route whose payload
+  **404s** is shown as missing rather than silently graded against the timetable;
+  and from a `file://` board the missing data is explained as a limitation rather
+  than a failure with a useless Try again.
+
+  A third round found the same failure had survived twice, both times because the
+  code could not reach the reasoning written above it:
+
+  - **The refusal to grade a dead feed was only reachable through the vehicle
+    join.** `suppress_adherence` describes a *route*, and it was read inside the
+    branch that runs when a bus was found — so the same dead feed refused to grade
+    when the frozen snapshot happened to hold that leg's bus and graded confidently
+    when it did not. On a cron that died before the bus appeared those two are the
+    same observation. It is read from the route now, before the join.
+  - **And the refusal covered one of the six ways lateness can be unknown.** A bus
+    with `no_trip_update` — about 7% of active vehicle trips — was graded against
+    the timetable and described as "not reporting yet" with its own badge on the
+    same card. Every unknown state is a refusal now, and the copy has three
+    sentences rather than one, because a bus in a dead feed's snapshot, a bus
+    *missing* from one, and a bus reporting fine on a live feed with no lateness
+    published are three different facts.
+  - **A refused verdict was still being asserted as three numbers.** The chain
+    retired to "Gone. Back tomorrow" on the scheduled time it had just declined to
+    trust, while the onward bus — last seen ten minutes down — was still at the
+    kerb; the headline counted down to that same time in the largest type on the
+    card; and the two times under the verdict were printed unlabeled in the slot
+    used for real predictions, which subtract to the withheld answer in the
+    reader's head. The retirement now stands down on the clock, and both times say
+    they are the timetable.
+  - **The service-day guard defended the wrong field.** It compared the
+    `service_date` label while the arithmetic subtracts `service_day_start_epoch`,
+    and skipped a document carrying no label rather than refusing it.
+  - **The editor called post-walk slack "wait"**, understating the standing-around
+    by the whole walk — the same conflation `MAX_WAIT_S` was corrected for.
+  - **A schedule the editor could not load was a dead end** for the life of the
+    tab: no error, no retry, no way forward, and guaranteed for every route on a
+    `file://` board.
+
 - **Nearest stop, and when the next bus reaches it.** Tap "Use my location" and
   the board finds the stop you are standing at on the route you are looking at,
   then shows when each approaching bus is due there — "4 min", "due" — with the
@@ -46,6 +160,61 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   up time before it reaches you.
 
 ### Fixed
+
+- **The Saved view was fetching route payloads in an unthrottled loop.**
+  `loadRouteData()` is called from `paint()` and its success handler calls
+  `render()`; its only guard was "am I already fetching", which is false by the time
+  the handler runs. One fetch repainted, the repaint started another fetch, and the
+  view sat in a request loop against the origin — measured at 115 requests in three
+  seconds — for as long as it was open. Nothing looked wrong on screen, which is why
+  it survived: the numbers were right, they were just being re-fetched forever. Found
+  because a transfer-chain card was being rebuilt so fast its Remove button could not
+  be clicked. Regression test asserts at most one fetch per route between refreshes.
+
+  The first fix here was itself incomplete, and review caught it: it enumerated the
+  statuses that stop (`loading`, `ok`), so `error` matched neither and a route that
+  could not be fetched looped hardest of all — 178 requests in three seconds, a
+  tight spin rather than a round trip, because a rejected fetch has nothing to wait
+  for. Reachable two ways in production: a `file://` board, which is a stated
+  requirement, and a GTFS republish dropping a route a saved chain still names. Now
+  only `idle` proceeds, matching `loadDepartures`.
+
+- **A route that loaded once and then stopped refreshing was trusted completely.**
+  Its payload still says `fresh`, because it was — an hour ago. So the new banner
+  did not draw and the chain leg on it was graded against positions frozen an hour
+  back. That is the "the cron stopped an hour ago" case the banner exists for, and
+  the one case it structurally could not see: no document can report how long the
+  client has been holding it. The feed age used on the Saved view is now the age
+  the server measured plus the time this browser has held the answer, judged
+  against the contract's own thresholds.
+
+- **A cached schedule from another service day was a request loop.** Evicting it
+  also deleted the route's fetch guard, so the eviction refetched inside the paint
+  that evicted, the refetch repainted, and the repaint evicted again — 143 requests
+  in three seconds. It also evicted schedules *newer* than the board, which after a
+  republish means the board's own year-old fallback fixture throwing away today's
+  perfectly good schedule, forever. The third loop of this exact shape in one file.
+
+- **Not rebuilding the open editor had stopped the board's clock.** The guard
+  returned before the refreshes as well as before the repaint, so ten minutes spent
+  in the editor left the Saved view behind it counting down from a ten-minute-old
+  payload. The repaint is deferred now; the fetches keep running.
+
+- **The Saved view trusted stale feeds it never showed a banner for.** Staleness was
+  rendered for the route on the board and for nothing else — but this view's routes
+  are by definition not the one being watched, so nobody is looking at their board
+  to notice the feed died. A chain leg on a route whose cron stopped an hour ago was
+  graded against frozen positions. Each such route now gets its own banner, labeled
+  with the route number because an unlabeled one cannot say which card to distrust.
+
+- **A refused save was announced as a success.** When `localStorage` says no —
+  private browsing, quota, storage disabled — the board said "Saved …", left a
+  six-step editor, and landed on "No transfer chains yet". `add()` now returns
+  whether the chain is in the store and the editor stays put and says the browser
+  refused. Related: a hand-edited store whose `legs` was an object passed validation
+  (`length` on a non-array is `undefined`, and every comparison against it is false)
+  and then threw inside `resolve()`, taking out the whole Saved view until the store
+  was cleared by hand.
 
 - `node client/data/regenerate.js` could not run at all: it used CommonJS
   `require` in a package declaring `"type": "module"`. The bundled offline copy

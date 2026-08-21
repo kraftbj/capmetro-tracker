@@ -5,7 +5,7 @@
  * Three views share one shell:
  *   board  — one route, the original and the default
  *   all    — every bus in the system, deadheads included
- *   saved  — trips this browser has saved, resolved locally
+ *   saved  — trips and transfer chains this browser has saved, resolved locally
  *
  * Data sources, in order of preference:
  *   1. a real HTTP fetch of api/*.json, when the board is served
@@ -66,7 +66,7 @@
   }
 
   var state = {
-    view: 'board',       /* board | all | saved | saved-edit */
+    view: 'board',       /* board | all | saved | saved-edit | chain-edit */
     routeId: null,
     direction: 'both',   /* 0 | 1 | 'both' */
     data: null,
@@ -87,13 +87,27 @@
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
     departures: {},      /* route id -> api/departures/{id}.json */
-    depStatus: {},       /* route id -> loading | ok | error */
+    depStatus: {},       /* route id -> loading | ok | error | stale */
     routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
     routeStatus: {},     /* route id -> loading | ok | error */
+    /*
+     * route id -> the device clock when that payload arrived. Not the payload's
+     * own generated_at: this measures how long THIS browser has been holding the
+     * document, which is the one thing the document itself cannot say. See
+     * agedStaleness().
+     */
+    routeFetchedAt: {},
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
-    openBuses: {}        /* vehicle_id -> true, for the all-buses detail panels */
+    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
+    /*
+     * The chain editor builds forwards: `legs` are the ones already fixed, `start`
+     * is the part-made first leg and `onward` the part-made next one. It is a
+     * separate bag from `editor` because a chain and a saved trip are saved to
+     * different stores and abandoning one must not half-fill the other.
+     */
+    chainEditor: { legs: [], day_type: null, start: {}, onward: {} }
   };
 
   var dom = {};
@@ -161,17 +175,17 @@
   function loadAll() {
     if (state.allStatus === 'loading') return;
     state.allStatus = 'loading';
-    render();
+    renderLive();
     getJson(API_ALL)
       .then(function (d) {
         state.all = d;
         state.allStatus = 'ok';
-        render();
+        renderLive();
       })
       .catch(function (err) {
         state.allStatus = state.all ? 'ok' : 'error';
         state.errorDetail = 'Could not load every-bus data (' + err.message + ').';
-        render();
+        renderLive();
       });
   }
 
@@ -188,17 +202,44 @@
   function loadRouteData(routeId) {
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
-    if (state.routeStatus[routeId] === 'loading') return;
+    /*
+     * ONLY 'idle' proceeds. This guard is load-bearing, not an optimization: this
+     * function is called from paint(), and both its handlers call render(). Any
+     * status that falls through starts a fetch, which repaints, which asks again —
+     * an unthrottled request loop against the origin for as long as the view is
+     * open.
+     *
+     * Enumerating the statuses that stop ('loading', 'ok') rather than the one that
+     * proceeds is what made the first version of this wrong: 'error' matched
+     * neither, so a route that could not be fetched looped hardest of all. Two ways
+     * in, both real. On a `file://` board — a stated project requirement — fetch
+     * rejects immediately, so it is a tight spin rather than a network round trip.
+     * And a GTFS republish, about three times a year, can renumber or drop a route
+     * that a saved chain still names, making its payload a permanent 404.
+     *
+     * The refresh interval below sets the status back to 'idle' before calling
+     * here, which is what makes a re-fetch happen once a minute instead of never,
+     * and is also how a transient failure recovers. That handshake is the whole
+     * refresh mechanism; changing either half without the other either freezes the
+     * data or restores the loop.
+     *
+     * Same shape as loadDepartures() below and as the guard in PR 2, deliberately:
+     * three loaders with the same failure mode should not have three different
+     * answers to it.
+     */
+    var status = state.routeStatus[routeId];
+    if (status && status !== 'idle') return;
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
         state.routeData[routeId] = d;
         state.routeStatus[routeId] = 'ok';
-        render();
+        state.routeFetchedAt[routeId] = heldClock();
+        renderLive();
       })
       .catch(function () {
         state.routeStatus[routeId] = 'error';
-        render();
+        renderLive();
       });
   }
 
@@ -218,12 +259,18 @@
     if (!routeId) return;
     if (state.departures[routeId]) return;
     /*
-     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
-     * called render, and render asked again - a fetch-and-repaint loop that
-     * hammered the server and rebuilt the DOM every frame. The 60s refresh
-     * clears the status so a transient failure still recovers.
+     * ONLY 'idle' proceeds, the same rule and for the same reason as
+     * loadRouteData() above. Enumerating the statuses that stop is what made both
+     * of the earlier loops in this file: 'error' matched neither of them the first
+     * time, and 'stale' would have matched neither of them this time.
+     *
+     * A status is a stop, not a pause. Without one, a fetch sets the status, calls
+     * render, and render asks again — a fetch-and-repaint loop that hammers the
+     * origin and rebuilds the DOM every frame. The 60s refresh clears the status,
+     * which is what makes a transient failure recover instead of sticking.
      */
-    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
+    var depStatus = state.depStatus[routeId];
+    if (depStatus && depStatus !== 'idle') return;
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
@@ -258,7 +305,7 @@
     }
 
     state.status = state.data ? state.status : 'loading';
-    render();
+    renderLive();
 
     fetchRoute(routeId)
       .then(function (d) { state.usingFixture = false; return d; })
@@ -273,19 +320,23 @@
         if (typeof d.schema !== 'number' || d.schema > SUPPORTED_SCHEMA) {
           state.status = 'schema';
           state.data = d;
+          /* render(), not renderLive(): a schema the app does not understand is a
+             whole-app refusal, and deferring it would leave somebody working in an
+             editor the app has just decided it must stop drawing. */
           render();
           return;
         }
         state.data = d;
         state.lastGoodAt = d.generated_at;
         state.status = 'ok';
-        render();
+        state.routeFetchedAt[routeId] = heldClock();
+        renderLive();
       })
       .catch(function (err) {
         state.status = state.data ? 'ok' : 'error';
         state.errorDetail = 'No data file for route ' + routeId + ' yet (' + err.message + ').';
         if (state.status === 'ok') announce('Refresh failed; showing the last data received.');
-        render();
+        renderLive();
       });
   }
 
@@ -377,19 +428,117 @@
     return head;
   }
 
+  /*
+   * Every route id the Saved view needs, from both stores, as a set. A saved trip
+   * names one route; a chain names two or three, and none of them is necessarily
+   * the route on screen.
+   */
+  /*
+   * The routes an open editor names or is part-way through naming: the legs
+   * already fixed, the first leg being built, and the onward route being chosen.
+   * Empty unless an editor is open.
+   */
+  function editorRouteIds() {
+    if (!editing()) return [];
+    var ids = [];
+    var push = function (id) { if (id && ids.indexOf(id) === -1) ids.push(id); };
+    var chainEd = state.chainEditor || {};
+    (chainEd.legs || []).forEach(function (leg) { push(leg.route_id); });
+    push((chainEd.start || {}).route_id);
+    push((chainEd.onward || {}).route_id);
+    push((state.editor || {}).route_id);
+    return ids;
+  }
+
+  function savedRouteIds() {
+    var wanted = {};
+    global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
+    global.CMB.chain.list().forEach(function (c) {
+      global.CMB.chain.routesIn(c).forEach(function (id) { wanted[id] = true; });
+    });
+    return wanted;
+  }
+
+  /*
+   * Fetch both documents every saved thing needs — the schedule to find the trip,
+   * the live payload to find the bus.
+   *
+   * Safe to call on every paint, but only because both loaders refuse to start a
+   * second fetch for any status other than 'idle'. That is a property of THEM, not
+   * of this function: each one's handlers call render(), so a loader that retried
+   * after a failure would turn this call into a request loop. It has been exactly
+   * that bug twice. Do not add a third loader here without checking its guard.
+   */
+  function loadSavedRoutes() {
+    evictStaleDepartures();
+    Object.keys(savedRouteIds()).forEach(function (id) {
+      loadDepartures(id);
+      loadRouteData(id);
+    });
+  }
+
+  /*
+   * Drop any cached schedule that belongs to a different service day than the one
+   * the board is currently on.
+   *
+   * These documents are cached for the whole session because they only change when
+   * the service date does — but a board left open across 3 a.m. crosses that line,
+   * and then one route's schedule counts from yesterday's midnight while the next
+   * one fetched counts from today's. A chain subtracting across the two reported a
+   * day of slack. chain.js refuses to grade a mismatch; this is what makes the
+   * refusal temporary rather than permanent.
+   */
+  function evictStaleDepartures() {
+    var today = state.data && state.data.service_day && state.data.service_day.date;
+    if (!today) return;
+    Object.keys(state.departures).forEach(function (id) {
+      var doc = state.departures[id];
+      /*
+       * STRICTLY older, not merely different.
+       *
+       * These are `YYYYMMDD` strings, which sort chronologically as text because
+       * every field is fixed-width and most-significant-first — no parsing, and no
+       * timezone to get wrong. That matters because the two dates disagree in both
+       * directions and only one of them means the cached schedule is out of date:
+       *
+       *   doc older than the board — the 3 a.m. rollover. The schedule really is
+       *     yesterday's and must go.
+       *   doc NEWER than the board — the board is the stale one. After a republish
+       *     it falls back to the embedded fixture, which is pinned at 20260819
+       *     forever, while departures return today. Evicting on "different" threw
+       *     away a perfectly good schedule, refetched the identical document, and
+       *     evicted it again: measured at 214 requests in three seconds, permanent
+       *     for as long as the fallback was in use.
+       */
+      if (!doc || !doc.service_date || doc.service_date >= today) return;
+      delete state.departures[id];
+      /*
+       * 'stale' rather than deleting the status, because the status IS
+       * loadDepartures' single-flight guard and deleting it says "never fetched".
+       * Eviction would then refetch inside the paint that evicted, the refetch
+       * would repaint, and the repaint would evict — the same loop from the other
+       * side. Marked instead, and left for the refresh tick to clear, which is the
+       * one place in this file where a retry cannot become a render loop.
+       *
+       * And never over 'loading': a request already in flight will land with a
+       * document and set its own status, and clobbering the guard underneath it
+       * lets a second request start that can arrive first.
+       */
+      if (state.depStatus[id] !== 'loading') state.depStatus[id] = 'stale';
+    });
+  }
+
+  /* No origin to fetch from, so api/* is not merely slow — it is absent. */
+  function fromDisk() {
+    return global.location.protocol === 'file:' || typeof fetch !== 'function';
+  }
+
   function selectView(id) {
     state.view = id;
     state.pickerOpen = false;
     store('view', id);
     if (id === 'all' && !state.all) loadAll();
-    if (id === 'saved') {
-      /* A saved trip cannot be resolved without its route's schedule. Fetch every
-       * route a saved trip names, not just the one on screen. */
-      global.CMB.watch.list().forEach(function (w) {
-        loadDepartures(w.route_id);
-        loadRouteData(w.route_id);
-      });
-    }
+    if (id === 'saved') loadSavedRoutes();
     render();
   }
 
@@ -408,7 +557,8 @@
     dom.routechip.setAttribute('aria-expanded', state.pickerOpen ? 'true' : 'false');
 
     dom.viewbuttons.forEach(function (b) {
-      var on = b.dataset.view === (state.view === 'saved-edit' ? 'saved' : state.view);
+      var on = b.dataset.view === (state.view === 'saved-edit' || state.view === 'chain-edit'
+        ? 'saved' : state.view);
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-current', on ? 'page' : 'false');
     });
@@ -610,6 +760,33 @@
     });
   }
 
+  /* A step-based editor owns the whole screen while it is open. */
+  function editing() {
+    return state.view === 'chain-edit' || state.view === 'saved-edit';
+  }
+
+  /*
+   * A repaint that ARRIVING DATA asked for, rather than one the reader did.
+   *
+   * render() rebuilds the band from scratch, which on a six-step editor throws away
+   * focus, scroll position and any half-made tap. So a live payload landing behind
+   * an open editor is stored and not drawn — and nothing is lost by that, because
+   * nothing an editor shows comes from a live payload. It is built entirely from
+   * the service-day schedule and the route catalog, and those two keep the ordinary
+   * render() precisely because the editor IS waiting on them.
+   *
+   * Suppressing the repaint rather than the refresh is the whole point. The first
+   * version of this returned early from the entire interval, which stopped the
+   * clock along with the repaint: ten minutes in the editor and the Saved view
+   * behind it still said "in 11 minutes" about a bus due in one, because nowEpoch()
+   * reads generated_at out of a payload that was no longer being fetched. Leaving
+   * an editor calls render() on its way out, so the deferred paint costs nothing.
+   */
+  function renderLive() {
+    if (editing()) return;
+    render();
+  }
+
   function paint() {
     paintHeader();
     var d = state.data;
@@ -651,6 +828,7 @@
     if (state.view === 'all') { paintAll(); return; }
     if (state.view === 'saved') { paintSaved(); return; }
     if (state.view === 'saved-edit') { paintSavedEdit(); return; }
+    if (state.view === 'chain-edit') { paintChainEdit(); return; }
 
     var opts = {
       direction: state.direction,
@@ -774,16 +952,56 @@
   }
 
   function paintSaved() {
+    /* Fetching here rather than only in selectView covers anything saved while the
+     * view is already open. */
+    loadSavedRoutes();
+    var now = nowEpoch();
+
+    /*
+     * A staleness banner for every route this view depends on, not just the one on
+     * the board.
+     *
+     * This is the view where it matters most and the only one that had none. Its
+     * routes are BY DEFINITION not the route being watched, so nobody is looking at
+     * their board to notice the feed died — and a chain leg on a dead route is
+     * graded against frozen positions while the card reads "not reporting yet, that
+     * is normal until it starts its run". The contract makes staleness a rendered
+     * state, and rendering it for four routes while silently trusting a fifth is
+     * the same failure the whole staleness machinery exists to prevent.
+     */
+    savedStalenessBanners(now).forEach(function (b) { dom.main.appendChild(b); });
+
+    /*
+     * Chains sit above saved trips. A chain is the higher-stakes item on this
+     * screen — a missed connection strands someone, a late bus merely annoys them
+     * — and the ordering inside each band is already worst-news-first, so putting
+     * the band that can carry a missed connection second would bury it.
+     */
+    var chainBand = el('section', 'band band--chains');
+    chainBand.setAttribute('aria-label', 'Transfer chains');
+    dom.main.appendChild(chainBand);
+
+    var live = liveRouteMap();
+    var chains = global.CMB.chain.list().map(function (c) {
+      return global.CMB.chain.resolve(c, state.departures, live, now);
+    });
+    global.CMB.chain.render(chainBand, global.CMB.chain.sortModels(chains), {
+      /* A chain that cannot resolve from disk is not waiting on anything. The
+         banner above already says so; the cards have to agree with it. */
+      fromDisk: fromDisk(),
+      onAdd: function () {
+        state.chainEditor = { legs: [], day_type: null, start: {}, onward: {} };
+        state.view = 'chain-edit';
+        render();
+      },
+      onChange: render
+    });
+
     var band = el('section', 'band band--saved');
     band.setAttribute('aria-label', 'Saved trips');
     dom.main.appendChild(band);
 
-    var now = nowEpoch();
     var models = global.CMB.watch.list().map(function (w) {
-      /* Fetching here rather than only in selectView covers a watch saved while
-       * the view is already open. loadDepartures is idempotent. */
-      loadDepartures(w.route_id);
-      loadRouteData(w.route_id);
       return global.CMB.watch.resolve(
         w,
         state.departures[w.route_id] || null,
@@ -801,6 +1019,284 @@
       onChange: render
     });
     dom.main.appendChild(footer(state.data));
+  }
+
+  /*
+   * Every live route payload this browser currently holds, keyed by route id.
+   * Chain resolution spans routes, so it takes a map rather than one payload; the
+   * route on screen lives in state.data and the rest in state.routeData, and this
+   * is the one place that difference is reconciled.
+   */
+  /*
+   * One banner per route whose feed is not fresh, labeled with the route number.
+   *
+   * Labeled because on this view an unlabeled "Data 14 minutes old" is unusable:
+   * there are three or four routes on screen and the reader cannot tell which of
+   * them the warning is about, or therefore which card to stop trusting. The route
+   * board never had that problem — it only ever shows one route.
+   */
+  /*
+   * Permit one more fetch for a route, without disturbing one in flight.
+   *
+   * Resetting to 'idle' unconditionally defeats loadRouteData's own single-flight
+   * guard: the reset lands while a request is open, the next paint starts a second,
+   * and the older response can arrive last and revert a verdict to stale data. Same
+   * helper and same condition as PR 2, so the two do not drift.
+   */
+  function refreshRoute(routeId) {
+    if (state.routeStatus[routeId] === 'loading') return;
+    state.routeStatus[routeId] = 'idle';
+    loadRouteData(routeId);
+  }
+
+  /*
+   * Permit one more fetch of a schedule that stopped: a failed request, or a
+   * document evicted for belonging to another service day. Same handshake and same
+   * in-flight condition as refreshRoute, so the two do not drift.
+   *
+   * Only ever called from the refresh interval and from a button somebody pressed.
+   * Calling it from a paint would restore the loop it exists to end.
+   */
+  function retrySchedule(routeId) {
+    if (!routeId) return;
+    var status = state.depStatus[routeId];
+    if (status !== 'error' && status !== 'stale') return;
+    state.depStatus[routeId] = 'idle';
+    loadDepartures(routeId);
+  }
+
+  function savedStalenessBanners() {
+    var live = liveRouteMap();
+    var out = [];
+    /*
+     * Driven by the routes this view NEEDS, not by the payloads it happens to hold.
+     *
+     * A route whose payload never arrived — a 404 after a republish renumbered it,
+     * a dead network — has no entry in liveRouteMap() and so drew no banner at all,
+     * while resolveLeg graded it against the timetable with full confidence. That
+     * is the case most in need of one: a leg the board knows nothing about rendered
+     * identically to a leg running exactly on schedule.
+     */
+    Object.keys(savedRouteIds()).sort().forEach(function (id) {
+      var d = live[id];
+      if (!d) {
+        /*
+         * From disk this is not a failure and Try again cannot help: there is no
+         * origin, so api/* is absent rather than slow. Saying "could not be loaded"
+         * there would send the reader hunting for a problem with their network.
+         */
+        var disk = fromDisk();
+        var why = disk
+          ? 'This board is open from a file, so there is no live feed to read. ' +
+            'Saved chains need the board as it is served.'
+          : state.routeStatus[id] === 'error'
+            ? 'Its data could not be loaded, so nothing here reflects where its buses are.'
+            : 'Its data has not loaded yet, so nothing here reflects where its buses are.';
+        var miss = el('div', 'savedbanner');
+        miss.appendChild(el('p', 'savedbanner__route', 'Route ' + id));
+        miss.appendChild(S.notice(
+          disk ? 'empty' : state.routeStatus[id] === 'error' ? 'warn' : 'empty',
+          disk ? 'No live data from a file.' : 'No live data for route ' + id + '.',
+          why,
+          disk ? null : S.retryButton('Try again', function () { refreshRoute(id); })
+        ));
+        out.push(miss);
+        return;
+      }
+      if (!d.staleness || d.staleness.level === 'fresh') return;
+      var banner = S.stalenessBanner(d.staleness, d.feeds, function () {
+        refreshRoute(id);
+      });
+      if (!banner) return;
+      /*
+       * Composed, not mutated. Reaching into the banner to rewrite its headline
+       * would couple this to states.js's internal class names and would silently
+       * do nothing anywhere querySelector is not available — which is exactly the
+       * kind of quietly-skipped labeling this view cannot afford.
+       */
+      var box = el('div', 'savedbanner');
+      box.appendChild(el('p', 'savedbanner__route', 'Route ' + id));
+      box.appendChild(banner);
+      out.push(box);
+    });
+    return out;
+  }
+
+  /*
+   * The device clock, in whole seconds, and used for exactly one thing: measuring
+   * how long this browser has held a document.
+   *
+   * Everything a reader SEES is timed against the feed's own generated_at, so a
+   * phone two minutes fast cannot shave two minutes off an arrival. That rule is
+   * about comparing our clock with the agency's, and it does not apply here: this
+   * subtracts two readings of the same local clock and never compares either with
+   * anything in a payload. A device clock is the only instrument that can answer
+   * "how long ago did this arrive", and a skewed one still measures elapsed time.
+   */
+  function heldClock() {
+    return Math.floor(Date.now() / 1000);
+  }
+
+  /* The contract's staleness ladder, worst last, so a level is never downgraded. */
+  var STALE_RANK = { fresh: 0, aging: 1, stale: 2, dead: 3 };
+
+  /*
+   * A payload's staleness as it is NOW, rather than as the server stamped it.
+   *
+   * `staleness` describes the feed at the moment the file was generated, and the
+   * contract is right that `suppress_adherence` is authoritative — about the
+   * document as delivered. It cannot speak for the minutes since. A route the
+   * board fetched once and has failed to refresh ever since keeps saying `fresh`
+   * for as long as the tab is open, so it drew no banner and its chain leg was
+   * graded with full confidence against positions frozen an hour ago. That is
+   * precisely the "the cron stopped an hour ago" case, and it was the one case the
+   * new banner could not see: it watched for a payload that reports staleness, and
+   * for a route with no payload at all, and this is neither.
+   *
+   * So the feed age is the age the server measured PLUS the time we have been
+   * holding the answer, and the contract's own thresholds (section 1) are applied
+   * to that sum. This is not second-guessing the server; it is finishing the
+   * server's sentence with the only term the server could not know. The level is
+   * never lowered, only raised.
+   */
+  function agedStaleness(d, id) {
+    var st = d && d.staleness;
+    if (!st) return st;
+    var fetchedAt = state.routeFetchedAt[id];
+    var held = typeof fetchedAt === 'number' ? Math.max(0, heldClock() - fetchedAt) : 0;
+    if (!held) return st;
+
+    var age = (typeof st.oldest_feed_age_s === 'number' ? st.oldest_feed_age_s : 0) + held;
+    var level = age > 3600 ? 'dead' : age > 600 ? 'stale' : age > 120 ? 'aging' : 'fresh';
+    if ((STALE_RANK[level] || 0) <= (STALE_RANK[st.level] || 0)) return st;
+
+    var reason = 'The board has not been able to refresh route ' + id + ' for ' +
+      fmt.age(held) + '.';
+    return {
+      level: level,
+      oldest_feed_age_s: age,
+      schedule_age_days: st.schedule_age_days,
+      /* The same flag the contract makes authoritative, set for the same reason:
+         past ten minutes of feed age no lateness may be rendered. */
+      suppress_adherence: st.suppress_adherence || age > 600,
+      reason: st.reason ? st.reason + ' ' + reason : reason
+    };
+  }
+
+  /*
+   * Every live route payload this browser currently holds, keyed by route id, each
+   * one aged by how long it has been held. Chain resolution spans routes, so it
+   * takes a map rather than one payload; the route on screen lives in state.data
+   * and the rest in state.routeData, and this is the one place that difference —
+   * and the aging — is reconciled, so the banners and the verdicts cannot disagree
+   * about which routes are still worth believing.
+   */
+  function liveRouteMap() {
+    var map = {};
+    var age = function (d, id) {
+      if (!d) return d;
+      var st = agedStaleness(d, id);
+      if (st === d.staleness) return d;
+      /* A copy, because the cached document must keep saying what it was sent
+         saying; only this view's reading of it changes. */
+      var copy = {};
+      Object.keys(d).forEach(function (k) { copy[k] = d[k]; });
+      copy.staleness = st;
+      return copy;
+    };
+    Object.keys(state.routeData).forEach(function (id) {
+      map[id] = age(state.routeData[id], id);
+    });
+    if (state.routeId && state.data) map[state.routeId] = age(state.data, state.routeId);
+    return map;
+  }
+
+  function paintChainEdit() {
+    var band = el('section', 'band band--saved');
+    band.setAttribute('aria-label', 'Save a transfer chain');
+    dom.main.appendChild(band);
+
+    var ed = state.chainEditor;
+    global.CMB.chain.renderEditor(band, {
+      routes: catalog(),
+      legs: ed.legs,
+      day_type: ed.day_type,
+      start: ed.start,
+      onward: ed.onward,
+      saveFailed: ed.saveFailed,
+      departures: state.departures,
+      /* A step waiting on a schedule has to be able to tell "not yet" from "not
+         ever", and from a file it is always the second. */
+      dep_status: state.depStatus,
+      from_disk: fromDisk(),
+      connections: global.CMB.chain.connectionsFor(
+        ed.legs, state.departures, ed.onward.route_id, ed.onward.direction_id)
+    }, {
+      onRetrySchedule: function (id) {
+        retrySchedule(id);
+        render();
+      },
+      onPickStartRoute: function (id) {
+        ed.start = { route_id: id };
+        loadDepartures(id);
+        render();
+      },
+      onPickStartDirection: function (id) {
+        ed.start.direction_id = id;
+        ed.start.stop_id = null;
+        render();
+      },
+      onPickStartStop: function (id) {
+        ed.start.stop_id = id;
+        render();
+      },
+      onPickStartDeparture: function (leg, dayType) {
+        ed.legs = [leg];
+        ed.day_type = dayType;
+        ed.start = {};
+        ed.onward = {};
+        render();
+      },
+      onPickOnwardRoute: function (id) {
+        ed.onward = { route_id: id };
+        loadDepartures(id);
+        render();
+      },
+      onPickOnwardDirection: function (id) {
+        ed.onward.direction_id = id;
+        render();
+      },
+      onPickConnection: function (leg) {
+        ed.legs = ed.legs.concat([leg]);
+        ed.onward = {};
+        render();
+      },
+      onSave: function (chain) {
+        /*
+         * Only claim it was saved if it was. A browser that refuses to write —
+         * private mode, quota, storage disabled — used to get the confirmation and
+         * a navigation away from six steps of work, landing on "No transfer chains
+         * yet". Stay in the editor and say what happened instead.
+         */
+        if (!global.CMB.chain.add(chain)) {
+          ed.saveFailed = true;
+          announce('This browser would not save the chain. Nothing has been stored.');
+          render();
+          return;
+        }
+        ed.saveFailed = false;
+        state.view = 'saved';
+        loadSavedRoutes();
+        announce('Saved ' + global.CMB.chain.describe(chain));
+        render();
+      }
+    });
+
+    var back = el('button', 'btn');
+    back.type = 'button';
+    back.textContent = 'Cancel';
+    back.addEventListener('click', function () { state.view = 'saved'; render(); });
+    band.appendChild(back);
   }
 
   function paintSavedEdit() {
@@ -913,19 +1409,48 @@
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
       setInterval(function () {
+        /*
+         * An open editor stops the REPAINT and nothing else — see renderLive().
+         *
+         * Every refresh ends in a render, and a render rebuilds the band from
+         * scratch, which on a six-step editor throws away focus, scroll position
+         * and any half-made tap, once a minute, silently. Returning here stopped
+         * that, and stopped the clock with it: nothing was fetched while anybody
+         * stood in the editor, so leaving it after ten minutes showed a Saved view
+         * counting down from a payload ten minutes old. The refreshes run; the
+         * paint they would have caused is deferred until the editor closes.
+         */
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
-        /* One retry per minute for a schedule that failed to load, and only
-         * here, where a retry cannot become a render loop. */
-        if (state.depStatus[state.routeId] === 'error') {
-          delete state.depStatus[state.routeId];
-          loadDepartures(state.routeId);
-        }
-        if (state.view === 'saved') {
-          /* A frozen saved trip is worse than none: it reads as a live prediction. */
-          global.CMB.watch.list().forEach(function (w) {
-            state.routeStatus[w.route_id] = 'idle';
-            loadRouteData(w.route_id);
+        /* One retry per minute for a schedule that failed to load or was evicted
+         * as belonging to another service day, and only here, where a retry cannot
+         * become a render loop. */
+        retrySchedule(state.routeId);
+        /*
+         * The routes an open editor is part-way through picking. They are not the
+         * board's route and not yet in either store, so without this a schedule
+         * that failed once left the editor on "Loading…" until the tab was closed.
+         */
+        editorRouteIds().forEach(retrySchedule);
+
+        if (state.view === 'saved' || editing()) {
+          /* A frozen saved trip is worse than none: it reads as a live prediction,
+           * and a frozen chain reports a connection that stopped being true. Every
+           * route either store names is re-fetched, not just the watched ones.
+           *
+           * Including while an editor is open, which is reached FROM this view and
+           * returns to it. Skipping it there meant the cards behind the editor were
+           * as old as the visit, which is the whole failure above in miniature. */
+          Object.keys(savedRouteIds()).forEach(function (id) {
+            refreshRoute(id);
+            /*
+             * And one retry per minute for a schedule that failed. The retry above
+             * covers only the route on the board; a chain's other two routes are by
+             * definition not that one, so without this a chain whose second leg's
+             * schedule failed once stayed unresolvable until a reload. Safe here for
+             * the same reason: the interval is not a render.
+             */
+            retrySchedule(id);
           });
         }
       }, REFRESH_MS);
@@ -940,7 +1465,10 @@
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
       if (state.pickerOpen) { state.pickerOpen = false; render(); return; }
-      if (state.view === 'saved-edit') { state.view = 'saved'; render(); }
+      if (state.view === 'saved-edit' || state.view === 'chain-edit') {
+        state.view = 'saved';
+        render();
+      }
     });
   }
 
