@@ -227,14 +227,39 @@ time-axis string-line would still need scheduled times per timepoint per trip.
   screen for another forty minutes on the 800. The cost is that the card cannot say
   "she gets in at 8:40" — see `TODOS.md`.
 
-- **A suppressed lateness refuses the verdict, it does not fall back to the
-  timetable.** Refusing to read `null` as zero is only half the job; the other half
-  is where the `null` leads. "No bus yet" and "a bus whose feed has stopped
-  updating" are different facts, and only the first makes the schedule a fair
-  stand-in — the second substitutes *on time* for a measurement that existed and
-  was lost, which moves the verdict optimistically on exactly the input that should
-  make it cautious. Measured: the same chain, same ten-minutes-late bus, graded
-  `missed` fresh and `made` dead. `unknown` is now a reachable verdict.
+- **A leg the feed cannot supply a lateness for refuses the verdict, it does not
+  fall back to the timetable.** Refusing to read `null` as zero is only half the
+  job; the other half is where the `null` leads. The timetable always reads *on
+  time*, so substituting it is never neutral — it moves the verdict optimistically
+  on exactly the input that should make it cautious. There is one case where it is
+  still honest, and it is the only one: **no vehicle on a live feed**, where the
+  bus has not started its run and the schedule is the prior. Everything else is a
+  refusal, and `unknown` is a reachable verdict. Measured: the same chain, same
+  ten-minutes-late bus, graded `missed` fresh and `made` dead.
+
+  Two ways this was got wrong, both found by review, both because the reasoning
+  above was written where the code could not act on it:
+
+  - `suppress_adherence` is a property of the **route**, and it was read inside
+    `if (out.vehicle)`. The refusal therefore only fired when the frozen snapshot
+    happened to contain that leg's bus. On a cron that died before the bus
+    appeared, "no vehicle" and "a vehicle we have stopped hearing from" are the
+    same observation and the join cannot tell them apart. Read it from
+    `route.staleness`, before the join, always.
+  - The refusal covered `stale_data` and none of the other unknown reasons, so a
+    reporting bus with `no_trip_update` graded confidently and was called "not
+    reporting yet" with its badge on the same card. The copy needs three
+    sentences, not one: a bus in a dead feed's snapshot **is** on the road, a bus
+    missing from one cannot be described either way, and a bus on a live feed with
+    no lateness published is reporting perfectly well.
+
+- **A refused verdict must not come back as a number somewhere else.** Three did.
+  `end_at` retired the chain on `predicted_board_at`, which on an ungraded leg is
+  the timetable — so the card went to "Gone. Back tomorrow" about a bus still at
+  the kerb; an ungraded chain now stands down on the clock (`UNGRADED_HOLD_S`).
+  The headline counted down to the same time in the largest type on the card. And
+  the two times under the verdict were printed unlabeled in the slot used for real
+  predictions, where they subtract to the withheld answer in the reader's head.
 
 - **The walk is recomputed from current stop positions on every render.** Everything
   else in a chain is re-resolved from current documents; the walk was the one frozen
@@ -271,10 +296,27 @@ time-axis string-line would still need scheduled times per timepoint per trip.
   priced, at 5.8 minutes for a 300 m hop.
 
 - **A connection's verdict is computed from predicted times, and says which halves
-  are predictions.** A bus that is not reporting contributes its scheduled time and
-  the card prints "the timetable, not a prediction". A suppressed lateness is treated
-  as absent, not as zero — the `adherence.view()` contract already decides when a
-  number may be shown, and this reads that flag rather than re-deciding.
+  are predictions.** A bus that has not started its run contributes its scheduled
+  time and the card prints "the timetable, not a prediction". A lateness the feed
+  will not supply is treated as absent rather than as zero, and refuses the verdict
+  outright — the `adherence.view()` contract already decides when a number may be
+  shown, and this reads that rather than re-deciding it.
+
+- **The Saved view ages the payloads it holds.** `staleness` describes the feed
+  when the file was generated and cannot speak for the minutes since, so a route
+  fetched once and never refreshed kept saying `fresh` for the life of the tab and
+  was graded with full confidence against hour-old positions. `liveRouteMap()` adds
+  the time this browser has held each document to the age the server measured and
+  applies the contract's own thresholds to the sum. `Date.now()` is the right clock
+  for that and the wrong one almost anywhere else here: it subtracts two readings of
+  the same local clock and never compares one with a time in a payload.
+
+- **A cached schedule is evicted only when it is STRICTLY older than the board's
+  service day, and eviction marks the route rather than clearing its fetch guard.**
+  Both halves are a request loop otherwise. Evicting on "different" threw away
+  today's schedule whenever the board was on the embedded fixture; clearing the
+  guard let the eviction refetch inside the paint that evicted. `YYYYMMDD` compares
+  chronologically as text, which is why no parsing is involved.
 
 ---
 

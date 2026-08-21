@@ -1380,8 +1380,19 @@
         box.appendChild(el('p', 'chaincard__bus',
           'Bus ' + (model.first.vehicle.label || model.first.vehicle.vehicle_id)));
       } else if (model.state === 'no-vehicle') {
+        /*
+         * "Normal until it starts its run" is a claim about a working feed. On one
+         * that has stopped updating, an absent bus is not a bus that has not
+         * started — it is a bus we would not see either way, which is the entire
+         * reason the verdict below refuses to grade. Two lines saying opposite
+         * things about the same silence is worse than either alone.
+         */
         box.appendChild(el('p', 'chaincard__detail',
-          'The first bus is not reporting yet. That is normal until it starts its run.'));
+          model.first.ungraded === 'feed_stale'
+            ? 'No bus is reporting on this trip, and route ' + legs[0].route_id +
+              '’s feed has stopped updating — so that says nothing either way ' +
+              'about whether it is running.'
+            : 'The first bus is not reporting yet. That is normal until it starts its run.'));
       } else if (model.state === 'upcoming') {
         box.appendChild(el('p', 'chaincard__detail',
           'Tracking starts an hour before the first bus is due.'));

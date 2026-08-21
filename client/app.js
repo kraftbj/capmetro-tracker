@@ -320,7 +320,10 @@
         if (typeof d.schema !== 'number' || d.schema > SUPPORTED_SCHEMA) {
           state.status = 'schema';
           state.data = d;
-          renderLive();
+          /* render(), not renderLive(): a schema the app does not understand is a
+             whole-app refusal, and deferring it would leave somebody working in an
+             editor the app has just decided it must stop drawing. */
+          render();
           return;
         }
         state.data = d;

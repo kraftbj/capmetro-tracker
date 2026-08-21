@@ -1220,3 +1220,40 @@ describe('a chain on a board opened from a file', () => {
       expect(textOf(host)).toMatch(/has not loaded yet/)
     })
 })
+
+/*
+ * The same sentence, in the other place it is printed. The transfer's copy was
+ * fixed; the line above it -- the card's own headline detail -- still explained a
+ * missing bus as "normal until it starts its run" on a feed that had stopped
+ * updating, where the absence of a bus is not evidence of anything.
+ */
+describe('a missing bus on a dead feed is not called normal', () => {
+  t('the card does not explain the silence of a dead feed as a bus not yet out',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = chain.resolve(c, DEPS, {
+        800: {
+          staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
+          vehicles: [],
+        },
+      }, MIDNIGHT + 7 * 3600 + 40 * 60)
+      expect(m.state).toBe('no-vehicle')
+
+      const host = cmb.states.el('div')
+      chain.render(host, [m], {})
+      const said = textOf(host)
+      expect(said).not.toMatch(/That is normal until it starts its run/)
+      expect(said).toMatch(/feed has stopped updating/)
+    })
+
+  t('but still does when the feed is live and the bus simply has not started',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = chain.resolve(c, DEPS, {
+        800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] },
+      }, MIDNIGHT + 7 * 3600 + 40 * 60)
+      const host = cmb.states.el('div')
+      chain.render(host, [m], {})
+      expect(textOf(host)).toMatch(/That is normal until it starts its run/)
+    })
+})
