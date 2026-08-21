@@ -87,7 +87,7 @@
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
     departures: {},      /* route id -> api/departures/{id}.json */
-    depStatus: {},       /* route id -> loading | ok | error */
+    depStatus: {},       /* route id -> loading | ok | error | stale */
     routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
     routeStatus: {},     /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
@@ -168,17 +168,17 @@
   function loadAll() {
     if (state.allStatus === 'loading') return;
     state.allStatus = 'loading';
-    render();
+    renderLive();
     getJson(API_ALL)
       .then(function (d) {
         state.all = d;
         state.allStatus = 'ok';
-        render();
+        renderLive();
       })
       .catch(function (err) {
         state.allStatus = state.all ? 'ok' : 'error';
         state.errorDetail = 'Could not load every-bus data (' + err.message + ').';
-        render();
+        renderLive();
       });
   }
 
@@ -227,11 +227,11 @@
       .then(function (d) {
         state.routeData[routeId] = d;
         state.routeStatus[routeId] = 'ok';
-        render();
+        renderLive();
       })
       .catch(function () {
         state.routeStatus[routeId] = 'error';
-        render();
+        renderLive();
       });
   }
 
@@ -251,12 +251,18 @@
     if (!routeId) return;
     if (state.departures[routeId]) return;
     /*
-     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
-     * called render, and render asked again - a fetch-and-repaint loop that
-     * hammered the server and rebuilt the DOM every frame. The 60s refresh
-     * clears the status so a transient failure still recovers.
+     * ONLY 'idle' proceeds, the same rule and for the same reason as
+     * loadRouteData() above. Enumerating the statuses that stop is what made both
+     * of the earlier loops in this file: 'error' matched neither of them the first
+     * time, and 'stale' would have matched neither of them this time.
+     *
+     * A status is a stop, not a pause. Without one, a fetch sets the status, calls
+     * render, and render asks again — a fetch-and-repaint loop that hammers the
+     * origin and rebuilds the DOM every frame. The 60s refresh clears the status,
+     * which is what makes a transient failure recover instead of sticking.
      */
-    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
+    var depStatus = state.depStatus[routeId];
+    if (depStatus && depStatus !== 'idle') return;
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
@@ -291,7 +297,7 @@
     }
 
     state.status = state.data ? state.status : 'loading';
-    render();
+    renderLive();
 
     fetchRoute(routeId)
       .then(function (d) { state.usingFixture = false; return d; })
@@ -306,19 +312,19 @@
         if (typeof d.schema !== 'number' || d.schema > SUPPORTED_SCHEMA) {
           state.status = 'schema';
           state.data = d;
-          render();
+          renderLive();
           return;
         }
         state.data = d;
         state.lastGoodAt = d.generated_at;
         state.status = 'ok';
-        render();
+        renderLive();
       })
       .catch(function (err) {
         state.status = state.data ? 'ok' : 'error';
         state.errorDetail = 'No data file for route ' + routeId + ' yet (' + err.message + ').';
         if (state.status === 'ok') announce('Refresh failed; showing the last data received.');
-        render();
+        renderLive();
       });
   }
 
@@ -458,10 +464,38 @@
     if (!today) return;
     Object.keys(state.departures).forEach(function (id) {
       var doc = state.departures[id];
-      if (doc && doc.service_date && doc.service_date !== today) {
-        delete state.departures[id];
-        delete state.depStatus[id];
-      }
+      /*
+       * STRICTLY older, not merely different.
+       *
+       * These are `YYYYMMDD` strings, which sort chronologically as text because
+       * every field is fixed-width and most-significant-first — no parsing, and no
+       * timezone to get wrong. That matters because the two dates disagree in both
+       * directions and only one of them means the cached schedule is out of date:
+       *
+       *   doc older than the board — the 3 a.m. rollover. The schedule really is
+       *     yesterday's and must go.
+       *   doc NEWER than the board — the board is the stale one. After a republish
+       *     it falls back to the embedded fixture, which is pinned at 20260819
+       *     forever, while departures return today. Evicting on "different" threw
+       *     away a perfectly good schedule, refetched the identical document, and
+       *     evicted it again: measured at 214 requests in three seconds, permanent
+       *     for as long as the fallback was in use.
+       */
+      if (!doc || !doc.service_date || doc.service_date >= today) return;
+      delete state.departures[id];
+      /*
+       * 'stale' rather than deleting the status, because the status IS
+       * loadDepartures' single-flight guard and deleting it says "never fetched".
+       * Eviction would then refetch inside the paint that evicted, the refetch
+       * would repaint, and the repaint would evict — the same loop from the other
+       * side. Marked instead, and left for the refresh tick to clear, which is the
+       * one place in this file where a retry cannot become a render loop.
+       *
+       * And never over 'loading': a request already in flight will land with a
+       * document and set its own status, and clobbering the guard underneath it
+       * lets a second request start that can arrive first.
+       */
+      if (state.depStatus[id] !== 'loading') state.depStatus[id] = 'stale';
     });
   }
 
@@ -695,6 +729,33 @@
       rafPending = false;
       paint();
     });
+  }
+
+  /* A step-based editor owns the whole screen while it is open. */
+  function editing() {
+    return state.view === 'chain-edit' || state.view === 'saved-edit';
+  }
+
+  /*
+   * A repaint that ARRIVING DATA asked for, rather than one the reader did.
+   *
+   * render() rebuilds the band from scratch, which on a six-step editor throws away
+   * focus, scroll position and any half-made tap. So a live payload landing behind
+   * an open editor is stored and not drawn — and nothing is lost by that, because
+   * nothing an editor shows comes from a live payload. It is built entirely from
+   * the service-day schedule and the route catalog, and those two keep the ordinary
+   * render() precisely because the editor IS waiting on them.
+   *
+   * Suppressing the repaint rather than the refresh is the whole point. The first
+   * version of this returned early from the entire interval, which stopped the
+   * clock along with the repaint: ten minutes in the editor and the Saved view
+   * behind it still said "in 11 minutes" about a bus due in one, because nowEpoch()
+   * reads generated_at out of a payload that was no longer being fetched. Leaving
+   * an editor calls render() on its way out, so the deferred paint costs nothing.
+   */
+  function renderLive() {
+    if (editing()) return;
+    render();
   }
 
   function paint() {
@@ -959,6 +1020,22 @@
     loadRouteData(routeId);
   }
 
+  /*
+   * Permit one more fetch of a schedule that stopped: a failed request, or a
+   * document evicted for belonging to another service day. Same handshake and same
+   * in-flight condition as refreshRoute, so the two do not drift.
+   *
+   * Only ever called from the refresh interval and from a button somebody pressed.
+   * Calling it from a paint would restore the loop it exists to end.
+   */
+  function retrySchedule(routeId) {
+    if (!routeId) return;
+    var status = state.depStatus[routeId];
+    if (status !== 'error' && status !== 'stale') return;
+    state.depStatus[routeId] = 'idle';
+    loadDepartures(routeId);
+  }
+
   function savedStalenessBanners() {
     var live = liveRouteMap();
     var out = [];
@@ -1214,29 +1291,30 @@
     if (global.location.protocol !== 'file:' && !state.scenario) {
       setInterval(function () {
         /*
-         * Not while an editor is open.
+         * An open editor stops the REPAINT and nothing else — see renderLive().
          *
-         * Every refresh ends in render(), and render() rebuilds the band from
-         * scratch — which on a six-step editor throws away focus, scroll position
-         * and any half-made tap, once a minute, silently. Nothing an editor shows
-         * is live: it is built entirely from the service-day schedule, which does
-         * not change while someone is standing in it. The board repaints with
-         * current data the moment they leave.
+         * Every refresh ends in a render, and a render rebuilds the band from
+         * scratch, which on a six-step editor throws away focus, scroll position
+         * and any half-made tap, once a minute, silently. Returning here stopped
+         * that, and stopped the clock with it: nothing was fetched while anybody
+         * stood in the editor, so leaving it after ten minutes showed a Saved view
+         * counting down from a payload ten minutes old. The refreshes run; the
+         * paint they would have caused is deferred until the editor closes.
          */
-        if (state.view === 'chain-edit' || state.view === 'saved-edit') return;
-
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
-        /* One retry per minute for a schedule that failed to load, and only
-         * here, where a retry cannot become a render loop. */
-        if (state.depStatus[state.routeId] === 'error') {
-          delete state.depStatus[state.routeId];
-          loadDepartures(state.routeId);
-        }
-        if (state.view === 'saved') {
+        /* One retry per minute for a schedule that failed to load or was evicted
+         * as belonging to another service day, and only here, where a retry cannot
+         * become a render loop. */
+        retrySchedule(state.routeId);
+        if (state.view === 'saved' || editing()) {
           /* A frozen saved trip is worse than none: it reads as a live prediction,
            * and a frozen chain reports a connection that stopped being true. Every
-           * route either store names is re-fetched, not just the watched ones. */
+           * route either store names is re-fetched, not just the watched ones.
+           *
+           * Including while an editor is open, which is reached FROM this view and
+           * returns to it. Skipping it there meant the cards behind the editor were
+           * as old as the visit, which is the whole failure above in miniature. */
           Object.keys(savedRouteIds()).forEach(function (id) {
             refreshRoute(id);
             /*
@@ -1246,10 +1324,7 @@
              * schedule failed once stayed unresolvable until a reload. Safe here for
              * the same reason: the interval is not a render.
              */
-            if (state.depStatus[id] === 'error') {
-              delete state.depStatus[id];
-              loadDepartures(id);
-            }
+            retrySchedule(id);
           });
         }
       }, REFRESH_MS);

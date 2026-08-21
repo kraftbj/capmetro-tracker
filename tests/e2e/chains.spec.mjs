@@ -370,3 +370,143 @@ test.describe('a browser that will not save', () => {
     await expect(page.locator('.step__chosen').first()).toContainText('7:52a')
   })
 })
+
+/*
+ * The third request loop in this file, and the same shape as the other two:
+ * paint -> a loader mutates state -> the loader's handler renders -> paint.
+ *
+ * evictStaleDepartures() drops a cached schedule whose service day is not the
+ * board's, and loadSavedRoutes() calls it from paintSaved(). It also deleted the
+ * route's depStatus, which is loadDepartures' single-flight guard -- so eviction
+ * put the route back to "never fetched", the refetch repainted, and the repaint
+ * evicted again for as long as the two dates disagreed.
+ *
+ * Two ways to disagree persistently in production. After a GTFS republish the
+ * board falls back to the embedded fixture, pinning service_day.date at 20260819
+ * while departures return today's date -- permanent. And the 3 a.m. rollover gives
+ * a transient one for up to a minute.
+ */
+test.describe('a schedule from another service day does not become a request loop', () => {
+  /** Serve every departures document with `date` as its service day. */
+  async function departuresDated(page, date) {
+    let hits = 0
+    await page.route('**/api/departures/*.json', async (route) => {
+      hits += 1
+      const res = await route.fetch()
+      const doc = await res.json()
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ...doc, service_date: date }),
+      })
+    })
+    return () => hits
+  }
+
+  test('an older cached schedule is evicted once, not on every paint', async ({ page }) => {
+    /*
+     * The 3 a.m. rollover, with the board across the line and the schedule not:
+     * api/route says the service day is the 20th while api/departures still says
+     * the 19th. Built first against a board that agrees with itself, because the
+     * editor cannot be driven without a schedule it is allowed to use.
+     */
+    await saveTheChain(page)
+
+    const hits = await departuresDated(page, '20260819')
+    await page.route('**/api/route/*.json', async (route) => {
+      const res = await route.fetch()
+      const doc = await res.json()
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ...doc, service_day: { ...doc.service_day, date: '20260820' } }),
+      })
+    })
+
+    await page.goto(SAVED)
+    await expect(page.locator('.chaincard').first()).toBeVisible()
+
+    const settled = hits()
+    /* Long enough for a loop to run hundreds of times, and well short of the 60s
+       refresh that is allowed to ask again. */
+    await page.waitForTimeout(3000)
+    expect(hits() - settled).toBeLessThanOrEqual(1)
+  })
+
+  test('and a NEWER schedule is not evicted at all, because the board is the stale one',
+    async ({ page }) => {
+      /*
+       * The republish case. state.data is the embedded fixture, pinned a year back;
+       * the departures document is today's and perfectly good. Evicting it threw
+       * away the only schedule on the page, forever, once per paint.
+       */
+      const hits = await departuresDated(page, '20260820')
+      await saveTheChain(page)
+      await expect(page.locator('.chaincard').first()).toBeVisible()
+
+      const settled = hits()
+      await page.waitForTimeout(3000)
+      expect(hits() - settled).toBeLessThanOrEqual(1)
+      /* And the card still has a schedule to reason from. */
+      await expect(page.locator('.chaincard__transfer').first()).toBeVisible()
+      await expect(page.locator('.chaincard').first()).not.toContainText('Nothing to show')
+    })
+})
+
+/*
+ * Not rebuilding the editor was right. Stopping the whole interval to do it was
+ * not: the fix returned before the refreshes as well as before the render, so the
+ * board's clock stopped for as long as anybody stood in a six-step editor. Ten
+ * minutes of picking stops and the Saved view behind it still said "in 11 minutes"
+ * about a bus due in one, because nowEpoch() reads generated_at from a payload
+ * nothing was fetching any more.
+ */
+test.describe('an open editor stops the repaint, not the clock', () => {
+  /* One tick per 300 ms rather than per minute. Real timers, real callback --
+     only the delay is compressed, so what runs is what ships. */
+  async function fastTicks(page) {
+    await page.addInitScript(() => {
+      const real = window.setInterval.bind(window)
+      window.setInterval = (fn, ms) => real(fn, ms >= 60000 ? 300 : ms)
+    })
+  }
+
+  test('data keeps refreshing behind the editor, and the editor is not rebuilt',
+    async ({ page }) => {
+      const hits = { 4: 0, 800: 0 }
+      await page.route('**/api/route/*.json', async (route) => {
+        const id = new URL(route.request().url()).pathname.split('/').pop().replace('.json', '')
+        if (hits[id] !== undefined) hits[id] += 1
+        return route.continue()
+      })
+      await fastTicks(page)
+
+      /* A saved chain, so route 800 is a route the Saved view depends on. */
+      await saveTheChain(page)
+
+      /* Back into the editor and part-way through it. */
+      await page.getByRole('button', { name: 'Save another chain' }).click()
+      await page.locator('.routegrid__item', { hasText: '800' }).first().click()
+      await page.locator('.chipbtn').filter({ hasText: /SB/ }).first().click()
+      await page.locator('.stoplist__item', { hasText: 'Simond SB' }).first().click()
+      await page.locator('.timegrid__item', { hasText: '7:52a' }).first().click()
+      await page.locator('.routegrid__item', { hasText: '4' }).first().click()
+      await page.locator('.chipbtn').first().click()
+      await expect(page.locator('.connlist__item').first()).toBeVisible()
+
+      const chosen = await page.locator('.step__chosen').first().innerText()
+      const before = { 4: hits[4], 800: hits[800] }
+      await page.waitForTimeout(2000)
+
+      /* The board's own route and every route a saved chain names are still being
+         fetched. Neither was, while the interval returned early. */
+      expect(hits[4] - before[4]).toBeGreaterThan(0)
+      expect(hits[800] - before[800]).toBeGreaterThan(0)
+
+      /* And nothing under the reader moved: the choice is intact and the row they
+         were about to press is still the same node. */
+      await expect(page.locator('.step__chosen').first()).toHaveText(chosen)
+      await page.locator('.connlist__item').first().click({ timeout: 5000 })
+      await expect(page.getByRole('button', { name: 'Save this chain' })).toBeVisible()
+    })
+})
