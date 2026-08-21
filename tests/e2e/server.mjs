@@ -84,10 +84,19 @@ const DEPARTURES = {
  */
 const YESTERDAY_ROUTE = '7'
 
-/* Serves its schedule exactly once; every request after that is a 500. Reset
- * between tests through GET /__reset. */
-const FLAKY_ROUTE = 'flaky'
-let flakyServed = false
+/*
+ * A route whose schedule loads exactly once; every request after that is a 500.
+ *
+ * ONE COUNTER PER ROUTE ID, and any id starting `flaky` is one of these, so each
+ * test picks its own and no two share anything. It used to be a single flag
+ * reset through GET /__reset, which two tests running in parallel could reset out
+ * from under each other: the second page then got the 500 meant for the first,
+ * and a test about a cached schedule failed for having no schedule at all. Test
+ * infrastructure that fails for reasons of its own is the thing hardest to
+ * debug, because the failure names the wrong culprit.
+ */
+const isFlakyRoute = (id) => /^flaky/.test(id)
+const flakyServed = new Map()
 
 /*
  * A live route payload for route 837 whose vehicle is genuinely on the inbound
@@ -170,16 +179,31 @@ function turnaroundRoute() {
   }
 }
 
-const server = createServer((req, res) => {
+/*
+ * EVERY LOOKUP KEYED BY SOMETHING OFF THE WIRE GOES THROUGH HERE.
+ *
+ * Route ids and path prefixes arrive from a '#plan=' fragment, and the suite has
+ * a test that deliberately puts `constructor` in one. `DEPARTURES['constructor']`
+ * is the Object function: truthy, so the 404 branch never fired, and then
+ * path.join() was handed a function and threw inside the request handler. An
+ * uncaught throw there takes the process down, so a single hostile-input test
+ * killed the fixture server and every test scheduled after it failed for a
+ * reason with nothing to do with what it was testing. A suite that dies mid-run
+ * is worse than one that fails, because the cause is invisible.
+ */
+const lookup = (table, key) =>
+  Object.prototype.hasOwnProperty.call(table, key) ? table[key] : undefined
+
+function handle(req, res) {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   if (url.pathname === '/__reset') {
-    flakyServed = false
+    flakyServed.clear()
     res.writeHead(200, { 'Content-Type': 'text/plain' })
     res.end('ok')
     return
   }
   const parts = url.pathname.split('/').filter(Boolean)
-  const scenario = SCENARIOS[parts[0]] ? parts.shift() : 'fresh'
+  const scenario = lookup(SCENARIOS, parts[0]) ? parts.shift() : 'fresh'
   const rest = parts.join('/') || 'index.html'
 
   if (rest.startsWith('api/departures/')) {
@@ -194,15 +218,15 @@ const server = createServer((req, res) => {
      * replacement lands then loses a whole service day to a connection that has
      * already proved it cannot fetch anything.
      */
-    if (id === FLAKY_ROUTE) {
-      if (flakyServed) {
+    if (isFlakyRoute(id)) {
+      if (flakyServed.get(id)) {
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
         res.end('{"error":"gone"}')
         return
       }
-      flakyServed = true
+      flakyServed.set(id, true)
       const doc = wireFormat(readJson(path.join(SYNTHETIC, DEPARTURES[4])))
-      doc.route_id = FLAKY_ROUTE
+      doc.route_id = id
       doc.service_date = '20260818'
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
       res.end(JSON.stringify(doc))
@@ -216,7 +240,7 @@ const server = createServer((req, res) => {
       res.end(JSON.stringify(doc))
       return
     }
-    const file = DEPARTURES[id]
+    const file = lookup(DEPARTURES, id)
     if (!file) {
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' })
       res.end('{"error":"no schedule for that route"}')
@@ -233,7 +257,7 @@ const server = createServer((req, res) => {
       res.end(JSON.stringify(turnaroundRoute()))
       return
     }
-    const { status, body } = SCENARIOS[scenario]()
+    const { status, body } = lookup(SCENARIOS, scenario)()
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(body)
     return
@@ -246,8 +270,23 @@ const server = createServer((req, res) => {
     return
   }
 
-  res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' })
+  res.writeHead(200, { 'Content-Type': lookup(TYPES, path.extname(file)) ?? 'application/octet-stream' })
   res.end(readFileSync(file))
+}
+
+const server = createServer((req, res) => {
+  /*
+   * The belt to the braces above. The guarded lookups close the hole that was
+   * actually found; this makes the next one a 500 on one request instead of a
+   * dead server and a screenful of unrelated failures.
+   */
+  try {
+    handle(req, res)
+  } catch (err) {
+    process.stderr.write(`fixture server: ${req.url} -> ${err && err.message}\n`)
+    if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end('{"error":"fixture server refused that request"}')
+  }
 })
 
 server.listen(PORT, () => {

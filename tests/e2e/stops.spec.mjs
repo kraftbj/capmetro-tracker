@@ -308,6 +308,47 @@ test.describe('a link is untrusted input', () => {
     expect(errors, errors.join('; ')).toHaveLength(0)
   })
 
+  test('a ROUTE id naming something on Object.prototype does not kill the fixture server', async ({ page }) => {
+    /*
+     * The sibling of the test above, one field to the left, and it did not fail
+     * here — it failed everywhere else.
+     *
+     * A route id becomes a request for api/departures/{id}.json, and the fixture
+     * server looked that id up in a bare object. `DEPARTURES['constructor']` is
+     * the Object function: truthy, so the 404 branch never fired, and path.join()
+     * was then handed a function and threw inside the request handler. That takes
+     * the node process down, so this one link killed the server and every test
+     * scheduled after it failed for reasons of its own — which is the worst way
+     * for a suite to break, because nothing points at the cause.
+     */
+    const errors = []
+    page.on('pageerror', (e) => errors.push(e.message))
+    await page.goto('/fresh/index.html#plan=1;constructor.1.6243.all;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(500)
+    expect(errors, errors.join('; ')).toHaveLength(0)
+
+    /* The part that actually mattered: the server is still there for whatever
+     * runs next. */
+    const after = await page.request.get('/fresh/api/departures/4.json')
+    expect(after.status(), 'the fixture server did not survive the link').toBe(200)
+  })
+
+  test('the fixture server answers hostile paths rather than dying on them', async ({ page }) => {
+    for (const url of [
+      '/fresh/api/departures/constructor.json',
+      '/fresh/api/departures/toString.json',
+      '/fresh/api/departures/__proto__.json',
+      '/constructor/api/route/4.json',
+      '/toString/index.html',
+    ]) {
+      const res = await page.request.get(url)
+      expect(res.status(), `${url} took the server down or was answered as real`)
+        .toBeGreaterThanOrEqual(400)
+    }
+    expect((await page.request.get('/fresh/api/departures/4.json')).status()).toBe(200)
+  })
+
   test('a link with hundreds of stops is capped rather than fetched in full', async ({ page }) => {
     const routes = new Set()
     page.on('request', (r) => {
@@ -376,10 +417,10 @@ test.describe('a failed route fetch must not destroy a good schedule', () => {
    * user on the ordinary route.
    */
   test('keeps the cached schedule when the route payload falls back to the fixture', async ({ page }) => {
-    await page.goto('/__reset')
     /* /missing/ 500s every api/route request, so the client is on the fixture.
-     * The 'flaky' schedule loads once, is dated 20260818, and 500s thereafter. */
-    await page.goto('/missing/index.html#plan=1;flaky.1.6243.all')
+     * A 'flaky*' schedule loads once, is dated 20260818, and 500s thereafter —
+     * one counter per route id, so this test owns 'flaky-kept' outright. */
+    await page.goto('/missing/index.html#plan=1;flaky-kept.1.6243.all')
 
     const card = page.locator('.stopcard').first()
     await expect(card).toBeVisible()
@@ -397,19 +438,18 @@ test.describe('a failed route fetch must not destroy a good schedule', () => {
      * whose schedule is in fact perfectly current. Asserting the decision rather
      * than waiting out a timer.
      */
-    const status = await page.evaluate(() => window.CMB.app.state.depStatus.flaky)
+    const status = await page.evaluate(() => window.CMB.app.state.depStatus['flaky-kept'])
     expect(status, 'the bundled fixture was read as today').not.toBe('stale')
   })
 
   test('does not spin re-requesting it either', async ({ page }) => {
-    await page.goto('/__reset')
     const seen = new Map()
     page.on('request', (r) => {
       const u = new URL(r.url()).pathname
       if (!/\/api\/departures\//.test(u)) return
       seen.set(u, (seen.get(u) ?? 0) + 1)
     })
-    await page.goto('/missing/index.html#plan=1;flaky.1.6243.all')
+    await page.goto('/missing/index.html#plan=1;flaky-spin.1.6243.all')
     await expect(page.locator('.stopcard').first()).toBeVisible()
     await page.waitForTimeout(2000)
     for (const [url, n] of seen) {
