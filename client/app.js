@@ -28,6 +28,15 @@
   var REFRESH_MS = 60000;
 
   /*
+   * What to say when localStorage refuses a write — Safari private browsing, an
+   * exhausted quota, storage switched off. The board must never announce a save
+   * that did not happen: the trip would simply be gone next time, with nothing on
+   * screen having suggested anything went wrong.
+   */
+  var STORAGE_REFUSED = 'This browser would not let the board save the trip — ' +
+    'private browsing or storage turned off. Nothing was kept.';
+
+  /*
    * The six routes this household actually rides, pinned to the top of the picker.
    * They are a shortcut, NOT the list: the picker offers every route the catalog
    * publishes. Hard-coding six while the build generated seventy-one meant the
@@ -86,14 +95,23 @@
     routes: null,        /* the catalog, once api/routes.json lands */
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
-    departures: {},      /* route id -> api/departures/{id}.json */
-    depStatus: {},       /* route id -> loading | ok | error */
-    routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
-    routeStatus: {},     /* route id -> loading | ok | error */
+    /*
+     * Four maps keyed by a route id, and `?route=` puts any string in that key.
+     * A bare `{}` inherits Object.prototype, so a route id of `constructor` or
+     * `toString` reads back a function rather than undefined: the fetch guard
+     * sees a cached document that is not one, and never asks for the real thing.
+     * Object.create(null) has no prototype to reach. Same bug as W.rowsFor, same
+     * reason it is fixed at the map rather than at each reader.
+     */
+    departures: Object.create(null),   /* route id -> api/departures/{id}.json */
+    depStatus: Object.create(null),    /* route id -> loading | ok | stale | error */
+    routeData: Object.create(null),    /* route id -> api/route/{id}.json, off the open board */
+    routeStatus: Object.create(null),  /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
-    openBuses: {}        /* vehicle_id -> true, for the all-buses detail panels */
+    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
+    storageFailed: false /* the last save was refused by localStorage */
   };
 
   var dom = {};
@@ -209,26 +227,104 @@
   }
 
   /*
-   * One departures document per route, kept for the session. It is a whole
-   * service day of scheduled stop times — about 17 KB gzipped for route 800 —
-   * so it is worth fetching once and worth not fetching until a saved trip or
-   * the editor actually needs it.
+   * The service date the LIVE payloads say it is now, or null when nothing live
+   * has been seen. Null means "do not judge anything expired".
+   *
+   * Never derived here from a device clock. The server already resolved
+   * service-day midnight once, correctly across both DST transitions, and
+   * re-deriving it in a browser is two chances a year to be an hour wrong on the
+   * document that says when a kid's bus leaves.
+   *
+   * And never from the bundled fixture. That file is a frozen capture, not a
+   * statement about today: reading its date as the current one would let a single
+   * failed request — route 4 is the default and the only bundled route — declare
+   * every cached schedule expired and throw it away, on a connection that had
+   * just proved it could not fetch a replacement.
+   */
+  function currentServiceDate(s) {
+    s = s || state;
+    if (!s.usingFixture && s.data && s.data.service_day && s.data.service_day.date) {
+      return s.data.service_day.date;
+    }
+    if (s.all && s.all.service_day && s.all.service_day.date) {
+      return s.all.service_day.date;
+    }
+    var routeData = s.routeData || {};
+    var ids = Object.keys(routeData);
+    for (var i = 0; i < ids.length; i++) {
+      var r = routeData[ids[i]];
+      if (r && r.service_day && r.service_day.date) return r.service_day.date;
+    }
+    return null;
+  }
+
+  /*
+   * A departures document describes one service day. This one describes an
+   * EARLIER one.
+   *
+   * Older, not merely different. `!==` also condemns a document from the future,
+   * and the two are not the same news: around the service-day roll, `state.data`
+   * can still be from before it while a schedule fetched a moment later is from
+   * after, and calling the fresher of the two expired re-fetches it once a minute
+   * until the live payload catches up. Any skew in that direction has the shape.
+   *
+   * Service dates are `YYYYMMDD` strings, so comparing them as strings compares
+   * them as dates. That holds only because of the format, which is why it is
+   * written down here rather than left to be noticed.
+   */
+  function scheduleExpired(doc, today) {
+    if (today === undefined) today = currentServiceDate();
+    return !!(today && doc && doc.service_date < today);
+  }
+
+  /*
+   * One departures document per route, kept for the SERVICE DAY it describes —
+   * not, as it was, for the life of the tab.
+   *
+   * It is a whole service day of scheduled stop times, about 17 KB gzipped for
+   * route 800, so it is worth fetching once and worth not fetching until a saved
+   * trip or the editor actually needs it. But a phone left on the counter
+   * overnight and picked up at seven still held yesterday's document: a saved
+   * trip reading "the last one today has gone", or times belonging to the wrong
+   * service day entirely, on the exact surface someone consults at breakfast and
+   * has no reason to doubt. The route payload refreshes every 60 seconds and
+   * carries the current service date, so it is what says when this document has
+   * expired.
    */
   function loadDepartures(routeId) {
     if (!routeId) return;
-    if (state.departures[routeId]) return;
     /*
-     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
-     * called render, and render asked again - a fetch-and-repaint loop that
-     * hammered the server and rebuilt the DOM every frame. The 60s refresh
-     * clears the status so a transient failure still recovers.
+     * A document for the current service day is done; there is nothing to do.
+     *
+     * One that is NOT is left exactly where it is and re-requested. Deleting it
+     * first is only safe when the fetch cannot fail — and this one demonstrably
+     * can, taking a correct schedule with it and leaving "Schedule not loaded"
+     * where a minute earlier there was a whole service day. The replacement is
+     * swapped in below, once it has actually arrived.
      */
-    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
+    var cached = state.departures[routeId];
+    if (cached && !scheduleExpired(cached)) return;
+    /*
+     * 'error' is a stop, not a pause, and so is 'stale'. Without that a failed
+     * fetch set the status, called render, and render asked again - a
+     * fetch-and-repaint loop that hammered the server and rebuilt the DOM every
+     * frame. The 60s refresh clears both so a transient failure, and a server
+     * still serving yesterday, each recover without spinning.
+     */
+    var status = state.depStatus[routeId];
+    if (status === 'loading' || status === 'error' || status === 'stale') return;
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
+        /* The swap. Whatever was here is replaced only now, by something that
+         * arrived. */
         state.departures[routeId] = d;
-        state.depStatus[routeId] = 'ok';
+        /*
+         * A document for an earlier day is KEPT — deleting it is how a failed
+         * refetch loses a whole service day — and marked so it is asked for again
+         * on the timer rather than spun on. Kept is not the same as believed.
+         */
+        state.depStatus[routeId] = scheduleExpired(d) ? 'stale' : 'ok';
         render();
       })
       .catch(function () {
@@ -778,6 +874,7 @@
     band.setAttribute('aria-label', 'Saved trips');
     dom.main.appendChild(band);
 
+
     var now = nowEpoch();
     var models = global.CMB.watch.list().map(function (w) {
       /* Fetching here rather than only in selectView covers a watch saved while
@@ -800,6 +897,22 @@
       },
       onChange: render
     });
+
+    /*
+     * A refused write is reported where the reader is looking for the trip.
+     *
+     * After watch.render, not before: it opens with S.clear(host), so a notice
+     * appended earlier is built and then thrown away — which is exactly what
+     * happened the first time this was written, and the reason the e2e test
+     * asserts the notice is on screen rather than that the code appends one.
+     *
+     * The announcement alone is not enough. It goes to a sr-only live region, so
+     * on its own it leaves a sighted reader looking at a list that silently does
+     * not contain what they just saved.
+     */
+    if (state.storageFailed) {
+      band.appendChild(S.notice('error', 'Nothing was saved.', STORAGE_REFUSED));
+    }
     dom.main.appendChild(footer(state.data));
   }
 
@@ -830,9 +943,15 @@
         render();
       },
       onSave: function (w) {
-        global.CMB.watch.add(w);
+        /*
+         * add() reports whether the store actually took it. It used to return
+         * the list either way, so a refused write announced "Saved" and the trip
+         * was gone on the next load with nothing having said so.
+         */
+        var res = global.CMB.watch.add(w);
+        state.storageFailed = !res.saved;
         state.view = 'saved';
-        announce('Saved ' + global.CMB.watch.describe(w));
+        announce(res.saved ? 'Saved ' + global.CMB.watch.describe(w) : STORAGE_REFUSED);
         render();
       }
     });
@@ -915,12 +1034,20 @@
       setInterval(function () {
         if (state.status !== 'loading') load(state.routeId);
         if (state.view === 'all') loadAll();
-        /* One retry per minute for a schedule that failed to load, and only
-         * here, where a retry cannot become a render loop. */
-        if (state.depStatus[state.routeId] === 'error') {
-          delete state.depStatus[state.routeId];
-          loadDepartures(state.routeId);
-        }
+        /*
+         * One retry per minute for a schedule that failed to load or that
+         * describes an earlier service day, and only here, where a retry cannot
+         * become a render loop.
+         *
+         * Every route, not just the open one: a saved trip on another route holds
+         * its own departures document, and that is the one being read at
+         * breakfast after the phone sat on the counter all night.
+         */
+        Object.keys(state.depStatus).forEach(function (rid) {
+          var st = state.depStatus[rid];
+          if (st === 'error' || st === 'stale') delete state.depStatus[rid];
+        });
+        if (state.routeId) loadDepartures(state.routeId);
         if (state.view === 'saved') {
           /* A frozen saved trip is worse than none: it reads as a live prediction. */
           global.CMB.watch.list().forEach(function (w) {
@@ -952,6 +1079,14 @@
     load: load,
     selectView: selectView,
     matchesFilter: matchesFilter,
+    /*
+     * Both take their inputs explicitly so the suite can assert the rule without
+     * a running board: currentServiceDate(s) reads the state it is handed, and
+     * scheduleExpired(doc, today) is a pure comparison. The board calls them with
+     * no arguments and gets the live state.
+     */
+    currentServiceDate: currentServiceDate,
+    scheduleExpired: scheduleExpired,
     FAVOURITES: FAVOURITES,
     SUPPORTED_SCHEMA: SUPPORTED_SCHEMA
   };

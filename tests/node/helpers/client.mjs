@@ -99,23 +99,30 @@ export function textOf(node) {
 }
 
 /*
- * A richer sandbox than loadClient's, for the panels that BUILD a tree rather than
- * compute a number. rows.js and map.js need classList and childNodes, and ladder.js
- * needs createElementNS; loadClient's stub has none of the three, so a test that calls
- * render() against it throws rather than asserting.
- *
- * Still deliberately thin: no layout, no events, no real elements. Anything that needs a
- * box on screen belongs in the Playwright suite, which drives the actual page.
+ * One stub element, shared by renderClient and bootClient so the two sandboxes
+ * cannot drift into disagreeing about what a node can do.
  */
-export function renderClient(scripts) {
-  const element = (tag, ns) => {
-    const node = {
+function stubElement(tag, ns) {
+  const node = {
       tagName: tag,
       ns,
       className: '',
       textContent: '',
       children: [],
       attributes: {},
+      dataset: {},
+      style: {},
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      focus() {},
+      blur() {},
+      scrollIntoView() {},
+      getBoundingClientRect: () => ({ top: 0, left: 0, width: 0, height: 0, right: 0, bottom: 0 }),
+      contains: () => false,
+      insertBefore(child) {
+        this.children.unshift(child)
+        return child
+      },
       appendChild(child) {
         this.children.push(child)
         return child
@@ -156,9 +163,21 @@ export function renderClient(scripts) {
           },
         }
       },
-    }
-    return node
   }
+  return node
+}
+
+/*
+ * A richer sandbox than loadClient's, for the panels that BUILD a tree rather than
+ * compute a number. rows.js and map.js need classList and childNodes, and ladder.js
+ * needs createElementNS; loadClient's stub has none of the three, so a test that calls
+ * render() against it throws rather than asserting.
+ *
+ * Still deliberately thin: no layout, no events, no real elements. Anything that needs a
+ * box on screen belongs in the Playwright suite, which drives the actual page.
+ */
+export function renderClient(scripts) {
+  const element = (tag, ns) => stubElement(tag, ns)
 
   const missing = scripts.filter((s) => {
     try {
@@ -221,4 +240,95 @@ export function all(node, cls) {
 export function textDeep(node) {
   if (!node) return ''
   return [node.textContent || '', ...(node.children || []).map(textDeep)].join(' ').trim()
+}
+
+/*
+ * A sandbox that can BOOT app.js, rather than only load the modules it uses.
+ *
+ * app.js is the one client file that runs on load: it reaches for
+ * document.getElementById, installs listeners and starts the refresh timer. The
+ * other two sandboxes have no getElementById at all, so app.js throws before it
+ * exports anything and its decisions cannot be asserted.
+ *
+ * location.protocol is 'file:' on purpose. It is the one value that makes boot
+ * inert and deterministic: getJson rejects immediately rather than reaching for
+ * a network that is not there, and app.js skips installing the 60s interval
+ * entirely, so nothing is left running after the test returns.
+ */
+export function bootClient(scripts) {
+  const missing = scripts.filter((s) => {
+    try {
+      readFileSync(path.join(ROOT, 'client', s))
+      return false
+    } catch {
+      return true
+    }
+  })
+  if (missing.length) {
+    return { cmb: null, reason: `client/${missing.join(', client/')} does not exist yet` }
+  }
+
+  const document = {
+    readyState: 'complete',
+    createElement: (tag) => stubElement(tag),
+    createElementNS: (ns, tag) => stubElement(tag, ns),
+    getElementById: () => stubElement('div'),
+    createDocumentFragment: () => stubElement('#fragment'),
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    addEventListener() {},
+    documentElement: stubElement('html'),
+    body: stubElement('body'),
+  }
+  const store = new Map()
+  const window = {
+    CMB: {},
+    document,
+    location: { protocol: 'file:', search: '', href: 'file:///index.html', reload() {} },
+    localStorage: {
+      getItem: (k) => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => void store.set(k, String(v)),
+      removeItem: (k) => void store.delete(k),
+    },
+    addEventListener() {},
+    setInterval: () => 0,
+    clearInterval() {},
+    setTimeout: () => 0,
+    clearTimeout() {},
+    matchMedia: () => ({ matches: false, addEventListener() {}, addListener() {} }),
+    requestAnimationFrame: (fn) => { fn(0); return 0 },
+    cancelAnimationFrame() {},
+  }
+  window.window = window
+  const context = vm.createContext({
+    window,
+    document,
+    globalThis: window,
+    console,
+    localStorage: window.localStorage,
+    setInterval: window.setInterval,
+    clearInterval: window.clearInterval,
+    setTimeout: window.setTimeout,
+    clearTimeout: window.clearTimeout,
+    requestAnimationFrame: window.requestAnimationFrame,
+    cancelAnimationFrame: window.cancelAnimationFrame,
+    Promise,
+    JSON,
+    Math,
+    Date,
+  })
+
+  try {
+    for (const s of scripts) {
+      vm.runInContext(readFileSync(path.join(ROOT, 'client', s), 'utf8'), context, {
+        filename: `client/${s}`,
+      })
+    }
+  } catch (err) {
+    return { cmb: null, window: null, reason: `client/${scripts.join(', ')} failed to evaluate: ${err.message}` }
+  }
+
+  /* The window comes back so a test can break localStorage and watch what the
+   * client does about it. */
+  return { cmb: window.CMB, window, reason: null }
 }

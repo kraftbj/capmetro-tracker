@@ -86,13 +86,23 @@
     });
   }
 
+  /*
+   * Returns whether the store now holds the watch, not just the new list.
+   *
+   * writeStore already reports a refusal — Safari private browsing, an exhausted
+   * quota, storage switched off — and every caller used to discard it, so the UI
+   * announced "saved" on a write that did not happen and the trip was gone on the
+   * next load. That is the failure this board is otherwise careful about: not
+   * that something broke, but that the interface said it worked.
+   */
   function add(w) {
     var all = list();
     var k = keyFor(w);
-    if (all.filter(function (x) { return keyFor(x) === k; }).length) return all;
+    if (all.filter(function (x) { return keyFor(x) === k; }).length) {
+      return { list: all, saved: true };   /* already there; nothing to write */
+    }
     all.push(w);
-    writeStore(all);
-    return all;
+    return { list: all, saved: writeStore(all) };
   }
 
   function remove(k) {
@@ -129,13 +139,37 @@
   }
 
   /*
+   * The rows at one stop, looked up the only way that is safe.
+   *
+   * `departures[stopId]` is a bare lookup on a plain object parsed from JSON, so
+   * it also reaches Object.prototype. A stop id of `constructor` returns the
+   * Object function: truthy, so an `|| []` fallback never fires, with a `.length`
+   * of 1 and no element at [0]. The next line reads `rows[0][1]` and throws, and
+   * because that happens during render the whole board goes blank.
+   *
+   * The stop id is not always internal. app.js takes `?stop=` straight from the
+   * query string, so any link can choose it. The guard belongs here, at the one
+   * lookup every caller goes through, rather than in whichever caller happens to
+   * be holding an untrusted id today.
+   */
+  function rowsFor(departures, stopId) {
+    if (!Object.prototype.hasOwnProperty.call(departures, stopId)) return [];
+    var rows = departures[stopId];
+    return isArray(rows) ? rows : [];
+  }
+
+  function isArray(v) {
+    return Object.prototype.toString.call(v) === '[object Array]';
+  }
+
+  /*
    * Every departure at one stop, in the watched direction, as {seconds, trip}.
    * The departures document keys by stop_id alone because a stop can be served in
    * both directions; the direction filter is the trip's, not the stop's.
    */
   function departuresAt(dep, stopId, directionId) {
     if (!dep || !dep.departures) return [];
-    var rows = dep.departures[stopId] || [];
+    var rows = rowsFor(dep.departures, stopId);
     var trips = dep.trips || [];
     var out = [];
     for (var i = 0; i < rows.length; i++) {
@@ -673,6 +707,7 @@
     keyFor: keyFor,
     clockOf: clockOf,
     secondsOf: secondsOf,
+    rowsFor: rowsFor,
     departuresAt: departuresAt,
     matchDeparture: matchDeparture,
     vehicleForTrip: vehicleForTrip,

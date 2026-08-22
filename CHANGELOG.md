@@ -7,6 +7,48 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **A phone left on the counter overnight answered from yesterday's schedule.**
+  A departures document was fetched once and kept for the life of the tab, so a
+  board opened the previous evening and picked up at breakfast was still reading
+  the previous service day: saved trips reporting "the last one today has gone",
+  or times belonging to a day that had ended, on the surface someone consults
+  while deciding whether to drive.
+
+  A document is now kept for the service day it describes. The live route payload
+  refreshes every 60 seconds and carries the current service date, so it — never
+  a device clock — is what says the schedule has expired. Two details are load
+  bearing and each is asserted directly. The comparison is **older**, not merely
+  different: `!==` also condemns a document from the future, which is what a tab
+  holds for a few seconds either side of the service-day roll, and re-fetching it
+  once a minute until the live payload catches up. And the current date is never
+  read off the bundled fixture, a frozen capture that would otherwise let one
+  failed request declare every genuinely current schedule expired.
+
+  An expired document is kept and re-requested rather than deleted first.
+  Deleting is only safe when the fetch cannot fail, and this one demonstrably
+  can — taking a correct schedule with it and leaving "Schedule not loaded" where
+  a minute earlier there was a whole service day. The replacement is swapped in
+  once it has arrived, and until then the document is marked `stale`: kept, but
+  not believed, and not re-requested on every repaint.
+
+- **A stop id from a link could blank the whole board.** `departures[stopId]` was
+  a bare lookup on an object parsed from JSON, so it also reached
+  `Object.prototype`. `?stop=constructor` returned the Object function — truthy,
+  so the `|| []` fallback never fired, with a `length` of 1 and nothing at `[0]`.
+  The next line read `rows[0][1]` and threw, and because that happened during
+  render the page went blank rather than showing an empty stop. `app.js` takes
+  `state.stopId` straight off the query string, so this was reachable by anyone
+  who could send a URL. Guarded once, at the single lookup every reader goes
+  through, rather than in whichever caller happens to hold an untrusted id.
+
+- **The board said "Saved" when nothing had been saved.** `watch.add()` discarded
+  what `writeStore` already told it, so a write refused by Safari private
+  browsing, an exhausted quota, or storage switched off was announced as a
+  success. The trip was not in the list, and on the next load it was gone
+  entirely, with nothing having said so. `add()` now reports whether the store
+  took it, and the saved view says so in words — the announcement alone goes to a
+  screen-reader-only region and leaves a sighted reader with no sign at all.
+
 - **Every northbound bus said its next run was another northbound one.** Spotted
   on route 837, where all seven live buses claimed a continuation 2.5 hours out
   on a route that runs every fifteen minutes — the bus obviously runs the return

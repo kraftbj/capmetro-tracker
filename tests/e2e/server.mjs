@@ -10,6 +10,8 @@
  *   /torn/    a response truncated mid-write
  *   /missing/ a 500 from the API, with the client files still served
  *   /future/  a payload written for schema 2
+ *   /yesterday/ a fresh live payload with a departures document from the
+ *             service day before it — the phone left on the counter overnight
  *
  * Run standalone with: node tests/e2e/server.mjs
  */
@@ -57,7 +59,22 @@ const SCENARIOS = {
   missing: () => ({ status: 500, body: '{"error":"upstream"}' }),
   future: () => ({ status: 200, body: JSON.stringify({ ...readJson(GOLDEN), schema: 2 }) }),
   empty: () => ({ status: 200, body: JSON.stringify({ ...readJson(GOLDEN), vehicles: [] }) }),
+  /*
+   * The live payload is the fresh one; only the departures document below
+   * differs, and only in its service date. That is the whole point: the client
+   * decides a schedule has expired by comparing the two, so the scenario has to
+   * hold everything else still.
+   */
+  yesterday: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
 }
+
+/*
+ * The service date the golden route payload publishes, and the day before it.
+ * Read rather than written down twice, so replacing the golden file cannot
+ * leave the scenario quietly asserting against a date nothing serves.
+ */
+const GOLDEN_SERVICE_DATE = readJson(GOLDEN).service_day.date
+const DAY_BEFORE_GOLDEN = String(Number(GOLDEN_SERVICE_DATE) - 1)
 
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 
@@ -71,6 +88,24 @@ const server = createServer((req, res) => {
     const { status, body } = SCENARIOS[scenario]()
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(body)
+    return
+  }
+
+  /*
+   * The departures document. As with api/route/ above, the requested route id is
+   * ignored and one committed schedule stands in for whichever route the board
+   * asks about — the scenario, not the id, decides what comes back.
+   *
+   * Under `yesterday` the only thing that changes is service_date, set one day
+   * before the date the golden live payload publishes. That is exactly the state
+   * a phone is in when it was left on the counter overnight: a schedule from the
+   * previous service day, and a live feed that has since rolled over.
+   */
+  if (rest.startsWith('api/departures/')) {
+    const doc = wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json')))
+    if (scenario === 'yesterday') doc.service_date = DAY_BEFORE_GOLDEN
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+    res.end(JSON.stringify(doc))
     return
   }
 

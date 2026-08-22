@@ -18,7 +18,13 @@ export default defineConfig({
   webServer: {
     command: 'node tests/e2e/server.mjs',
     url: `http://localhost:${PORT}/fresh/index.html`,
-    reuseExistingServer: true,
+    /*
+     * Never reuse. A server left running from an earlier run serves ITS copy of
+     * the fixtures and its copy of client/, so a suite can pass or fail against
+     * a tree nobody is looking at — which has already happened here once, with
+     * two stale servers on this port silently answering every request.
+     */
+    reuseExistingServer: false,
     timeout: 20000,
   },
 })
