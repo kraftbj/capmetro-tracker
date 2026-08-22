@@ -97,10 +97,21 @@ test.describe('building a chain', () => {
     await expect(card).toContainText('800 → 4')
     await expect(card).toContainText('1 change')
 
-    /* The verdict is the point of the card, and it must be words, not a color. */
+    /*
+     * The verdict is the point of the card, and it must be words, not a color.
+     *
+     * Matched against the whole vocabulary rather than /Connection|Chain/, which
+     * was a loose proxy that happened to exclude three of the six real verdicts —
+     * "Tight connection", "Not reached" and the lowercase half of the others. It
+     * broke the moment TIGHT_S moved and this card graded tight instead of
+     * holding, which is a correct verdict, not a regression. An exhaustive list
+     * still fails on a blank label or a card that renders colour alone.
+     */
     const verdict = card.locator('.chaincard__verdictlabel').first()
     await expect(verdict).toBeVisible()
-    await expect(verdict).toHaveText(/Connection|Chain/)
+    await expect(verdict).toHaveText(
+      /^(Connection holds|Tight connection|Connection missed|Chain broken|Not reached|Connection unknown)$/
+    )
 
     /* Both legs, in the order they are ridden. */
     const legs = card.locator('.chaincard__legroute')

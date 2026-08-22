@@ -280,11 +280,31 @@ time-axis string-line would still need scheduled times per timepoint per trip.
   independently printed "Connection holds" six lines under "Connection missed" on a
   three-leg chain, which is the shipped path for "337 to the 7 to the 837".
 
-- **`TIGHT_S` compares with `<=`, and that is load-bearing.** It equals
-  `MIN_SLACK_S`, and the editor offers a connection at `>= MIN_SLACK_S`, so a strict
-  `<` graded the tightest connection the board will ever offer as comfortable. The
-  two constants being equal is what makes this invisible on a read; there is a test
-  asserting the verdict at exactly that value.
+- **`TIGHT_S` is five minutes, and deliberately not `MIN_SLACK_S`.** The two used
+  to be the same two minutes, on the reasoning that offering a connection and
+  trusting one are the same judgment. They are not. The estimator holds the first
+  leg's *currently observed* lateness constant all the way to the alighting stop,
+  and for a bus twenty minutes upstream that number moves by minutes before it
+  arrives — so a three-minute verdict sat inside the noise of the measurement that
+  produced it and still read "Connection holds". Nothing is hidden by the higher
+  threshold: those connections still appear, still print their slack, and still say
+  which half of the sum is measured. They say "tight" instead. The comparison is
+  `<=`, which mattered acutely while the constants were equal (a strict `<` graded
+  the tightest connection the board will ever offer as comfortable) and is still
+  the honest boundary. Tests assert the verdict at `MIN_SLACK_S`, at `MIN_SLACK_S
+  + 1`, at `TIGHT_S` and at `TIGHT_S + 1`.
+
+- **A verdict requires evidence; there is no default.** `gradeDecision()` is
+  written as an exhaustive set of named cases with no fall-through, and that shape
+  is the point. It was previously an enumeration of reasons to *refuse*, which
+  means it had a default, and the default was "grade it" — so every case nobody had
+  thought of graded confidently from the timetable. Four review rounds each found
+  another one and each fixed it by adding a fifth refusal. The last one found was
+  `route === null`, which is the state **every page load starts in**, because the
+  live route map is built from payloads that have already landed and the chain
+  paints before they do: the first frame of every visit printed "Connection holds"
+  beside the board's own "No live data for route N" banner. Adding a case here
+  means adding a branch, not discovering later that an unnamed one graded.
 
 - **The walk is charged with a 1.4 circuity factor.** Great-circle distance is
   accurate to centimetres here and still wrong for the purpose: the straight line

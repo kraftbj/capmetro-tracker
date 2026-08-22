@@ -24,7 +24,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { renderClient, textOf } from './helpers/client.mjs'
 import { ROOT } from './helpers/optional.mjs'
-import { API, hasGeneratedOutput, MISSING } from './helpers/webroot.mjs'
+import { API, hasGeneratedOutput, MISSING, requireGenerated } from './helpers/webroot.mjs'
 
 const client = renderClient(['format.js', 'adherence.js', 'states.js', 'watch.js', 'chain.js'])
 
@@ -33,6 +33,25 @@ const t = (name, fn) =>
     if (!client.cmb) ctx.skip(client.reason)
     if (!client.cmb.chain) ctx.skip('client scripts loaded but window.CMB.chain is not defined')
     return fn(client.cmb.chain, client.cmb)
+  })
+
+/*
+ * Like t(), for the tests that need real generated output rather than the
+ * fixture.
+ *
+ * They used to open with `if (!hasGeneratedOutput()) return void 0`, and an early
+ * return is a PASS. So the three highest-value tests in this file — the ones that
+ * check the household's actual chains against the whole corpus rather than
+ * against two trimmed routes — reported green while asserting nothing, under the
+ * per-suite command CLAUDE.md documents. run-all.sh already carries the note "a
+ * skip that reads as a pass is worse than a failure" about exactly this.
+ */
+const tReal = (name, fn) =>
+  it(name, (ctx) => {
+    if (!client.cmb) ctx.skip(client.reason)
+    if (!client.cmb.chain) ctx.skip('client scripts loaded but window.CMB.chain is not defined')
+    requireGenerated(ctx)
+    return fn(client.cmb.chain, ctx)
   })
 
 const FIXTURE = JSON.parse(
@@ -85,6 +104,30 @@ const routeWith = (tripId, late, state = 'late') => ({
     },
   ],
 })
+
+/*
+ * A live feed for a route with no bus joined to any trip.
+ *
+ * This is NOT the same as having no payload for the route, and the difference is
+ * the whole of what four review rounds kept getting wrong. "The feed is up and
+ * this bus has not started its run" is a real observation, and the timetable is
+ * the honest prior for it. "Nothing has loaded for this route" is the absence of
+ * an observation, and nothing may be concluded from it.
+ *
+ * An empty routes map means the second. Every test below that means the FIRST
+ * says so by going through liveFeed(), so an assertion about timetable grading
+ * cannot quietly become an assertion about ungraded output.
+ */
+const liveRoute = () => ({
+  staleness: { level: 'fresh', suppress_adherence: false },
+  vehicles: [],
+})
+
+const liveFeed = (overrides) =>
+  Object.assign({ 800: liveRoute(), 4: liveRoute() }, overrides || {})
+
+/* resolve() against a live feed, with any named route overridden. */
+const resolveLive = (chain, c, deps, routes, now) => chain.resolve(c, deps, liveFeed(routes), now)
 
 describe('the premise: these two routes share no stops at all', () => {
   t('routes 800 and 4 have zero stop ids in common', () => {
@@ -225,7 +268,7 @@ describe('the verdict, which is the whole product', () => {
 
   t('with nothing reporting it is the timetable, and says so', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, {}, now)
+    const m = resolveLive(chain, c, DEPS, {}, now)
     expect(m.state).toBe('no-vehicle')
     expect(m.connection.state).toBe('made')
     expect(m.connection.assumed).toEqual(['arriving', 'onward'])
@@ -234,7 +277,7 @@ describe('the verdict, which is the whole product', () => {
 
   t('an on-time first bus keeps the connection', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, 0, 'ontime') }, now)
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, 0, 'ontime') }, now)
     expect(m.state).toBe('live')
     expect(m.connection.state).toBe('made')
     expect(m.connection.slack_s).toBe(m.connection.scheduled_slack_s)
@@ -243,7 +286,7 @@ describe('the verdict, which is the whole product', () => {
   t('a late enough first bus loses it, and the slack goes negative', (chain) => {
     const { chain: c, connection } = theChain(chain)
     const late = connection.slack_s + 60 /* one minute past what there was to spare */
-    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
     expect(m.connection.state).toBe('missed')
     expect(m.connection.slack_s).toBeLessThan(0)
     expect(chain.slackText(m.connection.slack_s)).toMatch(/short$/)
@@ -254,7 +297,7 @@ describe('the verdict, which is the whole product', () => {
     const { chain: c, connection } = theChain(chain)
     /* Eat all but sixty seconds of the spare time. */
     const late = connection.slack_s - 60
-    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
     expect(m.connection.state).toBe('tight')
     expect(m.connection.slack_s).toBeGreaterThanOrEqual(0)
     expect(m.connection.slack_s).toBeLessThan(chain.TIGHT_S)
@@ -263,7 +306,7 @@ describe('the verdict, which is the whole product', () => {
   t('a late ONWARD bus gives the connection back', (chain) => {
     const { chain: c, connection } = theChain(chain)
     const late = connection.slack_s + 60
-    const held = chain.resolve(
+    const held = resolveLive(chain, 
       c,
       DEPS,
       {
@@ -294,7 +337,7 @@ describe('the verdict, which is the whole product', () => {
         adherence: { state: 'very_late', seconds: late, reason: null },
       }
 
-      const fresh = chain.resolve(c, DEPS, {
+      const fresh = resolveLive(chain, c, DEPS, {
         800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [vehicle] },
       }, now)
       expect(fresh.connection.state).toBe('missed')
@@ -305,7 +348,7 @@ describe('the verdict, which is the whole product', () => {
        * 'made' with +480 s of slack: the timetable stood in for a measurement that
        * existed and was lost, and the substitution always reads "on time".
        */
-      const dead = chain.resolve(c, DEPS, {
+      const dead = resolveLive(chain, c, DEPS, {
         800: { staleness: { level: 'dead', suppress_adherence: true }, vehicles: [vehicle] },
       }, now)
       expect(dead.connection.state).toBe('unknown')
@@ -318,7 +361,7 @@ describe('the verdict, which is the whole product', () => {
 
   t('and never calls a suppressed bus one that has not reported', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, {
+    const m = resolveLive(chain, c, DEPS, {
       800: {
         staleness: { level: 'dead', suppress_adherence: true },
         vehicles: [{
@@ -340,20 +383,20 @@ describe('the verdict, which is the whole product', () => {
 describe('the states a chain can be in', () => {
   t('before the window it is a plan, not news', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, {}, MIDNIGHT + 5 * 3600)
+    const m = resolveLive(chain, c, DEPS, {}, MIDNIGHT + 5 * 3600)
     expect(m.state).toBe('upcoming')
   })
 
   t('after the last bus has been boarded it is over', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, {}, MIDNIGHT + 12 * 3600)
+    const m = resolveLive(chain, c, DEPS, {}, MIDNIGHT + 12 * 3600)
     expect(m.state).toBe('passed')
   })
 
   t('saved for a weekday, opened on a Sunday, says which', (chain) => {
     const { chain: c } = theChain(chain)
     const sunday = { ...DEPS, 800: { ...DEP800, day_type: 'sunday' } }
-    const m = chain.resolve(c, sunday, {}, MIDNIGHT + 8 * 3600)
+    const m = resolveLive(chain, c, sunday, {}, MIDNIGHT + 8 * 3600)
     expect(m.state).toBe('not-today')
     expect(m.detail).toMatch(/Today is a sunday/)
   })
@@ -362,7 +405,7 @@ describe('the states a chain can be in', () => {
     const { chain: c } = theChain(chain)
     const moved = { legs: [{ ...c.legs[0], scheduled_time: '03:03:03' }, c.legs[1]],
       day_type: 'weekday' }
-    const m = chain.resolve(moved, DEPS, {}, MIDNIGHT + 8 * 3600)
+    const m = resolveLive(chain, moved, DEPS, {}, MIDNIGHT + 8 * 3600)
     expect(m.state).toBe('broken')
     expect(m.detail).toMatch(/[Rr]oute 800/)
   })
@@ -373,20 +416,20 @@ describe('the states a chain can be in', () => {
       legs: [c.legs[0], { ...c.legs[1], alight_stop_id: 'not-on-this-trip' }],
       day_type: 'weekday',
     }
-    const m = chain.resolve(wrong, DEPS, {}, MIDNIGHT + 8 * 3600)
+    const m = resolveLive(chain, wrong, DEPS, {}, MIDNIGHT + 8 * 3600)
     expect(m.state).toBe('broken')
     expect(m.detail).toMatch(/no longer stops where the change was made/)
   })
 
   t('a missing schedule is not a broken chain', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, {}, {}, MIDNIGHT + 8 * 3600)
+    const m = resolveLive(chain, c, {}, {}, MIDNIGHT + 8 * 3600)
     expect(m.state).toBe('no-schedule')
   })
 
   t('the SECOND route missing its schedule is also not-yet, not broken', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, { 800: DEP800 }, {}, MIDNIGHT + 8 * 3600)
+    const m = resolveLive(chain, c, { 800: DEP800 }, {}, MIDNIGHT + 8 * 3600)
     expect(m.state).toBe('no-schedule')
   })
 })
@@ -425,7 +468,7 @@ describe('what the store will keep', () => {
   })
 
   t('resolve refuses a one-leg chain rather than throwing', (chain) => {
-    const m = chain.resolve({ legs: [LEG1], day_type: 'weekday' }, DEPS, {}, MIDNIGHT)
+    const m = resolveLive(chain, { legs: [LEG1], day_type: 'weekday' }, DEPS, {}, MIDNIGHT)
     expect(m.state).toBe('broken')
   })
 })
@@ -472,7 +515,7 @@ describe('words a person reads at six in the morning', () => {
 describe('the card', () => {
   t('leads with the first bus and names the change', (chain, cmb) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, 0, 'ontime') },
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, 0, 'ontime') },
       MIDNIGHT + 7 * 3600 + 50 * 60)
     const host = cmb.states.el('div')
     chain.render(host, [m], {})
@@ -509,11 +552,17 @@ describe('against real generated output', () => {
   ]
 
   REAL.forEach((leg) => {
-    t(`route ${leg.from} really does connect to route ${leg.to}`, (chain, ctx) => {
-      if (!hasGeneratedOutput()) return void 0 /* asserted below via the guard test */
+    tReal(`route ${leg.from} really does connect to route ${leg.to}`, (chain) => {
       const a = dep(leg.from)
       const b = dep(leg.to)
-      if (!a || !b) return void 0
+      /*
+       * A missing departures document with a generated webroot present is a
+       * regression in what the runtime publishes, not a reason to say nothing.
+       * These two routes are on the watch list; if they stop being generated the
+       * board loses a chain and this is where it should surface.
+       */
+      expect(a, `no generated departures document for route ${leg.from}`).toBeTruthy()
+      expect(b, `no generated departures document for route ${leg.to}`).toBeTruthy()
       /*
        * Pick a real morning trip on the first route rather than a named one, so this
        * keeps working across a feed rebuild. The claim under test is not "this exact
@@ -540,9 +589,17 @@ describe('against real generated output', () => {
     })
   })
 
-  it('says so when there is no generated output to check against', (ctx) => {
-    if (!hasGeneratedOutput()) ctx.skip(MISSING)
+  /*
+   * This used to read `if (!hasGeneratedOutput()) ctx.skip(MISSING)` followed by
+   * an assertion that it exists — so it skipped in precisely the case it was
+   * written to report, and the three tests above passed silently alongside it.
+   * The reporting now lives in tReal, which skips each of them by name and with a
+   * reason; this just states the requirement in one place.
+   */
+  it('needs generated output, and says so by name when there is none', (ctx) => {
+    requireGenerated(ctx)
     expect(hasGeneratedOutput()).toBe(true)
+    expect(existsSync(API)).toBe(true)
   })
 })
 
@@ -602,19 +659,19 @@ describe('a canceled leg is never graded', () => {
         schedule: { canceled_trips: [WATCHED_TRIP] },
       },
     }
-    const m = chain.resolve(c, cached, live, now)
+    const m = resolveLive(chain, c, cached, live, now)
     expect(m.state).toBe('canceled')
     expect(m.transfers[0].state).toBe('void')
 
     /* Negative control: without the live list the same input grades normally, so
        the assertion above is about the union and not about the fixture. */
-    const without = chain.resolve(c, cached, {}, now)
+    const without = resolveLive(chain, c, cached, {}, now)
     expect(without.state).not.toBe('canceled')
   })
 
   t('the FIRST leg canceled does not read as a bus that has yet to start', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
     expect(m.state).toBe('canceled')
     expect(m.detail).toMatch(/canceled the 7:52a route 800/)
     expect(m.detail).not.toMatch(/normal until it starts its run/)
@@ -622,7 +679,7 @@ describe('a canceled leg is never graded', () => {
 
   t('and its transfer is void rather than graded', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
     expect(m.transfers[0].state).toBe('void')
     expect(m.transfers[0].slack_s).toBeNull()
     expect(m.connection.state).toBe('void')
@@ -630,7 +687,7 @@ describe('a canceled leg is never graded', () => {
 
   t('the ONWARD leg canceled is caught too, and named', (chain) => {
     const { chain: c, connection } = theChain(chain)
-    const m = chain.resolve(c, withCanceled(connection.trip.id), {}, now)
+    const m = resolveLive(chain, c, withCanceled(connection.trip.id), {}, now)
     expect(m.state).toBe('canceled')
     expect(m.detail).toMatch(/route 4/)
     expect(m.transfers[0].state).toBe('void')
@@ -638,7 +695,7 @@ describe('a canceled leg is never graded', () => {
 
   t('the card says CANCELED and never a connection verdict', (chain, cmb) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
     const host = cmb.states.el('div')
     chain.render(host, [m], {})
     const said = textOf(host)
@@ -651,7 +708,7 @@ describe('a canceled leg is never graded', () => {
 
   t('and a screen reader hears it, not just the color', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, withCanceled(WATCHED_TRIP), {}, now)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
     /* spoken() is exercised through the card; assert the model carries the words. */
     expect(m.detail).toMatch(/CapMetro has canceled/)
   })
@@ -695,10 +752,17 @@ describe('a change nobody reaches is not graded either', () => {
 
   t('a missed first change voids every change after it', (chain, cmb) => {
     const three = threeLeg(chain)
-    if (!three) return void 0   /* the fixture trim offers no third leg today */
+    /*
+     * The fixture is committed and deterministic, so a missing third leg is a
+     * fixture regression, not a legitimate skip — and `return void 0` would report
+     * it as three passes. This test and the two below cover the cascade bug
+     * ("Connection holds" printed six lines under "Connection missed") and the
+     * cancellation ranking, which are the findings this file exists to defend.
+     */
+    expect(three, 'the fixture no longer offers a third leg').toBeTruthy()
     const { connection } = theChain(chain)
     const late = connection.slack_s + 60
-    const m = chain.resolve(three, DEPS,
+    const m = resolveLive(chain, three, DEPS,
       { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
 
     expect(m.transfers).toHaveLength(2)
@@ -719,25 +783,55 @@ describe('a change nobody reaches is not graded either', () => {
 describe('the boundary between tight and fine', () => {
   const now = MIDNIGHT + 7 * 3600 + 50 * 60
 
-  t('slack of exactly MIN_SLACK_S is tight, not holding', (chain) => {
+  /** Grade this chain with the first bus late enough to leave exactly `slack`. */
+  const atSlack = (chain, slack) => {
     const { chain: c, connection } = theChain(chain)
-    /* Eat the spare time down to exactly the floor the editor will still offer. */
-    const late = connection.slack_s - chain.MIN_SLACK_S
-    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'late') }, now)
-    expect(m.connection.slack_s).toBe(chain.MIN_SLACK_S)
-    /*
-     * The two constants are equal, which is what made this invisible: with a
-     * strict `<` the tightest connection the board will ever offer graded "made".
-     */
-    expect(chain.TIGHT_S).toBe(chain.MIN_SLACK_S)
-    expect(m.connection.state).toBe('tight')
+    const m = resolveLive(
+      chain,
+      c,
+      DEPS,
+      { 800: routeWith(WATCHED_TRIP, connection.slack_s - slack, 'late') },
+      now
+    )
+    /* The arithmetic landed where the test says it did, so the state assertion
+       below is about the threshold and not about a miscalculated setup. */
+    expect(m.connection.slack_s).toBe(slack)
+    return m.connection.state
+  }
+
+  /*
+   * The two thresholds are deliberately different numbers now.
+   *
+   * They used to both be two minutes, on the reasoning that offering a connection
+   * and trusting one are the same judgment. They are not. The estimator holds the
+   * first leg's observed lateness constant to the alighting stop, and for a bus
+   * twenty minutes upstream that drifts by minutes — so a three-minute verdict
+   * sat inside the noise of the number that produced it, and still read
+   * "Connection holds".
+   */
+  t('trusting a connection now takes more slack than offering one', (chain) => {
+    expect(chain.TIGHT_S).toBeGreaterThan(chain.MIN_SLACK_S)
   })
 
-  t('one second more is holding', (chain) => {
-    const { chain: c, connection } = theChain(chain)
-    const late = connection.slack_s - chain.MIN_SLACK_S - 1
-    const m = chain.resolve(c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'late') }, now)
-    expect(m.connection.state).toBe('made')
+  t('slack of exactly MIN_SLACK_S is tight, not holding', (chain) => {
+    expect(atSlack(chain, chain.MIN_SLACK_S)).toBe('tight')
+  })
+
+  /*
+   * The old boundary. One second above MIN_SLACK_S used to grade "made"; it is
+   * the case this change exists for, so it is asserted rather than left to be
+   * inferred from the constant.
+   */
+  t('one second above MIN_SLACK_S is still tight, where it used to hold', (chain) => {
+    expect(atSlack(chain, chain.MIN_SLACK_S + 1)).toBe('tight')
+  })
+
+  t('slack of exactly TIGHT_S is tight', (chain) => {
+    expect(atSlack(chain, chain.TIGHT_S)).toBe('tight')
+  })
+
+  t('one second above TIGHT_S is holding', (chain) => {
+    expect(atSlack(chain, chain.TIGHT_S + 1)).toBe('made')
   })
 })
 
@@ -813,7 +907,7 @@ describe('the walk is recomputed, not inherited from the store', () => {
     const stale = Math.ceil(legs[1].walk_m / chain.WALK_SPEED_MS)
     legs[1].walk_s = stale
 
-    const m = chain.resolve({ legs, day_type: 'weekday' }, DEPS, {}, now)
+    const m = resolveLive(chain, { legs, day_type: 'weekday' }, DEPS, {}, now)
     const t0 = m.transfers[0]
     expect(t0.walk_source).toBe('current')
     expect(t0.walk_s).toBeGreaterThan(stale)
@@ -858,7 +952,7 @@ describe('a cancellation nobody reaches is not the headline', () => {
 
   t('a missed change at transfer 1 outranks a canceled leg 3', (chain) => {
     const built = threeLeg(chain)
-    if (!built) return void 0
+    expect(built, 'the fixture no longer offers a third leg').toBeTruthy()
     const clone = JSON.parse(JSON.stringify(DEPS))
     let hit = 0
     for (const tr of clone['4'].trips) {
@@ -867,7 +961,7 @@ describe('a cancellation nobody reaches is not the headline', () => {
     expect(hit).toBe(1)
 
     const late = built.connection.slack_s + 60
-    const m = chain.resolve(built.chain, clone,
+    const m = resolveLive(chain, built.chain, clone,
       { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
 
     /*
@@ -882,13 +976,13 @@ describe('a cancellation nobody reaches is not the headline', () => {
 
   t('but a cancellation on a leg still reachable does lead', (chain) => {
     const built = threeLeg(chain)
-    if (!built) return void 0
+    expect(built, 'the fixture no longer offers a third leg').toBeTruthy()
     const clone = JSON.parse(JSON.stringify(DEPS))
     for (const tr of clone['4'].trips) {
       if (tr.id === built.third.trip.id) tr.canceled = true
     }
     /* Nothing upstream is broken this time, so leg 3 is reached. */
-    const m = chain.resolve(built.chain, clone, {}, now)
+    const m = resolveLive(chain, built.chain, clone, {}, now)
     expect(m.state).toBe('canceled')
   })
 })
@@ -910,7 +1004,7 @@ describe('two service days must not be subtracted from each other', () => {
         service_day_start_epoch: DEP4.service_day_start_epoch - 86400,
       },
     }
-    const m = chain.resolve(c, yesterday, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+    const m = resolveLive(chain, c, yesterday, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
     expect(m.state).toBe('no-schedule')
     expect(m.detail).toMatch(/different service/)
     expect(m.connection).toBeUndefined()
@@ -930,6 +1024,142 @@ describe('two service days must not be subtracted from each other', () => {
  * Every other one still fell through to the timetable, which always reads on time,
  * about a bus whose position is drawn on the same screen.
  */
+/*
+ * The rule itself, case by case, without building a chain.
+ *
+ * Four review rounds each found another way for a leg to be graded with nothing
+ * behind it, and each fixed it by adding one more reason to refuse. That shape is
+ * why there was always another one: a list of refusals has a default, the default
+ * was "grade it", and every case nobody had enumerated landed there.
+ *
+ * These assert the decision directly so a new hole shows up as a failing case
+ * here rather than as a confident sentence on a card six months later. The
+ * fully-built-chain tests below stay, because a rule that is right in isolation
+ * and wired up wrong is still wrong.
+ */
+describe('what a leg may be graded from', () => {
+  const fresh = { staleness: { level: 'fresh', suppress_adherence: false } }
+  const dead = { staleness: { level: 'dead', suppress_adherence: true } }
+  const bus = { vehicle_id: '8021' }
+
+  t('no route payload at all refuses, and says which refusal it is', (chain) => {
+    expect(chain.gradeDecision(null, null, null)).toEqual({ ungraded: 'no_route', lateness: null })
+    expect(chain.gradeDecision(undefined, null, null).ungraded).toBe('no_route')
+  })
+
+  /*
+   * Not a variation on the one above. "Nothing has loaded" and "the feed has
+   * died" are different facts about the world and the card says different
+   * sentences for them; collapsing them would put "its feed has stopped
+   * updating" on screen during a normal page load.
+   */
+  t('a dead feed refuses, and is distinguishable from nothing having loaded', (chain) => {
+    expect(chain.gradeDecision(dead, null, null).ungraded).toBe('feed_stale')
+    expect(chain.gradeDecision(dead, bus, { seconds: 60 }).ungraded).toBe('feed_stale')
+  })
+
+  t('a live feed with no bus grades from the timetable, which is the one substitution allowed',
+    (chain) => {
+      expect(chain.gradeDecision(fresh, null, null)).toEqual({ ungraded: null, lateness: null })
+    })
+
+  t('a bus with no lateness refuses rather than reading null as on time', (chain) => {
+    expect(chain.gradeDecision(fresh, bus, { seconds: null }).ungraded).toBe('no_lateness')
+    expect(chain.gradeDecision(fresh, bus, { seconds: undefined }).ungraded).toBe('no_lateness')
+    expect(chain.gradeDecision(fresh, bus, null).ungraded).toBe('no_lateness')
+  })
+
+  t('a bus with a lateness is the only thing that yields one', (chain) => {
+    expect(chain.gradeDecision(fresh, bus, { seconds: 90 })).toEqual({ ungraded: null, lateness: 90 })
+    /* Zero is a measurement, not a missing value. */
+    expect(chain.gradeDecision(fresh, bus, { seconds: 0 })).toEqual({ ungraded: null, lateness: 0 })
+    expect(chain.gradeDecision(fresh, bus, { seconds: -120 }).lateness).toBe(-120)
+  })
+
+  /*
+   * The property the four rounds kept violating: there is no input that produces
+   * a lateness without a live feed AND a bus AND a number. Enumerated rather than
+   * asserted in prose, so a future branch that grades something new has to come
+   * through here.
+   */
+  t('nothing else in the space yields a lateness', (chain) => {
+    const routes = [null, undefined, fresh, dead]
+    const vehicles = [null, undefined, bus]
+    const views = [null, undefined, { seconds: null }, { seconds: 45 }]
+    routes.forEach((r) => {
+      vehicles.forEach((v) => {
+        views.forEach((w) => {
+          const d = chain.gradeDecision(r, v, w)
+          if (d.lateness !== null) {
+            expect(r).toBe(fresh)
+            expect(v).toBe(bus)
+            expect(w && typeof w.seconds).toBe('number')
+          }
+          /* Every outcome is either a named refusal or a grade. Never both, never
+             neither. */
+          expect(d.ungraded === null || d.lateness === null).toBe(true)
+        })
+      })
+    })
+  })
+})
+
+describe('a chain whose routes have not loaded yet', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /*
+   * The state EVERY page load starts in. The live route map is built from
+   * payloads that have already landed, and the chain paints before they do — so
+   * this is not a corner case, it is the first frame of every visit.
+   *
+   * It used to fall through to timetable grading, which put "Connection holds"
+   * on screen beside the board's own "No live data for route N" banner.
+   */
+  t('refuses to grade rather than answering from the timetable', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, {}, now)
+    expect(m.connection.state).toBe('unknown')
+    expect(m.connection.slack_s).toBeNull()
+    expect(['made', 'tight', 'missed']).not.toContain(m.connection.state)
+  })
+
+  t('names both legs as waiting on data, not as buses that are not reporting', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, {}, now)
+    const whys = m.connection.ungraded_legs.map((u) => u.why)
+    expect(whys).toEqual(['arriving', 'onward'].map(() => 'no_route'))
+  })
+
+  /*
+   * Wording, because this is the one refusal that is not a fault. A board that is
+   * working normally must not look broken for its first second.
+   */
+  t('reads as not yet, rather than as a dead feed or a missing bus', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, {}, now)
+    const said = chain.connectionDetail(m.connection)
+    expect(said).toMatch(/has not loaded yet/)
+    expect(said).toMatch(/as soon as it does/)
+    expect(said).not.toMatch(/feed has stopped updating/)
+    expect(said).not.toMatch(/is on the road/)
+    expect(chain.assumptionNote(m.connection)).toBeNull()
+  })
+
+  t('one loaded route and one missing still refuses, on the missing side', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, { 800: liveRoute() }, now)
+    expect(m.connection.state).toBe('unknown')
+    const whys = m.connection.ungraded_legs.map((u) => `${u.side}:${u.why}`)
+    expect(whys).toEqual(['onward:no_route'])
+  })
+
+  t('and grades as soon as both payloads land, so this is not "never grade"', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, {}, now)
+    expect(['made', 'tight', 'missed']).toContain(m.connection.state)
+  })
+})
+
 describe('a leg the feed cannot answer for is not graded, however it fails', () => {
   const now = MIDNIGHT + 7 * 3600 + 50 * 60
 
@@ -945,7 +1175,7 @@ describe('a leg the feed cannot answer for is not graded, however it fails', () 
      * reported" are the same observation, so the absence of a bus is not evidence the
      * bus has not started — and the timetable is not a fair stand-in for either.
      */
-    const m = chain.resolve(c, DEPS, { 800: deadRoute([]) }, now)
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute([]) }, now)
     expect(m.legs[0].vehicle).toBeNull()
     expect(m.connection.state).toBe('unknown')
     expect(m.connection.slack_s).toBeNull()
@@ -954,7 +1184,7 @@ describe('a leg the feed cannot answer for is not graded, however it fails', () 
 
   t('and says the feed stopped rather than that the bus has not started', (chain) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, { 800: deadRoute([]) }, now)
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute([]) }, now)
     const said = chain.connectionDetail(m.connection)
     expect(said).toMatch(/feed has stopped updating/)
     /* There is no bus in the snapshot, so it must not be described as being on one. */
@@ -966,7 +1196,7 @@ describe('a leg the feed cannot answer for is not graded, however it fails', () 
     const { chain: c } = theChain(chain)
     /* Guards the fix against becoming "never grade": with no vehicle and a LIVE feed
        the timetable is the honest prior and the verdict may still be asserted. */
-    const m = chain.resolve(c, DEPS, {
+    const m = resolveLive(chain, c, DEPS, {
       800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] },
     }, now)
     expect(['made', 'tight', 'missed']).toContain(m.connection.state)
@@ -985,7 +1215,7 @@ describe('a leg the feed cannot answer for is not graded, however it fails', () 
   UNKNOWN_REASONS.forEach((reason) => {
     t(`a reporting bus with reason "${reason}" is refused, not graded`, (chain) => {
       const { chain: c } = theChain(chain)
-      const m = chain.resolve(c, DEPS, {
+      const m = resolveLive(chain, c, DEPS, {
         800: {
           staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
           vehicles: [{
@@ -1002,7 +1232,7 @@ describe('a leg the feed cannot answer for is not graded, however it fails', () 
     t(`and a bus reporting with "${reason}" is never called one that is not reporting`,
       (chain) => {
         const { chain: c } = theChain(chain)
-        const m = chain.resolve(c, DEPS, {
+        const m = resolveLive(chain, c, DEPS, {
           800: {
             staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
             vehicles: [{
@@ -1055,20 +1285,20 @@ describe('a refused verdict does not leak back in as a confident number', () => 
     const boardAt = MIDNIGHT + connection.board_seconds
     const justPastScheduled = boardAt + chain.AFTER_S + 100
 
-    const dead = chain.resolve(c, DEPS, { 4: deadRoute(connection.trip.id, 600) },
+    const dead = resolveLive(chain, c, DEPS, { 4: deadRoute(connection.trip.id, 600) },
       justPastScheduled)
     expect(dead.state).not.toBe('passed')
 
     /* And the hold is bounded: far enough past and it does retire. */
     const later = boardAt + chain.AFTER_S + chain.UNGRADED_HOLD_S + 100
-    expect(chain.resolve(c, DEPS, { 4: deadRoute(connection.trip.id, 600) }, later).state)
+    expect(resolveLive(chain, c, DEPS, { 4: deadRoute(connection.trip.id, 600) }, later).state)
       .toBe('passed')
   })
 
   t('but a chain it CAN grade still retires on time', (chain) => {
     const { chain: c, connection } = theChain(chain)
     const boardAt = MIDNIGHT + connection.board_seconds
-    const m = chain.resolve(c, DEPS, { 4: freshRoute(connection.trip.id, 0) },
+    const m = resolveLive(chain, c, DEPS, { 4: freshRoute(connection.trip.id, 0) },
       boardAt + chain.AFTER_S + 100)
     expect(m.state).toBe('passed')
   })
@@ -1076,7 +1306,7 @@ describe('a refused verdict does not leak back in as a confident number', () => 
   t('the headline does not count down to a time it refused to predict', (chain, cmb) => {
     const { chain: c } = theChain(chain)
     /* First leg suppressed, and the card is inside its live window. */
-    const m = chain.resolve(c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
       MIDNIGHT + 7 * 3600 + 40 * 60)
     const host = cmb.states.el('div')
     chain.render(host, [m], {})
@@ -1091,7 +1321,7 @@ describe('a refused verdict does not leak back in as a confident number', () => 
 
   t('and the two times under the verdict are labeled as the timetable', (chain, cmb) => {
     const { chain: c } = theChain(chain)
-    const m = chain.resolve(c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
       MIDNIGHT + 7 * 3600 + 40 * 60)
     const host = cmb.states.el('div')
     chain.render(host, [m], {})
@@ -1122,7 +1352,7 @@ describe('the service-day guard defends the quantity actually subtracted', () =>
         ...DEPS,
         4: { ...DEP4, service_day_start_epoch: DEP4.service_day_start_epoch - 86400 },
       }
-      const m = chain.resolve(c, skewed, {}, now)
+      const m = resolveLive(chain, c, skewed, {}, now)
       expect(m.state).toBe('no-schedule')
       expect(m.detail).toMatch(/service day/)
       expect(m.connection).toBeUndefined()
@@ -1140,7 +1370,7 @@ describe('the service-day guard defends the quantity actually subtracted', () =>
       const anchorless = { ...DEPS, 4: { ...DEP4 } }
       delete anchorless['4'].service_day_start_epoch
       delete anchorless['4'].service_date
-      const m = chain.resolve(c, anchorless, {}, now)
+      const m = resolveLive(chain, c, anchorless, {}, now)
       expect(m.state).toBe('no-schedule')
       expect(m.detail).toMatch(/service day/)
       expect(m.connection).toBeUndefined()
@@ -1199,7 +1429,7 @@ describe('a chain on a board opened from a file', () => {
   t('says the schedule cannot arrive, not that it has not arrived yet',
     (chain, cmb) => {
       const { chain: c } = theChain(chain)
-      const m = chain.resolve(c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+      const m = resolveLive(chain, c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
       expect(m.state).toBe('no-schedule')
 
       const host = cmb.states.el('div')
@@ -1214,7 +1444,7 @@ describe('a chain on a board opened from a file', () => {
   t('and still says "not loaded yet" when there IS an origin to wait on',
     (chain, cmb) => {
       const { chain: c } = theChain(chain)
-      const m = chain.resolve(c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+      const m = resolveLive(chain, c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
       const host = cmb.states.el('div')
       chain.render(host, [m], {})
       expect(textOf(host)).toMatch(/has not loaded yet/)
@@ -1231,7 +1461,7 @@ describe('a missing bus on a dead feed is not called normal', () => {
   t('the card does not explain the silence of a dead feed as a bus not yet out',
     (chain, cmb) => {
       const { chain: c } = theChain(chain)
-      const m = chain.resolve(c, DEPS, {
+      const m = resolveLive(chain, c, DEPS, {
         800: {
           staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
           vehicles: [],
@@ -1249,7 +1479,7 @@ describe('a missing bus on a dead feed is not called normal', () => {
   t('but still does when the feed is live and the bus simply has not started',
     (chain, cmb) => {
       const { chain: c } = theChain(chain)
-      const m = chain.resolve(c, DEPS, {
+      const m = resolveLive(chain, c, DEPS, {
         800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] },
       }, MIDNIGHT + 7 * 3600 + 40 * 60)
       const host = cmb.states.el('div')

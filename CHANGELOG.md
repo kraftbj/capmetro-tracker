@@ -78,8 +78,29 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
     Grading now stops at the first change that cannot be made; everything after it
     reads "Not reached" and carries no slack figure.
   - The **tightest connection the editor will ever offer graded "holds"**.
-    `MIN_SLACK_S` and `TIGHT_S` are both two minutes and the comparison was strict,
+    `MIN_SLACK_S` and `TIGHT_S` were both two minutes and the comparison was strict,
     so the case the code itself calls "a coin toss" was presented as comfortable.
+  - **A leg with no live payload at all graded confidently from the timetable.**
+    Not a dead feed and not an absent bus: nothing loaded. That is the state every
+    page load starts in, because the live route map is built from payloads that
+    have already landed and the chain paints before they do — so the first frame of
+    every visit printed "Connection holds" beside the board's own "No live data for
+    route N" banner, the card and the banner contradicting each other on one
+    screen.
+
+    This was the fifth hole found in the same place, and the shape of the code is
+    why there was always another one. The grading decision was written as a list of
+    reasons to *refuse*, which means it had a default, and the default was "grade
+    it": every case nobody had enumerated landed there. Four rounds each patched
+    one more refusal. It is now written the other way round — an exhaustive set of
+    named cases with no fall-through, where a verdict requires evidence and
+    anything unnamed is a refusal. The suite asserts the rule case by case, and
+    over the whole input space, rather than only through a fully built chain.
+
+    22 tests had been passing an empty routes map, which is what let this stay
+    hidden: the suite had normalised "no live evidence" as the ordinary grading
+    fixture. Each now says which state it means — a live feed with no bus, which
+    the timetable may legitimately stand in for, or nothing loaded, which refuses.
 
   The walk model also charges a **1.4 circuity factor**: the straight line between
   two stops is not a path anyone walks, and Pleasant Valley — the junction this
@@ -170,6 +191,18 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   too.
 
 ### Changed
+
+- **"Connection holds" now takes five minutes of slack, not two.** The estimator
+  holds the first leg's currently observed lateness constant all the way to the
+  alighting stop, and for a bus twenty minutes upstream that routinely drifts by
+  minutes before it arrives — so a three-minute verdict sat inside the noise of the
+  measurement that produced it and still read as comfortable. `TIGHT_S` is no
+  longer tied to `MIN_SLACK_S`: offering a connection and trusting one are
+  different judgments. Nothing is hidden. Connections between the two thresholds
+  still appear, still print their slack figure, and still say which half of the sum
+  is measured — they read "tight" instead of "holds". The asymmetry is the reason:
+  a hedged connection that turns out fine costs a moment's doubt, and a confident
+  one that turns out missed leaves a kid at a stop.
 
 - `Vehicle.predictions` added to `/api/route/{id}.json`: the arrival times the
   agency already publishes for every stop still ahead of a bus, within the same

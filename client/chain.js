@@ -151,11 +151,28 @@
   var MAX_WAIT_S = 2700;
 
   /*
-   * Live slack below this reads as "tight" rather than "fine". It is the same two
-   * minutes MIN_SLACK_S uses, because the threshold for offering a connection and
-   * the threshold for trusting one are the same judgment.
+   * Live slack below this reads as "tight" rather than "fine".
+   *
+   * Deliberately NOT the same as MIN_SLACK_S, though it used to be. Offering a
+   * connection and trusting one are different judgments, and tying them together
+   * meant every connection with more than two minutes of slack read "Connection
+   * holds" — including three-minute ones, which is inside the noise of the
+   * estimator that produced them.
+   *
+   * The estimator holds the first leg's CURRENTLY OBSERVED lateness constant all
+   * the way to the alighting stop. For a bus twenty minutes upstream that number
+   * routinely moves several minutes before it arrives: traffic, a wheelchair
+   * boarding, a light. Five minutes is roughly where the prediction stops being
+   * swamped by that drift, so it is where "holds" starts being a word this data
+   * can support.
+   *
+   * Nothing is hidden by this. A connection between MIN_SLACK_S and TIGHT_S still
+   * appears, still prints its slack figure, and still says which half of the sum
+   * is measured — it just says "tight" instead of "holds". The cost of being
+   * wrong is asymmetric: a hedged connection that turns out fine costs a moment's
+   * doubt, and a confident one that turns out missed leaves a kid at a stop.
    */
-  var TIGHT_S = 120;
+  var TIGHT_S = 300;
 
   /*
    * Three legs, because "337 to the 7 to the 837" is the longest journey anyone
@@ -544,6 +561,63 @@
    * pair of documents can answer it. Everything a chain knows about lateness comes
    * through here.
    */
+  /*
+   * May this leg be graded, and if so from what?
+   *
+   * READ THIS BEFORE CHANGING IT. Four review rounds each found another way for
+   * this card to print a confident verdict with nothing behind it, and each round
+   * fixed it by adding one more reason to refuse. That shape is why there was
+   * always another one: a list of refusals has a DEFAULT, the default was "grade
+   * it", and every case nobody had thought of landed there. The bugs were not
+   * four mistakes; they were one mistake found four times.
+   *
+   * So this is written the other way round. Every path returns explicitly and
+   * there is no fall-through: a verdict requires evidence that names itself, and
+   * anything not named is a refusal. Adding a case here means adding a branch,
+   * not discovering later that an unnamed one graded.
+   *
+   * The order matters, because more than one can be true at once.
+   *
+   *   no route     — there is no live payload for this leg's route AT ALL. Not a
+   *     dead feed, not an absent bus: nothing has been loaded. This is the state
+   *     every page load starts in, because the route map is built from payloads
+   *     that have already landed and the chain paints before they do. It used to
+   *     fall through and grade the whole chain from the timetable, so the first
+   *     paint of every load printed "Connection holds" beside a banner reading
+   *     "No live data for route N" — the card and the banner contradicting each
+   *     other on one screen.
+   *   feed stale   — a payload exists and has stopped updating. Whatever the
+   *     snapshot holds is a photograph of some minutes ago: a bus in it was last
+   *     seen ten minutes down, a bus missing from it may have been running all
+   *     along. Neither is a reason to reach for the schedule. Read from the ROUTE
+   *     and not from the vehicle, because when a feed dies before a bus appears,
+   *     "no vehicle at all" and "a vehicle we have stopped hearing from" are the
+   *     same observation and the join cannot tell them apart.
+   *   no vehicle   — a live feed with no bus joined to this trip. THE ONE CASE
+   *     where the timetable may stand in: the bus has not started its run, there
+   *     is nothing to know yet, and the schedule is the honest prior. `assumed`
+   *     records that the verdict rests on one.
+   *   no lateness  — a live feed, a bus joined, and no lateness published for it:
+   *     a deadhead, an unknown state, `no_trip_update`. About 7% of active vehicle
+   *     trips on this feed. The bus is drawn on this very screen, so "not
+   *     reporting yet" is flatly false and the timetable may not stand in.
+   *
+   * A null `seconds` is never a zero. Treating it as "on time" would print a
+   * confident prediction built on nothing, and it would err optimistically —
+   * which is the direction that strands somebody at a stop.
+   */
+  function gradeDecision(route, vehicle, view) {
+    if (!route) return { ungraded: 'no_route', lateness: null };
+    if (route.staleness && route.staleness.suppress_adherence) {
+      return { ungraded: 'feed_stale', lateness: null };
+    }
+    if (!vehicle) return { ungraded: null, lateness: null };
+    if (!view || view.seconds === null || view.seconds === undefined) {
+      return { ungraded: 'no_lateness', lateness: null };
+    }
+    return { ungraded: null, lateness: view.seconds };
+  }
+
   function resolveLeg(leg, dep, route) {
     var out = {
       leg: leg,
@@ -630,67 +704,12 @@
       return out;
     }
 
-    /*
-     * Read BEFORE the join, and independently of how the join goes.
-     *
-     * `suppress_adherence` is a property of the ROUTE — it says this route's feed
-     * has stopped updating — and it was previously only consulted inside `if
-     * (out.vehicle)`, so the refusal below could only ever fire when the frozen
-     * snapshot happened to contain a bus for this trip. Same dead feed, same
-     * route: with the vehicle in the snapshot the transfer refused to grade, and
-     * without it the transfer graded against the timetable and printed a
-     * confident "Connection holds".
-     *
-     * That is the exact case the reasoning below rules out, and the reasoning was
-     * right; it was the code that could not reach it. When a feed dies before a
-     * bus appears, "no vehicle at all" and "a vehicle we have stopped hearing
-     * from" are the SAME observation, and the vehicle join alone cannot tell them
-     * apart. Only the route's own staleness can.
-     */
-    var routeStale = !!(route && route.staleness && route.staleness.suppress_adherence);
-
     out.vehicle = watchLib.vehicleForTrip(route, out.trip.id);
     if (out.vehicle) out.view = adhLib.view(out.vehicle, route && route.staleness);
 
-    /*
-     * `seconds` is null whenever the feed will not stand behind a number — any of
-     * the unknown states, a deadhead, or adherence suppressed for staleness. A
-     * null is not a zero: treating it as "on time" would print a confident
-     * prediction built on nothing, which is the one thing a board like this must
-     * not do.
-     *
-     * But refusing the zero is only half the job, and the other half is deciding
-     * when the TIMETABLE may stand in for the missing number. It always reads "on
-     * time", so substituting it is never neutral — it moves the verdict in the
-     * optimistic direction, which is the direction that strands somebody. There is
-     * exactly one case where that is still the honest answer:
-     *
-     *   no vehicle, live feed — the bus has not started its run. There is nothing
-     *     to know yet, the timetable is the honest prior, and the verdict may be
-     *     asserted with `assumed` recording that it rests on one.
-     *
-     * Everything else is a refusal:
-     *
-     *   feed stale  — whatever the snapshot holds, it is a photograph of some
-     *     minutes ago. A bus in it was last seen ten minutes down; a bus missing
-     *     from it may have been running all along. Neither is a reason to reach
-     *     for the schedule.
-     *   no lateness — there IS a bus, its position is drawn on this very screen,
-     *     and the feed simply does not say how late it is. That was previously
-     *     narrowed to staleness alone, so a bus with `no_trip_update` — about 7%
-     *     of active vehicle trips on this feed — was graded against the timetable
-     *     with full confidence and described as "not reporting yet" while its
-     *     badge sat on the same card.
-     */
-    if (routeStale) {
-      out.ungraded = 'feed_stale';
-    } else if (out.vehicle) {
-      if (out.view.seconds === null || out.view.seconds === undefined) {
-        out.ungraded = 'no_lateness';
-      } else {
-        out.lateness = out.view.seconds;
-      }
-    }
+    var decision = gradeDecision(route, out.vehicle, out.view);
+    out.ungraded = decision.ungraded;
+    out.lateness = decision.lateness;
     out.predicted_board_at = out.lateness === null ? out.board_at : out.board_at + out.lateness;
     return out;
   }
@@ -783,11 +802,14 @@
     if (next.lateness === null) out.assumed.push('onward');
 
     /*
-     * `<=`, not `<`. MIN_SLACK_S and TIGHT_S are both two minutes, and the editor
-     * offers a connection when slack is >= MIN_SLACK_S — so with a strict `<` the
-     * tightest connection this board will ever offer, the one the comment on
-     * MIN_SLACK_S calls "a coin toss", was graded "Connection holds". The two
-     * constants being equal is exactly what made that invisible on a read.
+     * `<=`, not `<`. This mattered acutely while MIN_SLACK_S and TIGHT_S were both
+     * two minutes: the editor offers a connection when slack is >= MIN_SLACK_S, so
+     * with a strict `<` the tightest connection this board will ever offer — the
+     * one MIN_SLACK_S's own comment calls "a coin toss" — was graded "Connection
+     * holds", and the two constants being equal is what made that invisible on a
+     * read. TIGHT_S is now well above MIN_SLACK_S so the boundary no longer lands
+     * there, but `<=` is still the honest comparison: exactly TIGHT_S of slack is
+     * the tightest thing this word covers, not the loosest thing the next one does.
      */
     if (out.slack_s < 0) out.state = 'missed';
     else if (out.slack_s <= TIGHT_S) out.state = 'tight';
@@ -1161,6 +1183,14 @@
   var UNGRADED_SUBJECT = { arriving: 'The first bus', onward: 'The onward bus' };
 
   function ungradedClause(u) {
+    /*
+     * 'no_route' is a waiting state, not a fault, and it is the state every page
+     * load passes through before its payloads land. It has to read as "not yet"
+     * or a board that is working normally looks broken for its first second.
+     */
+    if (u.why === 'no_route') {
+      return UNGRADED_SUBJECT[u.side] + '’s live data has not loaded yet';
+    }
     if (u.why === 'feed_stale') {
       return u.vehicle
         ? UNGRADED_SUBJECT[u.side] + ' is on the road but its feed has stopped updating'
@@ -1172,8 +1202,17 @@
   }
 
   function ungradedSentence(list) {
+    /*
+     * "There is no lateness to grade this change with" is a statement about the
+     * feed. When the only reason is that nothing has loaded yet, it is not true
+     * of the feed — it is true of this second — and it would tell a reader the
+     * board cannot answer when it is about to.
+     */
+    var waiting = list.length && list.every(function (u) { return u.why === 'no_route'; });
     return list.map(ungradedClause).join('. ') +
-      '. There is no lateness to grade this change with.';
+      (waiting
+        ? '. The change will be graded as soon as it does.'
+        : '. There is no lateness to grade this change with.');
   }
 
   /*
@@ -1381,18 +1420,24 @@
           'Bus ' + (model.first.vehicle.label || model.first.vehicle.vehicle_id)));
       } else if (model.state === 'no-vehicle') {
         /*
-         * "Normal until it starts its run" is a claim about a working feed. On one
-         * that has stopped updating, an absent bus is not a bus that has not
-         * started — it is a bus we would not see either way, which is the entire
-         * reason the verdict below refuses to grade. Two lines saying opposite
-         * things about the same silence is worse than either alone.
+         * "Normal until it starts its run" is a claim about a working feed, and it
+         * may only be made when there IS one. On a feed that has stopped updating,
+         * an absent bus is not a bus that has not started — it is a bus we would
+         * not see either way. And before any payload has loaded there is no feed
+         * to describe at all; saying the bus "is not reporting" would state as a
+         * fact about the road what is really a fact about this second. Two lines
+         * saying opposite things about the same silence is worse than either
+         * alone, which is what these three branches exist to prevent.
          */
         box.appendChild(el('p', 'chaincard__detail',
-          model.first.ungraded === 'feed_stale'
-            ? 'No bus is reporting on this trip, and route ' + legs[0].route_id +
-              '’s feed has stopped updating — so that says nothing either way ' +
-              'about whether it is running.'
-            : 'The first bus is not reporting yet. That is normal until it starts its run.'));
+          model.first.ungraded === 'no_route'
+            ? 'Route ' + legs[0].route_id + '’s live data has not loaded yet, so ' +
+              'nothing is known about this bus either way.'
+            : model.first.ungraded === 'feed_stale'
+              ? 'No bus is reporting on this trip, and route ' + legs[0].route_id +
+                '’s feed has stopped updating — so that says nothing either way ' +
+                'about whether it is running.'
+              : 'The first bus is not reporting yet. That is normal until it starts its run.'));
       } else if (model.state === 'upcoming') {
         box.appendChild(el('p', 'chaincard__detail',
           'Tracking starts an hour before the first bus is due.'));
@@ -1896,6 +1941,10 @@
     walkSeconds: walkSeconds,
     walkFor: walkFor,
     stopIndex: stopIndex,
+    /* Exported so the suite can assert the refusal rule directly, case by case,
+     * rather than only through a fully built chain — which is how four rounds of
+     * this bug stayed hidden. */
+    gradeDecision: gradeDecision,
     downstreamStops: downstreamStops,
     tripTimeAt: tripTimeAt,
     tripIndexOf: tripIndexOf,
