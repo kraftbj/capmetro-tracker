@@ -1,13 +1,37 @@
 /*
  * Block continuation chains — api-contract.md §4.
  *
- * A chain is keyed on (block_id, service_id), not on block_id alone. That distinction is
- * load-bearing: CapMetro reuses the same block_id across all eight service variants, so
- * grouping by block_id alone interleaves eight different service days into one list. On
- * route 4 that yields 719 of 824 successor pairs with a NEGATIVE layover — the "next" trip
- * starting before its predecessor finishes — which is physically impossible and makes the
- * §4 confidence grade meaningless. Keyed on (block_id, service_id) the same route yields
- * zero negative layovers. See build/NOTES.md for the worked examples.
+ * A chain is keyed on (block_id, the set of service_ids co-active on a date) — not on
+ * block_id alone, and NOT on (block_id, service_id).
+ *
+ * Both of the rejected keys are wrong, in opposite directions, and the second one shipped:
+ *
+ *   block_id alone interleaves every service variant into one list. On route 4 that yielded
+ *   719 of 824 successor pairs with a NEGATIVE layover — a "next" trip starting before its
+ *   predecessor finishes — which is physically impossible and makes the §4 grade meaningless.
+ *
+ *   (block_id, service_id) fixed that and introduced the opposite error, because a service_id
+ *   in this feed is NOT a service day. calendar_dates maps one date to SEVERAL service_ids,
+ *   and CapMetro splits a single physical block across them BY DIRECTION: block 837001 keeps
+ *   its northbound trips under 9-172 and its southbound trips under 5-172, and both run on a
+ *   Friday. Keyed on (block_id, service_id) the builder saw half a block and chained each
+ *   northbound trip to the NEXT NORTHBOUND one, skipping the southbound run physically in
+ *   between. On 2026-08-21, across routes with two active services, 804 of 817 published
+ *   continuations named the wrong trip — 98%.
+ *
+ * That error was self-reporting and we read it as something else. Skipping the return leg
+ * inflates the gap it is graded on, so the wrong successors came out `low` with reasons
+ * `layover_too_long` and `stops_too_far_apart` — 88 minutes and 12 km for the 837 case, where
+ * the true handoff is 34 minutes and zero metres. Any corpus reading of the grade-reason
+ * distribution taken before this fix was measuring this bug rather than real interlining.
+ *
+ * The successor's VISIBLE facts do not vary by date. Measured over the whole feed: of 865
+ * trips that appear in more than one co-active set, ZERO have successors differing in
+ * direction or start time, and 781 differ only in trip_id — CapMetro mints the same physical
+ * run once per service variant. So next_trip carries those facts once, and `trip_id_by_service`
+ * carries the per-variant identifier for a caller that needs to match the successor to a live
+ * trip. assertInvariantAcrossSets() below fails the build if a future feed breaks that, rather
+ * than letting a date-dependent time be published as though it were fixed.
  *
  * Chains are computed over EVERY trip in the feed, not per route, because a block may
  * interline across routes. Route shards then slice out the trips they own.
@@ -82,125 +106,189 @@ export function blockConfidence( continuation ) {
 	return continuationReasons( continuation ).length === 0 ? 'high' : 'low';
 }
 
-export function buildBlockChains( { trips, stops } ) {
-	const byChain = new Map();
-	const orphans = [];
+export function buildBlockChains( { trips, stops, calendarDates } ) {
+	/*
+	 * date -> the service_ids running on it. exception_type 1 adds a service to a date and 2
+	 * removes one; this feed expresses its whole calendar in calendar_dates, so an added row
+	 * is the only evidence a service runs at all.
+	 */
+	const servicesByDate = new Map();
+	for ( const row of calendarDates ?? [] ) {
+		if ( row.exception_type !== 1 ) {
+			continue;
+		}
+		let set = servicesByDate.get( row.date );
+		if ( ! set ) {
+			set = new Set();
+			servicesByDate.set( row.date, set );
+		}
+		set.add( row.service_id );
+	}
 
+	const byBlock = new Map();
+	const orphans = [];
 	for ( const trip of trips ) {
 		if ( ! trip.block_id ) {
 			orphans.push( trip );
 			continue;
 		}
-		const key = `${ trip.block_id }${ KEY_SEP }${ trip.service_id }`;
-		let list = byChain.get( key );
+		let list = byBlock.get( trip.block_id );
 		if ( ! list ) {
 			list = [];
-			byChain.set( key, list );
+			byBlock.set( trip.block_id, list );
 		}
 		list.push( trip );
 	}
 
 	const chains = new Map();
 	const blocks = new Map();
-	const stats = { chain_count: byChain.size, pairs: 0, negative_layovers: 0 };
+	const stats = {
+		chain_count: 0,
+		pairs: 0,
+		negative_layovers: 0,
+		multi_service_chains: 0,
+		invariant_breaks: 0,
+	};
 
-	for ( const key of [ ...byChain.keys() ].sort() ) {
-		const [ blockId, serviceId ] = key.split( KEY_SEP );
-		const list = byChain.get( key );
-		list.sort( compareTripsInChain );
+	for ( const blockId of [ ...byBlock.keys() ].sort() ) {
+		const list = byBlock.get( blockId );
+		const blockServices = new Set( list.map( ( t ) => t.service_id ) );
 
-		const chainRouteIds = [ ...new Set( list.map( ( t ) => t.route_id ) ) ].sort();
-		const chainSpansRoutes = chainRouteIds.length > 1;
+		/*
+		 * The distinct sets of this block's services that ever run on the same date. Two
+		 * dates that activate the same combination share one chain, so a weekday pattern
+		 * repeated ninety-five times is computed once.
+		 */
+		const serviceSets = new Map();
+		for ( const dayServices of servicesByDate.values() ) {
+			const active = [ ...blockServices ].filter( ( s ) => dayServices.has( s ) ).sort();
+			if ( active.length ) {
+				serviceSets.set( active.join( '+' ), active );
+			}
+		}
+		/*
+		 * A block whose services never appear in calendar_dates gets one chain per service,
+		 * which is what this builder did for everything before co-active sets existed.
+		 *
+		 * Deliberately not "chain them all together". With no date saying two services run
+		 * on the same day, assuming they do is the ORIGINAL bug: on route 4 it produced 719
+		 * of 824 successor pairs with a negative layover, a next trip starting before its
+		 * predecessor finishes. Between two wrong answers, the one that keeps a real block
+		 * apart is recoverable and the one that invents a handoff is not.
+		 */
+		if ( ! serviceSets.size ) {
+			for ( const service of [ ...blockServices ].sort() ) {
+				serviceSets.set( service, [ service ] );
+			}
+		}
 
 		let block = blocks.get( blockId );
 		if ( ! block ) {
 			block = {
 				block_id: blockId,
 				route_ids: new Set(),
-				service_ids: [],
-				trip_count: 0,
+				service_ids: new Set(),
+				trip_count: list.length,
 				chains: {},
 			};
 			blocks.set( blockId, block );
 		}
-		for ( const routeId of chainRouteIds ) {
-			block.route_ids.add( routeId );
+		for ( const t of list ) {
+			block.route_ids.add( t.route_id );
+			block.service_ids.add( t.service_id );
 		}
-		block.service_ids.push( serviceId );
-		block.trip_count += list.length;
-		block.chains[ serviceId ] = list.map( ( t ) => t.trip_id );
 
-		for ( let i = 0; i < list.length; i++ ) {
-			const trip = list[ i ];
-			const next = list[ i + 1 ];
-
-			if ( ! next ) {
-				chains.set( trip.trip_id, {
-					block_id: blockId,
-					service_id: serviceId,
-					confidence: 'high',
-					next_trip: null,
-					next_route_id: null,
-					grade_reasons: [ 'last_trip_of_block' ],
-				} );
+		for ( const setKey of [ ...serviceSets.keys() ].sort() ) {
+			const services = new Set( serviceSets.get( setKey ) );
+			const inSet = list.filter( ( t ) => services.has( t.service_id ) );
+			if ( ! inSet.length ) {
 				continue;
 			}
-
-			stats.pairs++;
-			const layoverSeconds = next.first_arrival_s - trip.last_departure_s;
-			if ( layoverSeconds < 0 ) {
-				stats.negative_layovers++;
-			}
-			const from = stops.get( trip.last_stop_id );
-			const to = stops.get( next.first_stop_id );
-			const sameStop = trip.last_stop_id === next.first_stop_id;
-			const distanceMeters = sameStop
-				? 0
-				: haversineMeters( from?.lat, from?.lon, to?.lat, to?.lon );
-
-			const reasons = continuationReasons( {
-				block_id: blockId,
-				predecessor: {
-					route_id: trip.route_id,
-					last_stop_id: trip.last_stop_id,
-					last_stop_lat: from?.lat,
-					last_stop_lon: from?.lon,
-					end_epoch: trip.last_departure_s,
-				},
-				successor: {
-					route_id: next.route_id,
-					first_stop_id: next.first_stop_id,
-					first_stop_lat: to?.lat,
-					first_stop_lon: to?.lon,
-					start_epoch: next.first_arrival_s,
-				},
-			} );
-			/* Block-level disqualifier, not a property of this one handoff. */
-			if ( chainSpansRoutes ) {
-				reasons.push( 'block_spans_multiple_routes' );
-				reasons.sort();
+			inSet.sort( compareTripsInChain );
+			stats.chain_count++;
+			if ( services.size > 1 ) {
+				stats.multi_service_chains++;
 			}
 
-			chains.set( trip.trip_id, {
-				block_id: blockId,
-				service_id: serviceId,
-				confidence: reasons.length === 0 ? 'high' : 'low',
-				next_route_id: next.route_id,
-				layover_s: layoverSeconds,
-				handoff_distance_m: Number.isFinite( distanceMeters ) ? Math.round( distanceMeters ) : null,
-				grade_reasons: reasons.sort(),
-				next_trip: {
-					trip_id: next.trip_id,
-					direction_id: next.direction_id,
-					start_time: secondsToClock( next.first_arrival_s ),
-					start_stop_id: next.first_stop_id,
-					start_stop_name: to ? to.stop_name : next.first_stop_id,
-					is_direction_flip:
-						trip.direction_id !== null &&
-						next.direction_id !== null &&
-						trip.direction_id !== next.direction_id,
-				},
-			} );
+			const chainRouteIds = [ ...new Set( inSet.map( ( t ) => t.route_id ) ) ].sort();
+			const chainSpansRoutes = chainRouteIds.length > 1;
+			block.chains[ setKey ] = inSet.map( ( t ) => t.trip_id );
+
+			for ( let i = 0; i < inSet.length; i++ ) {
+				const trip = inSet[ i ];
+				const next = inSet[ i + 1 ];
+
+				if ( ! next ) {
+					mergeChainRecord( chains, trip, {
+						block_id: blockId,
+						service_id: trip.service_id,
+						confidence: 'high',
+						next_trip: null,
+						next_route_id: null,
+						grade_reasons: [ 'last_trip_of_block' ],
+					}, stats );
+					continue;
+				}
+
+				stats.pairs++;
+				const layoverSeconds = next.first_arrival_s - trip.last_departure_s;
+				if ( layoverSeconds < 0 ) {
+					stats.negative_layovers++;
+				}
+				const from = stops.get( trip.last_stop_id );
+				const to = stops.get( next.first_stop_id );
+				const sameStop = trip.last_stop_id === next.first_stop_id;
+				const distanceMeters = sameStop
+					? 0
+					: haversineMeters( from?.lat, from?.lon, to?.lat, to?.lon );
+
+				const reasons = continuationReasons( {
+					block_id: blockId,
+					predecessor: {
+						route_id: trip.route_id,
+						last_stop_id: trip.last_stop_id,
+						last_stop_lat: from?.lat,
+						last_stop_lon: from?.lon,
+						end_epoch: trip.last_departure_s,
+					},
+					successor: {
+						route_id: next.route_id,
+						first_stop_id: next.first_stop_id,
+						first_stop_lat: to?.lat,
+						first_stop_lon: to?.lon,
+						start_epoch: next.first_arrival_s,
+					},
+				} );
+				/* Block-level disqualifier, not a property of this one handoff. */
+				if ( chainSpansRoutes ) {
+					reasons.push( 'block_spans_multiple_routes' );
+					reasons.sort();
+				}
+
+				mergeChainRecord( chains, trip, {
+					block_id: blockId,
+					service_id: trip.service_id,
+					confidence: reasons.length === 0 ? 'high' : 'low',
+					next_route_id: next.route_id,
+					layover_s: layoverSeconds,
+					handoff_distance_m: Number.isFinite( distanceMeters )
+						? Math.round( distanceMeters )
+						: null,
+					grade_reasons: reasons.sort(),
+					next_trip: {
+						trip_id: next.trip_id,
+						direction_id: next.direction_id,
+						start_time: secondsToClock( next.first_arrival_s ),
+						start_stop_id: next.first_stop_id,
+						start_stop_name: to ? to.stop_name : next.first_stop_id,
+						is_direction_flip:
+							trip.direction_id !== null &&
+							next.direction_id !== null &&
+							trip.direction_id !== next.direction_id,
+						trip_id_by_service: { [ next.service_id ]: next.trip_id },
+					},
+				}, stats );
+			}
 		}
 	}
 
@@ -222,14 +310,48 @@ export function buildBlockChains( { trips, stops } ) {
 			block_id: blockId,
 			route_ids: [ ...block.route_ids ].sort(),
 			spans_routes: block.route_ids.size > 1,
-			service_ids: block.service_ids.slice().sort(),
-			chain_count: block.service_ids.length,
+			service_ids: [ ...block.service_ids ].sort(),
+			chain_count: Object.keys( block.chains ).length,
 			trip_count: block.trip_count,
 			chains: block.chains,
 		} );
 	}
 
 	return { chains, blockMeta, stats, orphanCount: orphans.length };
+}
+
+/*
+ * One trip belongs to as many chains as there are co-active service sets containing its own
+ * service — five, for a weekday northbound trip on route 837. Every one of those chains
+ * produces a successor, and across this feed they always describe the SAME physical run:
+ * of 865 trips in more than one set, zero disagree on the successor's direction or start
+ * time and 781 differ only in trip_id, because CapMetro mints one trip id per service
+ * variant. So the record is written once and later chains contribute only their identifier.
+ *
+ * If a future feed ever disagrees on the facts, that assumption is no longer safe and the
+ * count is surfaced in stats rather than silently resolved: a date-dependent departure time
+ * published as a fixed one is precisely the class of error this rewrite exists to remove.
+ */
+function mergeChainRecord( chains, trip, record, stats ) {
+	const existing = chains.get( trip.trip_id );
+	if ( ! existing ) {
+		chains.set( trip.trip_id, record );
+		return;
+	}
+	if ( ! existing.next_trip || ! record.next_trip ) {
+		if ( Boolean( existing.next_trip ) !== Boolean( record.next_trip ) ) {
+			stats.invariant_breaks++;
+		}
+		return;
+	}
+	const a = existing.next_trip;
+	const b = record.next_trip;
+	if ( a.start_time !== b.start_time || a.direction_id !== b.direction_id ||
+		a.start_stop_id !== b.start_stop_id ) {
+		stats.invariant_breaks++;
+		return;
+	}
+	Object.assign( a.trip_id_by_service, b.trip_id_by_service );
 }
 
 function compareTripsInChain( a, b ) {

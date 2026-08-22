@@ -5,6 +5,39 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Every northbound bus said its next run was another northbound one.** Spotted
+  on route 837, where all seven live buses claimed a continuation 2.5 hours out
+  on a route that runs every fifteen minutes — the bus obviously runs the return
+  leg first. Measured over the whole feed, **92,418 of 539,513 published
+  continuations named the wrong successor: 17.1%.** It is now 4.
+
+  A `service_id` in this feed is not a service day. `calendar_dates` puts several
+  on one date, and CapMetro splits a physical block across them **by direction**:
+  block 837001 keeps its northbound trips under `9-172` and its southbound trips
+  under `5-172`, and both run on a Friday. The build chained a block per
+  `service_id`, so it saw half of one and linked each trip to the next in the
+  same direction, skipping the return leg in between. Chains are now keyed on the
+  set of services co-active on a date.
+
+  The error was reporting itself and we read it as something else. Skipping the
+  return leg inflates the gap the handoff is graded on, so the wrong successors
+  came out `low` for `layover_too_long` and `stops_too_far_apart` — 88 minutes
+  and 12 km for the 837 case, against a true handoff of 32 minutes and 0 metres.
+  Correcting it drops `stops_too_far_apart` by 90% (3,809 to 395) and
+  `layover_too_long` by 82% (3,724 to 686), and moves 2,791 continuations from
+  `low` to `high`. **Any earlier reading of the grade-reason distribution was
+  measuring this bug rather than real interlining.**
+
+  The successor's facts do not vary by date but its identifier does: of 865 trips
+  in more than one co-active set, none disagree on the successor's direction or
+  start time and 781 differ only in `trip_id`, because CapMetro mints one id per
+  service variant. The shard now carries `next_trip.trip_id_by_service` and the
+  runtime resolves it against the day's services; the API payload is unchanged,
+  so no client needed touching. Four trips genuinely chain differently by date —
+  the build warns about those rather than silently picking one.
+
 ### Added
 
 - **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to

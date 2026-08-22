@@ -1,9 +1,9 @@
 {
 	"built_at": 1787082960,
 	"counts": {
-		"block_chains": 2115,
+		"block_chains": 1979,
 		"block_negative_layovers": 0,
-		"block_successor_pairs": 22180,
+		"block_successor_pairs": 24934,
 		"exception_dates": 8,
 		"routes": 71,
 		"service_dates": 145,
@@ -22,7 +22,7 @@
 			"block_count": 15,
 			"bytes": 575941,
 			"dir": "1",
-			"direction_flip_count": 86,
+			"direction_flip_count": 365,
 			"directions": [
 				{
 					"headsign": "1 William Cannon SB",
@@ -232,7 +232,7 @@
 			"block_count": 4,
 			"bytes": 3929,
 			"dir": "135",
-			"direction_flip_count": 0,
+			"direction_flip_count": 2,
 			"directions": [
 				{
 					"headsign": "135 Tech Ridge Park & Ride NB",
@@ -668,7 +668,7 @@
 			"block_count": 1,
 			"bytes": 53968,
 			"dir": "233",
-			"direction_flip_count": 27,
+			"direction_flip_count": 188,
 			"directions": [
 				{
 					"headsign": "233 EXPO CENTER EB",
@@ -713,7 +713,7 @@
 			"block_count": 6,
 			"bytes": 73720,
 			"dir": "243",
-			"direction_flip_count": 184,
+			"direction_flip_count": 123,
 			"directions": [
 				{
 					"headsign": "243 Howard Station WB",
@@ -794,7 +794,7 @@
 			"block_count": 15,
 			"bytes": 674554,
 			"dir": "3",
-			"direction_flip_count": 66,
+			"direction_flip_count": 338,
 			"directions": [
 				{
 					"headsign": "3 Southpark Meadows SB",
@@ -926,7 +926,7 @@
 			"block_count": 3,
 			"bytes": 197476,
 			"dir": "310",
-			"direction_flip_count": 61,
+			"direction_flip_count": 361,
 			"directions": [
 				{
 					"headsign": "310 ACC Riverside EB",
@@ -1101,7 +1101,7 @@
 			"block_count": 4,
 			"bytes": 225303,
 			"dir": "320",
-			"direction_flip_count": 67,
+			"direction_flip_count": 388,
 			"directions": [
 				{
 					"headsign": "320 Springdale NB",
@@ -1189,7 +1189,7 @@
 			"block_count": 4,
 			"bytes": 255812,
 			"dir": "324",
-			"direction_flip_count": 59,
+			"direction_flip_count": 347,
 			"directions": [
 				{
 					"headsign": "324 Highland EB",
@@ -1315,7 +1315,7 @@
 			"block_count": 3,
 			"bytes": 211414,
 			"dir": "335",
-			"direction_flip_count": 64,
+			"direction_flip_count": 387,
 			"directions": [
 				{
 					"headsign": "335 Exposition WB",
@@ -1562,7 +1562,7 @@
 			"block_count": 6,
 			"bytes": 201178,
 			"dir": "392",
-			"direction_flip_count": 62,
+			"direction_flip_count": 282,
 			"directions": [
 				{
 					"headsign": "392 Tech Ridge Park & Ride EB",
@@ -2430,7 +2430,7 @@
 			"block_count": 12,
 			"bytes": 108427,
 			"dir": "670",
-			"direction_flip_count": 261,
+			"direction_flip_count": 320,
 			"directions": [
 				{
 					"headsign": "670 Crossing Place OB",
@@ -2559,7 +2559,7 @@
 			"block_count": 21,
 			"bytes": 441682,
 			"dir": "800",
-			"direction_flip_count": 107,
+			"direction_flip_count": 822,
 			"directions": [
 				{
 					"headsign": "800 Mueller NB",
@@ -2680,7 +2680,7 @@
 			"block_count": 17,
 			"bytes": 461031,
 			"dir": "837",
-			"direction_flip_count": 108,
+			"direction_flip_count": 847,
 			"directions": [
 				{
 					"headsign": "837 Downtown SB",
@@ -2924,6 +2924,7 @@
 	],
 	"schema": 1,
 	"warnings": [
+		"4 trip(s) have a successor that differs across co-active service sets",
 		"route 103: direction 0 baseline 103-0-40fc50b4: starts on a non-timepoint stop; promoting it",
 		"route 322: direction 1 baseline 322-1-a2cd9402: starts on a non-timepoint stop; promoting it"
 	]

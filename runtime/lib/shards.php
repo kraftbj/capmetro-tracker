@@ -148,7 +148,38 @@ function cm_shard_is_exception_day(?array $index, string $service_date): bool
  * Returns null when the route has no shard. $index supplies the stop table and the route
  * directory name; it is loaded if not passed.
  */
-function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?array
+
+/*
+ * The successor's trip id for the service variants running today.
+ *
+ * next_trip carries the facts once -- direction, time, stop -- because across this feed they
+ * never vary by date, and trip_id_by_service carries the identifier, which does: CapMetro
+ * mints the same physical run once per service variant, so the trip a rider will board has a
+ * different id on a Monday than on a Friday. Publishing one of them unconditionally names the
+ * right bus on one weekday in five.
+ *
+ * With no active services (no date, or a date the calendar does not cover) the scalar stands.
+ * That is the honest fallback: the run is right and only the identifier is unresolved.
+ */
+function cm_shard_next_trip($next, array $active_services): ?array
+{
+    if (!is_array($next)) {
+        return null;
+    }
+    $by_service = $next['trip_id_by_service'] ?? null;
+    if (is_array($by_service) && $active_services !== []) {
+        foreach ($by_service as $sid => $tid) {
+            if (isset($active_services[(string) $sid])) {
+                $next['trip_id'] = (string) $tid;
+                break;
+            }
+        }
+    }
+    unset($next['trip_id_by_service']);
+    return $next;
+}
+
+function cm_shard_route(string $dir, string $route_id, ?array $index = null, ?string $service_date = null): ?array
 {
     $dir = rtrim($dir, '/');
     $index ??= cm_shard_index($dir);
@@ -162,6 +193,22 @@ function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?a
     $blocks_doc = cm_shard_read($base . '/blocks.json') ?? ['trips' => []];
     $tp_doc     = cm_shard_read($base . '/timepoints.json') ?? ['directions' => []];
     $cal_doc    = cm_shard_read($base . '/calendar.json') ?? ['dates' => [], 'service_ids' => []];
+
+    /*
+     * Which services run on the date being generated.
+     *
+     * A service_id in this feed is not a service day: calendar_dates puts SEVERAL on one
+     * date, and CapMetro splits a physical block across them by direction. The build chains
+     * a block per co-active set and mints the successor's id once per service variant, so
+     * picking the right one needs to know which variants are running today. Without a date
+     * the first id stands, which is what a caller with no calendar can honestly say.
+     */
+    $active_services = [];
+    if ($service_date !== null) {
+        foreach ($cal_doc['dates'][$service_date]['service_ids'] ?? [] as $sid) {
+            $active_services[(string) $sid] = true;
+        }
+    }
 
     $patterns = [];
     $baseline_by_service = [];
@@ -193,7 +240,7 @@ function cm_shard_route(string $dir, string $route_id, ?array $index = null): ?a
             'service_id'       => (string) ($b['service_id'] ?? ''),
             'block_id'         => $b['block_id'] ?? null,
             'block_confidence' => (string) ($b['confidence'] ?? 'low'),
-            'next_trip'        => is_array($b['next_trip'] ?? null) ? $b['next_trip'] : null,
+            'next_trip'        => cm_shard_next_trip($b['next_trip'] ?? null, $active_services),
             /*
              * The successor's route, as the build resolved it. A block that interlines puts
              * its next trip on a different route_id, and that route is a fact about the
