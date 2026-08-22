@@ -83,9 +83,20 @@ if ( overlongNames.length > 0 ) {
 	);
 }
 
-const { chains, blockMeta, stats: blockStats, orphanCount } = buildBlockChains( { trips, stops } );
+const { chains, blockMeta, stats: blockStats, orphanCount } = buildBlockChains( { trips, stops, calendarDates } );
 if ( orphanCount > 0 ) {
 	warn( `${ orphanCount } trip(s) have no block_id and cannot be chained` );
+}
+if ( blockStats.invariant_breaks > 0 ) {
+	/*
+	 * A trip's successor differed across two co-active service sets. Every other part of
+	 * this build assumes it cannot: next_trip publishes one departure time for a run that
+	 * is minted once per service variant. If this ever fires, that assumption has to be
+	 * revisited before the number it guards is trusted.
+	 */
+	warn(
+		`${ blockStats.invariant_breaks } trip(s) have a successor that differs across co-active service sets`
+	);
 }
 if ( blockStats.negative_layovers > 0 ) {
 	warn(

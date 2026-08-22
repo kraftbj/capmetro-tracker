@@ -511,6 +511,48 @@ grades it:
 A trip that is the **last** of its block has `next_trip: null` and `confidence: "high"`, because
 "there is no continuation" is a confident statement, not an uncertain one.
 
+### How the successor is chosen — a `service_id` is not a service day
+
+The build chains a block per **set of `service_id`s co-active on a date**, not per `service_id`.
+That distinction is the whole of §4's correctness and it was wrong until 2026-08-21.
+
+`calendar_dates` puts **several** service ids on one date — `20260821` runs `5-172` *and* `9-172` —
+and CapMetro splits one physical block across them **by direction**: block `837001` keeps its
+northbound trips under `9-172` and its southbound trips under `5-172`, and both run on a Friday.
+Chaining per `service_id` therefore saw half a block and linked each northbound trip to the next
+**northbound** one, skipping the return leg physically in between. Measured over the whole feed
+with a global trip table, **92,418 of 539,513 published continuations named the wrong successor —
+17.1%**. After the fix, 4.
+
+The error was self-reporting and was read as something else. Skipping the return leg inflates the
+gap the handoff is graded on, so the wrong successors came out `low` with `layover_too_long` and
+`stops_too_far_apart` — 88 minutes and 12 km for the 837 case, where the true handoff is 32
+minutes and 0 metres. **Any reading of the grade-reason distribution taken before this fix was
+measuring the bug rather than real interlining**, including the one that reported those two
+reasons dominating.
+
+Because blocks may interline across routes, chains are built over every trip in the feed and route
+shards slice out the trips they own. Judging a continuation from a single route's shard produces
+false failures and is not a valid check.
+
+### `next_trip.trip_id` is resolved per service variant
+
+The successor's **facts** do not vary by date; its **identifier** does. Of the 865 trips appearing
+in more than one co-active set, zero have successors differing in direction or start time and 781
+differ only in `trip_id` — CapMetro mints the same physical run once per service variant.
+
+So `data/routes/{id}/blocks.json` carries the facts once and adds
+`next_trip.trip_id_by_service`, a map from the successor's `service_id` to its `trip_id`. The
+runtime picks the entry whose service runs on the date being generated and publishes a single
+`trip_id`; **`trip_id_by_service` never appears in the API payload**. With no date available the
+first id stands, which is the honest fallback — the run is right and only the identifier is
+unresolved.
+
+If a feed ever chains one trip to successors that differ in *when* they leave, publishing a single
+`start_time` would be the same class of error this rule exists to remove. The build counts those
+as `invariant_breaks` and warns rather than silently choosing one; there are 4 in the current
+feed.
+
 The client renders `low` confidence continuations with hedged language ("likely becomes the
 10:21 EB") or not at all. It never presents a `low` continuation as fact.
 

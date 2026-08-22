@@ -304,7 +304,7 @@ $watch_targets = [];
 $canceled_trips = cm_canceled_trip_ids($trip_updates);
 
 foreach ($route_ids as $rid) {
-    $shard = cm_shard_route($shard_dir, $rid, $index);
+    $shard = cm_shard_route($shard_dir, $rid, $index, $service_date);
     if ($shard === null) {
         $errors[] = "missing shard for route $rid";
         continue;
