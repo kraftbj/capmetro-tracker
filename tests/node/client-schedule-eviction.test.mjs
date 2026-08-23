@@ -112,3 +112,29 @@ describe('whether a departures document has expired', () => {
     expect(app().scheduleExpired({}, '20260822')).toBe(false)
   })
 })
+
+describe('which live source defines today', () => {
+  /*
+   * The sources refresh on different schedules. `state.all` is fetched only while
+   * the every-bus view is open and then sits, so it can be hours behind. A date
+   * that is too old makes nothing look expired, which lands the failure squarely
+   * on the bug the eviction exists to remove — so the answer is the latest date
+   * any source reports, never the first one found.
+   */
+  it('takes the latest date, not the first source that has one', () => {
+    const state = { data: dayOf('20260821'), all: dayOf('20260819'), routeData: {} }
+    expect(app().currentServiceDate(state)).toBe('20260821')
+  })
+
+  it('a stale all.json cannot drag today backwards', () => {
+    const state = { all: dayOf('20260819'), routeData: { 800: dayOf('20260822') } }
+    expect(app().currentServiceDate(state)).toBe('20260822')
+    /* and the consequence that matters: yesterday's schedule is still condemned */
+    expect(app().scheduleExpired({ service_date: '20260821' }, app().currentServiceDate(state))).toBe(true)
+  })
+
+  it('still ignores the bundled fixture even when it is the latest date', () => {
+    const state = { usingFixture: true, data: dayOf('20260901'), routeData: { 4: dayOf('20260822') } }
+    expect(app().currentServiceDate(state)).toBe('20260822')
+  })
+})
