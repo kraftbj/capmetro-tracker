@@ -74,7 +74,15 @@ const SCENARIOS = {
  * leave the scenario quietly asserting against a date nothing serves.
  */
 const GOLDEN_SERVICE_DATE = readJson(GOLDEN).service_day.date
-const DAY_BEFORE_GOLDEN = String(Number(GOLDEN_SERVICE_DATE) - 1)
+
+/* As a DATE, not as an integer. 20260901 - 1 is 20260900, which is not a day,
+ * and the scenario would then be testing a string comparison against a value the
+ * generator can never emit. */
+function dayBefore(yyyymmdd) {
+  const d = new Date(Date.UTC(+yyyymmdd.slice(0, 4), +yyyymmdd.slice(4, 6) - 1, +yyyymmdd.slice(6, 8) - 1))
+  return d.toISOString().slice(0, 10).replace(/-/g, '')
+}
+const DAY_BEFORE_GOLDEN = dayBefore(GOLDEN_SERVICE_DATE)
 
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 

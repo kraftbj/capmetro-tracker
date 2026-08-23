@@ -24,6 +24,19 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   read off the bundled fixture, a frozen capture that would otherwise let one
   failed request declare every genuinely current schedule expired.
 
+  Keeping an out-of-date document and answering from one are separate decisions,
+  and only the first was safe to make. Every render path goes through a single
+  accessor that hands back nothing when the schedule describes a service day that
+  has ended, so the board falls to its existing "schedule has not loaded" state
+  rather than reading yesterday's times out under today's heading. The first
+  version of this change marked the document and did not do this, which left the
+  original bug intact in the branch where the replacement has not arrived.
+
+  The roll is acted on as soon as the live payload carrying it lands. The refresh
+  timer sweeps schedules synchronously, so the sweep judges against the service
+  date from before that tick's payload arrived; without a re-check when the
+  payload resolves, a roll stayed invisible for a further full minute.
+
   An expired document is kept and re-requested rather than deleted first.
   Deleting is only safe when the fetch cannot fail, and this one demonstrably
   can — taking a correct schedule with it and leaving "Schedule not loaded" where

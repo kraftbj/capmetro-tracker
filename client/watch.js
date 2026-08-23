@@ -153,6 +153,7 @@
    * be holding an untrusted id today.
    */
   function rowsFor(departures, stopId) {
+    if (!departures) return [];
     if (!Object.prototype.hasOwnProperty.call(departures, stopId)) return [];
     var rows = departures[stopId];
     return isArray(rows) ? rows : [];

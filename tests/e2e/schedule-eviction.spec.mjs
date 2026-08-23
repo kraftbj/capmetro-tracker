@@ -158,3 +158,103 @@ test.describe('when the service day rolls over while the tab is open', () => {
     expect(asked.length, 'never asked for the schedule at all').toBeGreaterThan(0)
   })
 })
+
+/*
+ * The two things the first version of this fix left uncovered.
+ *
+ * Both are about WHEN the board re-asks, and both were previously "tested" by the
+ * spec re-implementing the code under test — deleting depStatus by hand and
+ * calling selectView, rather than running what the timer runs.
+ */
+test.describe('when the board re-asks for a schedule', () => {
+  const departuresAsked = (page) => {
+    const asked = []
+    page.route('**/api/departures/*.json', (route) => {
+      asked.push(route.request().url())
+      route.continue()
+    })
+    return asked
+  }
+
+  test('one tick is enough when the service day rolls, not two', async ({ page }) => {
+    let rolled = false
+
+    /* The live payload rolls to the next service day on demand. */
+    await page.route('**/api/route/*.json', async (route) => {
+      const doc = await (await route.fetch()).json()
+      if (rolled) {
+        doc.service_day.date = String(Number(doc.service_day.date) + 1)
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(doc) })
+    })
+
+    await page.goto('/fresh/index.html?route=4')
+    await expect(page.locator('#board')).toBeVisible()
+    await expect.poll(async () => (await depState(page, '4')).status).toBe('ok')
+
+    /* The cron rolls over. The schedule the tab holds is now yesterday's. */
+    rolled = true
+    await page.evaluate(() => window.CMB.app.refreshTick())
+
+    /*
+     * ONE tick, not two.
+     *
+     * refreshTick calls load() and then, synchronously, sweeps the schedules —
+     * so the sweep runs against the service date from BEFORE this tick's payload
+     * arrived and finds nothing expired. load() therefore re-checks when its own
+     * response lands. Without that re-check the roll is invisible until the NEXT
+     * tick, and the board spends a further REFRESH_MS answering from a service
+     * day that has ended.
+     */
+    await expect
+      .poll(async () => (await depState(page, '4')).status, {
+        message: 'the roll was not noticed within the tick that carried it',
+        timeout: 5000,
+      })
+      .toBe('stale')
+  })
+
+  test('refreshTick is the function the timer runs, and re-requests an expired schedule', async ({ page }) => {
+    await page.goto('/yesterday/index.html?route=4')
+    await expect(page.locator('#board')).toBeVisible()
+    await expect.poll(async () => (await depState(page, '4')).status).toBe('stale')
+
+    /* Only now start counting, so this measures the tick and nothing before it. */
+    const asked = departuresAsked(page)
+    await page.evaluate(() => window.CMB.app.refreshTick())
+
+    /*
+     * The real exported function, not a hand-written substitute for it. The tick
+     * clears a 'stale' status and asks again; a test that deleted the status
+     * itself would pass even if the tick did nothing.
+     */
+    await expect
+      .poll(() => asked.length, { message: 'refreshTick did not re-request the expired schedule' })
+      .toBeGreaterThanOrEqual(1)
+  })
+
+  test('refreshTick also re-asks for a saved trip on a route that is not on screen', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('cmb.watches', JSON.stringify([{
+        route_id: '800', direction_id: 1, direction_tag: 'SB', stop_id: '6293',
+        stop_name: 'Simond SB', scheduled_time: '07:52:09', day_type: 'weekday',
+      }]))
+    })
+    await page.goto('/yesterday/index.html?route=4')
+    await expect(page.locator('#board')).toBeVisible()
+
+    const asked = departuresAsked(page)
+    await page.evaluate(() => window.CMB.app.refreshTick())
+
+    /*
+     * The board view never paints route 800, so nothing else would ask for its
+     * schedule. The tick's comment claimed it covered every route while the code
+     * only re-issued for the open one; this is that claim, asserted.
+     */
+    await expect
+      .poll(() => asked.filter((u) => u.includes('800')).length, {
+        message: 'a saved trip on another route was never re-asked for',
+      })
+      .toBeGreaterThanOrEqual(1)
+  })
+})

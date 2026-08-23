@@ -104,65 +104,65 @@ export function textOf(node) {
  */
 function stubElement(tag, ns) {
   const node = {
-      tagName: tag,
-      ns,
-      className: '',
-      textContent: '',
-      children: [],
-      attributes: {},
-      dataset: {},
-      style: {},
-      querySelector: () => null,
-      querySelectorAll: () => [],
-      focus() {},
-      blur() {},
-      scrollIntoView() {},
-      getBoundingClientRect: () => ({ top: 0, left: 0, width: 0, height: 0, right: 0, bottom: 0 }),
-      contains: () => false,
-      insertBefore(child) {
-        this.children.unshift(child)
-        return child
-      },
-      appendChild(child) {
-        this.children.push(child)
-        return child
-      },
-      removeChild(child) {
-        this.children = this.children.filter((c) => c !== child)
-        return child
-      },
-      get childNodes() {
-        return this.children
-      },
-      get firstChild() {
-        return this.children[0] ?? null
-      },
-      setAttribute(k, v) {
-        this.attributes[k] = String(v)
-      },
-      getAttribute(k) {
-        return this.attributes[k] ?? null
-      },
-      removeAttribute(k) {
-        delete this.attributes[k]
-      },
-      addEventListener() {},
-      get classList() {
-        const self = this
-        return {
-          add(c) {
-            self.className = `${self.className} ${c}`.trim()
-          },
-          remove(c) {
-            self.className = self.className.split(/\s+/).filter((x) => x !== c).join(' ')
-          },
-          contains: (c) => self.className.split(/\s+/).includes(c),
-          toggle(c, on) {
-            if (on) this.add(c)
-            else this.remove(c)
-          },
-        }
-      },
+    tagName: tag,
+    ns,
+    className: '',
+    textContent: '',
+    children: [],
+    attributes: {},
+    dataset: {},
+    style: {},
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    focus() {},
+    blur() {},
+    scrollIntoView() {},
+    getBoundingClientRect: () => ({ top: 0, left: 0, width: 0, height: 0, right: 0, bottom: 0 }),
+    contains: () => false,
+    insertBefore(child) {
+      this.children.unshift(child)
+      return child
+    },
+    appendChild(child) {
+      this.children.push(child)
+      return child
+    },
+    removeChild(child) {
+      this.children = this.children.filter((c) => c !== child)
+      return child
+    },
+    get childNodes() {
+      return this.children
+    },
+    get firstChild() {
+      return this.children[0] ?? null
+    },
+    setAttribute(k, v) {
+      this.attributes[k] = String(v)
+    },
+    getAttribute(k) {
+      return this.attributes[k] ?? null
+    },
+    removeAttribute(k) {
+      delete this.attributes[k]
+    },
+    addEventListener() {},
+    get classList() {
+      const self = this
+      return {
+        add(c) {
+          self.className = `${self.className} ${c}`.trim()
+        },
+        remove(c) {
+          self.className = self.className.split(/\s+/).filter((x) => x !== c).join(' ')
+        },
+        contains: (c) => self.className.split(/\s+/).includes(c),
+        toggle(c, on) {
+          if (on) this.add(c)
+          else this.remove(c)
+        },
+      }
+    },
   }
   return node
 }
@@ -177,7 +177,7 @@ function stubElement(tag, ns) {
  * box on screen belongs in the Playwright suite, which drives the actual page.
  */
 export function renderClient(scripts) {
-  const element = (tag, ns) => stubElement(tag, ns)
+  const element = stubElement
 
   const missing = scripts.filter((s) => {
     try {

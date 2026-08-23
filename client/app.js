@@ -110,7 +110,7 @@
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
-    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
+    openBuses: Object.create(null),  /* vehicle_id -> true, for the all-buses panels */
     storageFailed: false /* the last save was refused by localStorage */
   };
 
@@ -278,6 +278,32 @@
   }
 
   /*
+   * The departures document for a route, or null when the board must not answer
+   * from it.
+   *
+   * EVERY render path goes through here, and that is the whole point. The board
+   * deliberately KEEPS an out-of-date schedule — deleting it is how a failed
+   * refetch loses a whole service day — but it must never ANSWER from one.
+   * Keeping and believing are two different decisions, and this is where the
+   * second one is made.
+   *
+   * The first version of this fix made only the first decision. It marked the
+   * document `stale`, wrote a comment claiming it was "kept, not believed", and
+   * then handed it to the readers unchanged, because no reader ever looked at
+   * that status. A phone at breakfast still read yesterday's departure times
+   * under today's heading — the exact bug the eviction was written to remove,
+   * surviving in the branch where the replacement has not arrived yet.
+   *
+   * Derived from the document rather than from `depStatus` on purpose: a status
+   * is a second copy of a fact and can fall out of step with it. The document
+   * carries its own service date, so ask the document.
+   */
+  function usableDepartures(routeId) {
+    var doc = state.departures[routeId];
+    return doc && !scheduleExpired(doc) ? doc : null;
+  }
+
+  /*
    * One departures document per route, kept for the SERVICE DAY it describes —
    * not, as it was, for the life of the tab.
    *
@@ -322,7 +348,8 @@
         /*
          * A document for an earlier day is KEPT — deleting it is how a failed
          * refetch loses a whole service day — and marked so it is asked for again
-         * on the timer rather than spun on. Kept is not the same as believed.
+         * on the timer rather than spun on. Kept is not the same as believed:
+         * usableDepartures() is what stops any reader answering from it.
          */
         state.depStatus[routeId] = scheduleExpired(d) ? 'stale' : 'ok';
         render();
@@ -375,6 +402,17 @@
         state.data = d;
         state.lastGoodAt = d.generated_at;
         state.status = 'ok';
+        /*
+         * Re-check the schedule against the payload that just arrived.
+         *
+         * currentServiceDate() reads state.data, so an expiry check run before
+         * this point is judged against the PREVIOUS service date. The refresh
+         * tick did exactly that: on the first tick after a phone woke, the sweep
+         * compared today's schedule question against yesterday's answer, found
+         * nothing expired, and the board went on showing yesterday's times for a
+         * further full minute. The roll is known here; act on it here.
+         */
+        loadDepartures(routeId);
         render();
       })
       .catch(function (err) {
@@ -656,6 +694,46 @@
     loadDepartures(id);
   }
 
+  /*
+   * One minute's worth of refreshing, as a named function rather than a closure
+   * inside setInterval, so a test can run exactly what the timer runs.
+   *
+   * It used to be anonymous, which meant the only way to cover it was to
+   * re-implement its body in the test — and a test that re-implements the code it
+   * covers proves the test, not the code.
+   */
+  function refreshTick() {
+    if (state.status !== 'loading') load(state.routeId);
+    if (state.view === 'all') loadAll();
+    /*
+     * One retry per minute for a schedule that failed to load or that describes
+     * an earlier service day, and only here, where a retry cannot become a render
+     * loop.
+     *
+     * Every route the board can currently answer for, not just the open one: a
+     * saved trip on another route holds its own departures document, and that is
+     * the one being read at breakfast after the phone sat on the counter all
+     * night. Clearing its status without asking again would leave it evicted but
+     * not replaced until something happened to repaint that route.
+     */
+    Object.keys(state.depStatus).forEach(function (rid) {
+      var st = state.depStatus[rid];
+      if (st === 'error' || st === 'stale') delete state.depStatus[rid];
+    });
+    var routes = global.CMB.watch.list().map(function (w) { return w.route_id; });
+    if (state.routeId) routes.push(state.routeId);
+    if (state.editor.route_id) routes.push(state.editor.route_id);
+    routes.filter(function (id, i) { return id && routes.indexOf(id) === i; })
+      .forEach(loadDepartures);
+    if (state.view === 'saved') {
+      /* A frozen saved trip is worse than none: it reads as a live prediction. */
+      global.CMB.watch.list().forEach(function (w) {
+        state.routeStatus[w.route_id] = 'idle';
+        loadRouteData(w.route_id);
+      });
+    }
+  }
+
   /* ---- render --------------------------------------------------------- */
   var rafPending = false;
   /*
@@ -805,7 +883,7 @@
     dom.main.appendChild(stopBand);
     global.CMB.stopboard.render(
       stopBand,
-      state.departures[state.routeId] || null,
+      usableDepartures(state.routeId),
       d,
       nowEpoch(),
       {
@@ -874,7 +952,6 @@
     band.setAttribute('aria-label', 'Saved trips');
     dom.main.appendChild(band);
 
-
     var now = nowEpoch();
     var models = global.CMB.watch.list().map(function (w) {
       /* Fetching here rather than only in selectView covers a watch saved while
@@ -883,7 +960,7 @@
       loadRouteData(w.route_id);
       return global.CMB.watch.resolve(
         w,
-        state.departures[w.route_id] || null,
+        usableDepartures(w.route_id),
         liveRoute(w.route_id),
         now
       );
@@ -921,12 +998,16 @@
     band.setAttribute('aria-label', 'Save a trip');
     dom.main.appendChild(band);
 
+    if (state.editor.route_id) loadDepartures(state.editor.route_id);
     global.CMB.watch.renderEditor(band, {
       routes: catalog(),
       route_id: state.editor.route_id,
       direction_id: state.editor.direction_id,
       stop_id: state.editor.stop_id,
-      departures: state.editor.route_id ? (state.departures[state.editor.route_id] || null) : null
+      departures: state.editor.route_id ? usableDepartures(state.editor.route_id) : null
+      /* loadDepartures below, not here: the editor must re-ask for a schedule it
+       * has decided is out of date, or it would offer times from a service day
+       * that has already ended and let one be saved. */
     }, {
       onPickRoute: function (id) {
         state.editor = { route_id: id, direction_id: null, stop_id: null };
@@ -1031,31 +1112,7 @@
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
-      setInterval(function () {
-        if (state.status !== 'loading') load(state.routeId);
-        if (state.view === 'all') loadAll();
-        /*
-         * One retry per minute for a schedule that failed to load or that
-         * describes an earlier service day, and only here, where a retry cannot
-         * become a render loop.
-         *
-         * Every route, not just the open one: a saved trip on another route holds
-         * its own departures document, and that is the one being read at
-         * breakfast after the phone sat on the counter all night.
-         */
-        Object.keys(state.depStatus).forEach(function (rid) {
-          var st = state.depStatus[rid];
-          if (st === 'error' || st === 'stale') delete state.depStatus[rid];
-        });
-        if (state.routeId) loadDepartures(state.routeId);
-        if (state.view === 'saved') {
-          /* A frozen saved trip is worse than none: it reads as a live prediction. */
-          global.CMB.watch.list().forEach(function (w) {
-            state.routeStatus[w.route_id] = 'idle';
-            loadRouteData(w.route_id);
-          });
-        }
-      }, REFRESH_MS);
+      setInterval(refreshTick, REFRESH_MS);
     }
 
     var resizeTimer = null;
@@ -1087,6 +1144,8 @@
      */
     currentServiceDate: currentServiceDate,
     scheduleExpired: scheduleExpired,
+    usableDepartures: usableDepartures,
+    refreshTick: refreshTick,
     FAVOURITES: FAVOURITES,
     SUPPORTED_SCHEMA: SUPPORTED_SCHEMA
   };

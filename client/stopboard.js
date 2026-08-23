@@ -311,8 +311,16 @@
     host.appendChild(head);
 
     if (!dep) {
+      /*
+       * Reached both before the first schedule arrives and when the one held is
+       * from a service day that has ended — app.js's usableDepartures() hands
+       * null in both cases, because in both the board has no times it is entitled
+       * to show. "Only loads once" used to be the second line here and stopped
+       * being true when the schedule started expiring at the service-day roll.
+       */
       host.appendChild(S.notice('empty', 'Loading this route’s schedule…',
-        'One file for the whole service day, so it only loads once.'));
+        'One file for the whole service day. It is fetched again when the ' +
+        'service day rolls over.'));
       return host;
     }
 
