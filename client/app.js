@@ -243,19 +243,30 @@
    */
   function currentServiceDate(s) {
     s = s || state;
-    if (!s.usingFixture && s.data && s.data.service_day && s.data.service_day.date) {
-      return s.data.service_day.date;
-    }
-    if (s.all && s.all.service_day && s.all.service_day.date) {
-      return s.all.service_day.date;
-    }
+    var dates = [];
+    if (!s.usingFixture && s.data && s.data.service_day) dates.push(s.data.service_day.date);
+    if (s.all && s.all.service_day) dates.push(s.all.service_day.date);
     var routeData = s.routeData || {};
-    var ids = Object.keys(routeData);
-    for (var i = 0; i < ids.length; i++) {
-      var r = routeData[ids[i]];
-      if (r && r.service_day && r.service_day.date) return r.service_day.date;
-    }
-    return null;
+    Object.keys(routeData).forEach(function (id) {
+      var r = routeData[id];
+      if (r && r.service_day) dates.push(r.service_day.date);
+    });
+    dates = dates.filter(Boolean).sort();
+    /*
+     * The LATEST date any live source reports, not the first one found.
+     *
+     * The sources do not refresh on the same schedule: `state.all` is only
+     * fetched while the every-bus view is open and then sits there, so it can be
+     * hours behind the route payload. Taking the first hit let a source that had
+     * stopped updating define what "today" is — and because a date that is too
+     * old makes nothing look expired, the failure lands exactly on the bug this
+     * eviction exists to remove.
+     *
+     * Max is safe in the direction that matters: every candidate was generated
+     * server-side, so none can be ahead of the real service day, and a stale one
+     * can no longer drag the answer backwards.
+     */
+    return dates.length ? dates[dates.length - 1] : null;
   }
 
   /*

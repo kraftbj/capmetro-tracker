@@ -102,7 +102,9 @@ const server = createServer((req, res) => {
   /*
    * The departures document. As with api/route/ above, the requested route id is
    * ignored and one committed schedule stands in for whichever route the board
-   * asks about — the scenario, not the id, decides what comes back.
+   * asks about — the scenario, not the id, decides what comes back. There is one
+   * committed schedule fixture; a per-route map goes here when a test needs two
+   * routes to differ.
    *
    * Under `yesterday` the only thing that changes is service_date, set one day
    * before the date the golden live payload publishes. That is exactly the state
@@ -110,6 +112,15 @@ const server = createServer((req, res) => {
    * previous service day, and a live feed that has since rolled over.
    */
   if (rest.startsWith('api/departures/')) {
+    /* `missing` means the API is down, and it has to mean that for BOTH
+     * endpoints — a scenario where the live payload 500s while the schedule
+     * answers 200 is not a state the box can be in, and a test written against
+     * it proves nothing about the real one. */
+    if (scenario === 'missing') {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end('{"error":"upstream"}')
+      return
+    }
     const doc = wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json')))
     if (scenario === 'yesterday') doc.service_date = DAY_BEFORE_GOLDEN
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
