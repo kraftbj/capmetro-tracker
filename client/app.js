@@ -998,6 +998,10 @@
     band.setAttribute('aria-label', 'Save a trip');
     dom.main.appendChild(band);
 
+    /* The editor asks again for a schedule usableDepartures() has withheld, or it
+     * would sit on an empty step list until the timer came round — and before
+     * that withholding existed it would have offered times from a service day
+     * that had already ended, and let one be saved. */
     if (state.editor.route_id) loadDepartures(state.editor.route_id);
     global.CMB.watch.renderEditor(band, {
       routes: catalog(),
@@ -1005,9 +1009,6 @@
       direction_id: state.editor.direction_id,
       stop_id: state.editor.stop_id,
       departures: state.editor.route_id ? usableDepartures(state.editor.route_id) : null
-      /* loadDepartures below, not here: the editor must re-ask for a schedule it
-       * has decided is out of date, or it would offer times from a service day
-       * that has already ended and let one be saved. */
     }, {
       onPickRoute: function (id) {
         state.editor = { route_id: id, direction_id: null, stop_id: null };
