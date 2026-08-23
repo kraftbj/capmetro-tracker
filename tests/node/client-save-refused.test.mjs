@@ -89,3 +89,32 @@ describe('add() reports what the store actually did', () => {
     expect(c.cmb.watch.list().length).toBe(1)
   })
 })
+
+describe('remove() reports what the store actually did', () => {
+  it('says removed, and the trip is gone from the store', () => {
+    const { cmb } = fresh()
+    cmb.watch.add(THE_WATCH)
+    const res = cmb.watch.remove(cmb.watch.keyFor(THE_WATCH))
+    expect(res.removed).toBe(true)
+    expect(res.list).toEqual([])
+    expect(cmb.watch.list()).toEqual([])
+  })
+
+  /*
+   * The half that makes a refused delete a silent failure rather than a visible
+   * one: the list it hands back has the trip gone, because it was filtered in
+   * memory. The card disappears from the screen. Only the flag distinguishes
+   * that from a delete that happened.
+   */
+  it('says NOT removed, while the trip is still in the store', () => {
+    const c = fresh()
+    c.cmb.watch.add(THE_WATCH)
+    c.window.localStorage.setItem = () => {
+      throw new Error('QuotaExceededError')
+    }
+    const res = c.cmb.watch.remove(c.cmb.watch.keyFor(THE_WATCH))
+    expect(res.removed).toBe(false)
+    expect(res.list).toEqual([])
+    expect(c.cmb.watch.list().length, 'the trip really was deleted').toBe(1)
+  })
+})

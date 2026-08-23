@@ -140,7 +140,21 @@
    * rendered and looked at, which is the only way the table gets verified.
    * They never run unless ?state= names one.
    */
-  var STATE_SCENARIOS = {
+  /*
+   * Null-prototype because `?state=` names one of these directly, and a bare
+   * object literal answers to every member of Object.prototype as well.
+   *
+   * `?state=valueOf` passed app.js's `if (q.state && S.STATE_SCENARIOS[q.state])`
+   * guard, because every prototype member is truthy. Two things then happened,
+   * both permanent for that tab. `scenario.apply` exists on every function
+   * (it is Function.prototype.apply), so the payload was rewritten: with
+   * `constructor` the board rendered "this board is too old for the data" and
+   * nothing else, and with `valueOf` it rendered correctly. And app.js gates the
+   * 60s refresh on `!state.scenario`, so in both cases the board never updated
+   * again. The quiet variant is the worse one: a board that looks current, is
+   * not, and has no way back except a reload nobody knows to do.
+   */
+  var STATE_SCENARIOS = Object.assign(Object.create(null), {
     loading: { hold: true, note: 'LOADING — payload deliberately never resolves' },
     empty: {
       note: 'EMPTY — route has no vehicles',
@@ -266,7 +280,7 @@
       note: 'PARTIAL LADDER — no timepoints published',
       apply: function (d) { d.timepoints = []; return d; }
     }
-  };
+  });
 
   global.CMB.states = {
     el: el,

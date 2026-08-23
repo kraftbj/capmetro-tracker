@@ -33,8 +33,22 @@
    * that did not happen: the trip would simply be gone next time, with nothing on
    * screen having suggested anything went wrong.
    */
-  var STORAGE_REFUSED = 'This browser would not let the board save the trip — ' +
-    'private browsing or storage turned off. Nothing was kept.';
+  var SAVE_REFUSED = {
+    head: 'Nothing was saved.',
+    detail: 'This browser would not let the board save the trip — private ' +
+      'browsing or storage turned off. Nothing was kept.'
+  };
+
+  /*
+   * A refused delete needs its own words. "Nothing was saved" would be actively
+   * misleading: the trip is not gone, it is still on this device and will be back
+   * on the next load, which is the opposite of what the reader just asked for.
+   */
+  var REMOVE_REFUSED = {
+    head: 'The trip is still saved on this device.',
+    detail: 'This browser would not let the board delete it — storage is full or ' +
+      'switched off. It will be back the next time this page is opened.'
+  };
 
   /*
    * The six routes this household actually rides, pinned to the top of the picker.
@@ -111,7 +125,7 @@
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
     openBuses: Object.create(null),  /* vehicle_id -> true, for the all-buses panels */
-    storageFailed: false /* the last save was refused by localStorage */
+    storageError: null   /* {head, detail} when localStorage refused the last write */
   };
 
   var dom = {};
@@ -342,6 +356,14 @@
     state.depStatus[routeId] = 'loading';
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
+        /*
+         * A 200 is not by itself an answer. A proxy error page, or any body that
+         * parses to null, stored a falsy value under an 'ok' status — and the
+         * cache guard treats falsy as "nothing cached", so the next paint asked
+         * again, stored null again, and painted again. Route it into the error
+         * path that already exists instead.
+         */
+        if (!d || typeof d !== 'object') throw new Error('empty departures document');
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
         state.departures[routeId] = d;
@@ -972,7 +994,20 @@
         state.view = 'saved-edit';
         render();
       },
-      onChange: render
+      /*
+       * A delete reports the same way a save does. Without this the card vanished
+       * from a list re-rendered out of the filtered array while the trip was
+       * still in the store.
+       */
+      onChange: function (res) {
+        if (res && res.removed === false) {
+          state.storageError = REMOVE_REFUSED;
+          announce(REMOVE_REFUSED.detail);
+        } else if (res && res.removed === true) {
+          state.storageError = null;
+        }
+        render();
+      }
     });
 
     /*
@@ -987,8 +1022,8 @@
      * on its own it leaves a sighted reader looking at a list that silently does
      * not contain what they just saved.
      */
-    if (state.storageFailed) {
-      band.appendChild(S.notice('error', 'Nothing was saved.', STORAGE_REFUSED));
+    if (state.storageError) {
+      band.appendChild(S.notice('error', state.storageError.head, state.storageError.detail));
     }
     dom.main.appendChild(footer(state.data));
   }
@@ -1031,9 +1066,9 @@
          * was gone on the next load with nothing having said so.
          */
         var res = global.CMB.watch.add(w);
-        state.storageFailed = !res.saved;
+        state.storageError = res.saved ? null : SAVE_REFUSED;
         state.view = 'saved';
-        announce(res.saved ? 'Saved ' + global.CMB.watch.describe(w) : STORAGE_REFUSED);
+        announce(res.saved ? 'Saved ' + global.CMB.watch.describe(w) : SAVE_REFUSED.detail);
         render();
       }
     });

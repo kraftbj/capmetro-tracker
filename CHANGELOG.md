@@ -44,6 +44,34 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   once it has arrived, and until then the document is marked `stale`: kept, but
   not believed, and not re-requested on every repaint.
 
+- **A link could freeze the board while leaving it looking current.**
+  `?state=` names an entry in the state-preview table, and that lookup was a bare
+  one on a plain object, so every member of `Object.prototype` answered to it.
+  `?state=constructor` rewrote the payload into something the schema check
+  refused, and the board showed nothing but "too old for the data". `?state=
+  valueOf` was quieter and worse: the payload passed through untouched, the board
+  rendered correctly — and because the 60s refresh is gated on there being no
+  scenario, it never updated again. A board that is visibly broken sends someone
+  to look up the timetable; one that looks current and is frozen sends a child to
+  a stop. The table is now null-prototype, the same rule already applied to the
+  route-keyed maps.
+
+- **A delete the browser refused said nothing, and the trip came back.**
+  `watch.remove()` discarded what `writeStore` reported, exactly as `add()` used
+  to. The card left the screen either way, because the list is re-rendered from
+  the filtered array — so on a full or read-only store the reader watched the trip
+  vanish and it was there again on the next load. It gets its own words rather
+  than the save wording: what is wrong is not that nothing was kept, it is that
+  something the reader asked to destroy is still on the device, and what it
+  describes is which stop a child waits at and when.
+
+- **A 200 with an empty body could put the board in a request loop.** A proxy
+  error page, or any response parsing to null, was stored under an `ok` status;
+  the cache guard reads a falsy value as "nothing cached", so the next paint asked
+  again and the saved view — which re-asks on every render — spun against the
+  origin. A body that is not an object now takes the error path that already
+  existed.
+
 - **A stop id from a link could blank the whole board.** `departures[stopId]` was
   a bare lookup on an object parsed from JSON, so it also reached
   `Object.prototype`. `?stop=constructor` returned the Object function — truthy,

@@ -7,9 +7,9 @@
  * saved, with nothing on screen having suggested anything went wrong.
  *
  * THE FIRST VERSION OF THIS FILE DID NOT TEST THAT. It set
- * `state.storageFailed = true` by hand and asserted the notice rendered — which
- * tests the notice, not the wiring. Inverting `state.storageFailed = !res.saved`
- * in app.js restored the original bug with the whole suite still green. The unit
+ * the refusal flag by hand and asserted the notice rendered — which tests the
+ * notice, not the wiring. Inverting the line that sets it from what the store
+ * actually did restored the original bug with the whole suite still green. The unit
  * suite covered `watch.add()` reporting the refusal and this file covered the
  * notice; nothing covered the line joining them, which is the only line the
  * reader experiences.
@@ -74,5 +74,58 @@ test.describe('a save the browser refuses, driven through the real editor', () =
      */
     await expect(page.locator('.watchcard').first()).toBeVisible()
     await expect(page.locator('.notice--error')).toHaveCount(0)
+  })
+})
+
+/**
+ * A delete the browser refuses is the same lie with more at stake.
+ *
+ * The card comes off the list either way, because the list is re-rendered from
+ * the filtered array. If the write was refused, the trip is still in storage and
+ * comes back on the next load — and what came back is a legible statement of
+ * which stop a child stands at, at what time, on which days. On a borrowed or
+ * shared phone that is the whole of the harm.
+ */
+test.describe('a delete the browser refuses', () => {
+  const A_TRIP = [{
+    route_id: '800', direction_id: 1, direction_tag: 'SB', stop_id: '6293',
+    stop_name: 'Simond SB', scheduled_time: '07:52:09', day_type: 'weekday',
+  }]
+
+  const seedTrip = (page) =>
+    page.addInitScript((trip) => {
+      window.localStorage.setItem('cmb.watches', JSON.stringify(trip))
+    }, A_TRIP)
+
+  test('says the trip is still saved, rather than nothing at all', async ({ page }) => {
+    await seedTrip(page)
+    await breakStorage(page)
+    await page.goto('/fresh/index.html?route=800&view=saved')
+    await expect(page.locator('.watchcard').first()).toBeVisible()
+
+    await page.locator('.watchcard__remove').first().click()
+
+    const notice = page.locator('.notice--error').first()
+    await expect(notice).toBeVisible()
+    /*
+     * Not "Nothing was saved" — that is the opposite of what happened and would
+     * tell the reader the record is gone when it is still there.
+     */
+    await expect(notice).toContainText('still saved on this device')
+    await expect(notice).toContainText(/back the next time/i)
+  })
+
+  test('the control: with working storage the trip goes, and nothing is claimed', async ({ page }) => {
+    await seedTrip(page)
+    await page.goto('/fresh/index.html?route=800&view=saved')
+    await expect(page.locator('.watchcard').first()).toBeVisible()
+
+    await page.locator('.watchcard__remove').first().click()
+
+    await expect(page.locator('.watchcard')).toHaveCount(0)
+    await expect(page.locator('.notice--error')).toHaveCount(0)
+    /* It really left the store, rather than only the screen. */
+    const stored = await page.evaluate(() => window.localStorage.getItem('cmb.watches'))
+    expect(JSON.parse(stored || '[]')).toEqual([])
   })
 })

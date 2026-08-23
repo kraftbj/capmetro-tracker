@@ -105,10 +105,23 @@
     return { list: all, saved: writeStore(all) };
   }
 
+  /*
+   * Reports whether the store actually dropped it, for the same reason add()
+   * does — and with more at stake.
+   *
+   * A refused save loses something the reader wanted kept. A refused DELETE keeps
+   * something the reader asked to destroy, and what it keeps is a legible
+   * statement of which stop a child stands at, at what time, on which days. The
+   * card disappears from the list either way, because the list is re-rendered
+   * from the filtered array; on the next load the trip is back, and nothing ever
+   * said so. On a borrowed or shared phone that is the whole of the harm.
+   *
+   * Private browsing is not the case here — nothing was written to delete. The
+   * cases are an exhausted quota, or storage switched to read-only mid-session.
+   */
   function remove(k) {
     var all = list().filter(function (x) { return keyFor(x) !== k; });
-    writeStore(all);
-    return all;
+    return { list: all, removed: writeStore(all) };
   }
 
   /* ---- pure helpers ---------------------------------------------------- */
@@ -456,8 +469,8 @@
     del.textContent = 'Remove';
     del.setAttribute('aria-label', 'Remove the saved trip ' + describe(w));
     del.addEventListener('click', function () {
-      remove(model.key);
-      if (opts && opts.onChange) opts.onChange();
+      var res = remove(model.key);
+      if (opts && opts.onChange) opts.onChange(res);
     });
     box.appendChild(del);
 
