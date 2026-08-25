@@ -147,8 +147,11 @@ describe('a row never argues with itself', () => {
    * time before that would put the bus at a later stop before it reached its
    * first — 247 of 249 in-service vehicles in the capture have predictions[0]
    * AT the anchor, and none has an anchor predicted after its first prediction.
-   * Real precedent for the shape asserted here: route 1 bus 2602, +76s at its
-   * anchor and 148s early further along; 378 such rows corpus-wide.
+   * Real precedent for the shape asserted here: route 1 bus 2602 is +76s at its
+   * anchor and 148s early at stop 4046 further along. Measured corpus-wide,
+   * 1,082 prediction rows across 88 vehicles are early at their own stop while
+   * their bus is late at its anchor, so this is the common case rather than a
+   * contrived one.
    */
   const STOP = '6441'
   const FEED_AT = at(8, 17)
