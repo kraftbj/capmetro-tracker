@@ -295,6 +295,22 @@
         return f;
       })
       .then(function (d) {
+        /*
+         * Seed the followed bus from the payload BEFORE a scenario mutates it.
+         * ?state=trip-gone strips every vehicle from every document the harness
+         * produces, so without this there is no poll in which the bus was ever
+         * present, and the dimmed last-seen state has no URL that can show it.
+         * This is the sequence a real disappearance takes -- present in one poll,
+         * absent in the next -- compressed into one load.
+         */
+        if (scenario && scenario.apply && state.tripBusId) {
+          for (var i = 0; i < (d.vehicles || []).length; i++) {
+            if (String(d.vehicles[i].vehicle_id) === String(state.tripBusId)) {
+              state.tripLastSeen = { vehicle: deepCopy(d.vehicles[i]), at: d.generated_at };
+              break;
+            }
+          }
+        }
         if (scenario && scenario.apply) d = scenario.apply(d);
         if (typeof d.schema !== 'number' || d.schema > SUPPORTED_SCHEMA) {
           state.status = 'schema';
