@@ -15,6 +15,12 @@
  *
  * These tests assert on the page, not on internal state, and each has a control
  * so it cannot pass because the page failed to render at all.
+ *
+ * Worth knowing before trusting a green run: the fix is in TWO places, and
+ * either alone keeps these passing — the hasOwnProperty check at the lookup in
+ * app.js, and STATE_SCENARIOS being null-prototype in states.js. Reverting one
+ * leaves the suite green. What these assert is the behaviour with neither, which
+ * is the code as it actually shipped; restore both to watch them fail.
  */
 import { expect, test } from '@playwright/test'
 

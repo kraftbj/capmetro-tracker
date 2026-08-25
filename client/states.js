@@ -154,7 +154,21 @@
    * again. The quiet variant is the worse one: a board that looks current, is
    * not, and has no way back except a reload nobody knows to do.
    */
-  var STATE_SCENARIOS = Object.assign(Object.create(null), {
+  /*
+   * A copy with no prototype. Object.assign says this in one line and is
+   * ES2015; client/*.js is ES5 only, because the board has to open from a
+   * file:// URL with no build step between the source and the phone. A for-in
+   * with the ownership check is how ES5 says it.
+   */
+  function nullProto(src) {
+    var out = Object.create(null);
+    for (var k in src) {
+      if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = src[k];
+    }
+    return out;
+  }
+
+  var STATE_SCENARIOS = nullProto({
     loading: { hold: true, note: 'LOADING — payload deliberately never resolves' },
     empty: {
       note: 'EMPTY — route has no vehicles',
