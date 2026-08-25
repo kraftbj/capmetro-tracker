@@ -251,6 +251,41 @@
     });
   }
 
+  /*
+   * The stops still ahead of one bus, cut from its own trip.
+   *
+   * The cut is adherence.against, which section 2 defines as the first stop at
+   * or after progress.current_stop_sequence with a usable time. Reusing the
+   * server's answer means there is one definition of "where the bus is" rather
+   * than two that can disagree.
+   *
+   * It matches on stop_id AND scheduled_at. Both halves are load-bearing: 234
+   * trips visit one stop twice and matching on the id alone would cut at the
+   * first pass every time. Measured across the corpus, all 249 live anchors
+   * matched a departures row on both halves exactly, and one of them was on a
+   * repeat-stop trip.
+   *
+   * It never compares progress.current_stop_sequence against
+   * stops[].stop_sequence. Those are different numbering schemes and disagree
+   * on 2,221 of 4,112 trips.
+   *
+   * anchored:false means "we could not tell where this bus is". The caller
+   * shows the whole trip and says so; it does not guess.
+   */
+  function stopsAheadOf(stopTimes, vehicle) {
+    if (!stopTimes) return null;
+    var against = vehicle && vehicle.adherence && vehicle.adherence.against;
+    if (against) {
+      for (var i = 0; i < stopTimes.length; i++) {
+        if (stopTimes[i].stop_id === String(against.stop_id) &&
+            stopTimes[i].scheduled_at === against.scheduled_at) {
+          return { stops: stopTimes.slice(i), anchored: true };
+        }
+      }
+    }
+    return { stops: stopTimes.slice(), anchored: false };
+  }
+
   function plural(n, one, many) {
     return n + ' ' + (n === 1 ? one : many);
   }
@@ -342,6 +377,7 @@
     plural: plural,
     hasFix: hasFix,
     predictionFor: predictionFor,
-    stopTimesForTrip: stopTimesForTrip
+    stopTimesForTrip: stopTimesForTrip,
+    stopsAheadOf: stopsAheadOf
   };
 })(window);

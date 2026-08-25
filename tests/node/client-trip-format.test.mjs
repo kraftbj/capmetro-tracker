@@ -92,3 +92,61 @@ describe('stopTimesForTrip', () => {
     expect(fmt.stopTimesForTrip({}, 'T1')).toBeNull()
   })
 })
+
+const TRIP = [
+  { stop_id: 'A', stop_name: 'Alpha', scheduled_at: 1000, ordinal: 0 },
+  { stop_id: 'B', stop_name: 'Bravo', scheduled_at: 2000, ordinal: 1 },
+  { stop_id: 'C', stop_name: 'Charlie', scheduled_at: 3000, ordinal: 2 },
+]
+
+const busAt = (stopId, scheduledAt) => ({
+  in_service: true,
+  trip: { trip_id: 'T1', schedule_relationship: 'SCHEDULED' },
+  adherence: { state: 'late', seconds: 60, against: { stop_id: stopId, scheduled_at: scheduledAt } },
+  predictions: [],
+})
+
+describe('stopsAheadOf', () => {
+  t('cuts at the anchor and keeps it', (fmt) => {
+    /* A bus STOPPED_AT your stop is still an arrival you can board, so the
+       anchor stop itself stays in the list. */
+    const out = fmt.stopsAheadOf(TRIP, busAt('B', 2000))
+    expect(out.anchored).toBe(true)
+    expect(out.stops.map((s) => s.stop_id)).toEqual(['B', 'C'])
+  })
+
+  t('cuts on stop_id AND scheduled_at, so a repeat stop cuts at the right pass', (fmt) => {
+    /* Measured: all 249 live anchors match a departures row on both halves of
+       this key, and one of them sits on a trip that visits its stop twice. */
+    const loop = [
+      { stop_id: 'L', stop_name: 'Loop', scheduled_at: 1000, ordinal: 0 },
+      { stop_id: 'M', stop_name: 'Mid', scheduled_at: 2000, ordinal: 1 },
+      { stop_id: 'L', stop_name: 'Loop', scheduled_at: 3000, ordinal: 2 },
+    ]
+    const out = fmt.stopsAheadOf(loop, busAt('L', 3000))
+    expect(out.stops.map((s) => s.ordinal)).toEqual([2])
+  })
+
+  t('reports anchored false and keeps the whole trip when there is no anchor', (fmt) => {
+    const noAnchor = { in_service: true, trip: { trip_id: 'T1' }, adherence: { state: 'unknown', seconds: null, against: null } }
+    const out = fmt.stopsAheadOf(TRIP, noAnchor)
+    expect(out.anchored).toBe(false)
+    expect(out.stops).toHaveLength(3)
+  })
+
+  t('reports anchored false when the anchor is not in the trip', (fmt) => {
+    const out = fmt.stopsAheadOf(TRIP, busAt('Z', 9999))
+    expect(out.anchored).toBe(false)
+    expect(out.stops).toHaveLength(3)
+  })
+
+  t('returns null when there is no trip to cut', (fmt) => {
+    expect(fmt.stopsAheadOf(null, busAt('B', 2000))).toBeNull()
+  })
+
+  t('does not mutate the list it was given', (fmt) => {
+    const before = JSON.stringify(TRIP)
+    fmt.stopsAheadOf(TRIP, busAt('B', 2000))
+    expect(JSON.stringify(TRIP)).toBe(before)
+  })
+})
