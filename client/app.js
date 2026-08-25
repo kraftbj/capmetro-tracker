@@ -544,6 +544,27 @@
    * is a second copy of a fact and can fall out of step with it. The document
    * carries its own service date, so ask the document.
    */
+  /*
+   * The same rule as usableDepartures, for the readers that take the whole map
+   * rather than one route.
+   *
+   * chain.js resolves a journey across two or three routes at once, so it is
+   * handed the map instead of a document — and passing the raw map handed it
+   * schedules the board had already decided it must not answer from. That is the
+   * bug the accessor exists to prevent, arriving through the one reader whose
+   * shape did not fit the accessor. The trip view had it too, for the same
+   * reason: a surface built after the rule, taking a route the rule did not
+   * cover.
+   */
+  function usableDeparturesMap() {
+    var out = Object.create(null);
+    Object.keys(state.departures).forEach(function (id) {
+      var doc = usableDepartures(id);
+      if (doc) out[id] = doc;
+    });
+    return out;
+  }
+
   function usableDepartures(routeId) {
     var doc = state.departures[routeId];
     return doc && !scheduleExpired(doc) ? doc : null;
@@ -1733,7 +1754,7 @@
 
     var live = liveRouteMap();
     var chains = global.CMB.chain.list().map(function (c) {
-      return global.CMB.chain.resolve(c, state.departures, live, now);
+      return global.CMB.chain.resolve(c, usableDeparturesMap(), live, now);
     });
     global.CMB.chain.render(chainBand, global.CMB.chain.sortModels(chains), {
       /* A chain that cannot resolve from disk is not waiting on anything. The
@@ -2023,13 +2044,13 @@
       start: ed.start,
       onward: ed.onward,
       saveFailed: ed.saveFailed,
-      departures: state.departures,
+      departures: usableDeparturesMap(),
       /* A step waiting on a schedule has to be able to tell "not yet" from "not
          ever", and from a file it is always the second. */
       dep_status: state.depStatus,
       from_disk: fromDisk(),
       connections: global.CMB.chain.connectionsFor(
-        ed.legs, state.departures, ed.onward.route_id, ed.onward.direction_id)
+        ed.legs, usableDeparturesMap(), ed.onward.route_id, ed.onward.direction_id)
     }, {
       onRetrySchedule: function (id) {
         retrySchedule(id);

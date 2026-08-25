@@ -429,12 +429,18 @@ test.describe('a schedule from another service day does not become a request loo
     return () => hits
   }
 
-  test('an older cached schedule is evicted once, not on every paint', async ({ page }) => {
+  test('an out-of-date schedule is re-asked for once, not on every paint', async ({ page }) => {
     /*
      * The 3 a.m. rollover, with the board across the line and the schedule not:
      * api/route says the service day is the 20th while api/departures still says
      * the 19th. Built first against a board that agrees with itself, because the
      * editor cannot be driven without a schedule it is allowed to use.
+     *
+     * "Re-asked for", not "evicted": the document is KEPT and withheld rather
+     * than deleted, because deleting is only safe if the refetch cannot fail and
+     * it can — that loses a whole service day to one bad request. What this
+     * asserts is unchanged either way, and it is the part that matters: asking
+     * again must not become a thing every paint does.
      */
     await saveTheChain(page)
 
@@ -457,14 +463,26 @@ test.describe('a schedule from another service day does not become a request loo
        refresh that is allowed to ask again. */
     await page.waitForTimeout(3000)
     expect(hits() - settled).toBeLessThanOrEqual(1)
+
+    /*
+     * And it is not answered from while it is held. A chain is resolved across
+     * two or three routes at once, so it takes the whole schedule map rather
+     * than one document — and it was handed the raw map, which is how the board
+     * ended up grading a connection off a service day that had ended. Same shape
+     * as the trip view before it: a surface written after the rule, reading by a
+     * route the rule did not cover.
+     */
+    const card = page.locator('.chaincard').first()
+    await expect(card.locator('.chaincard__transfer')).toHaveCount(0)
   })
 
-  test('and a NEWER schedule is not evicted at all, because the board is the stale one',
+  test('and a NEWER schedule is still answered from, because the board is the stale one',
     async ({ page }) => {
       /*
-       * The republish case. state.data is the embedded fixture, pinned a year back;
-       * the departures document is today's and perfectly good. Evicting it threw
-       * away the only schedule on the page, forever, once per paint.
+       * The republish case. state.data is the embedded fixture, pinned a year
+       * back; the departures document is today's and perfectly good. Refusing it
+       * — which comparing the two dates for INEQUALITY rather than for older-than
+       * does — throws away the only usable schedule on the page.
        */
       const hits = await departuresDated(page, '20260820')
       await saveTheChain(page)
