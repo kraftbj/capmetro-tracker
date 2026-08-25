@@ -100,9 +100,22 @@ test.describe('?stop= and ?route= naming a prototype member', () => {
      * With a bare `{}` for the cache map, `state.departures['constructor']`
      * reads back the Object function — truthy — so the guard concluded the
      * document was already cached and the board never asked for anything.
+     *
+     * The URL is the assertion, not the count. `asked.length > 0` also holds
+     * when the board asked for some entirely different route, so it could not
+     * tell the exploit path from an ordinary fetch at all.
+     *
+     * It is honest about what it can prove, though: this asserts the BEHAVIOUR
+     * and no longer pins it to one line. Two independent changes now produce it
+     * — the null-prototype cache map, and scheduleExpired treating a date it
+     * cannot read as expired — so reverting either alone leaves this green. That
+     * is defence in depth rather than a gap, but it does mean a green run here
+     * is not evidence that the map is still null-prototype. The unit test on
+     * STATE_SCENARIOS's prototype is the one that pins a prototype directly.
      */
     await expect
-      .poll(() => asked.length, { message: 'the board never requested a schedule at all' })
+      .poll(() => asked.filter((u) => /\/api\/departures\/constructor\.json$/.test(u)).length,
+        { message: 'the board never asked for the route named in the link' })
       .toBeGreaterThan(0)
   })
 })

@@ -94,21 +94,40 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   a stop. The table is now null-prototype, the same rule already applied to the
   route-keyed maps.
 
-- **A delete the browser refused said nothing, and the trip came back.**
+- **Remove did nothing, and said nothing, when the browser refused the delete.**
   `watch.remove()` discarded what `writeStore` reported, exactly as `add()` used
-  to. The card left the screen either way, because the list is re-rendered from
-  the filtered array — so on a full or read-only store the reader watched the trip
-  vanish and it was there again on the next load. It gets its own words rather
-  than the save wording: what is wrong is not that nothing was kept, it is that
-  something the reader asked to destroy is still on the device, and what it
-  describes is which stop a child waits at and when.
+  to. On a full or read-only store the button was simply dead: the card stayed
+  where it was, no message appeared, and the trip was still on the device. It
+  gets its own words rather than the save wording, because what is wrong is the
+  opposite — not that nothing was kept, but that something the reader asked to
+  destroy is still there, and what it describes is which stop a child waits at
+  and when. A delete that works now says so out loud too; the spoken channel is
+  not repainted, so a refusal followed by a success used to leave a screen reader
+  holding the refusal.
 
-- **A 200 with an empty body could put the board in a request loop.** A proxy
-  error page, or any response parsing to null, was stored under an `ok` status;
-  the cache guard reads a falsy value as "nothing cached", so the next paint asked
-  again and the saved view — which re-asks on every render — spun against the
-  origin. A body that is not an object now takes the error path that already
-  existed.
+- **A 200 with an empty body was taken for an answer, three different ways.** A
+  proxy error page, or any response parsing to null, was stored under an `ok`
+  status, and each of the three documents then failed differently.
+
+  The schedule spun: the cache guard reads a falsy value as "nothing cached", so
+  the next paint asked again, and the saved view — which re-asks on every render
+  — ran against the origin without limit.
+
+  The fleet document was worse than a wasted request. The board rendered
+  "CapMetro is reporting no buses at all … a CapMetro problem rather than a
+  problem with this board" — a confident, specific and false statement about
+  service, naming somebody else as the cause, while the real can't-reach-the-feed
+  notice and its Retry never appeared.
+
+  A route document parked on the one status the retry cannot see. The
+  once-a-minute sweep clears `error`; a falsy body landed on `ok`, so a bus
+  detail read "Just left · loading the route…" for the life of the tab with
+  nothing loading and nothing that ever would.
+
+  All three now go to the error path that already existed. Arrays are refused
+  too: `typeof [] === 'object'`, and an array reached the schema check instead,
+  which is the screen that tells the reader their copy of the app needs
+  updating.
 
 - **A stop id from a link could blank the whole board.** `departures[stopId]` was
   a bare lookup on an object parsed from JSON, so it also reached

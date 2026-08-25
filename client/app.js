@@ -237,6 +237,26 @@
    * network error, because from disk the fixture IS the answer, not a fallback
    * after a timeout.
    */
+  /*
+   * A 200 is not by itself an answer.
+   *
+   * Every one of these endpoints is a static JSON file, and the things that sit
+   * in front of it — a proxy, a CDN, a captive portal, a half-written file — can
+   * all answer 200 with a body that parses to something that is not a document.
+   * Stored under a success status, a falsy body then reads as "nothing cached"
+   * to one guard and as "loaded" to another, and each endpoint fails a different
+   * ugly way: the schedule spun a request loop, the fleet document told the
+   * reader CapMetro was reporting no buses at all, and a route document sat at
+   * 'ok' holding null where the once-a-minute retry only ever clears 'error'.
+   *
+   * Arrays are refused too. `typeof [] === 'object'`, and an array reaches the
+   * schema check instead, which puts "This app needs updating … written for
+   * format undefined" on screen — a board that is wrong about why it is broken.
+   */
+  function isDocument(d) {
+    return !!d && typeof d === 'object' && Object.prototype.toString.call(d) !== '[object Array]';
+  }
+
   function getJson(path, signal) {
     if (global.location.protocol === 'file:' || typeof fetch !== 'function') {
       return Promise.reject(new Error('file://'));
@@ -292,6 +312,14 @@
     render();
     getJson(API_ALL)
       .then(function (d) {
+        /*
+         * See isDocument. Here the board does not merely fail — it renders
+         * "CapMetro is reporting no buses at all … a CapMetro problem rather
+         * than a problem with this board", which is a confident false statement
+         * about service that names somebody else as the cause. The real
+         * can't-reach-the-feed state, with its Retry, never appeared.
+         */
+        if (!isDocument(d)) throw new Error('not a fleet document');
         state.all = d;
         state.allStatus = 'ok';
         if (then) then(d);
@@ -349,6 +377,14 @@
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
+        /*
+         * See isDocument. This one is unreachable by the retry that was built
+         * for exactly its symptom: the sweep clears 'error', a falsy body lands
+         * on 'ok', and the bus detail then reads "Just left · loading the
+         * route…" for the life of the tab with nothing loading. Throwing puts it
+         * on the error path the retry can actually see.
+         */
+        if (!isDocument(d)) throw new Error('not a route document');
         state.routeData[routeId] = d;
         state.routeStatus[routeId] = 'ok';
         render();
@@ -539,16 +575,12 @@
         if (state.depGen[routeId] !== gen) return;
         delete state.depAbort[routeId];
         /*
-         * A 200 is not by itself an answer. A proxy error page, or any body that
-         * parses to null, stored a falsy value under an 'ok' status — and the
-         * cache guard treats falsy as "nothing cached", so the next paint asked
-         * again, stored null again, and painted again. Route it into the error
-         * path that already exists instead.
-         *
-         * After the generation check, so an abandoned request cannot take the
-         * live one's route into 'error' on its way out.
+         * See isDocument. Here the falsy body spun a request loop: stored under
+         * 'ok', read as "nothing cached" by the guard above, re-asked on the
+         * next paint. After the generation check, so an abandoned request cannot
+         * take the live one's route into 'error' on its way out.
          */
-        if (!d || typeof d !== 'object') throw new Error('empty departures document');
+        if (!isDocument(d)) throw new Error('not a departures document');
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
         state.departures[routeId] = d;
@@ -1538,19 +1570,34 @@
         render();
       },
       /*
-       * A delete reports the same way a save does. Without this the card vanished
-       * from a list re-rendered out of the filtered array while the trip was
-       * still in the store.
+       * A delete reports the same way a save does. Without this the Remove
+       * button was simply dead on a store that refused the write: the card
+       * stayed, because every render rebuilds the list from the store rather
+       * than from what remove() hands back, and nothing said why.
        *
        * A removal that WORKED clears the notice for the same reason any other
        * change to the list does: it described one earlier write, and the list
        * under it has moved on.
        */
-      onChange: function (res) {
+      onChange: function (res, w) {
         if (res && res.removed === false) {
           state.storageError = REMOVE_REFUSED;
           announce(REMOVE_REFUSED.detail);
         } else {
+          /*
+           * Said out loud, not only cleared.
+           *
+           * The live region is not repainted by render() — it lives outside
+           * dom.main — so whatever was last announced stands until something
+           * replaces it. A refusal followed by a delete that worked therefore
+           * left a screen reader holding "the board would not let it be
+           * deleted… it will be back the next time this page is opened" about a
+           * trip that had just been deleted: the visible notice was cleared and
+           * the spoken one was not, so the two channels disagreed and the
+           * spoken one was the wrong one. onSave has always announced both
+           * outcomes; this is the same courtesy.
+           */
+          announce(w ? 'Removed ' + global.CMB.watch.describe(w) : 'Removed.');
           clearSaveNotice();
         }
         render();

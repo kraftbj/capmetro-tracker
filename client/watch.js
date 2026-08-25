@@ -118,10 +118,16 @@
    *
    * A refused save loses something the reader wanted kept. A refused DELETE keeps
    * something the reader asked to destroy, and what it keeps is a legible
-   * statement of which stop a child stands at, at what time, on which days. The
-   * card disappears from the list either way, because the list is re-rendered
-   * from the filtered array; on the next load the trip is back, and nothing ever
-   * said so. On a borrowed or shared phone that is the whole of the harm.
+   * statement of which stop a child stands at, at what time, on which days. On a
+   * borrowed or shared phone that is the whole of the harm.
+   *
+   * What the reader saw before this was a dead button: the card stayed, nothing
+   * moved, nothing was said. Every render rebuilds the list from a fresh read of
+   * the store — `list()`, not the array returned here — so a write that did not
+   * happen simply does not show up. The `list` in the return shape is read by
+   * the tests and by nothing in the client, and it should stay that way: a
+   * render path that trusted it INSTEAD of the store is what would produce the
+   * vanishing card this comment used to describe.
    *
    * Private browsing is not the case here — nothing was written to delete. The
    * cases are an exhausted quota, or storage switched to read-only mid-session.
@@ -473,7 +479,9 @@
     del.setAttribute('aria-label', 'Remove the saved trip ' + describe(w));
     del.addEventListener('click', function () {
       var res = remove(model.key);
-      if (opts && opts.onChange) opts.onChange(res);
+      /* The trip goes with the result: the announcement has to name what left,
+       * and this is the only place that still knows. */
+      if (opts && opts.onChange) opts.onChange(res, w);
     });
     box.appendChild(del);
 

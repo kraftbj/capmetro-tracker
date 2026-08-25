@@ -80,11 +80,14 @@ test.describe('a save the browser refuses, driven through the real editor', () =
 /**
  * A delete the browser refuses is the same lie with more at stake.
  *
- * The card comes off the list either way, because the list is re-rendered from
- * the filtered array. If the write was refused, the trip is still in storage and
- * comes back on the next load — and what came back is a legible statement of
- * which stop a child stands at, at what time, on which days. On a borrowed or
+ * The refusal leaves the trip in storage, and what stayed is a legible statement
+ * of which stop a child stands at, at what time, on which days. On a borrowed or
  * shared phone that is the whole of the harm.
+ *
+ * What it looked like was a dead button — the card stays put, because every
+ * render rebuilds the list from the store. So these assert on storage and on a
+ * reload as well as on the notice: "a notice appeared" would also hold if the
+ * trip had genuinely been deleted, and the harm is precisely that it was not.
  */
 test.describe('a delete the browser refuses', () => {
   const A_TRIP = [{
@@ -113,6 +116,53 @@ test.describe('a delete the browser refuses', () => {
      */
     await expect(notice).toContainText('still saved on this device')
     await expect(notice).toContainText(/back the next time/i)
+
+    /*
+     * The notice is the report; this is the fact it reports. Asserting only the
+     * words would hold just as well if the trip really had been deleted and the
+     * board were lying in the other direction — and the harm here is precisely
+     * that a record of which stop a child stands at is still on the device.
+     */
+    const stored = await page.evaluate(() => window.localStorage.getItem('cmb.watches'))
+    expect(JSON.parse(stored || '[]')).toHaveLength(1)
+    await expect(page.locator('.watchcard')).toHaveCount(1)
+  })
+
+  test('and the trip really is back on the next load, which is the harm', async ({ page }) => {
+    await seedTrip(page)
+    await breakStorage(page)
+    await page.goto('/fresh/index.html?route=800&view=saved')
+    await page.locator('.watchcard__remove').first().click()
+    await expect(page.locator('.notice--error').first()).toBeVisible()
+
+    /* Storage works again — a new tab, a new session, quota freed. The point is
+     * that the reader's delete did not survive, and nothing on this page has
+     * been carried over to admit it. */
+    await page.reload()
+
+    await expect(page.locator('.watchcard').first()).toBeVisible()
+    await expect(page.locator('.notice--error')).toHaveCount(0)
+  })
+
+  test('a delete that works says so out loud, not only on screen', async ({ page }) => {
+    /*
+     * The live region is not repainted by render() — it sits outside the board —
+     * so the last thing announced stands until something replaces it. A refusal
+     * followed by a delete that worked therefore left a screen reader holding
+     * "the board would not let it be deleted" about a trip that had just been
+     * deleted: the visible notice cleared, the spoken one did not, and the two
+     * channels disagreed with the spoken one wrong.
+     */
+    await seedTrip(page)
+    await page.goto('/fresh/index.html?route=800&view=saved')
+    await expect(page.locator('.watchcard').first()).toBeVisible()
+
+    await page.locator('.watchcard__remove').first().click()
+    await expect(page.locator('.watchcard')).toHaveCount(0)
+
+    const spoken = page.locator('[role="status"]').first()
+    await expect(spoken).toContainText(/removed/i)
+    await expect(spoken).not.toContainText(/would not let/i)
   })
 
   test('the control: with working storage the trip goes, and nothing is claimed', async ({ page }) => {
