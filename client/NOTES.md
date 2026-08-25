@@ -49,6 +49,101 @@ because a state table that cannot be looked at does not get verified:
 Also `?route=4` and `?dir=0|1|both`. The last route and direction persist in
 `localStorage`.
 
+### Shareable URLs
+
+Served over HTTP the board also answers to paths, so a link can be read out loud:
+
+| Path | What it opens |
+|---|---|
+| `/route/4/eb` | The board, route 4, eastbound. Also `wb`, `nb`, `sb`, `both`, `0`, `1` |
+| `/buses` | Every bus in the system |
+| `/trip/1234` | The trip view following bus 1234 |
+| `/trip/7/1234` | The same, with the route named |
+| `/saved` | Saved trips |
+
+Four things about this are load-bearing rather than incidental.
+
+**The query form is permanent.** `?view=`, `?route=`, `?dir=`, `?bus=` and the
+whole `?state=` harness above keep working, and are the ONLY form used from
+`file://`, where a path means nothing and the History API refuses on an opaque
+origin. A path is read first and the query then overrides it field by field, so
+a pretty URL and a forced interaction state can be combined — which is the only
+way to look at a state on a path.
+
+**Direction tokens are per-route.** `eb` is direction 0 on the 4 and means
+nothing on the 7, so a token cannot become a `direction_id` until that route's
+document has loaded and its headsigns are known. It resolves during load,
+before the first meaningful paint. A route that does not run the direction asked
+for keeps the saved one rather than retrying forever.
+
+**Every fetch hangs off a derived base, never a hardcoded `/api/`.** The client
+fetches relative to the page, so `api/route/4.json` read from `/trip/1234` asks
+for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognised app path to
+get the directory the board is served from. Hardcoding `/api/` would break every
+browser test in this repo, because `tests/e2e/server.mjs` serves the whole client
+under a scenario prefix.
+
+**The `<base>` bootstrap in `index.html` is not optional, and the CSP has to
+admit it.** Same problem, one layer earlier: a relative `<script
+src="format.js">` read from `/route/4/eb` resolves to `/route/4/format.js`,
+which no server answers with the script. nginx matches it against `location ~*
+\.(js|css)$`, declared before the app-path fallback, and 404s; the e2e fixture
+server has no such ordering and returns the page's own HTML. Either way the
+board renders nothing, with no console error saying why.
+
+The bootstrap is the one inline script in this client, and the vhosts admit it
+by **sha256 hash** rather than by adding `'unsafe-inline'`, which would readmit
+every injected inline script on an origin whose whole defence is having none.
+`base-uri` is `'self'` rather than `'none'` for the same reason: `'none'` makes
+every `<base>` inert however it is inserted, including one built with
+`createElement`. Both are pinned by `tests/node/deploy-vhost-headers.test.mjs`,
+which recomputes the hash from `index.html` on every run — edit the snippet
+without updating the config and the suite goes red instead of the board going
+blank on the box. The e2e fixture server serves the real policy, parsed from the
+vhost, so the browser tests would fail too. The inline snippet must stay first in
+`<head>`, because an external script would need the same base in order to load.
+It states the same rule `urls.baseFor()` does and the two must agree;
+`tests/e2e/urls.spec.mjs` covers it by loading the board at depth and asserting
+`window.CMB` exists.
+
+`/saved` carries nothing but the tab name. Saved trips live in `localStorage`,
+and a watch in a URL would publish somebody's routine to whoever they were sent
+the link by.
+
+The address bar is written with `replaceState`, never `pushState`, so Back
+leaves the site exactly as it did before any of this existed. A bare
+`/trip/1234` upgrades itself to `/trip/{route}/{bus}` once the fleet document
+names the route, so the link that gets copied onward is the one that needs no
+extra fetch.
+
+### What the real nginx actually does
+
+Run against the rendered vhost in a throwaway container, because the fixture
+server is a different program and this is the seam where the two disagree:
+
+| Path | | |
+|---|---|---|
+| `/route/4/eb`, `/buses`, `/trip/1234`, `/saved` | 200 | the board |
+| `/route/4/eb/` | 200 | a trailing slash is fine |
+| `/routeXYZ` | 404 | the `(/|$)` in the regex is doing its job |
+| `/route/4/format.js` | **404** | `location ~* \.(js|css)$` is declared first and has no `try_files` — this is why the `<base>` bootstrap exists, and why the failure has no console error |
+| `/route/4/.env`, `/trip/x.log` | **403** | 200 before the deny blocks were moved above the asset and app-path locations |
+| `/saved/../../etc/passwd`, `%00` | 400 | nginx rejects before any location matches |
+| `/route/4/%2e%2e/api/health.json` | 200 | normalizes inside the app path; nothing escapes |
+| `/Route/4/eb` | 404 | **verbs are case-sensitive** — see below |
+
+**Case is not normalized on the verb.** `/route/4/EB` works because direction
+tokens are lowercased, but `/Route/4/eb` 404s at nginx and never reaches the
+client. It fails honestly rather than rendering something wrong, and links are
+pasted rather than typed, so this is recorded rather than fixed. Making it
+case-insensitive means `~*` in both vhosts AND lowercasing the verb in
+`urls.split()` — one without the other is worse than neither.
+
+**This needs a vhost change to work in production.** `deploy/nginx-capmetro.conf`
+gains a fallback for the four app verbs. `update.sh` does not install vhosts —
+deliberately — so until it is installed by hand and nginx reloaded, path links
+404 while `/` and every `?query=` link keep working.
+
 The `all-states` and `ladder-probe` scenarios rewrite the fixture and are labelled
 on screen as synthetic. They are instruments, not data — nothing in the shipped
 board invents a value.
