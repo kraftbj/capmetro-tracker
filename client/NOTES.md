@@ -152,8 +152,16 @@ no tile server, no geocoder, no key, no network call.
   prompt UI; a browser that refuses to grant one reports the same code 1 a
   person tapping Block does, so that message names both possibilities rather
   than picking one. Still worth ten minutes in a real browser opened from disk.
-- **The arrival time is shared with the stop board.** Both panels answer "when
-  does this bus reach this stop", so both read `fmt.predictionFor()` first.
+- **The arrival time is NOT shared with the stop board, and that is deliberate.**
+  The two panels sound like they ask one question and do not. This panel asks
+  "when is this bus next here", where the soonest occurrence is the answer even
+  on the 234 trips that visit a stop twice — so it reads `fmt.predictionFor()`,
+  which matches on `stop_id` and returns exactly that. The stop board asks about
+  one scheduled departure, and a loop trip has two of them at the same stop, so
+  it joins positionally instead (see its `feedArrivalFor()`). Asking
+  `predictionFor()` the stop board's question is what made both rows print the
+  first pass's time; six rendered rows carried the wrong arrival, the worst by
+  51 minutes.
   stopboard.js used to add the bus's current lateness to the scheduled time,
   which assumes the deviation measured at whatever stop the bus is approaching
   still holds by the time it reaches yours — across the corpus the two disagree
@@ -195,14 +203,14 @@ variation on it.
   ordering a trip's own stop list by it would draw stops out of the order the
   bus actually visits them.
 - **Predictions are consumed positionally, with a forward-only cursor, never
-  by looking up `stop_id`.** `fmt.predictionFor()` — the function `near.js`
-  and `stopboard.js` both call — matches on `stop_id` alone, and **234 trips
-  visit one stop twice**, so it returns the first pass for both. That is a
-  real bug in those two panels; this view does not have it only because
-  `arrivalPlan()` walks `vehicle.predictions` in order and never rewinds, so
-  the two passes of a repeat-stop trip land on the correct occurrence each.
-  Fixing `predictionFor()` itself is a follow-up, not something this view
-  needed to do.
+  by looking up `stop_id`.** `fmt.predictionFor()` matches on `stop_id` alone
+  and returns the SOONEST occurrence, and **234 trips visit one stop twice**.
+  That is the right answer for `near.js` — a rider standing there wants the
+  next arrival — and the wrong one for anything asking about a specific
+  scheduled departure. `arrivalPlan()` walks `vehicle.predictions` in order and
+  never rewinds, so the two passes of a repeat-stop trip land on their own
+  occasions. `stopboard.js` was fixed to join through this same path rather
+  than by `stop_id`; `near.js` still calls `predictionFor()` on purpose.
 - **Past the last stop the feed predicts, the deviation last seen from the
   feed is carried forward and held flat**, rather than recomputed from the
   bus's current anchor the way `stopboard.js` does. The two rules are not a

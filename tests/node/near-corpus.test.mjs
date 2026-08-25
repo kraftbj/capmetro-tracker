@@ -228,6 +228,9 @@ describe('the two panels tell one story', () => {
      * so agreement here is a real constraint rather than a rounding check.
      */
     let compared = 0
+    /* Repeat-stop pairs seen. Not zero on this corpus; the assertion below says
+       so, because a pair count of zero would make the loop-stop check vacuous. */
+    let repeatPairs = 0
     eachRoute((doc, name) => {
       const rid = name.replace(/\.json$/, '')
       const depPath = path.join(API, 'departures', `${rid}.json`)
@@ -240,14 +243,22 @@ describe('the two panels tell one story', () => {
         for (const group of groups) {
           for (const d of group.departures) {
             if (!d.vehicle || d.canceled) continue
-            const feed = cmb.fmt.predictionFor(d.vehicle, stop.stop_id)
-            if (!feed) continue
-            /* The stop board must be showing the feed's number, not its own
-               extrapolation, whenever the feed has one. */
+            if (!d.from_feed) continue
+            /*
+             * The stop board must be showing a number the FEED published for
+             * this stop, not its own extrapolation. Compared against the set of
+             * the vehicle's published times rather than against
+             * fmt.predictionFor(), because that function answers "when next"
+             * and a trip serving this stop twice has two right answers here --
+             * 270 (stop, trip) pairs in this corpus do.
+             */
+            const published = (d.vehicle.predictions || [])
+              .filter((p) => String(p[1]) === String(stop.stop_id))
+              .map((p) => p[2])
             expect(
-              d.predicted_at,
+              published,
               `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}`,
-            ).toBe(feed.predicted_at)
+            ).toContain(d.predicted_at)
 
             const nearStop = cmb.near
               .stopsOnRoute(doc, d.trip.direction_id)
@@ -257,16 +268,63 @@ describe('the two panels tell one story', () => {
               .arrivals(doc, nearStop, doc.generated_at)
               .find((a) => a.vehicle.vehicle_id === d.vehicle.vehicle_id)
             if (!mine) continue
+            /*
+             * The two panels answer DIFFERENT questions at a stop a trip serves
+             * twice: near says "when is it next here", the stop board lists each
+             * scheduled departure separately. So near is never later than any of
+             * the board's rows, and equals the earliest of them -- which is the
+             * same number on every ordinary stop, and the honest relationship on
+             * a loop. Asserting bare equality only held while both panels shared
+             * the stop_id lookup that made the second pass wrong.
+             */
             expect(
               mine.predicted_at,
-              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: the two panels disagree`,
-            ).toBe(d.predicted_at)
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: near is later than a board row`,
+            ).toBeLessThanOrEqual(d.predicted_at)
+            expect(
+              mine.predicted_at,
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: near does not match any board row`,
+            ).toBe(Math.min.apply(null, published))
             compared++
+
+            /*
+             * Two rows for ONE trip at ONE stop must never share a time. That is
+             * the loop-stop bug stated directly: fmt.predictionFor() matches on
+             * stop_id alone and returns the soonest occurrence, so before the
+             * fix both passes of a repeat-stop trip printed the first pass's
+             * arrival. Two measurements on this corpus, and they are of different
+             * things, so keep them apart: PRE-fix, 6 such pairs render on routes
+             * 2, 30 and 383, and all 6 collapse to one time. POST-fix, 5 render,
+             * on routes 30 and 383, and none collapse -- the sixth stops being a
+             * pair because its second row now falls outside the grace window it
+             * had been given the first pass's time to slip inside. The counter
+             * below reaches 10 rather than 5 because it counts ROWS, once for
+             * each side of a pair.
+             *
+             * The assertion above (the board's time is one the feed published)
+             * cannot catch it: handing both rows the first pass's time satisfies
+             * it, because that time IS in the published set.
+             */
+            const sameTripHere = group.departures.filter(
+              (o) => o.vehicle && o.from_feed && o.trip.id === d.trip.id,
+            )
+            if (sameTripHere.length > 1) {
+              const times = sameTripHere.map((o) => o.predicted_at)
+              expect(
+                new Set(times).size,
+                `${name} stop ${stop.stop_id} trip ${d.trip.id}: two passes share one arrival`,
+              ).toBe(times.length)
+              repeatPairs++
+            }
           }
         }
       }
     })
     expect(compared, 'no (stop, bus) pair was comparable across both panels').toBeGreaterThan(0)
+    expect(
+      repeatPairs,
+      'no repeat-stop pair rendered, so the two-passes-one-time check proved nothing',
+    ).toBeGreaterThan(0)
   })
 })
 
