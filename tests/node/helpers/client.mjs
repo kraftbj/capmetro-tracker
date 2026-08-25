@@ -13,9 +13,35 @@ import path from 'node:path'
 import vm from 'node:vm'
 import { ROOT } from './optional.mjs'
 
-/** Load client scripts in order. Returns window.CMB, or null with a reason. */
-export function loadClient(scripts) {
-  const missing = scripts.filter((s) => {
+/*
+ * The client's load order, read out of client/index.html rather than retyped.
+ *
+ * Every sandbox below takes a list of scripts, and each caller used to hand over
+ * its own hand-written one. That broke the moment app.js gained a dependency:
+ * when the trip view and the URL grammar landed, the list in
+ * client-schedule-eviction.test.mjs still ended at near.js, app.js threw
+ * reaching for CMB.urls.parse before exporting anything, and all fourteen
+ * assertions in the file went out as one unreadable "Cannot read properties of
+ * undefined". Nothing was wrong with the code under test.
+ *
+ * So a test that wants the whole client asks for CLIENT_SCRIPTS and stays right
+ * as the client changes. A test that wants three modules still names its three;
+ * that is a real choice and not a maintenance burden. The data/*.js fixture
+ * includes are left out — they are a frozen capture, and a sandbox that wants
+ * one should say so.
+ */
+export const CLIENT_SCRIPTS = readFileSync(path.join(ROOT, 'client/index.html'), 'utf8')
+  .match(/<script src="([^"]+)"><\/script>/g)
+  .map((tag) => tag.replace(/.*src="([^"]+)".*/, '$1'))
+  .filter((src) => !src.startsWith('data/'))
+
+/*
+ * Which of these do not exist. Written once: all three sandboxes need the same
+ * answer, and the point of the check is to report a missing file as a named
+ * reason rather than as a stack trace from inside vm.
+ */
+function missingScripts(scripts) {
+  return scripts.filter((s) => {
     try {
       readFileSync(path.join(ROOT, 'client', s))
       return false
@@ -23,6 +49,11 @@ export function loadClient(scripts) {
       return true
     }
   })
+}
+
+/** Load client scripts in order. Returns window.CMB, or null with a reason. */
+export function loadClient(scripts) {
+  const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, reason: `client/${missing.join(', client/')} does not exist yet` }
   }
@@ -179,14 +210,7 @@ function stubElement(tag, ns) {
 export function renderClient(scripts) {
   const element = stubElement
 
-  const missing = scripts.filter((s) => {
-    try {
-      readFileSync(path.join(ROOT, 'client', s))
-      return false
-    } catch {
-      return true
-    }
-  })
+  const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, document: null, reason: `client/${missing.join(', client/')} does not exist yet` }
   }
@@ -256,14 +280,7 @@ export function textDeep(node) {
  * entirely, so nothing is left running after the test returns.
  */
 export function bootClient(scripts) {
-  const missing = scripts.filter((s) => {
-    try {
-      readFileSync(path.join(ROOT, 'client', s))
-      return false
-    } catch {
-      return true
-    }
-  })
+  const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, reason: `client/${missing.join(', client/')} does not exist yet` }
   }

@@ -55,11 +55,18 @@
 
   /* ---- storage --------------------------------------------------------- */
 
+  /* Both readers of untrusted shapes want this: the stored watch list, which the
+   * reader can edit by hand, and a departures row set reached by a stop id off
+   * the URL. It was written out twice before rowsFor arrived. */
+  function isArray(v) {
+    return Object.prototype.toString.call(v) === '[object Array]';
+  }
+
   function readStore() {
     try {
       var raw = global.localStorage.getItem(STORE_KEY);
       var list = raw ? JSON.parse(raw) : [];
-      return Object.prototype.toString.call(list) === '[object Array]' ? list : [];
+      return isArray(list) ? list : [];
     } catch (e) {
       /* Private mode, disabled storage, or a corrupted value. An unreadable store
        * is an empty one; it must never take the board down with it. */
@@ -157,10 +164,6 @@
     if (!Object.prototype.hasOwnProperty.call(departures, stopId)) return [];
     var rows = departures[stopId];
     return isArray(rows) ? rows : [];
-  }
-
-  function isArray(v) {
-    return Object.prototype.toString.call(v) === '[object Array]';
   }
 
   /*
@@ -561,8 +564,16 @@
     if (state.route_id === null || state.route_id === undefined) return host;
 
     if (!dep) {
+      /*
+       * Same sentence, same reason, as the Next-buses notice in stopboard.js:
+       * "it only loads once" stopped being true when the schedule started
+       * expiring at the service-day roll, and this notice is exactly what a
+       * reader sees at the moment it is provably false -- the editor is handed
+       * usableDepartures(), so a withheld schedule lands here.
+       */
       host.appendChild(S.notice('empty', 'Loading the schedule for route ' + state.route_id + '…',
-        'This is one file for the whole service day, so it only loads once.'));
+        'One file for the whole service day. It is fetched again when the ' +
+        'service day rolls over.'));
       return host;
     }
 

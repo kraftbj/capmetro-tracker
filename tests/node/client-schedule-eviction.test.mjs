@@ -20,13 +20,12 @@
  *                         for a few seconds either side of the service-day roll.
  */
 import { describe, expect, it } from 'vitest'
-import { bootClient } from './helpers/client.mjs'
+import { CLIENT_SCRIPTS, bootClient } from './helpers/client.mjs'
 
-const client = bootClient([
-  'format.js', 'adherence.js', 'states.js', 'allbuses.js', 'watch.js',
-  'stopboard.js', 'map.js', 'ladder.js', 'rows.js', 'near.js', 'trip.js',
-  'urls.js', 'app.js',
-])
+/* The whole client, in the order index.html loads it. app.js reaches into other
+ * namespaces at boot, so the list has to stay complete as the client grows —
+ * which is why it is derived rather than written down here. */
+const client = bootClient(CLIENT_SCRIPTS)
 
 /*
  * No ctx.skip here. app.js failing to boot is the thing this file exists to
@@ -108,9 +107,48 @@ describe('whether a departures document has expired', () => {
     expect(app().scheduleExpired({ service_date: '20270101' }, '20261231')).toBe(false)
   })
 
-  it('does not throw on a missing document or a missing service_date', () => {
+  it('does not throw on a missing document, and judges nothing without one', () => {
+    /*
+     * No document is not an expired document. There is nothing to withhold and
+     * nothing to re-request; loadDepartures fetches on the absence itself.
+     */
     expect(app().scheduleExpired(null, '20260822')).toBe(false)
-    expect(app().scheduleExpired({}, '20260822')).toBe(false)
+    expect(app().scheduleExpired(undefined, '20260822')).toBe(false)
+  })
+
+  /*
+   * A date the board cannot read is treated as expired: kept, but never answered
+   * from, and asked for again on the timer.
+   *
+   * This asserted `scheduleExpired({}, ...) === false` when it was written, under
+   * a heading about not throwing — two separate claims, and only the first one
+   * was wanted. The comparison was `doc.service_date < today` alone, so the
+   * answer came out of JS relational coercion and landed on a DIFFERENT side
+   * depending on how the document was malformed: `null` and `''` and an ISO
+   * `'2026-08-22'` all came back expired, while `undefined` and `'garbage'` came
+   * back current and were then believed forever, never re-requested. The schema
+   * requires eight digits, so any of these means the generator has already
+   * broken its contract — which is precisely when the board should not be
+   * guessing in the reader's favour.
+   */
+  it('treats a date it cannot read as expired, whichever way it is malformed', () => {
+    const expired = (d) => app().scheduleExpired({ service_date: d }, '20260822')
+    expect(expired(undefined)).toBe(true)
+    expect(expired('garbage')).toBe(true)
+    expect(expired(null)).toBe(true)
+    expect(expired('')).toBe(true)
+    expect(expired('2026-08-22')).toBe(true)
+    expect(expired('202608222')).toBe(true)
+    expect(expired({})).toBe(true)
+  })
+
+  it('still reads a well-formed date the generator actually emits', () => {
+    expect(app().scheduleExpired({ service_date: '20260822' }, '20260822')).toBe(false)
+    expect(app().scheduleExpired({ service_date: '20260821' }, '20260822')).toBe(true)
+    /* The generator emits a string, but a number is unambiguous and orders the
+     * same way once it is one; refusing it would be pedantry, not safety. */
+    expect(app().scheduleExpired({ service_date: 20260821 }, '20260822')).toBe(true)
+    expect(app().scheduleExpired({ service_date: 20260822 }, '20260822')).toBe(false)
   })
 })
 
@@ -137,5 +175,92 @@ describe('which live source defines today', () => {
   it('still ignores the bundled fixture even when it is the latest date', () => {
     const state = { usingFixture: true, data: dayOf('20260901'), routeData: { 4: dayOf('20260822') } }
     expect(app().currentServiceDate(state)).toBe('20260822')
+  })
+})
+
+
+/*
+ * 'loading' was the one status nothing ever cleared, and withholding is what
+ * turned that from harmless into a dead surface.
+ *
+ * getJson is a plain fetch with no timeout. A request outstanding when a device
+ * suspends may never settle — neither handler runs — so the status stays
+ * 'loading' and loadDepartures returns early on it for the life of the tab.
+ * Before the schedule started expiring, that left the board reading the document
+ * it still held: wrong after a roll, but present. Now usableDepartures withholds
+ * that document, so the reader gets an empty Next-buses band and empty saved
+ * trips, and the network coming back does not help.
+ */
+describe('a departures fetch that never settles', () => {
+  /*
+   * Route 999 on purpose. refreshTick sweeps every cached status and then
+   * re-requests the routes the board can currently answer for — the open route,
+   * the editor's, and every saved trip's. A route that is none of those is swept
+   * and not re-asked, which is what isolates the sweep from the retry: seeded on
+   * route 4 these assertions read the status the RETRY had just set, not the one
+   * the sweep left, and reported a hang that was really a recovery.
+   */
+  const ROUTE = '999'
+  const seed = (status) => {
+    const st = app().state
+    st.routeId = '4'
+    st.editor.route_id = null
+    ;[st.depStatus, st.depStuck, st.depGen].forEach((m) => Object.keys(m).forEach((k) => delete m[k]))
+    if (status) st.depStatus[ROUTE] = status
+    return st
+  }
+
+  it('is given up on, so the route can be asked again', () => {
+    const st = seed('loading')
+    st.depGen[ROUTE] = 1
+
+    app().refreshTick()
+    expect(st.depStatus[ROUTE]).toBe('loading')   /* one tick is patience, not a hang */
+
+    app().refreshTick()
+    expect(st.depStatus[ROUTE]).toBeUndefined()   /* the guard that blocked every retry is gone */
+  })
+
+  /*
+   * Giving up is only safe because the abandoned request is disowned first.
+   * Without this the first fetch lands eventually and writes its document over
+   * whatever the retry already put there — an older schedule replacing a newer
+   * one, which is the bug this whole file exists to prevent, arriving by the
+   * back door.
+   */
+  it('disowns the abandoned request rather than letting it write late', () => {
+    const st = seed('loading')
+    st.depGen[ROUTE] = 1
+
+    app().refreshTick()
+    app().refreshTick()
+
+    expect(st.depGen[ROUTE]).toBe(2)
+  })
+
+  it('leaves a status that is not loading alone', () => {
+    const st = seed('ok')
+
+    app().refreshTick()
+    app().refreshTick()
+    app().refreshTick()
+
+    expect(st.depStatus[ROUTE]).toBe('ok')
+    expect(st.depGen[ROUTE]).toBeUndefined()
+  })
+
+  /*
+   * The strikes belong to the request, not to the route. A route that once
+   * loaded slowly must not carry a strike for the rest of the session and then
+   * be abandoned in the middle of a perfectly healthy fetch later on.
+   */
+  it('forgets the strikes once the status changes', () => {
+    const st = seed('loading')
+    app().refreshTick()
+    expect(st.depStuck[ROUTE]).toBe(1)
+
+    st.depStatus[ROUTE] = 'stale'
+    app().refreshTick()
+    expect(st.depStuck[ROUTE]).toBeUndefined()
   })
 })

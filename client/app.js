@@ -117,8 +117,17 @@
      * Object.create(null) has no prototype to reach. Same bug as W.rowsFor, same
      * reason it is fixed at the map rather than at each reader.
      */
+    /*
+     * Held, which is not the same as believed. Read this directly and you get a
+     * schedule the board may already know belongs to a service day that has
+     * ended: call usableDepartures(routeId) to render from one. The trip view
+     * read it directly for a while and printed yesterday's times under today's
+     * heading, which is what this note is here to stop happening again.
+     */
     departures: Object.create(null),   /* route id -> api/departures/{id}.json */
     depStatus: Object.create(null),    /* route id -> loading | ok | stale | error */
+    depGen: Object.create(null),       /* route id -> which request the answer must belong to */
+    depStuck: Object.create(null),     /* route id -> sweeps a 'loading' has survived */
     routeData: Object.create(null),    /* route id -> api/route/{id}.json, off the open board */
     routeStatus: Object.create(null),  /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
@@ -158,9 +167,38 @@
   function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
   /* ---- loading -------------------------------------------------------- */
-  function embedded(routeId) {
-    var f = global.CMB_FIXTURES && global.CMB_FIXTURES[routeId];
+  /*
+   * The bundled fixtures are two more maps keyed by a route id off the URL, and
+   * `?route=` puts any string in that key. They are declared in client/data/*.js
+   * as plain object literals, so a bare lookup reaches Object.prototype -- the
+   * same defect W.rowsFor was guarded for, one map over, and reachable by anyone
+   * who can send a link. Both were live:
+   *
+   *   ?route=__proto__    embedded() returned Object.prototype, deepCopy made
+   *                       `{}` of it, and a payload with no numeric `schema`
+   *                       took the schema branch. The board rendered nothing but
+   *                       "This app needs updating" -- a screen that is not just
+   *                       broken but WRONG about why, which sends the reader off
+   *                       to fix a copy of the app that was never the problem.
+   *   ?route=constructor  embeddedDepartures() returned the Object function, and
+   *                       JSON.stringify of a function is undefined, so deepCopy
+   *                       threw "undefined" is not valid JSON. It throws inside
+   *                       loadDepartures's own .catch, where nothing catches it
+   *                       again, so depStatus stayed 'loading' for the life of
+   *                       the tab and that route could never load a schedule.
+   *
+   * Guarded at each lookup rather than at the two data files, because those are
+   * generated (client/data/regenerate.js) and a guard here also covers a fixture
+   * written by hand or by an older generator.
+   */
+  function fixture(map, routeId) {
+    if (!map || !Object.prototype.hasOwnProperty.call(map, routeId)) return null;
+    var f = map[routeId];
     return f ? deepCopy(f) : null;
+  }
+
+  function embedded(routeId) {
+    return fixture(global.CMB_FIXTURES, routeId);
   }
 
   /*
@@ -169,8 +207,7 @@
    * scheduled column and therefore no answer at all.
    */
   function embeddedDepartures(routeId) {
-    var f = global.CMB_FIXTURES_DEPARTURES && global.CMB_FIXTURES_DEPARTURES[routeId];
-    return f ? deepCopy(f) : null;
+    return fixture(global.CMB_FIXTURES_DEPARTURES, routeId);
   }
 
   /*
@@ -252,7 +289,25 @@
   function loadRouteData(routeId) {
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
-    if (state.routeStatus[routeId] === 'loading') return;
+    /*
+     * Every status except 'idle' is a stop, not a pause.
+     *
+     * This used to short-circuit on 'loading' alone. paintSaved calls it once
+     * per saved trip on every paint, and the fetch calls render() when it
+     * resolves -- so a route that had finished loading sat at 'ok', passed the
+     * guard, fetched again, painted again, and went round. Measured at 364
+     * requests in six seconds against one route file, from a board sitting on
+     * the saved tab doing nothing.
+     *
+     * The timer is what reopens the question: refreshTick sets 'idle' back on
+     * every saved trip once a minute and then asks. That is the same shape
+     * depStatus already had, where 'stale' and 'error' are cleared by the sweep
+     * rather than by whoever happens to repaint next -- and it is the rule
+     * written twice elsewhere in this file, that a render which starts a fetch
+     * is a render that can trigger another render.
+     */
+    var st = state.routeStatus[routeId];
+    if (st && st !== 'idle') return;
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
@@ -331,7 +386,24 @@
    */
   function scheduleExpired(doc, today) {
     if (today === undefined) today = currentServiceDate();
-    return !!(today && doc && doc.service_date < today);
+    if (!today || !doc) return false;
+    /*
+     * A date we cannot read counts as expired: kept, but never answered from.
+     *
+     * The comparison used to be `doc.service_date < today` alone, which leaves
+     * the answer to JS relational coercion and gets a different failure
+     * direction depending on which way the document is malformed. `null` and
+     * `''` and `'2026-08-22'` all came back expired, which is the safe
+     * direction; `undefined` and `'garbage'` came back CURRENT, because any
+     * relational comparison with undefined is false and 'g' sorts above '2'.
+     * So an absent date was believed forever and never re-requested.
+     *
+     * The schema requires eight digits and the suite enforces it, so a document
+     * reaching this state means the generator has already broken its contract.
+     * That is exactly when the board should not be improvising.
+     */
+    if (!/^[0-9]{8}$/.test(String(doc.service_date))) return true;
+    return String(doc.service_date) < today;
   }
 
   /*
@@ -397,8 +469,18 @@
     var status = state.depStatus[routeId];
     if (status === 'loading' || status === 'error' || status === 'stale') return;
     state.depStatus[routeId] = 'loading';
+    /*
+     * Which request this is. The sweep gives up on a fetch that never settles
+     * (see refreshTick) and lets the next tick ask again, which means two
+     * requests for one route can be outstanding at once. Without this stamp the
+     * abandoned one still writes when it finally lands, and an older document
+     * overwrites a newer one.
+     */
+    var gen = (state.depGen[routeId] || 0) + 1;
+    state.depGen[routeId] = gen;
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
       .then(function (d) {
+        if (state.depGen[routeId] !== gen) return;   /* answer to a question we stopped asking */
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
         state.departures[routeId] = d;
@@ -419,6 +501,7 @@
          * other 70 routes correctly error, and a schedule bundled months ago
          * must never be presented as today's.
          */
+        if (state.depGen[routeId] !== gen) return;   /* answer to a question we stopped asking */
         var disk = global.location.protocol === 'file:' ? embeddedDepartures(routeId) : null;
         if (disk) {
           state.departures[routeId] = disk;
@@ -969,7 +1052,33 @@
      */
     Object.keys(state.depStatus).forEach(function (rid) {
       var st = state.depStatus[rid];
-      if (st === 'error' || st === 'stale') delete state.depStatus[rid];
+      if (st === 'error' || st === 'stale') { delete state.depStatus[rid]; delete state.depStuck[rid]; return; }
+      /*
+       * 'loading' was the one status nothing ever cleared, and withholding an
+       * expired document is what turned that into a dead surface.
+       *
+       * getJson is a plain fetch with no timeout, so a request outstanding when
+       * a device suspends may never settle: neither handler runs, the status
+       * stays 'loading', and loadDepartures returns early on it forever. Before
+       * this change that left the board reading the schedule it still held --
+       * wrong after a roll, but present. Now usableDepartures withholds that
+       * document, so Next buses and every saved trip show an empty state for the
+       * life of the tab, and the network coming back does not help.
+       *
+       * Given up on after surviving two sweeps rather than one, so an ordinary
+       * fetch that happens to straddle a tick is not abandoned and refetched
+       * every minute. Bumping the generation is what makes giving up safe: if
+       * the first request does eventually land, its answer is dropped rather
+       * than written over whatever arrived meanwhile.
+       */
+      if (st === 'loading') {
+        state.depStuck[rid] = (state.depStuck[rid] || 0) + 1;
+        if (state.depStuck[rid] >= 2) {
+          state.depGen[rid] = (state.depGen[rid] || 0) + 1;
+          delete state.depStatus[rid];
+          delete state.depStuck[rid];
+        }
+      }
     });
     var routes = global.CMB.watch.list().map(function (w) { return w.route_id; });
     if (state.routeId) routes.push(state.routeId);
@@ -1227,7 +1336,7 @@
 
     global.CMB.trip.render(band, {
       route: state.data,
-      dep: state.departures[state.routeId] || null,
+      dep: usableDepartures(state.routeId),
       vehicleId: state.tripBusId,
       now: (state.data && state.data.generated_at) || null,
       lastSeen: state.tripLastSeen
@@ -1271,6 +1380,16 @@
     global.CMB.watch.render(band, global.CMB.watch.sortModels(models), {
       onAdd: function () {
         state.editor = { route_id: null, direction_id: null, stop_id: null };
+        /*
+         * The notice belongs to the save that produced it, not to the tab.
+         * Nothing cleared this flag except the next save that happened to
+         * succeed, so one refusal left "Nothing was saved." sitting above the
+         * list on every later visit — after the reader had removed the trip,
+         * changed route, or done something else entirely — describing an action
+         * from some earlier point in the session as though it described the list
+         * underneath it.
+         */
+        state.storageFailed = false;
         state.view = 'saved-edit';
         render();
       },

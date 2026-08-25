@@ -110,3 +110,40 @@ test.describe('a saved trip whose schedule is from a service day that has ended'
     await expect(card).toContainText('has not loaded yet')
   })
 })
+
+/*
+ * The trip view is the surface built entirely around scheduled times, and it was
+ * the one render path that did not go through the accessor.
+ *
+ * It arrived on trunk after usableDepartures() was written, so the merge that
+ * brought it in left `dep: state.departures[state.routeId]` reading the raw map
+ * — and the whole suite stayed green, because every stale-schedule test lived on
+ * the board and saved views. `/yesterday/trip/4/2216` rendered the complete list
+ * of stops with yesterday's scheduled times and yesterday's derived countdowns,
+ * which is the changelog's own scenario on the screen most likely to be read for
+ * a departure time.
+ *
+ * Route 4 here, not 800: the trip view needs the golden schedule that the golden
+ * live payload's vehicles actually belong to, and 2216 is a bus in it.
+ */
+test.describe('the trip view, holding a schedule from a service day that has ended', () => {
+  test('shows no scheduled stop times rather than yesterday’s', async ({ page }) => {
+    await page.goto('/yesterday/trip/4/2216')
+    await expect(page.locator('#board')).toBeVisible()
+    await expect(page.locator('.tripstop')).toHaveCount(0)
+    await expect(page.locator('.tripstop__sched')).toHaveCount(0)
+  })
+
+  test('the control: the same bus on the current service day IS listed', async ({ page }) => {
+    /*
+     * Same URL shape, same selectors, same bus — only the date the fixture
+     * server stamps on the departures document differs. Without this the
+     * assertions above would hold on a page that never drew a trip at all,
+     * which is exactly how the gap survived the first time.
+     */
+    await page.goto('/fresh/trip/4/2216')
+    await expect(page.locator('#board')).toBeVisible()
+    await expect(page.locator('.tripstop').first()).toBeVisible()
+    await expect(page.locator('.tripstop__sched').first()).toBeVisible()
+  })
+})
