@@ -67,21 +67,52 @@ const routeWithFeed = (tripId, lateSeconds, predictedAt, stopId = '6293') => {
   const route = routeWith({ [tripId]: lateSeconds })
   route.vehicles[0].predictions = [[9, stopId, predictedAt]]
   /*
-   * A vehicle carrying predictions ALWAYS carries an anchor. Contract section 2
-   * makes that structural: with no current_stop_sequence the state is unknown,
-   * `against` is null, and the predictions list is published empty. All 249
-   * in-service vehicles in the 2026-08-19 capture match. This fixture used to
-   * omit `against` while supplying predictions, which is a shape the feed cannot
-   * produce -- and the panel now needs the anchor, because locating a departure
-   * among a trip's stops means knowing where the bus is.
+   * A stop-board row's vehicle always carries an anchor when it carries
+   * predictions, and the panel now needs one: locating a departure among a
+   * trip's stops means knowing where the bus is.
+   *
+   * That is structural rather than lucky. runtime/lib/join.php only fills
+   * `predictions` when the feed is not suppressed, `current_stop_sequence` is
+   * known, a trip update exists and the trip is not canceled -- so every
+   * `adherence` reason that nulls `against` also empties the list, save one.
+   * The exception (`no_stop_predictions`, when the feed's anchor lands on a
+   * stop_sequence the shard has no scheduled time for) has zero instances in
+   * the 2026-08-19 capture, and a trip missing from the shard has no board row
+   * at all, because runtime/lib/departures.php builds the board from that same
+   * shard. This fixture previously supplied predictions with no `against`,
+   * which no board row can be in.
+   *
+   * The anchor sits at an EARLIER stop, and its predicted_at is derived from
+   * the lateness rather than stated independently. Two reasons, both real.
+   * runtime/lib/adherence.php computes `seconds` as predicted_at minus
+   * scheduled_at, so those three numbers cannot disagree in real output --
+   * anchoring at the asserted stop and stating both produced a fixture claiming
+   * -189s beside a declared +1200. And a bus whose anchor IS the stop you are
+   * asking about is not the scenario this block exists for: the whole point is
+   * a deviation measured somewhere else, which is why the two numbers differ.
    */
+  const anchor = firstStopOf(tripId)
   route.vehicles[0].adherence.against = {
-    stop_id: stopId,
-    stop_name: stopId,
-    scheduled_at: scheduledAtOf(tripId, stopId),
-    predicted_at: predictedAt,
+    stop_id: anchor.stop_id,
+    stop_name: anchor.stop_id,
+    scheduled_at: anchor.scheduled_at,
+    predicted_at: anchor.scheduled_at + lateSeconds,
   }
   return route
+}
+
+/** The trip's first stop, from the fixture: where the bus is measured against. */
+function firstStopOf(tripId) {
+  const ti = DEP.trips.findIndex((t) => t.id === tripId)
+  let best = null
+  for (const [stopId, rows] of Object.entries(DEP.departures)) {
+    for (const [seconds, idx] of rows) {
+      if (idx === ti && (best === null || seconds < best.seconds)) {
+        best = { stop_id: stopId, seconds }
+      }
+    }
+  }
+  return { stop_id: best.stop_id, scheduled_at: START + best.seconds }
 }
 
 /** The fixture's own scheduled arrival for one trip at one stop. */
@@ -407,5 +438,82 @@ describe('a canceled trip is never mistaken for one that has not started', () =>
     const spoken = all(host, 'sr-only').map((n) => n.textContent).join(' ')
     expect(spoken).toMatch(/canceled/i)
     expect(spoken).toMatch(/no bus is running this trip/i)
+  })
+})
+
+/*
+ * A stop this trip serves TWICE.
+ *
+ * This is the regression pin for the bug the panel actually had. It used to ask
+ * fmt.predictionFor(), which matches on stop_id alone and returns the SOONEST
+ * occurrence -- the right answer to near.js's question and the wrong one here,
+ * because a stop board row is a scheduled departure and a loop trip has two of
+ * them at the same stop. Both rows got the first pass's time.
+ *
+ * It lives at the panel level on purpose. The corpus test in trip-corpus
+ * exercises arrivalPlan, which was already correct before the fix and stays
+ * green without it; only a test that goes through upcoming() can fail when
+ * stopboard.js regresses. Verified by reverting client/stopboard.js: this
+ * block fails, and nothing else in the suite does.
+ *
+ * The fixture is built here rather than added to departures-800.json because
+ * no committed fixture has a repeat stop, and the 800 board is asserted on
+ * elsewhere by exact departure times.
+ */
+const LOOP_START = 1787115600
+const LOOP_DEP = {
+  service_day_start_epoch: LOOP_START,
+  route_id: 'L',
+  service_date: '20260819',
+  stops: [
+    { stop_id: 'L1', stop_name: 'Loop Rd', direction_id: 1, stop_sequence: 1 },
+    { stop_id: 'MID', stop_name: 'Midway', direction_id: 1, stop_sequence: 2 },
+  ],
+  trips: [{ id: 'LT', direction_id: 1, headsign: 'L loop', is_special: false }],
+  /* L1 at 00:10 and again at 00:30; MID once between them. */
+  departures: { L1: [[600, 0], [1800, 0]], MID: [[1200, 0]] },
+}
+
+/* Distinct feed times for the two passes: +1 min on the first, +5 on the second. */
+const LOOP_FIRST = LOOP_START + 600 + 60
+const LOOP_SECOND = LOOP_START + 1800 + 300
+
+const loopRoute = () => ({
+  staleness: { level: 'fresh', suppress_adherence: false },
+  vehicles: [{
+    vehicle_id: 'LV', label: 'LV', in_service: true,
+    trip: { trip_id: 'LT', route_id: 'L', direction_id: 1, schedule_relationship: 'SCHEDULED' },
+    progress: { current_stop_sequence: 1, current_stop_id: 'L1', current_status: 'IN_TRANSIT_TO' },
+    predictions: [[1, 'L1', LOOP_FIRST], [2, 'MID', LOOP_START + 1200 + 120], [3, 'L1', LOOP_SECOND]],
+    adherence: {
+      state: 'ontime', seconds: 60, glyph: 'circle', reason: null,
+      against: { stop_id: 'L1', stop_name: 'Loop Rd', scheduled_at: LOOP_START + 600, predicted_at: LOOP_FIRST },
+    },
+  }],
+})
+
+describe('a stop this trip serves twice', () => {
+  t('gives each pass the feed time the feed published for it', (sb) => {
+    const rows = sb.upcoming(LOOP_DEP, loopRoute(), 'L1', 1, LOOP_START + 500, 6)
+    expect(rows).toHaveLength(2)
+
+    /* Both rows are the same trip at the same stop. Before the fix they carried
+       the same predicted_at -- the first pass's -- which is the whole defect. */
+    expect(rows.map((r) => r.scheduled_at)).toEqual([LOOP_START + 600, LOOP_START + 1800])
+    expect(rows.map((r) => r.predicted_at)).toEqual([LOOP_FIRST, LOOP_SECOND])
+    expect(rows.every((r) => r.from_feed)).toBe(true)
+  })
+
+  t('never hands the two passes one time', (sb) => {
+    const rows = sb.upcoming(LOOP_DEP, loopRoute(), 'L1', 1, LOOP_START + 500, 6)
+    expect(rows[0].predicted_at).not.toBe(rows[1].predicted_at)
+  })
+
+  t('renders the second pass against its own scheduled time, not the first', (sb) => {
+    /* The failure mode was a row printing an arrival 20 minutes before its own
+       scheduled departure, which reads as a wildly early bus. */
+    const rows = sb.upcoming(LOOP_DEP, loopRoute(), 'L1', 1, LOOP_START + 500, 6)
+    const second = rows[1]
+    expect(second.predicted_at).toBeGreaterThan(second.scheduled_at)
   })
 })

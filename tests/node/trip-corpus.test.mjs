@@ -160,7 +160,14 @@ describe('the trip join across every generated route', () => {
 })
 
 /*
- * The loop-stop bug, pinned against the whole corpus.
+ * arrivalPlan's positional join, over the whole corpus.
+ *
+ * NOT the regression pin for the stop-board loop bug -- that lives in
+ * tests/node/client-stopboard.test.mjs, because the defect was in stopboard.js
+ * calling fmt.predictionFor() and this block passes with or without that fix.
+ * What this pins is the property the fix RELIES on: that arrivalPlan gives the
+ * two passes of a repeat-stop trip their own times, across real output rather
+ * than a constructed loop.
  *
  * 270 (stop, trip) pairs in this capture are stops a trip serves TWICE, and 19
  * of them had a live bus at capture time. A lookup keyed on stop_id alone hands
@@ -173,8 +180,8 @@ describe('the trip join across every generated route', () => {
  * asserts the property the join exists for, over real generated output rather
  * than a synthetic loop.
  */
-describe('a stop a trip serves twice', () => {
-  t('gives each pass its own arrival time', (fmt) => {
+describe('arrivalPlan at a stop a trip serves twice', () => {
+  t('gives each pass its own scheduled time and its own arrival', (fmt) => {
     let pairsChecked = 0
     let distinct = 0
     eachBus((v, route, dep, where) => {

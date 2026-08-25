@@ -228,6 +228,9 @@ describe('the two panels tell one story', () => {
      * so agreement here is a real constraint rather than a rounding check.
      */
     let compared = 0
+    /* Repeat-stop pairs seen. Not zero on this corpus; the assertion below says
+       so, because a pair count of zero would make the loop-stop check vacuous. */
+    let repeatPairs = 0
     eachRoute((doc, name) => {
       const rid = name.replace(/\.json$/, '')
       const depPath = path.join(API, 'departures', `${rid}.json`)
@@ -283,11 +286,39 @@ describe('the two panels tell one story', () => {
               `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: near does not match any board row`,
             ).toBe(Math.min.apply(null, published))
             compared++
+
+            /*
+             * Two rows for ONE trip at ONE stop must never share a time. That is
+             * the loop-stop bug stated directly: fmt.predictionFor() matches on
+             * stop_id alone and returns the soonest occurrence, so before the
+             * fix both passes of a repeat-stop trip printed the first pass's
+             * arrival. Measured on this corpus, 5 such pairs render -- routes 30
+             * and 383 -- and all 5 collapse to one time on the pre-fix client.
+             *
+             * The assertion above (the board's time is one the feed published)
+             * cannot catch it: handing both rows the first pass's time satisfies
+             * it, because that time IS in the published set.
+             */
+            const sameTripHere = group.departures.filter(
+              (o) => o.vehicle && o.from_feed && o.trip.id === d.trip.id,
+            )
+            if (sameTripHere.length > 1) {
+              const times = sameTripHere.map((o) => o.predicted_at)
+              expect(
+                new Set(times).size,
+                `${name} stop ${stop.stop_id} trip ${d.trip.id}: two passes share one arrival`,
+              ).toBe(times.length)
+              repeatPairs++
+            }
           }
         }
       }
     })
     expect(compared, 'no (stop, bus) pair was comparable across both panels').toBeGreaterThan(0)
+    expect(
+      repeatPairs,
+      'no repeat-stop pair rendered, so the two-passes-one-time check proved nothing',
+    ).toBeGreaterThan(0)
   })
 })
 

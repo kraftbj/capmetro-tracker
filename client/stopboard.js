@@ -55,11 +55,6 @@
   }
 
   /*
-   * One direction's upcoming departures, richest first. `route` may be null:
-   * the schedule alone still answers the question, just without predictions,
-   * which is the honest state before a route's live file has loaded.
-   */
-  /*
    * The agency's predicted arrival for ONE departure -- one (trip, stop,
    * scheduled time) triple -- or null.
    *
@@ -94,6 +89,11 @@
     return null;
   }
 
+  /*
+   * One direction's upcoming departures, richest first. `route` may be null:
+   * the schedule alone still answers the question, just without predictions,
+   * which is the honest state before a route's live file has loaded.
+   */
   function upcoming(dep, route, stopId, directionId, now, count) {
     var rows = W.departuresAt(dep, stopId, directionId);
     var suppressed = !!(route && route.staleness && route.staleness.suppress_adherence);

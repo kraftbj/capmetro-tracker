@@ -187,6 +187,25 @@
   var tripIndexDoc = null;
   var tripIndexMap = null;
 
+  /*
+   * The assembled stop list per trip, memoized against the same document.
+   *
+   * The index map above is cheap to rebuild; the stop list is not. Building one
+   * is a full scan of dep.departures, which is 8,825 rows on route 10 and 4,116
+   * on route 800, and stopboard.js now asks for one per departure row it draws.
+   * In the browser that is a dozen scans once every sixty seconds and does not
+   * matter. In the corpus tests it is a scan per row across all 2,348 stops,
+   * which pushed tests/node/near-corpus.test.mjs past vitest's 10-second cap on
+   * two runs out of five from a clean checkout -- an intermittently red gate,
+   * which is worse than a reliably red one because the next person just reruns.
+   *
+   * Keyed on the document identity, like the index map, and dropped wholesale
+   * when a different document arrives. app.js parses each departures document
+   * once per route per session and never mutates it, so identity is stable.
+   */
+  var stopTimesDoc = null;
+  var stopTimesByTrip = null;
+
   function tripIndexOf(dep, tripId) {
     if (tripIndexDoc !== dep) {
       tripIndexMap = Object.create(null);
@@ -237,6 +256,16 @@
     var index = tripIndexOf(dep, tripId);
     if (index === null) return null;
 
+    if (stopTimesDoc !== dep) {
+      stopTimesByTrip = Object.create(null);
+      stopTimesDoc = dep;
+    }
+    /* Cached lists are handed out by reference. Every caller treats them as
+       read-only -- stopsAheadOf slices rather than splices, and arrivalPlan
+       maps -- and a defensive copy here would give back the scan cost this
+       memo exists to remove. */
+    if (tripId in stopTimesByTrip) return stopTimesByTrip[tripId];
+
     var rows = [];
     var byStop = dep.departures;
     for (var stopId in byStop) {
@@ -248,7 +277,10 @@
         }
       }
     }
-    if (!rows.length) return null;
+    /* Cached too: a trip the document does not carry is asked for once per
+       rendered row otherwise, and the scan that proves it absent is the same
+       full scan. */
+    if (!rows.length) { stopTimesByTrip[tripId] = null; return null; }
 
     rows.sort(function (a, b) {
       if (a.arrival_seconds !== b.arrival_seconds) return a.arrival_seconds - b.arrival_seconds;
@@ -256,7 +288,7 @@
     });
 
     var names = stopNamesFor(dep, dep.trips[index].direction_id);
-    return rows.map(function (r, i) {
+    var out = rows.map(function (r, i) {
       return {
         stop_id: r.stop_id,
         stop_name: names[r.stop_id] || r.stop_id,
@@ -264,6 +296,8 @@
         ordinal: i
       };
     });
+    stopTimesByTrip[tripId] = out;
+    return out;
   }
 
   /*
