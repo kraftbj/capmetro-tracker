@@ -292,8 +292,14 @@ describe('the two panels tell one story', () => {
              * the loop-stop bug stated directly: fmt.predictionFor() matches on
              * stop_id alone and returns the soonest occurrence, so before the
              * fix both passes of a repeat-stop trip printed the first pass's
-             * arrival. Measured on this corpus, 5 such pairs render -- routes 30
-             * and 383 -- and all 5 collapse to one time on the pre-fix client.
+             * arrival. Two measurements on this corpus, and they are of different
+             * things, so keep them apart: PRE-fix, 6 such pairs render on routes
+             * 2, 30 and 383, and all 6 collapse to one time. POST-fix, 5 render,
+             * on routes 30 and 383, and none collapse -- the sixth stops being a
+             * pair because its second row now falls outside the grace window it
+             * had been given the first pass's time to slip inside. The counter
+             * below reaches 10 rather than 5 because it counts ROWS, once for
+             * each side of a pair.
              *
              * The assertion above (the board's time is one the feed published)
              * cannot catch it: handing both rows the first pass's time satisfies

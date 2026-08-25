@@ -246,3 +246,65 @@ describe('arrivalPlan', () => {
     noTimes(fmt.arrivalPlan(AHEAD, bus({ predictions: [] }), null), 'no_predictions')
   })
 })
+
+/*
+ * The memo behind stopTimesForTrip.
+ *
+ * Building one stop list is a full scan of dep.departures, and stopboard.js asks
+ * for one per rendered row, so the result is cached against the document it came
+ * from. Caching a time is a good way to render a stale one, so the invariant
+ * that makes it safe is pinned here rather than left to a comment: a DIFFERENT
+ * document must never be served another document's answer.
+ *
+ * What is deliberately NOT tested is mutating a document in place, or writing to
+ * a returned row. Both would return something stale, and nothing in client/ does
+ * either -- app.js assigns each departures document exactly once per route per
+ * session, stopsAheadOf slices, and arrivalPlan maps into fresh objects. A test
+ * asserting the broken behavior of an unreachable path would only make that path
+ * look supported.
+ */
+describe('stopTimesForTrip caching', () => {
+  t('serves a second document its own answer, not the first one’s', (fmt) => {
+    const a = {
+      service_day_start_epoch: 0,
+      stops: [{ stop_id: 'A', stop_name: 'Alpha', direction_id: 0, stop_sequence: 1 }],
+      trips: [{ id: 'SAME', direction_id: 0 }],
+      departures: { A: [[100, 0]] },
+    }
+    const b = {
+      service_day_start_epoch: 0,
+      stops: [{ stop_id: 'B', stop_name: 'Bravo', direction_id: 0, stop_sequence: 1 }],
+      trips: [{ id: 'SAME', direction_id: 0 }],
+      departures: { B: [[900, 0]] },
+    }
+    /* Same trip id in both, which is what a naive trip-keyed cache gets wrong. */
+    expect(fmt.stopTimesForTrip(a, 'SAME').map((s) => s.stop_id)).toEqual(['A'])
+    expect(fmt.stopTimesForTrip(b, 'SAME').map((s) => s.stop_id)).toEqual(['B'])
+    expect(fmt.stopTimesForTrip(a, 'SAME').map((s) => s.stop_id)).toEqual(['A'])
+  })
+
+  t('repeats a null for a trip the document does not carry', (fmt) => {
+    /* Cached as null, not as absent: a miss costs the same full scan as a hit,
+       and `in` distinguishes the two where a truthiness check would not. */
+    const dep = {
+      service_day_start_epoch: 0,
+      stops: [{ stop_id: 'A', stop_name: 'Alpha', direction_id: 0, stop_sequence: 1 }],
+      trips: [{ id: 'REAL', direction_id: 0 }],
+      departures: { A: [[100, 0]] },
+    }
+    expect(fmt.stopTimesForTrip(dep, 'GHOST')).toBeNull()
+    expect(fmt.stopTimesForTrip(dep, 'REAL')).toHaveLength(1)
+    expect(fmt.stopTimesForTrip(dep, 'GHOST')).toBeNull()
+  })
+
+  t('is not confused by a trip id that collides with Object prototype keys', (fmt) => {
+    const dep = {
+      service_day_start_epoch: 0,
+      stops: [{ stop_id: 'A', stop_name: 'Alpha', direction_id: 0, stop_sequence: 1 }],
+      trips: [{ id: '__proto__', direction_id: 0 }],
+      departures: { A: [[100, 0]] },
+    }
+    expect(fmt.stopTimesForTrip(dep, '__proto__').map((s) => s.stop_id)).toEqual(['A'])
+    expect(fmt.stopTimesForTrip(dep, '__proto__').map((s) => s.stop_id)).toEqual(['A'])
+  })
+})

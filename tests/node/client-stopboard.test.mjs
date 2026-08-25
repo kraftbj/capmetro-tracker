@@ -136,13 +136,25 @@ describe('a row never argues with itself', () => {
    * three minutes EARLY beside a late badge.
    */
   const NOW = at(7, 25)
-  /* TRIP_0732 is scheduled 07:32:09 at stop 6293. The anchor says 20 minutes
-     late, which would extrapolate to 07:52. The feed says it reaches this stop
-     at 07:29 — three minutes EARLY. Opposite signs, which is the 325-row case. */
-  const FEED_AT = at(7, 29)
+  /*
+   * TRIP_0732 is scheduled 08:20:00 at stop 6441. Its anchor is the trip's first
+   * stop, 5926 at 07:30, where the bus is 20 minutes late — which would
+   * extrapolate this stop to 08:40. The feed says it reaches 6441 at 08:17,
+   * three minutes EARLY. Opposite signs, which is the 325-row case.
+   *
+   * The asserted stop is late in the trip on purpose. An earlier one cannot
+   * carry this scenario: the anchor is already predicted at 07:50, so a feed
+   * time before that would put the bus at a later stop before it reached its
+   * first — 247 of 249 in-service vehicles in the capture have predictions[0]
+   * AT the anchor, and none has an anchor predicted after its first prediction.
+   * Real precedent for the shape asserted here: route 1 bus 2602, +76s at its
+   * anchor and 148s early further along; 378 such rows corpus-wide.
+   */
+  const STOP = '6441'
+  const FEED_AT = at(8, 17)
 
   t('takes its time from the feed when the feed has one', (sb) => {
-    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT, STOP), STOP, 1, NOW, 4)
     const row = rows.find((r) => r.trip.id === TRIP_0732)
 
     expect(row.from_feed).toBe(true)
@@ -152,7 +164,7 @@ describe('a row never argues with itself', () => {
   })
 
   t('shows no anchor badge on a row whose time came from the feed', (sb) => {
-    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT, STOP), STOP, 1, NOW, 4)
     const row = rows.find((r) => r.trip.id === TRIP_0732)
     const node = sb.departureRow(row)
 
@@ -167,7 +179,7 @@ describe('a row never argues with itself', () => {
   t('still shows the badge on an extrapolated row, where the two agree', (sb) => {
     /* No predictions at all, so the time IS scheduled + deviation and the badge
        is exactly the difference between the two times printed. */
-    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0732]: 1200 }), '6293', 1, NOW, 4)
+    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0732]: 1200 }), STOP, 1, NOW, 4)
     const row = rows.find((r) => r.trip.id === TRIP_0732)
     const node = sb.departureRow(row)
 
@@ -182,15 +194,15 @@ describe('a row never argues with itself', () => {
      * late the bus is HERE — so it is printed even when the difference is under
      * the minute that would normally suppress it as noise.
      */
-    const almostOnTime = at(7, 32, 40)   /* 31s late: under the 60s noise cut */
-    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, almostOnTime), '6293', 1, NOW, 4)
+    const almostOnTime = at(8, 20, 40)   /* 40s late: under the 60s noise cut */
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, almostOnTime, STOP), STOP, 1, NOW, 4)
     const node = sb.departureRow(rows.find((r) => r.trip.id === TRIP_0732))
 
     expect(textDeep(node)).toContain('scheduled')
   })
 
   t('scopes the bus state to the bus rather than to this stop', (sb) => {
-    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT, STOP), STOP, 1, NOW, 4)
     const node = sb.departureRow(rows.find((r) => r.trip.id === TRIP_0732))
     const text = textDeep(node)
 
@@ -204,7 +216,7 @@ describe('a row never argues with itself', () => {
   })
 
   t('speaks the same split to a screen reader', (sb) => {
-    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT), '6293', 1, NOW, 4)
+    const rows = sb.upcoming(DEP, routeWithFeed(TRIP_0732, 1200, FEED_AT, STOP), STOP, 1, NOW, 4)
     const node = sb.departureRow(rows.find((r) => r.trip.id === TRIP_0732))
     const spoken = all(node, 'sr-only').map(textDeep).join(' ')
 
