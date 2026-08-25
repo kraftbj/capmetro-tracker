@@ -121,6 +121,16 @@
   }
 
   /*
+   * The departures document from disk. Same reason as embedded(): a file://
+   * board has nothing to fetch, and without a schedule the trip view has no
+   * scheduled column and therefore no answer at all.
+   */
+  function embeddedDepartures(routeId) {
+    var f = global.CMB_FIXTURES_DEPARTURES && global.CMB_FIXTURES_DEPARTURES[routeId];
+    return f ? deepCopy(f) : null;
+  }
+
+  /*
    * One fetch. Every endpoint is a static JSON file on the same origin, so there
    * is nothing to configure and nothing to authenticate. A file:// board has no
    * origin to fetch from and rejects immediately rather than waiting for a
@@ -232,7 +242,14 @@
         render();
       })
       .catch(function () {
-        state.depStatus[routeId] = 'error';
+        /* From disk the fixture IS the answer, not a fallback after a timeout. */
+        var disk = embeddedDepartures(routeId);
+        if (disk) {
+          state.departures[routeId] = disk;
+          state.depStatus[routeId] = 'ok';
+        } else {
+          state.depStatus[routeId] = 'error';
+        }
         render();
       });
   }
