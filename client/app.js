@@ -352,7 +352,17 @@
       var r = routeData[id];
       if (r && r.service_day) dates.push(r.service_day.date);
     });
-    dates = dates.filter(Boolean).sort();
+    /*
+     * Held to the same shape scheduleExpired holds a document's date to. A date
+     * that is not YYYYMMDD cannot be compared with `<` against one that is, and
+     * this operand fails in the unsafe direction: whatever sorts highest becomes
+     * "today", and one malformed value there makes every well-formed document
+     * look current, which is the bug the eviction exists to remove. Not
+     * reachable from the generator, which formats 'Ymd' and nothing else --
+     * asserted here because the other operand already is, and an asymmetry is
+     * how the next person concludes one of them does not matter.
+     */
+    dates = dates.filter(function (d) { return /^[0-9]{8}$/.test(String(d)); }).sort();
     /*
      * The LATEST date any live source reports, not the first one found.
      *
@@ -1052,7 +1062,15 @@
      */
     Object.keys(state.depStatus).forEach(function (rid) {
       var st = state.depStatus[rid];
-      if (st === 'error' || st === 'stale') { delete state.depStatus[rid]; delete state.depStuck[rid]; return; }
+      /*
+       * Any status but 'loading' means that request finished, so its strikes go
+       * with it. Clearing them only on the error/stale branch left a strike
+       * stranded on a route whose fetch had SUCCEEDED after straddling a tick --
+       * and the next request on that route then met the give-up rule one sweep
+       * early, on precisely the connection that had already shown it was slow.
+       */
+      if (st !== 'loading') delete state.depStuck[rid];
+      if (st === 'error' || st === 'stale') { delete state.depStatus[rid]; return; }
       /*
        * 'loading' was the one status nothing ever cleared, and withholding an
        * expired document is what turned that into a dead surface.
@@ -1085,8 +1103,27 @@
     if (state.editor.route_id) routes.push(state.editor.route_id);
     routes.filter(function (id, i) { return id && routes.indexOf(id) === i; })
       .forEach(loadDepartures);
+    /*
+     * One retry a minute for a route document that failed, whichever view was
+     * asking for it.
+     *
+     * loadRouteData declines every status but 'idle', which is what stopped it
+     * spinning a fetch per repaint -- but the only thing writing 'idle' back was
+     * the saved-view block below, so on the every-bus view a single dropped
+     * request was permanent. The bus detail reads "Just left · loading the
+     * route…" from then on, which is not merely missing: nothing is loading, and
+     * nothing ever will be. Before the guard a transient failure healed itself
+     * on the next repaint, so this is the half of that trade that has to be
+     * given back -- once a minute, from the timer, where a retry cannot become a
+     * render loop.
+     */
+    Object.keys(state.routeStatus).forEach(function (rid) {
+      if (state.routeStatus[rid] === 'error') delete state.routeStatus[rid];
+    });
     if (state.view === 'saved') {
-      /* A frozen saved trip is worse than none: it reads as a live prediction. */
+      /* A frozen saved trip is worse than none: it reads as a live prediction.
+       * Saved trips re-ask even on success, because what they show is a live
+       * prediction rather than the route's shape. */
       global.CMB.watch.list().forEach(function (w) {
         state.routeStatus[w.route_id] = 'idle';
         loadRouteData(w.route_id);
@@ -1341,6 +1378,12 @@
       now: (state.data && state.data.generated_at) || null,
       lastSeen: state.tripLastSeen
     }, {
+      /*
+       * Whether the null above means "not fetched yet" or "held, and refused".
+       * The two look identical from inside trip.js and read very differently to
+       * someone waiting for a departure time.
+       */
+      depWithheld: !!state.departures[state.routeId] && !usableDepartures(state.routeId),
       picking: state.tripPicking,
       onPickRoute: function () { state.pickerOpen = !state.pickerOpen; render(); },
       onPickBus: function () {

@@ -30,10 +30,24 @@ import { ROOT } from './optional.mjs'
  * includes are left out — they are a frozen capture, and a sandbox that wants
  * one should say so.
  */
-export const CLIENT_SCRIPTS = readFileSync(path.join(ROOT, 'client/index.html'), 'utf8')
-  .match(/<script src="([^"]+)"><\/script>/g)
-  .map((tag) => tag.replace(/.*src="([^"]+)".*/, '$1'))
-  .filter((src) => !src.startsWith('data/'))
+export const CLIENT_SCRIPTS = (() => {
+  /*
+   * Comments stripped first, and attributes tolerated after the src. The obvious
+   * one-line regex is wrong in both directions and silently: it matches inside
+   * `<!-- ... -->`, so a commented-out tag still loads, and it requires `>` to
+   * follow the src, so adding `defer` to a real tag drops that script from every
+   * sandbox. Either way the suite goes green having tested something other than
+   * the client. client-scripts.test.mjs is what makes that loud.
+   */
+  const html = readFileSync(path.join(ROOT, 'client/index.html'), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  const out = []
+  const tag = /<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi
+  let m
+  while ((m = tag.exec(html)) !== null) out.push(m[1])
+  const scripts = out.filter((src) => !src.startsWith('data/'))
+  if (!scripts.length) throw new Error('no client scripts found in client/index.html')
+  return scripts
+})()
 
 /*
  * Which of these do not exist. Written once: all three sandboxes need the same

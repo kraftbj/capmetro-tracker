@@ -134,6 +134,40 @@ test.describe('the trip view, holding a schedule from a service day that has end
     await expect(page.locator('.tripstop__sched')).toHaveCount(0)
   })
 
+  /*
+   * Refusing to answer is right; refusing to say so is not.
+   *
+   * The first version of this fix handed the trip view a null and let it fall
+   * into the branch meant for "the schedule has not arrived yet", which draws
+   * six skeleton rows. Those rows are aria-hidden, so the accessible tree ended
+   * at the bus name and a screen reader was told nothing whatsoever — and the
+   * shimmer promises a resolution that never comes, because the board is not
+   * waiting for a schedule, it is holding one it will not use.
+   */
+  test('says why it is showing nothing, in words a screen reader also gets', async ({ page }) => {
+    await page.goto('/yesterday/trip/4/2216')
+    const band = page.locator('.band--trip')
+    await expect(band).toBeVisible()
+
+    const notice = band.locator('.notice--empty').first()
+    await expect(notice).toBeVisible()
+    await expect(notice).toContainText('service day that has ended')
+    await expect(band.locator('.skeleton')).toHaveCount(0)
+
+    /* Read back the way assistive tech would: aria-hidden subtrees excluded. */
+    const spoken = await band.evaluate((el) => {
+      const out = []
+      const walk = (n) => {
+        if (n.nodeType === 1 && n.getAttribute('aria-hidden') === 'true') return
+        if (n.nodeType === 3 && n.textContent.trim()) out.push(n.textContent.trim())
+        n.childNodes.forEach(walk)
+      }
+      walk(el)
+      return out.join(' ')
+    })
+    expect(spoken).toContain('service day that has ended')
+  })
+
   test('the control: the same bus on the current service day IS listed', async ({ page }) => {
     /*
      * Same URL shape, same selectors, same bus — only the date the fixture

@@ -92,6 +92,20 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   who could send a URL. Guarded once, at the single lookup every reader goes
   through, rather than in whichever caller happens to hold an untrusted id.
 
+- **A route document that failed to load stayed failed, on the every-bus view.**
+  Stopping the saved tab spinning meant refusing to re-ask on a repaint, and the
+  only thing putting a route back in play was the saved view itself — so one
+  dropped request on `/buses` left a bus detail reading "loading the route…"
+  with nothing loading and nothing that ever would. Any failed route document is
+  now retried once a minute, from the timer, whichever view asked for it.
+
+- **The trip view said nothing at all when it withheld a schedule.** It drew the
+  shimmer that means "this is about to arrive", which is a promise the board
+  cannot keep when what it is actually doing is holding a schedule from a
+  service day that has ended. Those placeholder rows are also hidden from
+  assistive technology, so a screen reader reached the bus name and stopped. It
+  says which of the two is happening now, in words.
+
 - **The saved-trip editor still said the schedule "only loads once".** The board
   view's copy was corrected when schedules started expiring at the service-day
   roll; the editor's was not, and the editor is handed exactly the schedule that

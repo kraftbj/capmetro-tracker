@@ -272,7 +272,28 @@
       return;
     }
     if (!dep) {
-      host.appendChild(S.skeletonRows(6));
+      /*
+       * Two states, one missing document, and they must not look the same.
+       *
+       * A schedule that has not arrived yet is a shimmer worth watching: it
+       * resolves in a moment. A schedule the board is WITHHOLDING -- held, from
+       * a service day that has ended, with the replacement not yet fetched --
+       * can sit there for as long as the server keeps serving the old one, and a
+       * skeleton that never resolves is a promise the board cannot keep.
+       *
+       * The skeleton rows also carry aria-hidden, so on their own they say
+       * nothing at all to a screen reader: the panel simply stops after the bus
+       * name. The board and the editor both got a sentence for this case; this
+       * is the screen built entirely around scheduled times, so it is the last
+       * place that should decline to explain itself.
+       */
+      if (opts && opts.depWithheld) {
+        host.appendChild(S.notice('empty', 'Today’s schedule has not arrived yet',
+          'The one being held is from a service day that has ended, so the times in it ' +
+          'are not today’s. It is asked for again every minute.'));
+      } else {
+        host.appendChild(S.skeletonRows(6));
+      }
       return;
     }
 
