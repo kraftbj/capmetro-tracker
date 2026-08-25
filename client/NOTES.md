@@ -116,6 +116,29 @@ leaves the site exactly as it did before any of this existed. A bare
 names the route, so the link that gets copied onward is the one that needs no
 extra fetch.
 
+### What the real nginx actually does
+
+Run against the rendered vhost in a throwaway container, because the fixture
+server is a different program and this is the seam where the two disagree:
+
+| Path | | |
+|---|---|---|
+| `/route/4/eb`, `/buses`, `/trip/1234`, `/saved` | 200 | the board |
+| `/route/4/eb/` | 200 | a trailing slash is fine |
+| `/routeXYZ` | 404 | the `(/|$)` in the regex is doing its job |
+| `/route/4/format.js` | **404** | `location ~* \.(js|css)$` is declared first and has no `try_files` — this is why the `<base>` bootstrap exists, and why the failure has no console error |
+| `/route/4/.env`, `/trip/x.log` | **403** | 200 before the deny blocks were moved above the asset and app-path locations |
+| `/saved/../../etc/passwd`, `%00` | 400 | nginx rejects before any location matches |
+| `/route/4/%2e%2e/api/health.json` | 200 | normalizes inside the app path; nothing escapes |
+| `/Route/4/eb` | 404 | **verbs are case-sensitive** — see below |
+
+**Case is not normalized on the verb.** `/route/4/EB` works because direction
+tokens are lowercased, but `/Route/4/eb` 404s at nginx and never reaches the
+client. It fails honestly rather than rendering something wrong, and links are
+pasted rather than typed, so this is recorded rather than fixed. Making it
+case-insensitive means `~*` in both vhosts AND lowercasing the verb in
+`urls.split()` — one without the other is worse than neither.
+
 **This needs a vhost change to work in production.** `deploy/nginx-capmetro.conf`
 gains a fallback for the four app verbs. `update.sh` does not install vhosts —
 deliberately — so until it is installed by hand and nginx reloaded, path links
