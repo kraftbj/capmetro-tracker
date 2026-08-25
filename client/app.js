@@ -110,7 +110,7 @@
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
     /*
-     * Four maps keyed by a route id, and `?route=` puts any string in that key.
+     * Seven maps keyed by a route id, and `?route=` puts any string in that key.
      * A bare `{}` inherits Object.prototype, so a route id of `constructor` or
      * `toString` reads back a function rather than undefined: the fetch guard
      * sees a cached document that is not one, and never asks for the real thing.
@@ -125,7 +125,12 @@
      * heading, which is what this note is here to stop happening again.
      */
     departures: Object.create(null),   /* route id -> api/departures/{id}.json */
-    depStatus: Object.create(null),    /* route id -> loading | ok | stale | error */
+    /*
+     * The REQUEST for a document, never the document itself. Absent is a value
+     * and the load-bearing one: it is what permits the next request, and it is
+     * what the sweep produces when it clears a failure or gives up on a hang.
+     */
+    depStatus: Object.create(null),    /* route id -> absent | loading | ok | stale | error */
     depGen: Object.create(null),       /* route id -> which request the answer must belong to */
     depStuck: Object.create(null),     /* route id -> sweeps a 'loading' has survived */
     depAbort: Object.create(null),     /* route id -> the in-flight request's AbortController */
@@ -238,8 +243,9 @@
    * that accepts and never answers fills that pool with dead requests and the
    * once-a-minute poll ends up queued behind them -- the opposite of what giving
    * up is for. Feature-detected rather than assumed: the board runs on whatever
-   * phone the reader has, and a missing AbortController must cost the retry, not
-   * the fetch.
+   * phone the reader has, and where there is no AbortController the board loses
+   * the release of the socket and nothing else -- the give-up, the retry and the
+   * fetch itself all behave exactly as they do with one.
    */
   function abortable() {
     return typeof AbortController === 'function' ? new AbortController() : null;
@@ -510,7 +516,13 @@
     state.depAbort[routeId] = ctl;
     getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json', ctl && ctl.signal)
       .then(function (d) {
-        if (state.depGen[routeId] !== gen) return;   /* answer to a question we stopped asking */
+        /*
+         * Before the delete below, and it has to stay that way. An abandoned
+         * answer that got this far would otherwise delete the controller of the
+         * request that REPLACED it, and nothing in the suite would notice --
+         * the leak is a socket, not a wrong number on a screen.
+         */
+        if (state.depGen[routeId] !== gen) return;
         delete state.depAbort[routeId];
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
@@ -716,7 +728,21 @@
     return head;
   }
 
+  /*
+   * "Nothing was saved." describes ONE save attempt, and stops being true the
+   * moment the list under it changes for any other reason.
+   *
+   * Nothing cleared it at first except the next save that happened to succeed,
+   * so a single refusal left the notice sitting above the list for the rest of
+   * the session. Clearing it only when the editor opened was better and still
+   * not enough: removing a trip and switching tabs both leave the notice
+   * describing something the reader did several actions ago, as though it
+   * described what is on screen now.
+   */
+  function clearSaveNotice() { state.storageFailed = false; }
+
   function selectView(id) {
+    if (id !== state.view) clearSaveNotice();
     state.view = id;
     state.pickerOpen = false;
     store('view', id);
@@ -1159,6 +1185,15 @@
        * Saved trips re-ask even on success, because what they show is a live
        * prediction rather than the route's shape. */
       global.CMB.watch.list().forEach(function (w) {
+        /*
+         * Not over a request that is still running. Writing 'idle' unconditionally
+         * stomped a 'loading' the sweep above had just started, so an errored
+         * watched route was fetched twice in one tick, and a merely SLOW one
+         * picked up an extra concurrent request every minute for as long as the
+         * server stayed slow. loadRouteData carries no generation stamp, so those
+         * two answers can also land out of order.
+         */
+        if (state.routeStatus[w.route_id] === 'loading') return;
         state.routeStatus[w.route_id] = 'idle';
         loadRouteData(w.route_id);
       });
@@ -1418,9 +1453,20 @@
        * someone waiting for a departure time.
        */
       depWithheld: !!state.departures[state.routeId] && !usableDepartures(state.routeId),
-      /* And the third: asked for, and the answer was a failure. Only 'loading'
-       * is genuinely about to resolve, so only 'loading' gets the shimmer. */
-      depFailed: state.depStatus[state.routeId] === 'error',
+      /*
+       * And the third: asked for, and it did not work out. Only a request that
+       * is genuinely about to resolve gets the shimmer.
+       *
+       * Two shapes, because a failure is not always an 'error'. A request that
+       * is refused gets one. A request against a server that accepts and never
+       * answers gets abandoned instead, and the status cycles 'loading' ->
+       * cleared -> 'loading' without ever passing through 'error' — so the
+       * board looked like it was still waiting, forever, on the one screen made
+       * entirely of scheduled times. A generation past its first means at least
+       * one request for this route has already been given up on.
+       */
+      depFailed: state.depStatus[state.routeId] === 'error' ||
+        (!state.departures[state.routeId] && (state.depGen[state.routeId] || 0) > 1),
       picking: state.tripPicking,
       onPickRoute: function () { state.pickerOpen = !state.pickerOpen; render(); },
       onPickBus: function () {
@@ -1460,20 +1506,13 @@
     global.CMB.watch.render(band, global.CMB.watch.sortModels(models), {
       onAdd: function () {
         state.editor = { route_id: null, direction_id: null, stop_id: null };
-        /*
-         * The notice belongs to the save that produced it, not to the tab.
-         * Nothing cleared this flag except the next save that happened to
-         * succeed, so one refusal left "Nothing was saved." sitting above the
-         * list on every later visit — after the reader had removed the trip,
-         * changed route, or done something else entirely — describing an action
-         * from some earlier point in the session as though it described the list
-         * underneath it.
-         */
-        state.storageFailed = false;
+        clearSaveNotice();
         state.view = 'saved-edit';
         render();
       },
-      onChange: render
+      /* The list changed under the notice — a trip removed, most likely — so it
+       * no longer describes what is on screen. */
+      onChange: function () { clearSaveNotice(); render(); }
     });
 
     /*

@@ -56,15 +56,35 @@ const ROUTE = '999'
  * A boot per test. app.js holds module state, so a shared sandbox would let one
  * test's generation counters decide another's outcome.
  */
-function boot() {
+function boot(watches) {
   const net = controllableFetch()
   const client = bootClient(CLIENT_SCRIPTS, { protocol: 'http:', fetch: net.fetch })
   expect(client.reason).toBe(null)
   const app = client.cmb.app
   /* Something live has to have been seen, or nothing is ever judged expired. */
   app.state.data = { service_day: { date: '20260822' }, route: {}, vehicles: [] }
-  return { app, net }
+  /*
+   * Saved trips live in localStorage and the client reads them back through
+   * watch.list(). Seeding the flag on state is not enough: the saved-view branch
+   * of refreshTick iterates that list, so a test that forgets this exercises an
+   * empty loop and passes without reaching the code it names.
+   */
+  if (watches) {
+    client.window.localStorage.setItem('cmb.watches', JSON.stringify(watches))
+    expect(client.cmb.watch.list().length).toBe(watches.length)
+  }
+  return { app, net, client }
 }
+
+const A_WATCH = [{
+  route_id: '800',
+  direction_id: 1,
+  direction_tag: 'SB',
+  stop_id: '6293',
+  stop_name: 'Simond SB',
+  scheduled_time: '07:52:09',
+  day_type: 'weekday',
+}]
 
 describe('a departures request the board has given up on', () => {
   /** Drive a route to the point where its first request has been abandoned. */
@@ -192,6 +212,40 @@ describe('a route document that failed to load', () => {
     expect(after).toBeGreaterThan(before)
   })
 
+  /*
+   * On the saved view two things want to re-ask for the same route, and they
+   * used to both do it in the same tick: the sweep above clears the failure and
+   * asks, then the saved block wrote 'idle' straight over the 'loading' that
+   * produced and asked again. Two requests a minute for one file, and because
+   * loadRouteData carries no generation stamp, two answers that can land out of
+   * order — the older vehicle positions winning if it does.
+   *
+   * The other tests in this file sit on the every-bus view, which is the one
+   * view where the saved block does not run, so none of them could see this.
+   */
+  it('is asked for exactly once a tick when it is also a saved trip', () => {
+    const { app, net } = boot(A_WATCH)
+    app.state.view = 'saved'
+    app.state.routeStatus['800'] = 'error'
+
+    const count = () => net.pending.filter((p) => /api\/route\/800/.test(p.url)).length
+    const before = count()
+    app.refreshTick()
+    expect(count() - before).toBe(1)
+  })
+
+  it('does not pile a second request onto a saved route that is merely slow', () => {
+    const { app, net } = boot(A_WATCH)
+    app.state.view = 'saved'
+    app.state.routeStatus['800'] = 'loading'
+
+    const count = () => net.pending.filter((p) => /api\/route\/800/.test(p.url)).length
+    const before = count()
+    app.refreshTick()
+    app.refreshTick()
+    expect(count()).toBe(before)
+  })
+
   it('is not asked for again while it is merely loading', () => {
     const { app, net } = boot()
     app.state.view = 'all'
@@ -203,5 +257,44 @@ describe('a route document that failed to load', () => {
     const after = net.pending.filter((p) => /api\/route\/800/.test(p.url)).length
 
     expect(after).toBe(before)
+  })
+})
+
+/*
+ * The state that is neither "arriving" nor "refused": a server that accepts a
+ * request and never answers it.
+ *
+ * The board gives up on such a request and asks again, so the status cycles
+ * 'loading' -> cleared -> 'loading' and never reaches 'error'. No document ever
+ * arrives either, so the withheld flag is false too — and the trip view fell
+ * through to its placeholder rows, which promise a resolution that is not
+ * coming and are hidden from assistive technology besides. Every other way of
+ * failing had been given words; this one had been given a shimmer.
+ */
+describe('a route whose schedule is requested and never answered', () => {
+  it('is reported as failed rather than as still arriving', () => {
+    const { app } = boot()
+    app.state.routeId = ROUTE
+    app.state.view = 'trip'
+
+    /* Nothing has been asked yet: genuinely "arriving". */
+    expect(app.state.depGen[ROUTE]).toBeUndefined()
+
+    app.loadDepartures(ROUTE)
+    app.refreshTick()
+    app.refreshTick()          /* the first request is abandoned */
+    app.loadDepartures(ROUTE)  /* and the second goes out */
+
+    expect(app.state.depStatus[ROUTE]).toBe('loading')
+    expect(app.state.departures[ROUTE]).toBeUndefined()
+    expect(app.state.depStatus[ROUTE]).not.toBe('error')
+    /* The condition the trip view reads: a generation past its first. */
+    expect(app.state.depGen[ROUTE]).toBeGreaterThan(1)
+  })
+
+  it('is still reported as arriving while the first request is outstanding', () => {
+    const { app } = boot()
+    app.loadDepartures(ROUTE)
+    expect(app.state.depGen[ROUTE]).toBe(1)
   })
 })

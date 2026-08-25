@@ -283,9 +283,13 @@
        *
        * The skeleton rows also carry aria-hidden, so on their own they say
        * nothing at all to a screen reader: the panel simply stops after the bus
-       * name. The board and the editor both got a sentence for this case; this
-       * is the screen built entirely around scheduled times, so it is the last
-       * place that should decline to explain itself.
+       * name. This is the screen built entirely around scheduled times, so it is
+       * the last place that should decline to explain itself.
+       *
+       * The board and the editor show a notice here too, but both still headline
+       * it "Loading…" — they read the same null and cannot tell these states
+       * apart, because only this one is passed the flags. Worth doing there as
+       * well; not done in the same breath as this.
        */
       if (opts && opts.depWithheld) {
         host.appendChild(S.notice('empty', 'Today’s schedule has not arrived yet',
