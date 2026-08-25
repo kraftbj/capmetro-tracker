@@ -154,6 +154,103 @@
     return null;
   }
 
+  /*
+   * ---- the trip view's join --------------------------------------------
+   *
+   * These three turn "which bus" into "which stops, when". They live here
+   * rather than in trip.js for the reason predictionFor() and hasFix() do:
+   * a rule with two copies drifts, and the first symptom is one screen
+   * rendering one bus two ways. CLAUDE.md calls that ISSUE-002, and it has
+   * already happened once in this repo.
+   */
+
+  /*
+   * trip_id -> index into dep.trips, memoized for the document currently in
+   * hand. One entry is enough: the trip view has one route open at a time,
+   * and rebuilding the map for route 10's 127 trips costs nothing anyway.
+   */
+  var tripIndexDoc = null;
+  var tripIndexMap = null;
+
+  function tripIndexOf(dep, tripId) {
+    if (tripIndexDoc !== dep) {
+      tripIndexMap = Object.create(null);
+      var trips = dep.trips || [];
+      for (var i = 0; i < trips.length; i++) { tripIndexMap[trips[i].id] = i; }
+      tripIndexDoc = dep;
+    }
+    var found = tripIndexMap[tripId];
+    return found === undefined ? null : found;
+  }
+
+  /*
+   * stop_id -> display name for one direction. A stop serving both directions
+   * is published twice with a different name each time (section 16), so the
+   * trip's own direction wins and the other is only a fallback for a stop the
+   * pair does not cover.
+   */
+  function stopNamesFor(dep, directionId) {
+    var out = Object.create(null);
+    var stops = dep.stops || [];
+    var i;
+    for (i = 0; i < stops.length; i++) {
+      if (!(stops[i].stop_id in out)) { out[stops[i].stop_id] = stops[i].stop_name; }
+    }
+    for (i = 0; i < stops.length; i++) {
+      if (stops[i].direction_id === directionId) { out[stops[i].stop_id] = stops[i].stop_name; }
+    }
+    return out;
+  }
+
+  /*
+   * One trip's whole ordered stop list, transposed out of the stop-major
+   * departures document. Null when it cannot be built.
+   *
+   * ORDER COMES FROM arrival_seconds AND NOTHING ELSE. Not stops[].stop_sequence:
+   * that is the sequence the greatest number of today's trips agree on, and it
+   * disagrees with real arrival order on 2,221 of the corpus's 4,112 trips.
+   * Section 16 says so in words ("never as a key"); that is the number.
+   *
+   * `ordinal` is the row's identity for rendering and for tests. stop_id cannot
+   * be: 234 trips visit one stop twice, and a key that collides renders one pass
+   * over the other.
+   */
+  function stopTimesForTrip(dep, tripId) {
+    if (!dep || !dep.departures || !dep.trips) return null;
+    if (dep.service_day_start_epoch === null || dep.service_day_start_epoch === undefined) return null;
+
+    var index = tripIndexOf(dep, tripId);
+    if (index === null) return null;
+
+    var rows = [];
+    var byStop = dep.departures;
+    for (var stopId in byStop) {
+      if (!Object.prototype.hasOwnProperty.call(byStop, stopId)) continue;
+      var list = byStop[stopId] || [];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i][1] === index) {
+          rows.push({ stop_id: String(stopId), arrival_seconds: list[i][0] });
+        }
+      }
+    }
+    if (!rows.length) return null;
+
+    rows.sort(function (a, b) {
+      if (a.arrival_seconds !== b.arrival_seconds) return a.arrival_seconds - b.arrival_seconds;
+      return a.stop_id < b.stop_id ? -1 : a.stop_id > b.stop_id ? 1 : 0;
+    });
+
+    var names = stopNamesFor(dep, dep.trips[index].direction_id);
+    return rows.map(function (r, i) {
+      return {
+        stop_id: r.stop_id,
+        stop_name: names[r.stop_id] || r.stop_id,
+        scheduled_at: dep.service_day_start_epoch + r.arrival_seconds,
+        ordinal: i
+      };
+    });
+  }
+
   function plural(n, one, many) {
     return n + ' ' + (n === 1 ? one : many);
   }
@@ -244,6 +341,7 @@
     directionTag: directionTag,
     plural: plural,
     hasFix: hasFix,
-    predictionFor: predictionFor
+    predictionFor: predictionFor,
+    stopTimesForTrip: stopTimesForTrip
   };
 })(window);
