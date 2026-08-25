@@ -1037,6 +1037,32 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 .trip__bus-sign { flex: 1 1 auto; min-width: 0; font-size: var(--fs-meta); color: var(--ink-muted); }
 .trip__bus-start { flex: 0 0 auto; font-size: var(--fs-chrome); color: var(--ink-chrome); }
 
+/*
+ * Both of these take the full width of the row and wrap, because a stop name
+ * is the part a rider is reading and a skipped-stop list can name three
+ * stations. Neither is decoration: the special flag changes whether to board,
+ * and the next stop is how you tell two buses on the same headsign apart.
+ */
+.trip__bus-next {
+  flex: 1 0 100%; font-family: var(--font-figure); font-size: var(--fs-chrome);
+  color: var(--ink-dim); overflow-wrap: anywhere;
+}
+.trip__bus-special {
+  flex: 1 0 100%; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px;
+}
+.trip__bus-specialtag {
+  font-family: var(--font-text); font-size: var(--fs-chrome-sm); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 1px 6px; border-radius: var(--radius-sm);
+  /* Border as well as fill, so it survives desaturation like every other
+     state marker on this board. */
+  background: var(--warn, var(--surface-raised)); color: var(--adh-ink-dark);
+  border: 1px solid var(--ink-chrome);
+}
+.trip__bus-skips {
+  font-size: var(--fs-chrome); color: var(--ink-muted); overflow-wrap: anywhere;
+}
+
 .trip__head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
 .trip__id { font-family: var(--font-figure); font-weight: 700; font-size: 20px; color: var(--ink-strong); }
 .trip__sign { flex: 1 1 auto; min-width: 0; font-size: var(--fs-meta); color: var(--ink-muted); }
@@ -1048,11 +1074,18 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 .trip__count { margin: 0 0 10px; font-size: 13px; color: var(--ink-chrome); }
 
 .tripstops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+/*
+ * Two rows, not one: the countdown holds a fixed left column and the stop name
+ * gets the whole remaining width above its own times. One line meant the name
+ * and the times competed for 412px minus the countdown, and the name lost --
+ * "Freidrich/Di...", "Teri/Palo Bl..." -- which is the half a rider is
+ * scanning for. This is the layout the design sketch specified.
+ */
 .tripstop {
   display: grid;
-  grid-template-columns: 68px 1fr auto;
+  grid-template-columns: 68px minmax(0, 1fr);
   align-items: center;
-  gap: 4px 8px;
+  gap: 2px 8px;
   min-height: var(--tap);
   padding: 7px 10px;
   background: var(--surface-raised);
@@ -1063,22 +1096,25 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 /* Fixed-width lead column so the countdowns form one vertical strip, the same
    alignment rule rows.js uses for its badges. */
 .tripstop__when {
+  grid-column: 1; grid-row: 1 / span 2; align-self: center;
   font-family: var(--font-figure); font-weight: 700; font-size: var(--fs-chrome);
   color: var(--ink-dim); text-align: right; white-space: nowrap;
 }
 .tripstop__name {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  grid-column: 2; grid-row: 1;
+  min-width: 0; overflow-wrap: anywhere;
   font-size: var(--fs-body); color: var(--ink);
 }
 .tripstop__times {
-  justify-self: end; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px;
+  grid-column: 2; grid-row: 2;
+  justify-self: start; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px;
   font-family: var(--font-figure); font-size: var(--fs-chrome);
 }
 .tripstop__sched { color: var(--ink-chrome); }
 .tripstop__arrow { color: var(--ink-chrome); }
 .tripstop__pred { color: var(--ink); }
 .tripstop__end {
-  grid-column: 1 / -1;
+  grid-column: 2; grid-row: 3;
   font-family: var(--font-text); font-size: var(--fs-chrome-sm);
   text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-chrome);
 }

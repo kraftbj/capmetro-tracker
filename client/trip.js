@@ -22,6 +22,19 @@
   function buses(routeData) {
     var vehicles = (routeData && routeData.vehicles) || [];
     return vehicles.map(function (v) {
+      /*
+       * The next stop is adherence.against, not progress.current_stop_id: the
+       * anchor is section 2's own "first stop at or after where the bus is",
+       * and it already carries a shortened name and a predicted time. Reading
+       * the raw progress id instead would mean a second stop-name lookup and a
+       * second definition of "next", which is how two panels start disagreeing.
+       *
+       * It is null whenever the board refuses to score the bus -- stale feed,
+       * canceled trip, no progress -- and a null here prints nothing rather
+       * than a guess.
+       */
+      var against = v.adherence && v.adherence.against;
+      var pattern = v.pattern || null;
       return {
         id: String(v.vehicle_id),
         label: v.label || String(v.vehicle_id),
@@ -29,7 +42,17 @@
         headsign: v.trip ? v.trip.headsign : null,
         start_epoch: v.trip ? v.trip.start_epoch : null,
         in_service: !!v.in_service,
-        adherence_state: v.adherence ? v.adherence.state : 'unknown'
+        adherence_state: v.adherence ? v.adherence.state : 'unknown',
+        next_stop_name: against ? against.stop_name : null,
+        /* Normalized to null, never undefined: a missing time is the same
+           answer as no anchor, and the row prints nothing for either. */
+        next_stop_at: (against && against.predicted_at !== undefined)
+          ? against.predicted_at : null,
+        /* STOPPED_AT means the bus is sitting at that stop right now, which is
+           a different sentence from "heading there". */
+        is_stopped: !!(v.progress && v.progress.current_status === 'STOPPED_AT'),
+        is_special: !!(pattern && pattern.is_special),
+        skips: (pattern && pattern.skips) || []
       };
     }).sort(function (a, b) {
       if (a.in_service !== b.in_service) return a.in_service ? -1 : 1;
@@ -138,8 +161,36 @@
       if (b.start_epoch) {
         btn.appendChild(el('span', 'trip__bus-start', 'started ' + fmt.clock(b.start_epoch)));
       }
+
+      /*
+       * A special run is the one thing on this list that changes whether a
+       * rider should board at all: route 4's Austin High pattern skips
+       * Campbell/5th, and route 550's skips three stations. Naming the skipped
+       * stops is the whole value -- "special run" alone tells nobody anything.
+       */
+      if (b.is_special) {
+        var flag = el('span', 'trip__bus-special');
+        flag.appendChild(el('b', 'trip__bus-specialtag', 'SPECIAL RUN'));
+        flag.appendChild(el('span', 'trip__bus-skips', b.skips.length
+          ? 'skips ' + b.skips.map(function (s) { return s.stop_name; }).join(', ')
+          : 'runs a different pattern from the usual one'));
+        btn.appendChild(flag);
+      }
+
+      if (b.next_stop_name) {
+        btn.appendChild(el('span', 'trip__bus-next',
+          (b.is_stopped ? 'at ' : 'next ') + b.next_stop_name +
+          (b.next_stop_at ? ' · ' + fmt.clock(b.next_stop_at) : '')));
+      }
+
       btn.setAttribute('aria-label', 'Bus ' + b.label +
-        (b.in_service ? ', ' + (b.headsign || 'in service') : ', not in service, cannot be followed'));
+        (b.in_service ? ', ' + (b.headsign || 'in service') : ', not in service, cannot be followed') +
+        (b.is_special ? ', special run' + (b.skips.length ? ', skips ' +
+          b.skips.map(function (s) { return s.stop_name; }).join(', ') : '') : '') +
+        (b.next_stop_name
+          ? ', ' + (b.is_stopped ? 'stopped at ' : 'next stop ') + b.next_stop_name +
+            (b.next_stop_at ? ' at ' + fmt.clockSpoken(b.next_stop_at) : '')
+          : ''));
       if (b.in_service && opts.onChooseBus) {
         btn.addEventListener('click', function () { opts.onChooseBus(b.id); });
       }

@@ -164,3 +164,97 @@ describe('when the followed bus leaves the feed', () => {
     expect(textDeep(h)).toMatch(/Bus/)
   })
 })
+
+/*
+ * What a bus row in the picker says about the bus, beyond its id.
+ *
+ * Two facts changed what a picker row is for. The NEXT STOP is how a reader
+ * tells two buses on the same headsign apart -- route 550 lists three "550
+ * Downtown Station SB" rows, and the stop each one is heading to is the only
+ * thing distinguishing them. The SPECIAL RUN flag is the one item on this list
+ * that changes whether to board at all: route 4's Austin High pattern skips
+ * Campbell/5th and route 550's skips three stations, so naming the skipped
+ * stops is the whole value of the flag.
+ *
+ * Both read the anchor, adherence.against, rather than progress.current_stop_id:
+ * the anchor is section 2's own "first stop at or after where the bus is" and it
+ * already carries a shortened name and a predicted time. A second definition of
+ * "next" is how two panels start disagreeing.
+ */
+describe('what a picker row says about a bus', () => {
+  t('carries the next stop from the anchor, with its predicted time', (trip) => {
+    /* Section 2's anchor carries predicted_at; the shared ROUTE fixture omits
+       it, so this case supplies the full shape the contract publishes. */
+    const full = JSON.parse(JSON.stringify(ROUTE))
+    full.vehicles[0].adherence.against.predicted_at = 1030
+    const b = trip.buses(full).filter((x) => x.id === '2641')[0]
+    expect(b.next_stop_name).toBe('Alpha')
+    expect(b.next_stop_at).toBe(1030)
+  })
+
+  t('reports a null time, never undefined, when the anchor carries none', (trip) => {
+    /* null is the board's one word for "unknown"; undefined would sneak past a
+       `=== null` check and print "· undefined" beside a real stop name. */
+    const b = trip.buses(ROUTE).filter((x) => x.id === '2641')[0]
+    expect(b.next_stop_name).toBe('Alpha')
+    expect(b.next_stop_at).toBeNull()
+  })
+
+  t('distinguishes a bus sitting at a stop from one heading to it', (trip) => {
+    /* STOPPED_AT is a different sentence: "at Alpha" not "next Alpha". */
+    expect(trip.buses(ROUTE).filter((x) => x.id === '2641')[0].is_stopped).toBe(false)
+
+    const stopped = JSON.parse(JSON.stringify(ROUTE))
+    stopped.vehicles[0].progress.current_status = 'STOPPED_AT'
+    expect(trip.buses(stopped).filter((x) => x.id === '2641')[0].is_stopped).toBe(true)
+  })
+
+  t('reports no next stop rather than guessing when there is no anchor', (trip) => {
+    /* No anchor means the board refuses to say where the bus is -- stale feed,
+       canceled trip, no progress. A picker row must not invent one. */
+    const blind = JSON.parse(JSON.stringify(ROUTE))
+    blind.vehicles[0].adherence.against = null
+    const b = trip.buses(blind).filter((x) => x.id === '2641')[0]
+    expect(b.next_stop_name).toBeNull()
+    expect(b.next_stop_at).toBeNull()
+  })
+
+  t('is not special, and skips nothing, on an ordinary run', (trip) => {
+    const b = trip.buses(ROUTE).filter((x) => x.id === '2641')[0]
+    expect(b.is_special).toBe(false)
+    expect(b.skips).toEqual([])
+  })
+
+  t('carries the special flag and the stops it skips', (trip) => {
+    const special = JSON.parse(JSON.stringify(ROUTE))
+    special.vehicles[0].pattern = {
+      is_baseline: false, is_special: true, trips_in_pattern: 2,
+      adds: [], skips: [{ stop_id: 'Z', stop_name: 'Leander Station' }],
+    }
+    const b = trip.buses(special).filter((x) => x.id === '2641')[0]
+    expect(b.is_special).toBe(true)
+    expect(b.skips.map((s) => s.stop_name)).toEqual(['Leander Station'])
+  })
+
+  t('names the skipped stops in the rendered row, not just "special"', (trip) => {
+    /* "Special run" alone tells a rider nothing they can act on. */
+    const special = JSON.parse(JSON.stringify(ROUTE))
+    special.vehicles[0].pattern = {
+      is_baseline: false, is_special: true, trips_in_pattern: 2,
+      adds: [], skips: [{ stop_id: 'Z', stop_name: 'Leander Station' }],
+    }
+    const h = host()
+    trip.render(h, { route: special, dep: DEP, vehicleId: null, now: 5000 },
+      { picking: 'bus', routes: [] })
+    const text = textDeep(h)
+    expect(text).toMatch(/SPECIAL RUN/i)
+    expect(text).toContain('Leander Station')
+  })
+
+  t('shows the next stop in the rendered row', (trip) => {
+    const h = host()
+    trip.render(h, { route: ROUTE, dep: DEP, vehicleId: null, now: 5000 },
+      { picking: 'bus', routes: [] })
+    expect(textDeep(h)).toContain('Alpha')
+  })
+})
