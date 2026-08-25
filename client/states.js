@@ -141,20 +141,6 @@
    * They never run unless ?state= names one.
    */
   /*
-   * Null-prototype because `?state=` names one of these directly, and a bare
-   * object literal answers to every member of Object.prototype as well.
-   *
-   * `?state=valueOf` passed app.js's `if (q.state && S.STATE_SCENARIOS[q.state])`
-   * guard, because every prototype member is truthy. Two things then happened,
-   * both permanent for that tab. `scenario.apply` exists on every function
-   * (it is Function.prototype.apply), so the payload was rewritten: with
-   * `constructor` the board rendered "this board is too old for the data" and
-   * nothing else, and with `valueOf` it rendered correctly. And app.js gates the
-   * 60s refresh on `!state.scenario`, so in both cases the board never updated
-   * again. The quiet variant is the worse one: a board that looks current, is
-   * not, and has no way back except a reload nobody knows to do.
-   */
-  /*
    * A copy with no prototype. Object.assign says this in one line and is
    * ES2015; client/*.js is ES5 only, because the board has to open from a
    * file:// URL with no build step between the source and the phone. A for-in
@@ -168,6 +154,22 @@
     return out;
   }
 
+  /*
+   * Null-prototype because `?state=` names one of these directly, and a bare
+   * object literal answers to every member of Object.prototype as well.
+   *
+   * When the lookup in app.js was a plain truthiness test, every prototype
+   * member passed it, because every one of them is truthy. `scenario.apply` then
+   * exists on all of them — it is Function.prototype.apply — so the payload was
+   * rewritten: `constructor` produced the schema refusal, and `valueOf` returned
+   * the payload untouched, so the board rendered perfectly. Both were permanent
+   * for that tab, because app.js gates the 60s refresh on `!state.scenario`.
+   *
+   * The quiet one is the worse one: a board that looks current, is not, and has
+   * no way back except a reload nobody knows to do. That lookup is guarded by
+   * hasOwnProperty now as well; this is the second lock on the same door, and it
+   * has its own test because the browser suite passes with either one alone.
+   */
   var STATE_SCENARIOS = nullProto({
     loading: { hold: true, note: 'LOADING — payload deliberately never resolves' },
     empty: {

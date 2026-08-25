@@ -64,6 +64,28 @@ test('a 200 whose body is null does not make the board blame CapMetro for it', a
   await expect(board).toContainText('feed')
 })
 
+test('an empty OBJECT is refused by the fleet document too', async ({ page }) => {
+  /*
+   * `{}` is where a transport check stops being enough. It is truthy, it is an
+   * object, it is not an array — so it passes every shape test — and it
+   * satisfies no schema at all. On the schedule and the route document it is
+   * harmless; here it reproduces the accusation above word for word, because the
+   * empty-fleet copy keys off the vehicle list being EMPTY rather than absent.
+   *
+   * The null case above passes with or without the vehicles clause, so without
+   * this one the clause has no test.
+   */
+  await page.route('**/api/all.json', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+
+  await page.goto('/fresh/index.html?route=4&view=all')
+  const board = page.locator('#board')
+  await expect(board).toBeVisible()
+  await expect(board).not.toContainText('CapMetro problem')
+  await expect(board).not.toContainText('no buses at all')
+  await expect(board).toContainText('feed')
+})
+
 test('a 200 whose body is null leaves a route document askable again', async ({ page }) => {
   /*
    * A falsy body landed on 'ok', and the once-a-minute retry only ever clears
@@ -86,8 +108,13 @@ test('a 200 whose body is null leaves a route document askable again', async ({ 
   await page.waitForTimeout(500)
 
   const status = await page.evaluate(() => window.CMB.app.state.routeStatus['7'])
-  expect(status, 'a falsy body must not park the route on a status the retry cannot clear')
-    .not.toBe('ok')
+  /*
+   * The positive value, not "not ok". A negative assertion also holds on
+   * `undefined` — a build where the route document is never requested at all —
+   * so it would go green on the feature being deleted rather than fixed.
+   */
+  expect(status, 'a falsy body must land on the one status the retry can clear')
+    .toBe('error')
 })
 
 test('a 200 that is not a document does not tell the reader to update their app', async ({ page }) => {
@@ -115,6 +142,19 @@ test('a 200 that is not a document does not tell the reader to update their app'
   await expect(board).not.toContainText('needs updating')
   await expect(board).not.toContainText('format undefined')
   await expect(board).not.toHaveText('')
+
+  /*
+   * And specifically the fixture fallback, which is the whole of the placement
+   * decision: the guard throws from the FIRST .then so that a 200 of garbage is
+   * answered the way an unreachable feed is. Moving it below the fallback also
+   * removes the "needs updating" screen — it just replaces it with the error
+   * screen instead, which is a different and worse answer for the one route that
+   * has a bundled sample. Without this line the three assertions above hold
+   * either way, and nothing would keep the decision in place.
+   */
+  const usingFixture = await page.evaluate(() => window.CMB.app.state.usingFixture)
+  expect(usingFixture, 'a 200 that is not a document should be answered like an unreachable feed')
+    .toBe(true)
 })
 
 test('a body that is a bare string is refused the same way', async ({ page }) => {

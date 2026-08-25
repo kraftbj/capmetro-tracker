@@ -231,13 +231,6 @@
   }
 
   /*
-   * One fetch. Every endpoint is a static JSON file on the same origin, so there
-   * is nothing to configure and nothing to authenticate. A file:// board has no
-   * origin to fetch from and rejects immediately rather than waiting for a
-   * network error, because from disk the fixture IS the answer, not a fallback
-   * after a timeout.
-   */
-  /*
    * A 200 is not by itself an answer.
    *
    * Every one of these endpoints is a static JSON file, and the things that sit
@@ -253,10 +246,21 @@
    * schema check instead, which puts "This app needs updating … written for
    * format undefined" on screen — a board that is wrong about why it is broken.
    */
-  function isDocument(d) {
-    return !!d && typeof d === 'object' && Object.prototype.toString.call(d) !== '[object Array]';
+  function isArray(v) {
+    return Object.prototype.toString.call(v) === '[object Array]';
   }
 
+  function isDocument(d) {
+    return !!d && typeof d === 'object' && !isArray(d);
+  }
+
+  /*
+   * One fetch. Every endpoint is a static JSON file on the same origin, so there
+   * is nothing to configure and nothing to authenticate. A file:// board has no
+   * origin to fetch from and rejects immediately rather than waiting for a
+   * network error, because from disk the fixture IS the answer, not a fallback
+   * after a timeout.
+   */
   function getJson(path, signal) {
     if (global.location.protocol === 'file:' || typeof fetch !== 'function') {
       return Promise.reject(new Error('file://'));
@@ -319,7 +323,14 @@
          * about service that names somebody else as the cause. The real
          * can't-reach-the-feed state, with its Retry, never appeared.
          */
-        if (!isDocument(d)) throw new Error('not a fleet document');
+        /*
+         * And it has to carry vehicles. isDocument is a transport check — "did
+         * something JSON-shaped come back" — and `{}` passes it while satisfying
+         * no schema at all. On the other two documents that is harmless; here it
+         * reproduces the accusation above word for word, because the empty-fleet
+         * copy keys off the vehicle list being empty rather than absent.
+         */
+        if (!isDocument(d) || !isArray(d.vehicles)) throw new Error('not a fleet document');
         state.all = d;
         state.allStatus = 'ok';
         if (then) then(d);
@@ -577,8 +588,11 @@
         /*
          * See isDocument. Here the falsy body spun a request loop: stored under
          * 'ok', read as "nothing cached" by the guard above, re-asked on the
-         * next paint. After the generation check, so an abandoned request cannot
-         * take the live one's route into 'error' on its way out.
+         * next paint.
+         *
+         * Below the generation check for tidiness rather than for safety — the
+         * .catch opens with the same check, so an abandoned request is turned
+         * away there wherever this throw happens.
          */
         if (!isDocument(d)) throw new Error('not a departures document');
         /* The swap. Whatever was here is replaced only now, by something that

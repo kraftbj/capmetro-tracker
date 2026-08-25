@@ -86,7 +86,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   `?state=` names an entry in the state-preview table, and that lookup was a bare
   one on a plain object, so every member of `Object.prototype` answered to it.
   `?state=constructor` rewrote the payload into something the schema check
-  refused, and the board showed nothing but "too old for the data". `?state=
+  refused, so the board showed the schema notice and no times at all. `?state=
   valueOf` was quieter and worse: the payload passed through untouched, the board
   rendered correctly — and because the 60s refresh is gated on there being no
   scenario, it never updated again. A board that is visibly broken sends someone
@@ -135,8 +135,10 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   worse.
 
   All four go to the paths that already existed. Arrays are refused along with
-  the falsy bodies: `typeof [] === 'object'`, so an array passed every check that
-  was not looking for it.
+  the falsy bodies — `typeof [] === 'object'`, so an array passed every check
+  that was not looking for it — and the fleet document additionally has to carry
+  a list of vehicles, because `{}` is JSON-shaped enough to satisfy a transport
+  check while reproducing that accusation word for word.
 
 - **A stop id from a link could blank the whole board.** `departures[stopId]` was
   a bare lookup on an object parsed from JSON, so it also reached
