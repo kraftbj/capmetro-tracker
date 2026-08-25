@@ -293,7 +293,7 @@ export function textDeep(node) {
  * a network that is not there, and app.js skips installing the 60s interval
  * entirely, so nothing is left running after the test returns.
  */
-export function bootClient(scripts) {
+export function bootClient(scripts, opts = {}) {
   const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, reason: `client/${missing.join(', client/')} does not exist yet` }
@@ -315,7 +315,18 @@ export function bootClient(scripts) {
   const window = {
     CMB: {},
     document,
-    location: { protocol: 'file:', search: '', href: 'file:///index.html', reload() {} },
+    /*
+     * file:// by default because it is the one setting that makes boot inert:
+     * getJson rejects without reaching for a network, and app.js installs no
+     * timer. A test that wants to drive the fetch path says so, and supplies the
+     * fetch it wants driven — there is no real network here either way.
+     */
+    location: {
+      protocol: opts.protocol || 'file:',
+      search: opts.search || '',
+      href: opts.href || 'file:///index.html',
+      reload() {},
+    },
     localStorage: {
       getItem: (k) => (store.has(k) ? store.get(k) : null),
       setItem: (k, v) => void store.set(k, String(v)),
@@ -330,12 +341,15 @@ export function bootClient(scripts) {
     requestAnimationFrame: (fn) => { fn(0); return 0 },
     cancelAnimationFrame() {},
   }
+  if (opts.fetch) window.fetch = opts.fetch
   window.window = window
   const context = vm.createContext({
     window,
     document,
     globalThis: window,
     console,
+    fetch: opts.fetch,
+    AbortController: opts.AbortController,
     localStorage: window.localStorage,
     setInterval: window.setInterval,
     clearInterval: window.clearInterval,

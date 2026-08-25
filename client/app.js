@@ -128,6 +128,7 @@
     depStatus: Object.create(null),    /* route id -> loading | ok | stale | error */
     depGen: Object.create(null),       /* route id -> which request the answer must belong to */
     depStuck: Object.create(null),     /* route id -> sweeps a 'loading' has survived */
+    depAbort: Object.create(null),     /* route id -> the in-flight request's AbortController */
     routeData: Object.create(null),    /* route id -> api/route/{id}.json, off the open board */
     routeStatus: Object.create(null),  /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
@@ -217,14 +218,31 @@
    * network error, because from disk the fixture IS the answer, not a fallback
    * after a timeout.
    */
-  function getJson(path) {
+  function getJson(path, signal) {
     if (global.location.protocol === 'file:' || typeof fetch !== 'function') {
       return Promise.reject(new Error('file://'));
     }
-    return fetch(path, { cache: 'no-cache' }).then(function (r) {
+    var opts = { cache: 'no-cache' };
+    if (signal) opts.signal = signal;
+    return fetch(path, opts).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     });
+  }
+
+  /*
+   * An AbortController where the browser has one, and null where it does not.
+   *
+   * Giving up on a hung request in bookkeeping alone leaves the request itself
+   * outstanding. A browser allows about six connections per origin, so a server
+   * that accepts and never answers fills that pool with dead requests and the
+   * once-a-minute poll ends up queued behind them -- the opposite of what giving
+   * up is for. Feature-detected rather than assumed: the board runs on whatever
+   * phone the reader has, and a missing AbortController must cost the retry, not
+   * the fetch.
+   */
+  function abortable() {
+    return typeof AbortController === 'function' ? new AbortController() : null;
   }
 
   function fetchRoute(routeId) {
@@ -488,9 +506,12 @@
      */
     var gen = (state.depGen[routeId] || 0) + 1;
     state.depGen[routeId] = gen;
-    getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
+    var ctl = abortable();
+    state.depAbort[routeId] = ctl;
+    getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json', ctl && ctl.signal)
       .then(function (d) {
         if (state.depGen[routeId] !== gen) return;   /* answer to a question we stopped asking */
+        delete state.depAbort[routeId];
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
         state.departures[routeId] = d;
@@ -512,6 +533,7 @@
          * must never be presented as today's.
          */
         if (state.depGen[routeId] !== gen) return;   /* answer to a question we stopped asking */
+        delete state.depAbort[routeId];
         var disk = global.location.protocol === 'file:' ? embeddedDepartures(routeId) : null;
         if (disk) {
           state.departures[routeId] = disk;
@@ -1093,6 +1115,9 @@
         state.depStuck[rid] = (state.depStuck[rid] || 0) + 1;
         if (state.depStuck[rid] >= 2) {
           state.depGen[rid] = (state.depGen[rid] || 0) + 1;
+          /* Let go of the socket too, not just of the answer. */
+          if (state.depAbort[rid]) { try { state.depAbort[rid].abort(); } catch (e) { /* already gone */ } }
+          delete state.depAbort[rid];
           delete state.depStatus[rid];
           delete state.depStuck[rid];
         }
@@ -1118,7 +1143,16 @@
      * render loop.
      */
     Object.keys(state.routeStatus).forEach(function (rid) {
-      if (state.routeStatus[rid] === 'error') delete state.routeStatus[rid];
+      if (state.routeStatus[rid] !== 'error') return;
+      delete state.routeStatus[rid];
+      /*
+       * Clearing the status is not the retry, it only permits one. Nothing on
+       * the every-bus view calls loadRouteData during a repaint -- it is wired
+       * to opening a bus detail and nothing else -- so a cleared status alone
+       * left the panel exactly as stuck as before, until the reader happened to
+       * collapse and reopen the row. Ask here, the way the saved block does.
+       */
+      loadRouteData(rid);
     });
     if (state.view === 'saved') {
       /* A frozen saved trip is worse than none: it reads as a live prediction.
@@ -1384,6 +1418,9 @@
        * someone waiting for a departure time.
        */
       depWithheld: !!state.departures[state.routeId] && !usableDepartures(state.routeId),
+      /* And the third: asked for, and the answer was a failure. Only 'loading'
+       * is genuinely about to resolve, so only 'loading' gets the shimmer. */
+      depFailed: state.depStatus[state.routeId] === 'error',
       picking: state.tripPicking,
       onPickRoute: function () { state.pickerOpen = !state.pickerOpen; render(); },
       onPickBus: function () {
@@ -1644,6 +1681,10 @@
     scheduleExpired: scheduleExpired,
     usableDepartures: usableDepartures,
     refreshTick: refreshTick,
+    /* Exported for the suite alone: the generation guard is only observable by
+     * letting an abandoned request answer, which needs a fetch under test
+     * control. Nothing in the client calls it through here. */
+    loadDepartures: loadDepartures,
     FAVOURITES: FAVOURITES,
     SUPPORTED_SCHEMA: SUPPORTED_SCHEMA
   };

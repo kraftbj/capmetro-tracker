@@ -99,12 +99,14 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   with nothing loading and nothing that ever would. Any failed route document is
   now retried once a minute, from the timer, whichever view asked for it.
 
-- **The trip view said nothing at all when it withheld a schedule.** It drew the
+- **The trip view said nothing at all when it withheld a schedule, or when one
+  failed to load.** It drew the
   shimmer that means "this is about to arrive", which is a promise the board
   cannot keep when what it is actually doing is holding a schedule from a
   service day that has ended. Those placeholder rows are also hidden from
   assistive technology, so a screen reader reached the bus name and stopped. It
-  says which of the two is happening now, in words.
+  says which of the three is happening now, in words — arriving, withheld, or
+  failed — and only the first of those still gets a shimmer.
 
 - **The saved-trip editor still said the schedule "only loads once".** The board
   view's copy was corrected when schedules started expiring at the service-day

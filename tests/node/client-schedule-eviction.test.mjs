@@ -253,14 +253,76 @@ describe('a departures fetch that never settles', () => {
    * The strikes belong to the request, not to the route. A route that once
    * loaded slowly must not carry a strike for the rest of the session and then
    * be abandoned in the middle of a perfectly healthy fetch later on.
+   *
+   * Both branches, because only one of them was ever wrong. Clearing happened on
+   * the error/stale path, which is the path where the status was being deleted
+   * anyway; a fetch that straddled a tick and then SUCCEEDED left its strike
+   * behind, so the next request on that route met the give-up after one sweep
+   * instead of two — on exactly the connection that had already shown it was
+   * slow. Asserting only the 'stale' case tested the half that worked.
    */
-  it('forgets the strikes once the status changes', () => {
-    const st = seed('loading')
-    app().refreshTick()
-    expect(st.depStuck[ROUTE]).toBe(1)
+  for (const after of ['ok', 'stale', 'error']) {
+    it(`forgets the strikes once the request ends in '${after}'`, () => {
+      const st = seed('loading')
+      app().refreshTick()
+      expect(st.depStuck[ROUTE]).toBe(1)
 
-    st.depStatus[ROUTE] = 'stale'
+      st.depStatus[ROUTE] = after
+      app().refreshTick()
+      expect(st.depStuck[ROUTE]).toBeUndefined()
+    })
+  }
+
+  it('gives a second slow request the full grace, not the remainder of the first', () => {
+    const st = seed('loading')
+    app().refreshTick()          /* strike one against request A */
+    st.depStatus[ROUTE] = 'ok'   /* A lands, late but fine */
     app().refreshTick()
-    expect(st.depStuck[ROUTE]).toBeUndefined()
+
+    /* B goes out later, on the same route. It gets two sweeps of its own. */
+    st.depStatus[ROUTE] = 'loading'
+    app().refreshTick()
+    expect(st.depStatus[ROUTE]).toBe('loading')
+    app().refreshTick()
+    expect(st.depStatus[ROUTE]).toBeUndefined()
+  })
+})
+
+/*
+ * The other operand. scheduleExpired holds a document's date to eight digits;
+ * `today` is the value it is compared against, and it fails in the unsafe
+ * direction — whatever sorts highest becomes today, and one malformed value
+ * there makes every well-formed document look current, which is the bug the
+ * eviction exists to remove. Not reachable from the generator, which formats
+ * 'Ymd'; asserted because an asymmetry is how the next person concludes one of
+ * the two does not matter.
+ */
+describe('what the board will accept as today', () => {
+  const src = (date) => ({ data: { service_day: { date: date } }, all: null, routeData: {} })
+
+  it('ignores a source whose date is not a service date', () => {
+    expect(app().currentServiceDate(src('2026-08-22'))).toBe(null)
+    expect(app().currentServiceDate(src('garbage'))).toBe(null)
+    expect(app().currentServiceDate(src(''))).toBe(null)
+  })
+
+  it('does not let a malformed source outrank a good one', () => {
+    /* 'zzzz' sorts above any digit, so an unfiltered max would return it and
+     * nothing would ever be judged expired again. */
+    const state = {
+      data: { service_day: { date: 'zzzz' } },
+      all: { service_day: { date: '20260822' } },
+      routeData: {},
+    }
+    expect(app().currentServiceDate(state)).toBe('20260822')
+  })
+
+  it('still takes the latest of several real dates', () => {
+    const state = {
+      data: { service_day: { date: '20260821' } },
+      all: { service_day: { date: '20260822' } },
+      routeData: {},
+    }
+    expect(app().currentServiceDate(state)).toBe('20260822')
   })
 })

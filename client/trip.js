@@ -291,6 +291,16 @@
         host.appendChild(S.notice('empty', 'Today’s schedule has not arrived yet',
           'The one being held is from a service day that has ended, so the times in it ' +
           'are not today’s. It is asked for again every minute.'));
+      } else if (opts && opts.depFailed) {
+        /*
+         * The third state, and the same argument as the second. A schedule that
+         * failed to load is not arriving in a moment either — the request is
+         * retried once a minute and may keep failing — so the shimmer is just as
+         * false here, and just as silent to a screen reader.
+         */
+        host.appendChild(S.notice('empty', 'This route’s schedule did not load',
+          'Without it there are no scheduled times to list. It is asked for again ' +
+          'every minute.'));
       } else {
         host.appendChild(S.skeletonRows(6));
       }
