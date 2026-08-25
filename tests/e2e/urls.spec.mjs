@@ -103,3 +103,59 @@ test.describe('shareable urls', () => {
     expect(overflow).toBe(false)
   })
 })
+
+test.describe('a bare bus link, whose route has to be looked up', () => {
+  /*
+   * /trip/1234 names a bus and not its route — the form that makes the link
+   * short enough to read to somebody over the phone. Resolving it means
+   * fetching the fleet document, which is the only entry path in the client
+   * that does. Nothing else in this suite exercises it: every other trip test
+   * supplies the route, which skips the lookup entirely.
+   */
+  const FLEET = { schema: 1, generated_at: 1787152239, vehicles: [
+    { vehicle_id: '2641', label: '2641', route_id: '4', in_service: true },
+  ] }
+
+  test('resolves the route and upgrades the link to the qualified form', async ({ page }) => {
+    await page.route('**/api/all.json', (r) =>
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(FLEET) }))
+
+    await page.goto('/fresh/trip/2641')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Trip')
+    /* The short link rewrites itself to the one that needs no lookup. */
+    await expect(page).toHaveURL(/\/fresh\/trip\/4\/2641/)
+    await expect(page.locator('.tripstop').first()).toBeVisible()
+  })
+
+  test('does not strand the reader when the fleet document fails', async ({ page }) => {
+    await page.route('**/api/all.json', (r) => r.fulfill({ status: 500, body: 'nope' }))
+
+    await page.goto('/fresh/trip/2641')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Trip')
+    /* No route was learned, so no route is claimed. The picker is offered
+       rather than a bus sitting under a route it may not be on. */
+    await expect(page).toHaveURL(/\/fresh\/trip$/)
+    await expect(page.getByText(/pick a bus/i)).toBeVisible()
+  })
+
+  test('a late fleet answer does not undo what the reader did meanwhile', async ({ page }) => {
+    /* The staleness guard. Before it, a fleet request failing seconds after the
+       reader picked their own bus wiped that choice and emptied the board. */
+    await page.route('**/api/all.json', async (r) => {
+      await new Promise((done) => setTimeout(done, 2500))
+      await r.fulfill({ status: 500, body: 'nope' })
+    })
+
+    await page.goto('/fresh/trip/2641')
+    await page.locator('.trip__pick').nth(1).click()
+    await page.locator('.trip__buslist button:not([disabled])').first().click()
+    await expect(page.locator('.tripstop').first()).toBeVisible()
+    const chosen = page.url()
+
+    await page.waitForTimeout(3000)
+    /* Still on the bus the reader chose, not reset by an answer they had
+       stopped waiting for. */
+    await expect(page.locator('.tripstop').first()).toBeVisible()
+    expect(page.url()).toBe(chosen)
+  })
+})

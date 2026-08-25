@@ -640,6 +640,18 @@
    */
   function directionToken() {
     if (state.view !== 'board') return null;
+    /*
+     * A token still waiting on its route document is the direction the reader
+     * ASKED for, and it outranks whatever is on screen meanwhile. Without this,
+     * the first render writes the fallback direction into the address bar and
+     * erases the request -- /route/7/nb settles at /route/7/both, and reloading
+     * that turns the erasure into an explicit choice the feed recovering cannot
+     * undo. Only visible when the document is slow or never comes, which is
+     * exactly when a shared link matters most.
+     */
+    if (global.CMB.urls.isDirectionToken(state.pendingDir)) {
+      return String(state.pendingDir).toLowerCase();
+    }
     if (state.direction === 'both') return 'both';
     var tag = state.data ? fmt.directionTagFor(state.data, state.direction) : null;
     if (tag && /^(EB|WB|NB|SB)$/.test(tag)) return tag.toLowerCase();
@@ -681,6 +693,18 @@
    */
   function resolveBusRoute(busId) {
     loadAll(function (all) {
+      /*
+       * The fleet document can take seconds, and the reader does not wait. If
+       * they picked a bus, changed route, or left the view while it was in
+       * flight, this answer is about a question they have stopped asking --
+       * applying it wipes what they just did. state.pendingBus is what says the
+       * question still stands; selectRoute and the bus picker both clear it.
+       *
+       * This became reachable when the failure path started calling back: a
+       * fleet request that fails five seconds in would otherwise clear the bus
+       * the reader chose in the meantime and drop the board to its empty state.
+       */
+      if (state.pendingBus !== String(busId)) return;
       var vehicles = (all && all.vehicles) || [];
       for (var i = 0; i < vehicles.length; i++) {
         if (String(vehicles[i].vehicle_id) === String(busId) && vehicles[i].route_id) {
@@ -690,7 +714,8 @@
           selectRoute(String(vehicles[i].route_id));
           state.tripBusId = String(busId);
           state.view = 'trip';
-          store('view', 'trip');
+          /* Deliberately not store()d. Following a link must not rewrite the
+             view this browser opens to; boot says the same about the bus. */
           return;
         }
       }
@@ -763,6 +788,9 @@
      * previous route's vehicle under the new route's (missing) data. */
     state.tripBusId = null;
     state.tripLastSeen = null;
+    /* Whatever bare /trip/{bus} was being resolved is about the route being
+       left, so its answer must not land here. */
+    state.pendingBus = null;
     /* Each route remembers its own stop, so switching back is one tap and not
      * a fresh hunt through sixty-six of them. */
     state.stopId = recall('stop.' + id);
@@ -1029,6 +1057,8 @@
         state.tripBusId = id;
         state.tripPicking = null;
         state.tripLastSeen = null;   /* a new bus starts with no history */
+        /* A deliberate choice outranks a bare /trip/{bus} still resolving. */
+        state.pendingBus = null;
         render();
       }
     });
@@ -1177,8 +1207,6 @@
     loadDepartures(routeId);
     loadCatalog();
 
-    var view = u.view || recall('view');
-    if (view === 'all' || view === 'trip' || view === 'saved') selectView(view);
 
     /*
      * The bus is a URL parameter but NOT a stored preference, and that asymmetry
@@ -1195,6 +1223,16 @@
         resolveBusRoute(u.bus_id);
       }
     }
+
+    /*
+     * The view is selected AFTER the bus is resolved, not before. selectView
+     * calls loadAll for the all-buses view, and loadAll returns early while a
+     * request is in flight -- without attaching the callback -- so ?view=all
+     * plus a bare bus id used to discard the resolver and leave the link
+     * unresolved for the session.
+     */
+    var view = u.view || recall('view');
+    if (view === 'all' || view === 'trip' || view === 'saved') selectView(view);
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {

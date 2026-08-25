@@ -190,3 +190,20 @@ describe('the path written back to the address bar', () => {
     expect(urls.format('trip', '7', null, null)).toBe('trip')
   })
 })
+
+describe('a path that could become an off-origin base', () => {
+  t('refuses a protocol-relative path rather than returning its host', (urls) => {
+    /* "//evil.com/route/x" as a <base href> resolves every relative script tag
+       against evil.com. The bootstrap in index.html bails on it; index.html says
+       that snippet and baseFor() state one rule, so this must bail too. nginx
+       collapses the double slash today, which is a property of merge_slashes
+       rather than of either file. */
+    expect(urls.baseFor('//evil.com/route/x')).toBe('/')
+    expect(urls.parse('//evil.com/route/4/eb', '').route_id).toBeNull()
+  })
+
+  t('is unbothered by a double slash later in the path', (urls) => {
+    /* Only a leading "//" is protocol-relative. */
+    expect(urls.baseFor('/fresh//route/4')).toBe('/fresh/')
+  })
+})

@@ -85,6 +85,20 @@ const SCENARIOS = {
 
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 
+/*
+ * A scenario may not be named after an app path. The client finds the directory
+ * it is served from by scanning for the first `route`/`buses`/`trip`/`saved`
+ * segment, so a scenario called one of those would be read as the start of the
+ * app path and every asset would resolve against the wrong base -- a blank board
+ * with nothing in the console. Cheap to prevent, invisible to debug.
+ */
+const APP_VERBS = ['route', 'buses', 'trip', 'saved']
+for (const name of SCENARIO_NAMES) {
+  if (APP_VERBS.includes(name)) {
+    throw new Error(`scenario "${name}" collides with an app path verb; rename it`)
+  }
+}
+
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const parts = url.pathname.split('/').filter(Boolean)

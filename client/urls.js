@@ -58,6 +58,16 @@
    * treated as a filename when it contains a dot.
    */
   function split(pathname) {
+    /*
+     * A path beginning "//" is protocol-relative the moment it becomes a base
+     * href, so the bootstrap in index.html refuses one. That comment says the
+     * two state ONE rule and must agree, and a rule with two spellings is the
+     * drift CLAUDE.md's ISSUE-002 exists to warn about -- so this refuses it too
+     * rather than quietly returning "/evil.com/" where the other bails.
+     */
+    if (String(pathname || '').charAt(1) === '/') {
+      return { base: '/', segments: [] };
+    }
     var parts = segments(pathname);
     var at = -1;
     for (var i = 0; i < parts.length; i++) {
