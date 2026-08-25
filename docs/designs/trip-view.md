@@ -68,6 +68,8 @@ route 7 and the full corpus while a fixture-only pass reported clean.
 | In-service vehicles whose `trip_id` is absent from its route's departures doc | **0 / 249** |
 | Prediction rows whose `stop_id` is absent from that trip's stop list | **0 / 4,525** |
 | In-service vehicles with a usable `adherence.against` anchor | **249 / 249** |
+| Anchors matching a departures row on **both** `stop_id` and `scheduled_at` | **249 / 249** |
+| Live anchors whose stop appears more than once in its own trip | **1** |
 | Stops ahead of a bus carrying a CapMetro ETA | **4,526 / 5,842 (77.5%)** |
 | Stops ahead needing the estimate | 1,316 (22.5%) |
 | Stops ahead per bus | p50 **19**, p90 **50**, max **93** |
@@ -196,8 +198,10 @@ Cuts the list to the stops still ahead of the bus.
 The cut is at `vehicle.adherence.against`, matched on **both** `stop_id` and `scheduled_at`, so
 a trip that visits a stop twice cuts at the correct pass. The anchor is §2's own "first stop at
 or after `current_stop_sequence`", so this reuses the server's definition of where the bus is
-rather than inventing a second one. It resolved for 249 of 249 in-service vehicles in the
-capture and its stop was present in the trip list every time.
+rather than inventing a second one. It resolved for 249 of 249 in-service vehicles in the capture, and matched a departures row on
+**both** halves of that key every time — the scheduled time is not a defensive extra, it is
+exact. One of those 249 anchors sits on a trip that visits its stop twice, so the time half is
+doing real work in this capture rather than guarding a hypothetical.
 
 It does **not** compare `progress.current_stop_sequence` against `stops[].stop_sequence`. Those
 are different numbering schemes and disagree on 2,221 of 4,112 trips.
