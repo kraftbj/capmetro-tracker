@@ -1,0 +1,289 @@
+/*
+ * trip.js — "I am on this bus. Where does it go from here, and when?"
+ *
+ * Every other panel is anchored at a stop or at a route. This one is anchored
+ * at a BUS, which is the transpose of stopboard.js: one bus and many stops,
+ * where that panel is one stop and many buses.
+ *
+ * It invents nothing that format.js has not already named. The three functions
+ * it leans on — stopTimesForTrip, stopsAheadOf, arrivalPlan — live there rather
+ * than here so that a second panel asking the same question cannot answer it
+ * differently. CLAUDE.md calls the alternative ISSUE-002.
+ */
+(function (global) {
+  'use strict';
+
+  var fmt = global.CMB.fmt;
+  var adhLib = global.CMB.adherence;
+  var S = global.CMB.states;
+  var el = S.el;
+
+  /* Every vehicle on the route, grouped for the picker. */
+  function buses(routeData) {
+    var vehicles = (routeData && routeData.vehicles) || [];
+    return vehicles.map(function (v) {
+      return {
+        id: String(v.vehicle_id),
+        label: v.label || String(v.vehicle_id),
+        direction_id: v.trip ? v.trip.direction_id : null,
+        headsign: v.trip ? v.trip.headsign : null,
+        start_epoch: v.trip ? v.trip.start_epoch : null,
+        in_service: !!v.in_service,
+        adherence_state: v.adherence ? v.adherence.state : 'unknown'
+      };
+    }).sort(function (a, b) {
+      if (a.in_service !== b.in_service) return a.in_service ? -1 : 1;
+      var da = a.direction_id === null ? 99 : a.direction_id;
+      var db = b.direction_id === null ? 99 : b.direction_id;
+      if (da !== db) return da - db;
+      return (a.start_epoch || 0) - (b.start_epoch || 0);
+    });
+  }
+
+  function vehicleById(routeData, vehicleId) {
+    var vehicles = (routeData && routeData.vehicles) || [];
+    for (var i = 0; i < vehicles.length; i++) {
+      if (String(vehicles[i].vehicle_id) === String(vehicleId)) return vehicles[i];
+    }
+    return null;
+  }
+
+  /*
+   * A countdown, measured against generated_at. Never the device clock: every
+   * other age on this board comes from the server, and a phone with a wrong
+   * clock would otherwise be the only thing saying the bus is late.
+   */
+  function untilText(seconds) {
+    if (seconds === null || seconds === undefined) return '';
+    if (seconds < 30) return 'due';
+    if (seconds < 90) return 'in 1 min';
+    var m = Math.round(seconds / 60);
+    if (m < 60) return 'in ' + m + ' min';
+    var h = Math.floor(m / 60);
+    var rem = m % 60;
+    return 'in ' + h + 'h' + (rem ? ' ' + rem + 'm' : '');
+  }
+
+  function pickerRow(label, value, onClick) {
+    var b = el('button', 'trip__pick');
+    b.type = 'button';
+    b.appendChild(el('span', 'trip__pick-label', label));
+    b.appendChild(el('span', 'trip__pick-value', value || 'choose'));
+    b.appendChild(el('span', 'trip__pick-caret', '▾'));
+    if (onClick) b.addEventListener('click', onClick);
+    return b;
+  }
+
+  /* One stop. Countdown leads; the two clock times sit under it. */
+  function stopRow(row, now, showEstimate) {
+    var li = el('li', 'tripstop' + (row.source === 'estimate' ? ' tripstop--est' : ''));
+
+    var lead = el('span', 'tripstop__when',
+      row.predicted_at === null ? '' : untilText(row.predicted_at - now));
+    li.appendChild(lead);
+
+    li.appendChild(el('span', 'tripstop__name', row.stop_name));
+
+    var times = el('span', 'tripstop__times');
+    times.appendChild(el('span', 'tripstop__sched', fmt.clock(row.scheduled_at)));
+    if (row.predicted_at !== null) {
+      times.appendChild(el('span', 'tripstop__arrow', '→'));
+      times.appendChild(el('span', 'tripstop__pred',
+        (row.source === 'estimate' ? '~' : '') + fmt.clock(row.predicted_at)));
+      if (row.source === 'estimate' && showEstimate) {
+        /* The divider says where the feed stopped, but a screen reader meets
+           each row on its own, so the word travels with the row too. */
+        times.appendChild(el('span', 'tripstop__tag', 'estimated'));
+      }
+    }
+    li.appendChild(times);
+
+    li.setAttribute('aria-label', row.stop_name + ', scheduled ' + fmt.clockSpoken(row.scheduled_at) +
+      (row.predicted_at === null ? ', no arrival time available'
+        : ', ' + (row.source === 'estimate' ? 'estimated ' : 'expected ') + fmt.clockSpoken(row.predicted_at)));
+    return li;
+  }
+
+  /*
+   * The open bus picker. Deadheads are listed and disabled rather than filtered
+   * out: rows.js sets that precedent deliberately, because a board that hides a
+   * bus it was handed is worse than one showing a bus you cannot act on.
+   */
+  function busList(routeData, opts) {
+    var wrap = el('div', 'trip__buslist');
+    var rows = buses(routeData);
+
+    if (!rows.length) {
+      wrap.appendChild(S.notice('empty', 'No buses on this route right now',
+        'Nothing is reporting a position. Pick another route, or come back when service starts.'));
+      return wrap;
+    }
+
+    var lastGroup = null;
+    rows.forEach(function (b) {
+      var group = b.in_service
+        ? fmt.directionTag(b.headsign, b.direction_id)
+        : 'Not in service';
+      if (group !== lastGroup) {
+        wrap.appendChild(el('h3', 'trip__busgroup', group));
+        lastGroup = group;
+      }
+      var btn = el('button', 'trip__bus');
+      btn.type = 'button';
+      btn.disabled = !b.in_service;
+      btn.appendChild(el('b', 'trip__bus-id', '#' + b.label));
+      btn.appendChild(el('span', 'trip__bus-sign',
+        b.in_service ? (b.headsign || 'in service') : 'no trip assigned'));
+      if (b.start_epoch) {
+        btn.appendChild(el('span', 'trip__bus-start', 'started ' + fmt.clock(b.start_epoch)));
+      }
+      btn.setAttribute('aria-label', 'Bus ' + b.label +
+        (b.in_service ? ', ' + (b.headsign || 'in service') : ', not in service, cannot be followed'));
+      if (b.in_service && opts.onChooseBus) {
+        btn.addEventListener('click', function () { opts.onChooseBus(b.id); });
+      }
+      wrap.appendChild(btn);
+    });
+    return wrap;
+  }
+
+  function render(host, model, opts) {
+    S.clear(host);
+    opts = opts || {};
+
+    var route = model.route;
+    var dep = model.dep;
+    var now = model.now;
+
+    var picker = el('div', 'trip__picker');
+    picker.appendChild(pickerRow('Route',
+      route && route.route ? (route.route.short_name || route.route.id) : null,
+      opts.onPickRoute));
+
+    var vehicle = vehicleById(route, model.vehicleId);
+    picker.appendChild(pickerRow('Bus',
+      vehicle ? '#' + (vehicle.label || vehicle.vehicle_id) +
+        (vehicle.trip ? ' · ' + vehicle.trip.headsign : '') : null,
+      opts.onPickBus));
+    host.appendChild(picker);
+
+    if (opts.picking === 'bus') {
+      host.appendChild(busList(route, opts));
+      return;
+    }
+
+    if (!vehicle) {
+      host.appendChild(S.notice('empty', 'Pick a bus',
+        'Choose a route and a bus to see every stop still ahead of it, when it is ' +
+        'scheduled there, and when it should actually arrive.'));
+      return;
+    }
+
+    var view = adhLib.view(vehicle, route.staleness);
+    var head = el('div', 'trip__head');
+    head.appendChild(el('b', 'trip__id', '#' + (vehicle.label || vehicle.vehicle_id)));
+    head.appendChild(el('span', 'trip__sign',
+      vehicle.trip ? vehicle.trip.headsign : 'not in service'));
+    head.appendChild(el('span', 'trip__state', view.label));
+    host.appendChild(head);
+
+    if (!vehicle.trip) {
+      host.appendChild(S.notice('empty', 'This bus has no trip assigned',
+        'It is deadheading — running without passengers, with no scheduled stops to list.'));
+      return;
+    }
+    if (!dep) {
+      host.appendChild(S.skeletonRows(6));
+      return;
+    }
+
+    var stopTimes = fmt.stopTimesForTrip(dep, vehicle.trip.trip_id);
+    if (!stopTimes) {
+      /*
+       * Two different causes, and they get two different sentences. A null
+       * service_day_start_epoch means section 16 forbids computing absolute
+       * times from this document at all; a missing trip means the schedule
+       * simply does not know this run. Telling a reader the wrong one sends
+       * them looking in the wrong place.
+       */
+      if (dep.service_day_start_epoch === null || dep.service_day_start_epoch === undefined) {
+        host.appendChild(S.notice('empty', 'The schedule cannot be read today',
+          'The departure board did not resolve a service date, so no scheduled time in it ' +
+          'can be placed on the clock. Nothing here would be trustworthy.'));
+      } else {
+        host.appendChild(S.notice('empty', 'No schedule for this trip',
+          'Today’s departure board does not carry trip ' + vehicle.trip.trip_id +
+          ', so there are no scheduled times to show against it.'));
+      }
+      return;
+    }
+
+    var ahead = fmt.stopsAheadOf(stopTimes, vehicle);
+    var plan = fmt.arrivalPlan(ahead, vehicle, route.staleness);
+
+    var count = el('p', 'trip__count', plan.reason && !ahead.anchored
+      ? fmt.plural(plan.rows.length, 'scheduled stop', 'scheduled stops') + ' on this trip'
+      : fmt.plural(plan.rows.length, 'stop', 'stops') + ' ahead');
+    host.appendChild(count);
+
+    if (plan.reason) { host.appendChild(reasonNotice(plan.reason, vehicle)); }
+
+    var list = el('ol', 'tripstops');
+    var dividerDrawn = false;
+    plan.rows.forEach(function (row, i) {
+      if (!dividerDrawn && row.source === 'estimate' && i > 0 && plan.rows[i - 1].source === 'feed') {
+        list.appendChild(el('li', 'tripstops__divider', 'CapMetro’s times end here'));
+        dividerDrawn = true;
+      }
+      var li = stopRow(row, now, true);
+      if (i === plan.rows.length - 1) li.appendChild(el('span', 'tripstop__end', '(end)'));
+      list.appendChild(li);
+    });
+    host.appendChild(list);
+
+    var next = vehicle.block && vehicle.block.next_trip;
+    if (next) {
+      var foot = el('p', 'trip__next',
+        'Then becomes ' + (next.route_short_name ? next.route_short_name + ' ' : '') +
+        (next.headsign || 'its next trip') + ', ' + fmt.clock(next.start_epoch) +
+        ' from ' + (next.start_stop_name || 'its next start'));
+      if (vehicle.block.confidence !== 'high') {
+        /* Section 4: continuation is verified on route 4 only. Saying it plainly
+           beats a footnote nobody opens. */
+        foot.appendChild(el('span', 'trip__next-caveat',
+          ' — block continuation is unverified on this route'));
+      }
+      host.appendChild(foot);
+    }
+  }
+
+  function reasonNotice(reason, vehicle) {
+    if (reason === 'stale_data') {
+      return S.notice('stale', 'No arrival times right now',
+        'The realtime feed is too old to stand behind an arrival time, so only the ' +
+        'scheduled times are shown.');
+    }
+    if (reason === 'trip_canceled') {
+      return S.notice('empty', 'CapMetro has canceled this trip',
+        'No bus is running it today. The scheduled times below are what it would have been.');
+    }
+    if (reason === 'no_anchor') {
+      return S.notice('empty', 'Cannot tell where this bus is',
+        'The feed does not say which stop it is approaching, so the whole trip is listed ' +
+        'and no arrival time is offered.');
+    }
+    if (reason === 'no_adherence') {
+      return S.notice('empty', 'No lateness measured for this bus',
+        'Without it there is nothing to project from, so only the scheduled times are shown.');
+    }
+    return S.notice('empty', 'CapMetro is not predicting this trip',
+      'It publishes no arrival times for this bus, so only the scheduled times are shown.');
+  }
+
+  global.CMB = global.CMB || {};
+  global.CMB.trip = {
+    render: render,
+    buses: buses,
+    untilText: untilText
+  };
+})(window);

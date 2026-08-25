@@ -916,6 +916,8 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   font-family: var(--font-figure); font-size: 20px; font-weight: 700;
   letter-spacing: 0.08em; padding: 2px 8px; border-radius: var(--radius-sm);
   background: var(--danger); color: var(--adh-ink-dark);
+}
+
 /* ===== near me — the rider's question =================================== */
 /*
  * Sits in the banner slot above the vehicle rows rather than being a fourth
@@ -981,3 +983,138 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   font-size: var(--fs-chrome-sm); color: var(--accent);
   text-transform: uppercase; letter-spacing: 0.05em;
 }
+
+/* ===== trip — one bus, every stop still ahead of it ===================== */
+/*
+ * The transpose of stopboard.js: that panel is one stop and many buses, this
+ * one is one bus and many stops. Two pickers (route, bus) sit above a single
+ * ordered list.
+ */
+.trip__picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.trip__pick {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: var(--tap);
+  padding: 8px 12px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-radius: var(--radius); cursor: pointer; text-align: left;
+}
+.trip__pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.trip__pick-label {
+  flex: 0 0 auto;
+  font-size: var(--fs-chrome); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-chrome);
+}
+.trip__pick-value {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--font-figure); font-weight: 700; font-size: var(--fs-body);
+  color: var(--ink-strong);
+}
+.trip__pick-caret { flex: 0 0 auto; color: var(--ink-chrome); font-size: 11px; }
+
+.trip__buslist { display: flex; flex-direction: column; gap: 8px; }
+.trip__busgroup {
+  margin: 16px 0 4px; font-size: var(--fs-chrome); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-chrome);
+}
+.trip__busgroup:first-child { margin-top: 0; }
+
+.trip__bus {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
+  width: 100%; min-height: var(--tap);
+  padding: 10px 12px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--dia-spine);
+  border-radius: var(--radius); cursor: pointer; text-align: left;
+}
+.trip__bus:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* A deadhead is a normal state, not a fault — dimmed and grey, never the
+   danger colour a broken control would use. */
+.trip__bus[disabled] {
+  cursor: default; opacity: 0.6; border-left-color: var(--adh-dead);
+}
+.trip__bus-id { font-family: var(--font-figure); font-weight: 700; color: var(--ink-strong); }
+.trip__bus-sign { flex: 1 1 auto; min-width: 0; font-size: var(--fs-meta); color: var(--ink-muted); }
+.trip__bus-start { flex: 0 0 auto; font-size: var(--fs-chrome); color: var(--ink-chrome); }
+
+.trip__head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+.trip__id { font-family: var(--font-figure); font-weight: 700; font-size: 20px; color: var(--ink-strong); }
+.trip__sign { flex: 1 1 auto; min-width: 0; font-size: var(--fs-meta); color: var(--ink-muted); }
+.trip__state {
+  font-size: var(--fs-chrome-sm); color: var(--ink-chrome);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.trip__count { margin: 0 0 10px; font-size: 13px; color: var(--ink-chrome); }
+
+.tripstops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tripstop {
+  display: grid;
+  grid-template-columns: 68px 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: var(--tap);
+  padding: 7px 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid transparent;
+  border-radius: var(--radius);
+}
+/* Fixed-width lead column so the countdowns form one vertical strip, the same
+   alignment rule rows.js uses for its badges. */
+.tripstop__when {
+  font-family: var(--font-figure); font-weight: 700; font-size: var(--fs-chrome);
+  color: var(--ink-dim); text-align: right; white-space: nowrap;
+}
+.tripstop__name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-body); color: var(--ink);
+}
+.tripstop__times {
+  justify-self: end; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px;
+  font-family: var(--font-figure); font-size: var(--fs-chrome);
+}
+.tripstop__sched { color: var(--ink-chrome); }
+.tripstop__arrow { color: var(--ink-chrome); }
+.tripstop__pred { color: var(--ink); }
+.tripstop__end {
+  grid-column: 1 / -1;
+  font-family: var(--font-text); font-size: var(--fs-chrome-sm);
+  text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-chrome);
+}
+/*
+ * An estimated time must read as different in grayscale, so the signal is
+ * shape and weight, never colour alone: a dashed border in place of the solid
+ * one every other row carries, the row dimmed, and the predicted time itself
+ * dropped to regular weight and a dimmer ink.
+ */
+.tripstop--est { border-left-style: dashed; border-left-color: var(--dia-spine); opacity: 0.86; }
+.tripstop--est .tripstop__pred { font-weight: 400; color: var(--ink-dim); }
+.tripstop__tag {
+  font-family: var(--font-text); font-weight: 600; font-size: var(--fs-chrome-sm);
+  text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-chrome);
+}
+
+/* A rule with a label, not a stop: no card, no left border, just a hairline
+   the eye can tell apart from every row around it. */
+.tripstops__divider {
+  display: flex; align-items: center; gap: 8px;
+  min-height: 0; margin: 4px 0; padding: 0;
+  font-size: var(--fs-chrome-sm); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-chrome);
+}
+.tripstops__divider::before, .tripstops__divider::after {
+  content: ''; flex: 1 1 auto; height: 1px; background: var(--hairline);
+}
+
+.trip__next {
+  margin: 14px 0 0; padding: 10px 12px;
+  background: var(--surface-raised); border: 1px solid var(--hairline);
+  border-left: 3px solid var(--dia-spine); border-radius: var(--radius);
+  font-size: var(--fs-meta); color: var(--ink-muted);
+}
+.trip__next-caveat { color: var(--warn); }
+
+/* The followed bus dropped off the feed. The last answer stays on screen,
+   dimmed rather than replaced, so it must stay legible, not vanish. */
+.trip--gone { opacity: 0.62; }

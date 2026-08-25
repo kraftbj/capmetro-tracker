@@ -66,7 +66,7 @@
   }
 
   var state = {
-    view: 'board',       /* board | all | saved | saved-edit */
+    view: 'board',       /* board | all | trip | saved | saved-edit */
     routeId: null,
     direction: 'both',   /* 0 | 1 | 'both' */
     data: null,
@@ -93,7 +93,10 @@
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
-    openBuses: {}        /* vehicle_id -> true, for the all-buses detail panels */
+    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
+    tripBusId: null,     /* the vehicle the trip view is following, this session only */
+    tripPicking: null,   /* null | 'bus' — is the bus list open */
+    tripLastSeen: null   /* {vehicle, at} — the followed bus's last appearance */
   };
 
   var dom = {};
@@ -381,6 +384,7 @@
     [
       { id: 'board', label: 'Route' },
       { id: 'all', label: 'All buses' },
+      { id: 'trip', label: 'Trip' },
       { id: 'saved', label: 'Saved' }
     ].forEach(function (v) {
       var b = el('button', 'viewtabs__btn');
@@ -405,6 +409,7 @@
     state.pickerOpen = false;
     store('view', id);
     if (id === 'all' && !state.all) loadAll();
+    if (id === 'trip') { loadDepartures(state.routeId); }
     if (id === 'saved') {
       /* A saved trip cannot be resolved without its route's schedule. Fetch every
        * route a saved trip names, not just the one on screen. */
@@ -437,14 +442,15 @@
     });
 
     /*
-     * The route chip and the direction toggle only mean something on the route
-     * board. Leaving them live on the other two views would offer a control that
-     * changes nothing on screen, which reads as the app being broken.
+     * The route chip means something on any route-scoped view — the board and
+     * the trip view both answer questions about one route. The direction toggle
+     * belongs to the board alone: the trip view is already scoped to one bus,
+     * and a filter that changes nothing on screen reads as the app being broken.
      */
-    var onBoard = state.view === 'board';
-    dom.routechip.hidden = !onBoard;
-    dom.dirgroup.hidden = !onBoard;
-    if (!onBoard) { dom.picker.hidden = true; }
+    var routeScoped = state.view === 'board' || state.view === 'trip';
+    dom.routechip.hidden = !routeScoped;
+    dom.dirgroup.hidden = state.view !== 'board';
+    if (!routeScoped) { dom.picker.hidden = true; }
 
     dom.dirbuttons.forEach(function (b) {
       var raw = b.dataset.dir;
@@ -674,6 +680,7 @@
     if (state.view === 'all') { paintAll(); return; }
     if (state.view === 'saved') { paintSaved(); return; }
     if (state.view === 'saved-edit') { paintSavedEdit(); return; }
+    if (state.view === 'trip') { paintTrip(); return; }
 
     var opts = {
       direction: state.direction,
@@ -794,6 +801,37 @@
       }
     });
     dom.main.appendChild(footer(state.all));
+  }
+
+  /*
+   * The trip view. It needs both documents: the live one for the bus and the
+   * schedule for the stops. loadDepartures is idempotent and is called from
+   * selectView, not from here — a render that starts a fetch is a render that
+   * can trigger another render.
+   */
+  function paintTrip() {
+    var band = el('section', 'band band--trip');
+    dom.main.appendChild(band);
+    global.CMB.trip.render(band, {
+      route: state.data,
+      dep: state.departures[state.routeId] || null,
+      vehicleId: state.tripBusId,
+      now: (state.data && state.data.generated_at) || null
+    }, {
+      routes: catalog(),
+      picking: state.tripPicking,
+      onPickRoute: function () { state.pickerOpen = !state.pickerOpen; render(); },
+      onPickBus: function () {
+        state.tripPicking = state.tripPicking === 'bus' ? null : 'bus';
+        render();
+      },
+      onChooseBus: function (id) {
+        state.tripBusId = id;
+        state.tripPicking = null;
+        state.tripLastSeen = null;   /* a new bus starts with no history */
+        render();
+      }
+    });
   }
 
   function paintSaved() {
@@ -931,7 +969,7 @@
     loadCatalog();
 
     var view = q.view || recall('view');
-    if (view === 'all' || view === 'saved') selectView(view);
+    if (view === 'all' || view === 'trip' || view === 'saved') selectView(view);
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
