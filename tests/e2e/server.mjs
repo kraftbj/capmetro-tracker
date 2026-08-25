@@ -89,7 +89,17 @@ const server = createServer((req, res) => {
     return
   }
 
-  const file = path.join(CLIENT, rest)
+  /*
+   * The same fallback deploy/nginx-capmetro.conf gives the four app verbs, so
+   * the pretty URLs are testable here rather than only in production. Scoped to
+   * those verbs for the same reason: a blanket fallback answers 200 with the
+   * board's HTML for every missing asset, and a broken script tag would then
+   * look like it loaded.
+   */
+  const file = /^(route|buses|trip|saved)(\/|$)/.test(rest)
+    ? path.join(CLIENT, 'index.html')
+    : path.join(CLIENT, rest)
+
   if (!file.startsWith(CLIENT) || !existsSync(file)) {
     res.writeHead(404, { 'Content-Type': 'text/plain' })
     res.end('not found')

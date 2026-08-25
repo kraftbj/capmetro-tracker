@@ -3,6 +3,38 @@
 All notable changes to the Dillo Bus Board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
+## [0.6.0.0] - 2026-08-25
+
+### Added
+
+- **The board has URLs you can share.** `bus.dillo.dev/route/4/eb` opens the
+  eastbound 4, `/buses` the fleet, `/trip/1234` the board following bus 1234,
+  and `/saved` your saved trips. A bare bus id resolves its own route from the
+  fleet document, so the link is short enough to read to somebody over the
+  phone; it then upgrades itself to `/trip/{route}/{bus}`, which needs no such
+  lookup when the link is opened again.
+
+  `/saved` carries nothing but the tab name. Saved trips live in the browser and
+  a watch in a URL would publish somebody's routine to whoever they sent it to.
+
+  Every link that already existed still works. `?view=`, `?route=`, `?dir=`,
+  `?bus=` and the `?state=` harness are permanent, not deprecated: they are the
+  only form a `file://` copy can use, and a query still overrides a path field
+  by field so a pretty URL and a forced state can be combined.
+
+  **This needs a one-time vhost change.** `deploy/nginx-capmetro.conf` gains a
+  fallback for the four app paths, and `update.sh` deliberately does not install
+  vhosts. Until it is installed by hand and nginx reloaded, path links 404 while
+  `/` and every query link keep working:
+
+      sudo cp /srv/capmetro/src/deploy/nginx-capmetro.conf \
+        /etc/nginx/sites-available/capmetro
+      sudo nginx -t && sudo systemctl reload nginx
+
+  The fallback is scoped to `route`, `buses`, `trip` and `saved` rather than
+  being a blanket one, so a mistyped asset still 404s instead of being answered
+  with a page of HTML that looks like it loaded.
+
 ## [0.5.0.0] - 2026-08-25
 
 ### Fixed

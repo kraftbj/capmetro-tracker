@@ -49,6 +49,65 @@ because a state table that cannot be looked at does not get verified:
 Also `?route=4` and `?dir=0|1|both`. The last route and direction persist in
 `localStorage`.
 
+### Shareable URLs
+
+Served over HTTP the board also answers to paths, so a link can be read out loud:
+
+| Path | What it opens |
+|---|---|
+| `/route/4/eb` | The board, route 4, eastbound. Also `wb`, `nb`, `sb`, `both`, `0`, `1` |
+| `/buses` | Every bus in the system |
+| `/trip/1234` | The trip view following bus 1234 |
+| `/trip/7/1234` | The same, with the route named |
+| `/saved` | Saved trips |
+
+Four things about this are load-bearing rather than incidental.
+
+**The query form is permanent.** `?view=`, `?route=`, `?dir=`, `?bus=` and the
+whole `?state=` harness above keep working, and are the ONLY form used from
+`file://`, where a path means nothing and the History API refuses on an opaque
+origin. A path is read first and the query then overrides it field by field, so
+a pretty URL and a forced interaction state can be combined — which is the only
+way to look at a state on a path.
+
+**Direction tokens are per-route.** `eb` is direction 0 on the 4 and means
+nothing on the 7, so a token cannot become a `direction_id` until that route's
+document has loaded and its headsigns are known. It resolves during load,
+before the first meaningful paint. A route that does not run the direction asked
+for keeps the saved one rather than retrying forever.
+
+**Every fetch hangs off a derived base, never a hardcoded `/api/`.** The client
+fetches relative to the page, so `api/route/4.json` read from `/trip/1234` asks
+for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognised app path to
+get the directory the board is served from. Hardcoding `/api/` would break every
+browser test in this repo, because `tests/e2e/server.mjs` serves the whole client
+under a scenario prefix.
+
+**The `<base>` bootstrap in `index.html` is not optional.** Same problem, one
+layer earlier: a relative `<script src="format.js">` read from `/route/4/eb`
+resolves to `/route/4/format.js`, which the server's fallback answers with
+`index.html` — so every script becomes a copy of the page and the board renders
+nothing, with no console error saying why. The inline snippet must stay first in
+`<head>`, because an external script would need the same base in order to load.
+It states the same rule `urls.baseFor()` does and the two must agree;
+`tests/e2e/urls.spec.mjs` covers it by loading the board at depth and asserting
+`window.CMB` exists.
+
+`/saved` carries nothing but the tab name. Saved trips live in `localStorage`,
+and a watch in a URL would publish somebody's routine to whoever they were sent
+the link by.
+
+The address bar is written with `replaceState`, never `pushState`, so Back
+leaves the site exactly as it did before any of this existed. A bare
+`/trip/1234` upgrades itself to `/trip/{route}/{bus}` once the fleet document
+names the route, so the link that gets copied onward is the one that needs no
+extra fetch.
+
+**This needs a vhost change to work in production.** `deploy/nginx-capmetro.conf`
+gains a fallback for the four app verbs. `update.sh` does not install vhosts —
+deliberately — so until it is installed by hand and nginx reloaded, path links
+404 while `/` and every `?query=` link keep working.
+
 The `all-states` and `ladder-probe` scenarios rewrite the fixture and are labelled
 on screen as synthetic. They are instruments, not data — nothing in the shipped
 board invents a value.

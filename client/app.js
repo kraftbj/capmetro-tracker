@@ -21,10 +21,24 @@
   var el = S.el;
 
   var SUPPORTED_SCHEMA = 1;
-  var API_BASE = 'api/route/';
-  var API_ROUTES = 'api/routes.json';
-  var API_ALL = 'api/all.json';
-  var API_DEPARTURES = 'api/departures/';
+
+  /*
+   * Every fetch hangs off a base derived from the current path, because the
+   * pretty URLs put the page at a depth the api/ files are not at. A relative
+   * "api/route/4.json" read from /trip/1234 asks for /trip/api/route/4.json.
+   *
+   * Derived rather than the fixed string "/api/": tests/e2e/server.mjs serves
+   * the whole client under a scenario prefix, so an absolute base would 404
+   * every browser test in this repo. From disk there is no base at all -- a
+   * leading slash on file:// walks to the root of the filesystem -- so the
+   * relative form is kept, which is also the only form file:// URLs use.
+   */
+  var API_PREFIX = global.location.protocol === 'file:'
+    ? '' : global.CMB.urls.baseFor(global.location.pathname);
+  var API_BASE = API_PREFIX + 'api/route/';
+  var API_ROUTES = API_PREFIX + 'api/routes.json';
+  var API_ALL = API_PREFIX + 'api/all.json';
+  var API_DEPARTURES = API_PREFIX + 'api/departures/';
   var REFRESH_MS = 60000;
 
   /*
@@ -96,7 +110,15 @@
     openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
     tripBusId: null,     /* the vehicle the trip view is following, this session only */
     tripPicking: null,   /* null | 'bus' — is the bus list open */
-    tripLastSeen: null   /* {vehicle, at} — the followed bus's last appearance */
+    tripLastSeen: null,  /* {vehicle, at} — the followed bus's last appearance */
+    /*
+     * A direction token from the URL, held until the route document arrives.
+     * "eb" means direction 0 on the 4 and nothing at all on the 7, so it cannot
+     * be resolved until the headsigns are known.
+     */
+    pendingDir: null,
+    /* A bus id from /trip/1234 whose route is not yet known. */
+    pendingBus: null
   };
 
   var dom = {};
@@ -171,7 +193,7 @@
       .catch(function () { /* fallbackCatalog() covers it */ });
   }
 
-  function loadAll() {
+  function loadAll(then) {
     if (state.allStatus === 'loading') return;
     state.allStatus = 'loading';
     render();
@@ -179,6 +201,7 @@
       .then(function (d) {
         state.all = d;
         state.allStatus = 'ok';
+        if (then) then(d);
         render();
       })
       .catch(function (err) {
@@ -321,6 +344,9 @@
         state.data = d;
         state.lastGoodAt = d.generated_at;
         state.status = 'ok';
+        /* Now the headsigns exist, so "eb" can become a direction_id. Done here
+           rather than in boot so it lands before the first meaningful paint. */
+        resolveDirection();
         render();
       })
       .catch(function (err) {
@@ -592,6 +618,99 @@
     }
   }
 
+  /* ---- the address bar ------------------------------------------------ */
+
+  /*
+   * The direction token for what is on screen — "eb", "both", or the bare
+   * direction_id when this route's headsigns carry no compass letter.
+   *
+   * It has to come from the live document rather than from a table, because the
+   * letters are a property of the route: direction 0 is EB on the 4 and NB on
+   * the 7. fmt.directionTagFor is the one place that mapping lives.
+   */
+  function directionToken() {
+    if (state.view !== 'board') return null;
+    if (state.direction === 'both') return 'both';
+    var tag = state.data ? fmt.directionTagFor(state.data, state.direction) : null;
+    if (tag && /^(EB|WB|NB|SB)$/.test(tag)) return tag.toLowerCase();
+    return String(state.direction);
+  }
+
+  /*
+   * Turn a URL's direction token into a direction_id, once the route document
+   * makes that possible. Called again after each load because boot cannot do it
+   * -- at boot there is no document and therefore no headsigns.
+   */
+  function resolveDirection() {
+    var token = state.pendingDir;
+    if (!token) return;
+    if (token === 'both') { state.direction = 'both'; state.pendingDir = null; return; }
+    if (token === '0' || token === '1') {
+      state.direction = parseInt(token, 10);
+      state.pendingDir = null;
+      return;
+    }
+    if (!state.data) return;              /* try again when the document lands */
+    var dirs = fmt.directionsForRows(state.data);
+    for (var i = 0; i < dirs.length; i++) {
+      if (String(fmt.directionTagFor(state.data, dirs[i].id)).toLowerCase() === token) {
+        state.direction = dirs[i].id;
+        break;
+      }
+    }
+    /* Cleared either way: a route that does not run the direction someone asked
+       for keeps the saved one rather than retrying on every refresh. */
+    state.pendingDir = null;
+  }
+
+  /*
+   * /trip/1234 names a bus and not its route, which is what makes it a URL you
+   * can read to somebody over the phone. The fleet document is the only thing
+   * that maps one to the other, so this is the single entry path that fetches
+   * it up front -- /trip/7/1234 says the route and skips all of this.
+   */
+  function resolveBusRoute(busId) {
+    loadAll(function (all) {
+      var vehicles = (all && all.vehicles) || [];
+      for (var i = 0; i < vehicles.length; i++) {
+        if (String(vehicles[i].vehicle_id) === String(busId) && vehicles[i].route_id) {
+          state.pendingBus = null;
+          /* selectRoute deliberately clears the followed bus -- a bus does not
+             survive a route change -- so the id is set AFTER it, not before. */
+          selectRoute(String(vehicles[i].route_id));
+          state.tripBusId = String(busId);
+          state.view = 'trip';
+          store('view', 'trip');
+          return;
+        }
+      }
+      /* Not in the fleet: out of service, or a bus id that never existed. The
+         trip view's own empty state says so; inventing a route would be worse. */
+      state.pendingBus = null;
+    });
+  }
+
+  /*
+   * Write what is on screen back to the address bar, so the link is shareable.
+   *
+   * replaceState, never pushState: Back leaves the site exactly as it did
+   * before this existed. Walking a tab history would be a different feature and
+   * a new failure mode.
+   *
+   * Silent from disk. file:// has no meaningful path, and the History API
+   * refuses on an opaque origin -- the query form is the only shareable form
+   * there, and it is already in the address bar.
+   */
+  function syncUrl() {
+    if (global.location.protocol === 'file:') return;
+    if (!global.history || !global.history.replaceState) return;
+    var path = global.CMB.urls.format(
+      state.view, state.routeId, directionToken(), state.tripBusId);
+    try {
+      global.history.replaceState(null, '', API_PREFIX + path + (global.location.search || ''));
+    } catch (e) { /* opaque origin, or a browser that refuses; the view is fine */ }
+  }
+
   function selectRoute(id) {
     state.routeId = id;
     state.data = null;
@@ -652,6 +771,9 @@
   }
 
   function render() {
+    /* The address bar tracks what is on screen, so whatever a reader is looking
+       at is the thing they copy out of it. */
+    syncUrl();
     if (rafPending) return;
     rafPending = true;
     global.requestAnimationFrame(function () {
@@ -968,7 +1090,8 @@
 
   /* ---- boot ----------------------------------------------------------- */
   function boot() {
-    var q = query();
+    var u = global.CMB.urls.parse(global.location.pathname, global.location.search);
+    var q = u.query;
     dom.root = document.getElementById('app');
     dom.root.appendChild(buildHeader());
     dom.main = el('main', 'main');
@@ -986,11 +1109,17 @@
       state.scenarioNote = note;
     }
 
-    var dirParam = q.dir !== undefined ? q.dir : recall('direction');
+    /*
+     * The URL is read through one grammar rather than field by field, so a path
+     * and a query say the same things and the query still wins where both do.
+     * See client/urls.js for why the query form is permanent.
+     */
+    var dirParam = u.direction !== null ? u.direction : recall('direction');
     if (dirParam === '0' || dirParam === '1') state.direction = parseInt(dirParam, 10);
     else if (dirParam === 'both') state.direction = 'both';
+    else if (dirParam) state.pendingDir = dirParam;   /* a letter; needs the route */
 
-    var routeId = q.route || recall('route') || '4';
+    var routeId = u.route_id || recall('route') || '4';
     state.routeId = routeId;
     state.stopId = q.stop || recall('stop.' + routeId);
     load(routeId);
@@ -1003,7 +1132,7 @@
     loadDepartures(routeId);
     loadCatalog();
 
-    var view = q.view || recall('view');
+    var view = u.view || recall('view');
     if (view === 'all' || view === 'trip' || view === 'saved') selectView(view);
 
     /*
@@ -1012,7 +1141,15 @@
      * an hour later, so recalling one would show the wrong bus with nothing on
      * screen saying it had changed.
      */
-    if (q.bus) { state.tripBusId = String(q.bus); }
+    if (u.bus_id) {
+      state.tripBusId = String(u.bus_id);
+      /* A bare /trip/1234 names no route, so the fleet document has to say
+         which one it is before anything can be drawn. */
+      if (!u.route_id) {
+        state.pendingBus = String(u.bus_id);
+        resolveBusRoute(u.bus_id);
+      }
+    }
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
