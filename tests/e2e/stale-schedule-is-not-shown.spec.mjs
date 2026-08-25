@@ -181,3 +181,36 @@ test.describe('the trip view, holding a schedule from a service day that has end
     await expect(page.locator('.tripstop__sched').first()).toBeVisible()
   })
 })
+
+/*
+ * A schedule that is asked for and never answered — the case with no 'error' to
+ * read, because the board abandons the request and asks again rather than
+ * failing it.
+ *
+ * This is an e2e and not a unit test on purpose. The unit version asserted the
+ * PRECONDITIONS of the flag — a generation past its first, no document, no error
+ * status — and never the notice, so deleting the whole branch from app.js left
+ * the entire suite green. It named the behaviour and did not test it, which is
+ * the failure this file's own header is about.
+ */
+test.describe('the trip view, waiting on a schedule that never answers', () => {
+  test('says the schedule did not load rather than shimmering forever', async ({ page }) => {
+    /* Accepted and never answered: the request the give-up exists for. */
+    await page.route('**/api/departures/*.json', () => { /* held open, deliberately */ })
+
+    await page.goto('/fresh/trip/4/2216')
+    const band = page.locator('.band--trip')
+    await expect(band).toBeVisible()
+
+    /* Two sweeps is the give-up; a third lets the replacement go out. */
+    await page.evaluate(() => {
+      window.CMB.app.refreshTick()
+      window.CMB.app.refreshTick()
+      window.CMB.app.refreshTick()
+    })
+
+    const notice = band.locator('.notice--empty').first()
+    await expect(notice).toContainText('did not load')
+    await expect(band.locator('.skeleton')).toHaveCount(0)
+  })
+})

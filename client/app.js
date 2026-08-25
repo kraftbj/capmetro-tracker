@@ -1462,8 +1462,9 @@
        * answers gets abandoned instead, and the status cycles 'loading' ->
        * cleared -> 'loading' without ever passing through 'error' — so the
        * board looked like it was still waiting, forever, on the one screen made
-       * entirely of scheduled times. A generation past its first means at least
-       * one request for this route has already been given up on.
+       * entirely of scheduled times. A generation past its first, with nothing
+       * ever received, means an earlier request for this route already failed or
+       * was abandoned — either way not a first attempt still in progress.
        */
       depFailed: state.depStatus[state.routeId] === 'error' ||
         (!state.departures[state.routeId] && (state.depGen[state.routeId] || 0) > 1),
