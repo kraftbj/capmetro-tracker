@@ -180,6 +180,53 @@ time-axis string-line would still need scheduled times per timepoint per trip.
 
 ---
 
+## Trip view: "I'm on this bus. Where does it go from here?" (`trip.js`)
+
+Every other panel is anchored at a stop or a route: pick a place, see which
+buses pass it. This one is anchored at a bus: pick a vehicle, see every stop it
+still has ahead of it on its current trip, with a scheduled time and an
+arrival time beside it. It is the transpose of `stopboard.js`, not a
+variation on it.
+
+- **Stop order comes from `arrival_seconds`, never from `stops[].stop_sequence`.**
+  The two are different numbering schemes and they disagree on **2,221 of the
+  corpus's 4,112 trips**. `stops[].stop_sequence` is the order the greatest
+  number of trips happen to agree on, not the order any one trip runs in;
+  ordering a trip's own stop list by it would draw stops out of the order the
+  bus actually visits them.
+- **Predictions are consumed positionally, with a forward-only cursor, never
+  by looking up `stop_id`.** `fmt.predictionFor()` — the function `near.js`
+  and `stopboard.js` both call — matches on `stop_id` alone, and **234 trips
+  visit one stop twice**, so it returns the first pass for both. That is a
+  real bug in those two panels; this view does not have it only because
+  `arrivalPlan()` walks `vehicle.predictions` in order and never rewinds, so
+  the two passes of a repeat-stop trip land on the correct occurrence each.
+  Fixing `predictionFor()` itself is a follow-up, not something this view
+  needed to do.
+- **Past the last stop the feed predicts, the deviation last seen from the
+  feed is carried forward and held flat**, rather than recomputed from the
+  bus's current anchor the way `stopboard.js` does. The two rules are not a
+  rounding of each other: across the corpus they disagree by more than a
+  minute on **76.5% of estimated stops, and by up to 15 minutes**. Carrying
+  forward keeps whatever dwell and recovery the feed's own predictions already
+  modelled as far as they go; the anchor rule discards that and assumes the
+  bus's lateness right now holds unchanged for the rest of the trip. **Neither
+  rule has been measured against ground truth** — no capture in this repo
+  records what a bus actually did after the feed stopped predicting it, so
+  this is a structural argument, not a measured one, and it should not be
+  written up as though it were. The feed/estimate divider and the `~` marker
+  exist because of this: a reader should be able to tell CapMetro's own number
+  from the board's projection at a glance, not just trust that it is right.
+- **A bus that leaves the feed keeps its last answer on screen, dimmed, with a
+  last-seen time — the list is not cleared.** The feed can drop a bus for a
+  trip genuinely ending, a vehicle going out of service, or one missed poll,
+  and those look identical from here. Taking the stop list away the moment
+  that happens erases the one thing a rider was mid-read on; showing it dimmed
+  says plainly what is known and that it is no longer current, instead of
+  either lying that it still is or leaving a blank screen.
+
+---
+
 ## Decisions I made that reviewers should check
 
 - **The badge sits in the leftmost column, not after the vehicle id.** The approved

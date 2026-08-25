@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 const CLIENT = path.join(ROOT, 'client')
 const GOLDEN = path.join(ROOT, 'tests/fixtures/golden/route-4-20260819.json')
+const GOLDEN_DEP = path.join(ROOT, 'tests/fixtures/golden/departures-4-20260819.json')
 const SYNTHETIC = path.join(ROOT, 'tests/fixtures/synthetic')
 
 const PORT = Number(process.env.CAPMETRO_E2E_PORT || 4173)
@@ -71,6 +72,20 @@ const server = createServer((req, res) => {
     const { status, body } = SCENARIOS[scenario]()
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(body)
+    return
+  }
+
+  /*
+   * Route 4 only: the departures document carries a whole service day of
+   * scheduled stop times, nothing from a realtime feed, so no SCENARIOS
+   * mutation applies to it. Every other route id falls through to the static
+   * handler below and 404s, which is what exercises the trip view's
+   * departures-error state — the fixture set has no departures document for
+   * any other route.
+   */
+  if (rest === 'api/departures/4.json') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+    res.end(readFileSync(GOLDEN_DEP))
     return
   }
 
