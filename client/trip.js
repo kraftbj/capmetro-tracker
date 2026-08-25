@@ -272,7 +272,42 @@
       return;
     }
     if (!dep) {
-      host.appendChild(S.skeletonRows(6));
+      /*
+       * Two states, one missing document, and they must not look the same.
+       *
+       * A schedule that has not arrived yet is a shimmer worth watching: it
+       * resolves in a moment. A schedule the board is WITHHOLDING -- held, from
+       * a service day that has ended, with the replacement not yet fetched --
+       * can sit there for as long as the server keeps serving the old one, and a
+       * skeleton that never resolves is a promise the board cannot keep.
+       *
+       * The skeleton rows also carry aria-hidden, so on their own they say
+       * nothing at all to a screen reader: the panel simply stops after the bus
+       * name. This is the screen built entirely around scheduled times, so it is
+       * the last place that should decline to explain itself.
+       *
+       * The board and the editor show a notice here too, but both still headline
+       * it "Loading…" — they read the same null and cannot tell these states
+       * apart, because only this one is passed the flags. Worth doing there as
+       * well; not done in the same breath as this.
+       */
+      if (opts && opts.depWithheld) {
+        host.appendChild(S.notice('empty', 'Today’s schedule has not arrived yet',
+          'The one being held is from a service day that has ended, so the times in it ' +
+          'are not today’s. It is asked for again every minute.'));
+      } else if (opts && opts.depFailed) {
+        /*
+         * The third state, and the same argument as the second. A schedule that
+         * failed to load is not arriving in a moment either — the request is
+         * retried once a minute and may keep failing — so the shimmer is just as
+         * false here, and just as silent to a screen reader.
+         */
+        host.appendChild(S.notice('empty', 'This route’s schedule did not load',
+          'Without it there are no scheduled times to list. It is asked for again ' +
+          'every minute.'));
+      } else {
+        host.appendChild(S.skeletonRows(6));
+      }
       return;
     }
 

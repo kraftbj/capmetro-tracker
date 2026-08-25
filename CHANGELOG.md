@@ -3,6 +3,127 @@
 All notable changes to the Dillo Bus Board are recorded here.
 Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
+## [Unreleased]
+
+### Fixed
+
+- **A phone left on the counter overnight answered from yesterday's schedule.**
+  A departures document was fetched once and kept for the life of the tab, so a
+  board opened the previous evening and picked up at breakfast was still reading
+  the previous service day: saved trips reporting "the last one today has gone",
+  or times belonging to a day that had ended, on the surface someone consults
+  while deciding whether to drive.
+
+  A document is now kept for the service day it describes. The live route payload
+  refreshes every 60 seconds and carries the current service date, so it — never
+  a device clock — is what says the schedule has expired. Two details are load
+  bearing and each is asserted directly. The comparison is **older**, not merely
+  different: `!==` also condemns a document from the future, which is what a tab
+  holds for a few seconds either side of the service-day roll, and re-fetching it
+  once a minute until the live payload catches up. And the current date is never
+  read off the bundled fixture, a frozen capture that would otherwise let one
+  failed request declare every genuinely current schedule expired.
+
+  Keeping an out-of-date document and answering from one are separate decisions,
+  and only the first was safe to make. Every render path goes through a single
+  accessor that hands back nothing when the schedule describes a service day that
+  has ended, so the board falls to its existing "schedule has not loaded" state
+  rather than reading yesterday's times out under today's heading. The first
+  version of this change marked the document and did not do this, which left the
+  original bug intact in the branch where the replacement has not arrived.
+
+  "Every render path" was briefly untrue and is worth recording. The trip view
+  arrived separately and read the held schedule directly, so it went on printing
+  a finished service day's stop times — on the one screen built entirely around
+  scheduled times — while every other surface correctly refused. The whole suite
+  stayed green, because every test for this lived on the board and saved views.
+  The trip view has its own case now.
+
+  A schedule whose date the board cannot read at all is treated the same way:
+  kept, never answered from, asked for again. The comparison used to be a bare
+  `<`, which left the answer to JavaScript's coercion rules and landed on
+  opposite sides depending on how the document was malformed — an ISO date was
+  condemned forever, a missing one was believed forever.
+
+  And a request that never comes back is given up on after two minutes rather
+  than blocking that route's schedule for the life of the tab. A fetch has no
+  timeout, so one outstanding when a phone suspends may simply never settle;
+  withholding turned that from a stale board into an empty one that the network
+  returning could not fix.
+
+  The roll is acted on as soon as the live payload carrying it lands. The refresh
+  timer sweeps schedules synchronously, so the sweep judges against the service
+  date from before that tick's payload arrived; without a re-check when the
+  payload resolves, a roll stayed invisible for a further full minute.
+
+  An expired document is kept and re-requested rather than deleted first.
+  Deleting is only safe when the fetch cannot fail, and this one demonstrably
+  can — taking a correct schedule with it and leaving "Schedule not loaded" where
+  a minute earlier there was a whole service day. The replacement is swapped in
+  once it has arrived, and until then the document is marked `stale`: kept, but
+  not believed, and not re-requested on every repaint.
+
+- **A route id from a link could blank the board and blame the reader's phone
+  for it.** The bundled offline fixtures are two more maps keyed by whatever
+  `?route=` contains, and both were plain objects, so the same prototype-chain
+  reach that the stop id had. `?route=__proto__` produced a board showing
+  nothing but "This app needs updating. The board received data written for
+  format undefined" — not merely broken, but wrong about why, sending the reader
+  off to fix a copy of the app that was never the problem. `?route=constructor`
+  reached the fixture through a copy that cannot be made of a function, and put
+  the parser's own words on screen. Guarded at each lookup, so a fixture written
+  by an older generator is covered too.
+
+- **The saved tab talked to the server about sixty times a second.** Each saved
+  trip's route document was requested on every repaint, and the response
+  repainted, so a board left sitting on that tab — a phone put down, screen
+  still on — spun against the origin indefinitely: measured at 364 requests in
+  six seconds for a single route file. The status now stops a repeat the way the
+  schedule's already did, and the once-a-minute refresh is the only thing that
+  asks again.
+
+- **A stop id from a link could blank the whole board.** `departures[stopId]` was
+  a bare lookup on an object parsed from JSON, so it also reached
+  `Object.prototype`. `?stop=constructor` returned the Object function — truthy,
+  so the `|| []` fallback never fired, with a `length` of 1 and nothing at `[0]`.
+  The next line read `rows[0][1]` and threw, and because that happened during
+  render the page went blank rather than showing an empty stop. `app.js` takes
+  `state.stopId` straight off the query string, so this was reachable by anyone
+  who could send a URL. Guarded once, at the single lookup every reader goes
+  through, rather than in whichever caller happens to hold an untrusted id.
+
+- **A route document that failed to load stayed failed, on the every-bus view.**
+  Stopping the saved tab spinning meant refusing to re-ask on a repaint, and the
+  only thing putting a route back in play was the saved view itself — so one
+  dropped request on `/buses` left a bus detail reading "loading the route…"
+  with nothing loading and nothing that ever would. Any failed route document is
+  now retried once a minute, from the timer, whichever view asked for it.
+
+- **The trip view said nothing at all when it withheld a schedule, or when one
+  failed to load.** It drew the
+  shimmer that means "this is about to arrive", which is a promise the board
+  cannot keep when what it is actually doing is holding a schedule from a
+  service day that has ended. Those placeholder rows are also hidden from
+  assistive technology, so a screen reader reached the bus name and stopped. It
+  says which of the three is happening now, in words — arriving, withheld, or
+  failed — and only the first of those still gets a shimmer.
+
+- **The saved-trip editor still said the schedule "only loads once".** The board
+  view's copy was corrected when schedules started expiring at the service-day
+  roll; the editor's was not, and the editor is handed exactly the schedule that
+  has been withheld — so the sentence was on screen at the one moment it was
+  provably false. Relatedly, "Nothing was saved." outlived the save it described,
+  sitting above the list on every later visit until some future save happened to
+  succeed; it is cleared when a new one is started.
+
+- **The board said "Saved" when nothing had been saved.** `watch.add()` discarded
+  what `writeStore` already told it, so a write refused by Safari private
+  browsing, an exhausted quota, or storage switched off was announced as a
+  success. The trip was not in the list, and on the next load it was gone
+  entirely, with nothing having said so. `add()` now reports whether the store
+  took it, and the saved view says so in words — the announcement alone goes to a
+  screen-reader-only region and leaves a sighted reader with no sign at all.
+
 ## [0.6.0.0] - 2026-08-25
 
 ### Added

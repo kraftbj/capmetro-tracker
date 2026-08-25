@@ -10,6 +10,8 @@
  *   /torn/    a response truncated mid-write
  *   /missing/ a 500 from the API, with the client files still served
  *   /future/  a payload written for schema 2
+ *   /yesterday/ a fresh live payload with a departures document from the
+ *             service day before it — the phone left on the counter overnight
  *
  * Run standalone with: node tests/e2e/server.mjs
  */
@@ -81,7 +83,30 @@ const SCENARIOS = {
   missing: () => ({ status: 500, body: '{"error":"upstream"}' }),
   future: () => ({ status: 200, body: JSON.stringify({ ...readJson(GOLDEN), schema: 2 }) }),
   empty: () => ({ status: 200, body: JSON.stringify({ ...readJson(GOLDEN), vehicles: [] }) }),
+  /*
+   * The live payload is the fresh one; only the departures document below
+   * differs, and only in its service date. That is the whole point: the client
+   * decides a schedule has expired by comparing the two, so the scenario has to
+   * hold everything else still.
+   */
+  yesterday: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
 }
+
+/*
+ * The service date the golden route payload publishes, and the day before it.
+ * Read rather than written down twice, so replacing the golden file cannot
+ * leave the scenario quietly asserting against a date nothing serves.
+ */
+const GOLDEN_SERVICE_DATE = readJson(GOLDEN).service_day.date
+
+/* As a DATE, not as an integer. 20260901 - 1 is 20260900, which is not a day,
+ * and the scenario would then be testing a string comparison against a value the
+ * generator can never emit. */
+function dayBefore(yyyymmdd) {
+  const d = new Date(Date.UTC(+yyyymmdd.slice(0, 4), +yyyymmdd.slice(4, 6) - 1, +yyyymmdd.slice(6, 8) - 1))
+  return d.toISOString().slice(0, 10).replace(/-/g, '')
+}
+const DAY_BEFORE_GOLDEN = dayBefore(GOLDEN_SERVICE_DATE)
 
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 
@@ -113,16 +138,41 @@ const server = createServer((req, res) => {
   }
 
   /*
-   * Route 4 only: the departures document carries a whole service day of
-   * scheduled stop times, nothing from a realtime feed, so no SCENARIOS
-   * mutation applies to it. Every other route id falls through to the static
-   * handler below and 404s, which is what exercises the trip view's
-   * departures-error state — the fixture set has no departures document for
-   * any other route.
+   * The departures documents, by route id. Unlike api/route/ above, the id is
+   * NOT ignored: route 4 gets the committed golden schedule that the live golden
+   * payload belongs to, and 800 gets the synthetic one the schedule-expiry tests
+   * were written against. Every other id 404s through the static handler below,
+   * which is what exercises the trip view's departures-error state.
+   *
+   * A departures document carries a whole service day of scheduled stop times
+   * and nothing from a realtime feed, so the SCENARIOS mutations above do not
+   * apply to it. Two scenarios still reach it, and both are about the document
+   * as a whole rather than its contents:
+   *
+   *   yesterday  service_date set one day before the date the golden live
+   *              payload publishes -- the state a phone is in when it was left
+   *              on the counter overnight, holding a schedule from the previous
+   *              service day against a feed that has since rolled over.
+   *   missing    the API is down, and it has to mean that for BOTH endpoints. A
+   *              scenario where the live payload 500s while the schedule answers
+   *              200 is not a state the box can be in, and a test written
+   *              against it proves nothing about the real one.
    */
-  if (rest === 'api/departures/4.json') {
+  const DEPARTURES = {
+    4: () => readJson(GOLDEN_DEP),
+    800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
+  }
+  const depMatch = rest.match(/^api\/departures\/([^/]+)\.json$/)
+  if (depMatch && Object.prototype.hasOwnProperty.call(DEPARTURES, depMatch[1])) {
+    if (scenario === 'missing') {
+      res.writeHead(500, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8' })
+      res.end('{"error":"upstream"}')
+      return
+    }
+    const doc = DEPARTURES[depMatch[1]]()
+    if (scenario === 'yesterday') doc.service_date = DAY_BEFORE_GOLDEN
     res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
-    res.end(readFileSync(GOLDEN_DEP))
+    res.end(JSON.stringify(doc))
     return
   }
 

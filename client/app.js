@@ -42,6 +42,15 @@
   var REFRESH_MS = 60000;
 
   /*
+   * What to say when localStorage refuses a write — Safari private browsing, an
+   * exhausted quota, storage switched off. The board must never announce a save
+   * that did not happen: the trip would simply be gone next time, with nothing on
+   * screen having suggested anything went wrong.
+   */
+  var STORAGE_REFUSED = 'This browser would not let the board save the trip — ' +
+    'private browsing or storage turned off. Nothing was kept.';
+
+  /*
    * The six routes this household actually rides, pinned to the top of the picker.
    * They are a shortcut, NOT the list: the picker offers every route the catalog
    * publishes. Hard-coding six while the build generated seventy-one meant the
@@ -100,14 +109,37 @@
     routes: null,        /* the catalog, once api/routes.json lands */
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
-    departures: {},      /* route id -> api/departures/{id}.json */
-    depStatus: {},       /* route id -> loading | ok | error */
-    routeData: {},       /* route id -> api/route/{id}.json, for saved trips off the open board */
-    routeStatus: {},     /* route id -> loading | ok | error */
+    /*
+     * Seven maps keyed by a route id, and `?route=` puts any string in that key.
+     * A bare `{}` inherits Object.prototype, so a route id of `constructor` or
+     * `toString` reads back a function rather than undefined: the fetch guard
+     * sees a cached document that is not one, and never asks for the real thing.
+     * Object.create(null) has no prototype to reach. Same bug as W.rowsFor, same
+     * reason it is fixed at the map rather than at each reader.
+     */
+    /*
+     * Held, which is not the same as believed. Read this directly and you get a
+     * schedule the board may already know belongs to a service day that has
+     * ended: call usableDepartures(routeId) to render from one. The trip view
+     * read it directly for a while and printed yesterday's times under today's
+     * heading, which is what this note is here to stop happening again.
+     */
+    departures: Object.create(null),   /* route id -> api/departures/{id}.json */
+    /*
+     * The REQUEST for a document, never the document itself. Absent is a value
+     * and the load-bearing one: it is what permits the next request, and it is
+     * what the sweep produces when it clears a failure or gives up on a hang.
+     */
+    depStatus: Object.create(null),    /* route id -> absent | loading | ok | stale | error */
+    depGen: Object.create(null),       /* route id -> which request the answer must belong to */
+    depStuck: Object.create(null),     /* route id -> sweeps a 'loading' has survived */
+    depAbort: Object.create(null),     /* route id -> the in-flight request's AbortController */
+    routeData: Object.create(null),    /* route id -> api/route/{id}.json, off the open board */
+    routeStatus: Object.create(null),  /* route id -> loading | ok | error */
     editor: { route_id: null, direction_id: null, stop_id: null },
     stopId: null,        /* the stop the Next buses band is answering for */
     stopPicking: false,
-    openBuses: {},       /* vehicle_id -> true, for the all-buses detail panels */
+    openBuses: Object.create(null),  /* vehicle_id -> true, for the all-buses panels */
     tripBusId: null,     /* the vehicle the trip view is following, this session only */
     tripPicking: null,   /* null | 'bus' — is the bus list open */
     tripLastSeen: null,  /* {vehicle, at} — the followed bus's last appearance */
@@ -118,7 +150,8 @@
      */
     pendingDir: null,
     /* A bus id from /trip/1234 whose route is not yet known. */
-    pendingBus: null
+    pendingBus: null,
+    storageFailed: false /* the last save was refused by localStorage */
   };
 
   var dom = {};
@@ -140,9 +173,38 @@
   function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
   /* ---- loading -------------------------------------------------------- */
-  function embedded(routeId) {
-    var f = global.CMB_FIXTURES && global.CMB_FIXTURES[routeId];
+  /*
+   * The bundled fixtures are two more maps keyed by a route id off the URL, and
+   * `?route=` puts any string in that key. They are declared in client/data/*.js
+   * as plain object literals, so a bare lookup reaches Object.prototype -- the
+   * same defect W.rowsFor was guarded for, one map over, and reachable by anyone
+   * who can send a link. Both were live:
+   *
+   *   ?route=__proto__    embedded() returned Object.prototype, deepCopy made
+   *                       `{}` of it, and a payload with no numeric `schema`
+   *                       took the schema branch. The board rendered nothing but
+   *                       "This app needs updating" -- a screen that is not just
+   *                       broken but WRONG about why, which sends the reader off
+   *                       to fix a copy of the app that was never the problem.
+   *   ?route=constructor  embeddedDepartures() returned the Object function, and
+   *                       JSON.stringify of a function is undefined, so deepCopy
+   *                       threw "undefined" is not valid JSON. It throws inside
+   *                       loadDepartures's own .catch, where nothing catches it
+   *                       again, so depStatus stayed 'loading' for the life of
+   *                       the tab and that route could never load a schedule.
+   *
+   * Guarded at each lookup rather than at the two data files, because those are
+   * generated (client/data/regenerate.js) and a guard here also covers a fixture
+   * written by hand or by an older generator.
+   */
+  function fixture(map, routeId) {
+    if (!map || !Object.prototype.hasOwnProperty.call(map, routeId)) return null;
+    var f = map[routeId];
     return f ? deepCopy(f) : null;
+  }
+
+  function embedded(routeId) {
+    return fixture(global.CMB_FIXTURES, routeId);
   }
 
   /*
@@ -151,8 +213,7 @@
    * scheduled column and therefore no answer at all.
    */
   function embeddedDepartures(routeId) {
-    var f = global.CMB_FIXTURES_DEPARTURES && global.CMB_FIXTURES_DEPARTURES[routeId];
-    return f ? deepCopy(f) : null;
+    return fixture(global.CMB_FIXTURES_DEPARTURES, routeId);
   }
 
   /*
@@ -162,14 +223,32 @@
    * network error, because from disk the fixture IS the answer, not a fallback
    * after a timeout.
    */
-  function getJson(path) {
+  function getJson(path, signal) {
     if (global.location.protocol === 'file:' || typeof fetch !== 'function') {
       return Promise.reject(new Error('file://'));
     }
-    return fetch(path, { cache: 'no-cache' }).then(function (r) {
+    var opts = { cache: 'no-cache' };
+    if (signal) opts.signal = signal;
+    return fetch(path, opts).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     });
+  }
+
+  /*
+   * An AbortController where the browser has one, and null where it does not.
+   *
+   * Giving up on a hung request in bookkeeping alone leaves the request itself
+   * outstanding. A browser allows about six connections per origin, so a server
+   * that accepts and never answers fills that pool with dead requests and the
+   * once-a-minute poll ends up queued behind them -- the opposite of what giving
+   * up is for. Feature-detected rather than assumed: the board runs on whatever
+   * phone the reader has, and where there is no AbortController the board loses
+   * the release of the socket and nothing else -- the give-up, the retry and the
+   * fetch itself all behave exactly as they do with one.
+   */
+  function abortable() {
+    return typeof AbortController === 'function' ? new AbortController() : null;
   }
 
   function fetchRoute(routeId) {
@@ -234,7 +313,25 @@
   function loadRouteData(routeId) {
     if (!routeId) return;
     if (routeId === state.routeId) return;   /* state.data already has it */
-    if (state.routeStatus[routeId] === 'loading') return;
+    /*
+     * Every status except 'idle' is a stop, not a pause.
+     *
+     * This used to short-circuit on 'loading' alone. paintSaved calls it once
+     * per saved trip on every paint, and the fetch calls render() when it
+     * resolves -- so a route that had finished loading sat at 'ok', passed the
+     * guard, fetched again, painted again, and went round. Measured at 364
+     * requests in six seconds against one route file, from a board sitting on
+     * the saved tab doing nothing.
+     *
+     * The timer is what reopens the question: refreshTick sets 'idle' back on
+     * every saved trip once a minute and then asks. That is the same shape
+     * depStatus already had, where 'stale' and 'error' are cleared by the sweep
+     * rather than by whoever happens to repaint next -- and it is the rule
+     * written twice elsewhere in this file, that a render which starts a fetch
+     * is a render that can trigger another render.
+     */
+    var st = state.routeStatus[routeId];
+    if (st && st !== 'idle') return;
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
@@ -255,26 +352,188 @@
   }
 
   /*
-   * One departures document per route, kept for the session. It is a whole
-   * service day of scheduled stop times — about 17 KB gzipped for route 800 —
-   * so it is worth fetching once and worth not fetching until a saved trip or
-   * the editor actually needs it.
+   * The service date the LIVE payloads say it is now, or null when nothing live
+   * has been seen. Null means "do not judge anything expired".
+   *
+   * Never derived here from a device clock. The server already resolved
+   * service-day midnight once, correctly across both DST transitions, and
+   * re-deriving it in a browser is two chances a year to be an hour wrong on the
+   * document that says when a kid's bus leaves.
+   *
+   * And never from the bundled fixture. That file is a frozen capture, not a
+   * statement about today: reading its date as the current one would let a single
+   * failed request — route 4 is the default and the only bundled route — declare
+   * every cached schedule expired and throw it away, on a connection that had
+   * just proved it could not fetch a replacement.
+   */
+  function currentServiceDate(s) {
+    s = s || state;
+    var dates = [];
+    if (!s.usingFixture && s.data && s.data.service_day) dates.push(s.data.service_day.date);
+    if (s.all && s.all.service_day) dates.push(s.all.service_day.date);
+    var routeData = s.routeData || {};
+    Object.keys(routeData).forEach(function (id) {
+      var r = routeData[id];
+      if (r && r.service_day) dates.push(r.service_day.date);
+    });
+    /*
+     * Held to the same shape scheduleExpired holds a document's date to. A date
+     * that is not YYYYMMDD cannot be compared with `<` against one that is, and
+     * this operand fails in the unsafe direction: whatever sorts highest becomes
+     * "today", and one malformed value there makes every well-formed document
+     * look current, which is the bug the eviction exists to remove. Not
+     * reachable from the generator, which formats 'Ymd' and nothing else --
+     * asserted here because the other operand already is, and an asymmetry is
+     * how the next person concludes one of them does not matter.
+     */
+    dates = dates.filter(function (d) { return /^[0-9]{8}$/.test(String(d)); }).sort();
+    /*
+     * The LATEST date any live source reports, not the first one found.
+     *
+     * The sources do not refresh on the same schedule: `state.all` is only
+     * fetched while the every-bus view is open and then sits there, so it can be
+     * hours behind the route payload. Taking the first hit let a source that had
+     * stopped updating define what "today" is — and because a date that is too
+     * old makes nothing look expired, the failure lands exactly on the bug this
+     * eviction exists to remove.
+     *
+     * Max is safe in the direction that matters: every candidate was generated
+     * server-side, so none can be ahead of the real service day, and a stale one
+     * can no longer drag the answer backwards.
+     */
+    return dates.length ? dates[dates.length - 1] : null;
+  }
+
+  /*
+   * A departures document describes one service day. This one describes an
+   * EARLIER one.
+   *
+   * Older, not merely different. `!==` also condemns a document from the future,
+   * and the two are not the same news: around the service-day roll, `state.data`
+   * can still be from before it while a schedule fetched a moment later is from
+   * after, and calling the fresher of the two expired re-fetches it once a minute
+   * until the live payload catches up. Any skew in that direction has the shape.
+   *
+   * Service dates are `YYYYMMDD` strings, so comparing them as strings compares
+   * them as dates. That holds only because of the format, which is why it is
+   * written down here rather than left to be noticed.
+   */
+  function scheduleExpired(doc, today) {
+    if (today === undefined) today = currentServiceDate();
+    if (!today || !doc) return false;
+    /*
+     * A date we cannot read counts as expired: kept, but never answered from.
+     *
+     * The comparison used to be `doc.service_date < today` alone, which leaves
+     * the answer to JS relational coercion and gets a different failure
+     * direction depending on which way the document is malformed. `null` and
+     * `''` and `'2026-08-22'` all came back expired, which is the safe
+     * direction; `undefined` and `'garbage'` came back CURRENT, because any
+     * relational comparison with undefined is false and 'g' sorts above '2'.
+     * So an absent date was believed forever and never re-requested.
+     *
+     * The schema requires eight digits and the suite enforces it, so a document
+     * reaching this state means the generator has already broken its contract.
+     * That is exactly when the board should not be improvising.
+     */
+    if (!/^[0-9]{8}$/.test(String(doc.service_date))) return true;
+    return String(doc.service_date) < today;
+  }
+
+  /*
+   * The departures document for a route, or null when the board must not answer
+   * from it.
+   *
+   * EVERY render path goes through here, and that is the whole point. The board
+   * deliberately KEEPS an out-of-date schedule — deleting it is how a failed
+   * refetch loses a whole service day — but it must never ANSWER from one.
+   * Keeping and believing are two different decisions, and this is where the
+   * second one is made.
+   *
+   * The first version of this fix made only the first decision. It marked the
+   * document `stale`, wrote a comment claiming it was "kept, not believed", and
+   * then handed it to the readers unchanged, because no reader ever looked at
+   * that status. A phone at breakfast still read yesterday's departure times
+   * under today's heading — the exact bug the eviction was written to remove,
+   * surviving in the branch where the replacement has not arrived yet.
+   *
+   * Derived from the document rather than from `depStatus` on purpose: a status
+   * is a second copy of a fact and can fall out of step with it. The document
+   * carries its own service date, so ask the document.
+   */
+  function usableDepartures(routeId) {
+    var doc = state.departures[routeId];
+    return doc && !scheduleExpired(doc) ? doc : null;
+  }
+
+  /*
+   * One departures document per route, kept for the SERVICE DAY it describes —
+   * not, as it was, for the life of the tab.
+   *
+   * It is a whole service day of scheduled stop times, about 17 KB gzipped for
+   * route 800, so it is worth fetching once and worth not fetching until a saved
+   * trip or the editor actually needs it. But a phone left on the counter
+   * overnight and picked up at seven still held yesterday's document: a saved
+   * trip reading "the last one today has gone", or times belonging to the wrong
+   * service day entirely, on the exact surface someone consults at breakfast and
+   * has no reason to doubt. The route payload refreshes every 60 seconds and
+   * carries the current service date, so it is what says when this document has
+   * expired.
    */
   function loadDepartures(routeId) {
     if (!routeId) return;
-    if (state.departures[routeId]) return;
     /*
-     * 'error' is a stop, not a pause. Without it a failed fetch set the status,
-     * called render, and render asked again - a fetch-and-repaint loop that
-     * hammered the server and rebuilt the DOM every frame. The 60s refresh
-     * clears the status so a transient failure still recovers.
+     * A document for the current service day is done; there is nothing to do.
+     *
+     * One that is NOT is left exactly where it is and re-requested. Deleting it
+     * first is only safe when the fetch cannot fail — and this one demonstrably
+     * can, taking a correct schedule with it and leaving "Schedule not loaded"
+     * where a minute earlier there was a whole service day. The replacement is
+     * swapped in below, once it has actually arrived.
      */
-    if (state.depStatus[routeId] === 'loading' || state.depStatus[routeId] === 'error') return;
+    var cached = state.departures[routeId];
+    if (cached && !scheduleExpired(cached)) return;
+    /*
+     * 'error' is a stop, not a pause, and so is 'stale'. Without that a failed
+     * fetch set the status, called render, and render asked again - a
+     * fetch-and-repaint loop that hammered the server and rebuilt the DOM every
+     * frame. The 60s refresh clears both so a transient failure, and a server
+     * still serving yesterday, each recover without spinning.
+     */
+    var status = state.depStatus[routeId];
+    if (status === 'loading' || status === 'error' || status === 'stale') return;
     state.depStatus[routeId] = 'loading';
-    getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json')
+    /*
+     * Which request this is. The sweep gives up on a fetch that never settles
+     * (see refreshTick) and lets the next tick ask again, which means two
+     * requests for one route can be outstanding at once. Without this stamp the
+     * abandoned one still writes when it finally lands, and an older document
+     * overwrites a newer one.
+     */
+    var gen = (state.depGen[routeId] || 0) + 1;
+    state.depGen[routeId] = gen;
+    var ctl = abortable();
+    state.depAbort[routeId] = ctl;
+    getJson(API_DEPARTURES + encodeURIComponent(routeId) + '.json', ctl && ctl.signal)
       .then(function (d) {
+        /*
+         * Before the delete below, and it has to stay that way. An abandoned
+         * answer that got this far would otherwise delete the controller of the
+         * request that REPLACED it, and nothing in the suite would notice --
+         * the leak is a socket, not a wrong number on a screen.
+         */
+        if (state.depGen[routeId] !== gen) return;
+        delete state.depAbort[routeId];
+        /* The swap. Whatever was here is replaced only now, by something that
+         * arrived. */
         state.departures[routeId] = d;
-        state.depStatus[routeId] = 'ok';
+        /*
+         * A document for an earlier day is KEPT — deleting it is how a failed
+         * refetch loses a whole service day — and marked so it is asked for again
+         * on the timer rather than spun on. Kept is not the same as believed:
+         * usableDepartures() is what stops any reader answering from it.
+         */
+        state.depStatus[routeId] = scheduleExpired(d) ? 'stale' : 'ok';
         render();
       })
       .catch(function () {
@@ -285,6 +544,8 @@
          * other 70 routes correctly error, and a schedule bundled months ago
          * must never be presented as today's.
          */
+        if (state.depGen[routeId] !== gen) return;   /* answer to a question we stopped asking */
+        delete state.depAbort[routeId];
         var disk = global.location.protocol === 'file:' ? embeddedDepartures(routeId) : null;
         if (disk) {
           state.departures[routeId] = disk;
@@ -357,6 +618,17 @@
         /* Now the headsigns exist, so "eb" can become a direction_id. Done here
            rather than in boot so it lands before the first meaningful paint. */
         resolveDirection();
+        /*
+         * Re-check the schedule against the payload that just arrived.
+         *
+         * currentServiceDate() reads state.data, so an expiry check run before
+         * this point is judged against the PREVIOUS service date. The refresh
+         * tick did exactly that: on the first tick after a phone woke, the sweep
+         * compared today's schedule question against yesterday's answer, found
+         * nothing expired, and the board went on showing yesterday's times for a
+         * further full minute. The roll is known here; act on it here.
+         */
+        loadDepartures(routeId);
         render();
       })
       .catch(function (err) {
@@ -456,7 +728,21 @@
     return head;
   }
 
+  /*
+   * "Nothing was saved." describes ONE save attempt, and stops being true the
+   * moment the list under it changes for any other reason.
+   *
+   * Nothing cleared it at first except the next save that happened to succeed,
+   * so a single refusal left the notice sitting above the list for the rest of
+   * the session. Clearing it only when the editor opened was better and still
+   * not enough: removing a trip and switching tabs both leave the notice
+   * describing something the reader did several actions ago, as though it
+   * described what is on screen now.
+   */
+  function clearSaveNotice() { state.storageFailed = false; }
+
   function selectView(id) {
+    if (id !== state.view) clearSaveNotice();
     state.view = id;
     state.pickerOpen = false;
     store('view', id);
@@ -800,6 +1086,120 @@
     loadDepartures(id);
   }
 
+  /*
+   * One minute's worth of refreshing, as a named function rather than a closure
+   * inside setInterval, so a test can run exactly what the timer runs.
+   *
+   * It used to be anonymous, which meant the only way to cover it was to
+   * re-implement its body in the test — and a test that re-implements the code it
+   * covers proves the test, not the code.
+   */
+  function refreshTick() {
+    if (state.status !== 'loading') load(state.routeId);
+    if (state.view === 'all') loadAll();
+    /*
+     * One retry per minute for a schedule that failed to load or that describes
+     * an earlier service day, and only here, where a retry cannot become a render
+     * loop.
+     *
+     * Every route the board can currently answer for, not just the open one: a
+     * saved trip on another route holds its own departures document, and that is
+     * the one being read at breakfast after the phone sat on the counter all
+     * night. Clearing its status without asking again would leave it evicted but
+     * not replaced until something happened to repaint that route.
+     */
+    Object.keys(state.depStatus).forEach(function (rid) {
+      var st = state.depStatus[rid];
+      /*
+       * Any status but 'loading' means that request finished, so its strikes go
+       * with it. Clearing them only on the error/stale branch left a strike
+       * stranded on a route whose fetch had SUCCEEDED after straddling a tick --
+       * and the next request on that route then met the give-up rule one sweep
+       * early, on precisely the connection that had already shown it was slow.
+       */
+      if (st !== 'loading') delete state.depStuck[rid];
+      if (st === 'error' || st === 'stale') { delete state.depStatus[rid]; return; }
+      /*
+       * 'loading' was the one status nothing ever cleared, and withholding an
+       * expired document is what turned that into a dead surface.
+       *
+       * getJson is a plain fetch with no timeout, so a request outstanding when
+       * a device suspends may never settle: neither handler runs, the status
+       * stays 'loading', and loadDepartures returns early on it forever. Before
+       * this change that left the board reading the schedule it still held --
+       * wrong after a roll, but present. Now usableDepartures withholds that
+       * document, so Next buses and every saved trip show an empty state for the
+       * life of the tab, and the network coming back does not help.
+       *
+       * Given up on after surviving two sweeps rather than one, so an ordinary
+       * fetch that happens to straddle a tick is not abandoned and refetched
+       * every minute. Bumping the generation is what makes giving up safe: if
+       * the first request does eventually land, its answer is dropped rather
+       * than written over whatever arrived meanwhile.
+       */
+      if (st === 'loading') {
+        state.depStuck[rid] = (state.depStuck[rid] || 0) + 1;
+        if (state.depStuck[rid] >= 2) {
+          state.depGen[rid] = (state.depGen[rid] || 0) + 1;
+          /* Let go of the socket too, not just of the answer. */
+          if (state.depAbort[rid]) { try { state.depAbort[rid].abort(); } catch (e) { /* already gone */ } }
+          delete state.depAbort[rid];
+          delete state.depStatus[rid];
+          delete state.depStuck[rid];
+        }
+      }
+    });
+    var routes = global.CMB.watch.list().map(function (w) { return w.route_id; });
+    if (state.routeId) routes.push(state.routeId);
+    if (state.editor.route_id) routes.push(state.editor.route_id);
+    routes.filter(function (id, i) { return id && routes.indexOf(id) === i; })
+      .forEach(loadDepartures);
+    /*
+     * One retry a minute for a route document that failed, whichever view was
+     * asking for it.
+     *
+     * loadRouteData declines every status but 'idle', which is what stopped it
+     * spinning a fetch per repaint -- but the only thing writing 'idle' back was
+     * the saved-view block below, so on the every-bus view a single dropped
+     * request was permanent. The bus detail reads "Just left · loading the
+     * route…" from then on, which is not merely missing: nothing is loading, and
+     * nothing ever will be. Before the guard a transient failure healed itself
+     * on the next repaint, so this is the half of that trade that has to be
+     * given back -- once a minute, from the timer, where a retry cannot become a
+     * render loop.
+     */
+    Object.keys(state.routeStatus).forEach(function (rid) {
+      if (state.routeStatus[rid] !== 'error') return;
+      delete state.routeStatus[rid];
+      /*
+       * Clearing the status is not the retry, it only permits one. Nothing on
+       * the every-bus view calls loadRouteData during a repaint -- it is wired
+       * to opening a bus detail and nothing else -- so a cleared status alone
+       * left the panel exactly as stuck as before, until the reader happened to
+       * collapse and reopen the row. Ask here, the way the saved block does.
+       */
+      loadRouteData(rid);
+    });
+    if (state.view === 'saved') {
+      /* A frozen saved trip is worse than none: it reads as a live prediction.
+       * Saved trips re-ask even on success, because what they show is a live
+       * prediction rather than the route's shape. */
+      global.CMB.watch.list().forEach(function (w) {
+        /*
+         * Not over a request that is still running. Writing 'idle' unconditionally
+         * stomped a 'loading' the sweep above had just started, so an errored
+         * watched route was fetched twice in one tick, and a merely SLOW one
+         * picked up an extra concurrent request every minute for as long as the
+         * server stayed slow. loadRouteData carries no generation stamp, so those
+         * two answers can also land out of order.
+         */
+        if (state.routeStatus[w.route_id] === 'loading') return;
+        state.routeStatus[w.route_id] = 'idle';
+        loadRouteData(w.route_id);
+      });
+    }
+  }
+
   /* ---- render --------------------------------------------------------- */
   var rafPending = false;
   /*
@@ -953,7 +1353,7 @@
     dom.main.appendChild(stopBand);
     global.CMB.stopboard.render(
       stopBand,
-      state.departures[state.routeId] || null,
+      usableDepartures(state.routeId),
       d,
       nowEpoch(),
       {
@@ -1042,11 +1442,32 @@
 
     global.CMB.trip.render(band, {
       route: state.data,
-      dep: state.departures[state.routeId] || null,
+      dep: usableDepartures(state.routeId),
       vehicleId: state.tripBusId,
       now: (state.data && state.data.generated_at) || null,
       lastSeen: state.tripLastSeen
     }, {
+      /*
+       * Whether the null above means "not fetched yet" or "held, and refused".
+       * The two look identical from inside trip.js and read very differently to
+       * someone waiting for a departure time.
+       */
+      depWithheld: !!state.departures[state.routeId] && !usableDepartures(state.routeId),
+      /*
+       * And the third: asked for, and it did not work out. Only a request that
+       * is genuinely about to resolve gets the shimmer.
+       *
+       * Two shapes, because a failure is not always an 'error'. A request that
+       * is refused gets one. A request against a server that accepts and never
+       * answers gets abandoned instead, and the status cycles 'loading' ->
+       * cleared -> 'loading' without ever passing through 'error' — so the
+       * board looked like it was still waiting, forever, on the one screen made
+       * entirely of scheduled times. A generation past its first, with nothing
+       * ever received, means an earlier request for this route already failed or
+       * was abandoned — either way not a first attempt still in progress.
+       */
+      depFailed: state.depStatus[state.routeId] === 'error' ||
+        (!state.departures[state.routeId] && (state.depGen[state.routeId] || 0) > 1),
       picking: state.tripPicking,
       onPickRoute: function () { state.pickerOpen = !state.pickerOpen; render(); },
       onPickBus: function () {
@@ -1077,7 +1498,7 @@
       loadRouteData(w.route_id);
       return global.CMB.watch.resolve(
         w,
-        state.departures[w.route_id] || null,
+        usableDepartures(w.route_id),
         liveRoute(w.route_id),
         now
       );
@@ -1086,11 +1507,30 @@
     global.CMB.watch.render(band, global.CMB.watch.sortModels(models), {
       onAdd: function () {
         state.editor = { route_id: null, direction_id: null, stop_id: null };
+        clearSaveNotice();
         state.view = 'saved-edit';
         render();
       },
-      onChange: render
+      /* The list changed under the notice — a trip removed, most likely — so it
+       * no longer describes what is on screen. */
+      onChange: function () { clearSaveNotice(); render(); }
     });
+
+    /*
+     * A refused write is reported where the reader is looking for the trip.
+     *
+     * After watch.render, not before: it opens with S.clear(host), so a notice
+     * appended earlier is built and then thrown away — which is exactly what
+     * happened the first time this was written, and the reason the e2e test
+     * asserts the notice is on screen rather than that the code appends one.
+     *
+     * The announcement alone is not enough. It goes to a sr-only live region, so
+     * on its own it leaves a sighted reader looking at a list that silently does
+     * not contain what they just saved.
+     */
+    if (state.storageFailed) {
+      band.appendChild(S.notice('error', 'Nothing was saved.', STORAGE_REFUSED));
+    }
     dom.main.appendChild(footer(state.data));
   }
 
@@ -1099,12 +1539,17 @@
     band.setAttribute('aria-label', 'Save a trip');
     dom.main.appendChild(band);
 
+    /* The editor asks again for a schedule usableDepartures() has withheld, or it
+     * would sit on an empty step list until the timer came round — and before
+     * that withholding existed it would have offered times from a service day
+     * that had already ended, and let one be saved. */
+    if (state.editor.route_id) loadDepartures(state.editor.route_id);
     global.CMB.watch.renderEditor(band, {
       routes: catalog(),
       route_id: state.editor.route_id,
       direction_id: state.editor.direction_id,
       stop_id: state.editor.stop_id,
-      departures: state.editor.route_id ? (state.departures[state.editor.route_id] || null) : null
+      departures: state.editor.route_id ? usableDepartures(state.editor.route_id) : null
     }, {
       onPickRoute: function (id) {
         state.editor = { route_id: id, direction_id: null, stop_id: null };
@@ -1121,9 +1566,15 @@
         render();
       },
       onSave: function (w) {
-        global.CMB.watch.add(w);
+        /*
+         * add() reports whether the store actually took it. It used to return
+         * the list either way, so a refused write announced "Saved" and the trip
+         * was gone on the next load with nothing having said so.
+         */
+        var res = global.CMB.watch.add(w);
+        state.storageFailed = !res.saved;
         state.view = 'saved';
-        announce('Saved ' + global.CMB.watch.describe(w));
+        announce(res.saved ? 'Saved ' + global.CMB.watch.describe(w) : STORAGE_REFUSED);
         render();
       }
     });
@@ -1236,23 +1687,7 @@
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
-      setInterval(function () {
-        if (state.status !== 'loading') load(state.routeId);
-        if (state.view === 'all') loadAll();
-        /* One retry per minute for a schedule that failed to load, and only
-         * here, where a retry cannot become a render loop. */
-        if (state.depStatus[state.routeId] === 'error') {
-          delete state.depStatus[state.routeId];
-          loadDepartures(state.routeId);
-        }
-        if (state.view === 'saved') {
-          /* A frozen saved trip is worse than none: it reads as a live prediction. */
-          global.CMB.watch.list().forEach(function (w) {
-            state.routeStatus[w.route_id] = 'idle';
-            loadRouteData(w.route_id);
-          });
-        }
-      }, REFRESH_MS);
+      setInterval(refreshTick, REFRESH_MS);
     }
 
     var resizeTimer = null;
@@ -1276,6 +1711,20 @@
     load: load,
     selectView: selectView,
     matchesFilter: matchesFilter,
+    /*
+     * Both take their inputs explicitly so the suite can assert the rule without
+     * a running board: currentServiceDate(s) reads the state it is handed, and
+     * scheduleExpired(doc, today) is a pure comparison. The board calls them with
+     * no arguments and gets the live state.
+     */
+    currentServiceDate: currentServiceDate,
+    scheduleExpired: scheduleExpired,
+    usableDepartures: usableDepartures,
+    refreshTick: refreshTick,
+    /* Exported for the suite alone: the generation guard is only observable by
+     * letting an abandoned request answer, which needs a fetch under test
+     * control. Nothing in the client calls it through here. */
+    loadDepartures: loadDepartures,
     FAVOURITES: FAVOURITES,
     SUPPORTED_SCHEMA: SUPPORTED_SCHEMA
   };
