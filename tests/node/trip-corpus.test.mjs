@@ -158,3 +158,51 @@ describe('the trip join across every generated route', () => {
     }
   })
 })
+
+/*
+ * arrivalPlan's positional join, over the whole corpus.
+ *
+ * NOT the regression pin for the stop-board loop bug -- that lives in
+ * tests/node/client-stopboard.test.mjs, because the defect was in stopboard.js
+ * calling fmt.predictionFor() and this block passes with or without that fix.
+ * What this pins is the property the fix RELIES on: that arrivalPlan gives the
+ * two passes of a repeat-stop trip their own times, across real output rather
+ * than a constructed loop.
+ *
+ * 270 (stop, trip) pairs in this capture are stops a trip serves TWICE, and 19
+ * of them had a live bus at capture time. A lookup keyed on stop_id alone hands
+ * both departures the first pass's predicted time: measured here before the
+ * fix, 6 rendered stop-board rows carried the wrong arrival, the worst by 51
+ * minutes, and three of the six threw away a distinct time CapMetro had
+ * published for the second pass.
+ *
+ * The positional join is what makes the two passes distinguishable, so this
+ * asserts the property the join exists for, over real generated output rather
+ * than a synthetic loop.
+ */
+describe('arrivalPlan at a stop a trip serves twice', () => {
+  t('gives each pass its own scheduled time and its own arrival', (fmt) => {
+    let pairsChecked = 0
+    let distinct = 0
+    eachBus((v, route, dep, where) => {
+      const stops = fmt.stopTimesForTrip(dep, v.trip.trip_id)
+      const plan = fmt.arrivalPlan(fmt.stopsAheadOf(stops, v), v, route.staleness)
+      if (plan.reason) return
+      const seen = Object.create(null)
+      for (const r of plan.rows) {
+        if (seen[r.stop_id] === undefined) { seen[r.stop_id] = r; continue }
+        pairsChecked++
+        const first = seen[r.stop_id]
+        /* Two visits to one stop are two different arrivals. Equal times would
+           mean the join collapsed them, which is the bug this pins. */
+        expect(r.scheduled_at, `${where} ${r.stop_id} scheduled`)
+          .not.toBe(first.scheduled_at)
+        if (r.predicted_at !== first.predicted_at) distinct++
+      }
+    })
+    /* Not zero on this corpus. If it ever is, this test stops testing anything
+       and the count below is what says so. */
+    expect(pairsChecked, 'no repeat-stop pair found in the corpus').toBeGreaterThan(0)
+    expect(distinct, 'every repeat-stop pair collapsed to one time').toBeGreaterThan(0)
+  })
+})

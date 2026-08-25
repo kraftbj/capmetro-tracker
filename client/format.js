@@ -130,15 +130,30 @@
   }
 
   /*
-   * The agency's own predicted arrival for one vehicle at one stop, or null.
+   * The SOONEST predicted arrival for one vehicle at one stop, or null.
    *
    * Rows are Vehicle.predictions triples, [stop_sequence, stop_id, predicted_at].
    * Matching is on stop_id, never stop_sequence: route 4 runs a 17-stop baseline
    * on five services and a 19-stop one on three others, so one physical stop does
    * not carry one sequence across every trip.
    *
-   * Lives here because near.js and stopboard.js both answer "when does this bus
-   * reach this stop" and must not answer it differently on the same screen.
+   * READ THIS BEFORE CALLING IT. Predictions are ordered, so the first stop_id
+   * match is the NEXT time this bus reaches that stop. That answers near.js's
+   * question exactly -- "I am standing here, when is it coming" -- and it is the
+   * right answer even on the 234 trips that visit one stop twice, because the
+   * rider wants the next arrival, not a nominated one.
+   *
+   * It is the WRONG answer for a question about a specific scheduled departure.
+   * A trip that serves a stop twice has two departures there, and asked by
+   * stop_id alone both get the first pass's time. stopboard.js used to do this:
+   * measured over the 2026-08-19 corpus, 6 rendered rows carried the wrong
+   * arrival, the worst by 51 minutes, three of them discarding a distinct time
+   * CapMetro had published for the second pass. It now joins positionally via
+   * stopTimesForTrip/stopsAheadOf/arrivalPlan and keys on scheduled_at instead.
+   *
+   * So: asking "when next" -> this function. Asking "when on THIS departure"
+   * -> the positional join. They are different questions and this file will not
+   * pretend otherwise.
    */
   function predictionFor(vehicle, stopId) {
     var rows = (vehicle && vehicle.predictions) || [];
@@ -171,6 +186,25 @@
    */
   var tripIndexDoc = null;
   var tripIndexMap = null;
+
+  /*
+   * The assembled stop list per trip, memoized against the same document.
+   *
+   * The index map above is cheap to rebuild; the stop list is not. Building one
+   * is a full scan of dep.departures, which is 8,825 rows on route 10 and 4,116
+   * on route 800, and stopboard.js now asks for one per departure row it draws.
+   * In the browser that is a dozen scans once every sixty seconds and does not
+   * matter. In the corpus tests it is a scan per row across all 2,348 stops,
+   * which pushed tests/node/near-corpus.test.mjs past vitest's 10-second cap on
+   * two runs out of five from a clean checkout -- an intermittently red gate,
+   * which is worse than a reliably red one because the next person just reruns.
+   *
+   * Keyed on the document identity, like the index map, and dropped wholesale
+   * when a different document arrives. app.js parses each departures document
+   * once per route per session and never mutates it, so identity is stable.
+   */
+  var stopTimesDoc = null;
+  var stopTimesByTrip = null;
 
   function tripIndexOf(dep, tripId) {
     if (tripIndexDoc !== dep) {
@@ -222,6 +256,16 @@
     var index = tripIndexOf(dep, tripId);
     if (index === null) return null;
 
+    if (stopTimesDoc !== dep) {
+      stopTimesByTrip = Object.create(null);
+      stopTimesDoc = dep;
+    }
+    /* Cached lists are handed out by reference. Every caller treats them as
+       read-only -- stopsAheadOf slices rather than splices, and arrivalPlan
+       maps -- and a defensive copy here would give back the scan cost this
+       memo exists to remove. */
+    if (tripId in stopTimesByTrip) return stopTimesByTrip[tripId];
+
     var rows = [];
     var byStop = dep.departures;
     for (var stopId in byStop) {
@@ -233,7 +277,10 @@
         }
       }
     }
-    if (!rows.length) return null;
+    /* Cached too: a trip the document does not carry is asked for once per
+       rendered row otherwise, and the scan that proves it absent is the same
+       full scan. */
+    if (!rows.length) { stopTimesByTrip[tripId] = null; return null; }
 
     rows.sort(function (a, b) {
       if (a.arrival_seconds !== b.arrival_seconds) return a.arrival_seconds - b.arrival_seconds;
@@ -241,7 +288,7 @@
     });
 
     var names = stopNamesFor(dep, dep.trips[index].direction_id);
-    return rows.map(function (r, i) {
+    var out = rows.map(function (r, i) {
       return {
         stop_id: r.stop_id,
         stop_name: names[r.stop_id] || r.stop_id,
@@ -249,6 +296,8 @@
         ordinal: i
       };
     });
+    stopTimesByTrip[tripId] = out;
+    return out;
   }
 
   /*
