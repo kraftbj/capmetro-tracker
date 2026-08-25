@@ -130,15 +130,30 @@
   }
 
   /*
-   * The agency's own predicted arrival for one vehicle at one stop, or null.
+   * The SOONEST predicted arrival for one vehicle at one stop, or null.
    *
    * Rows are Vehicle.predictions triples, [stop_sequence, stop_id, predicted_at].
    * Matching is on stop_id, never stop_sequence: route 4 runs a 17-stop baseline
    * on five services and a 19-stop one on three others, so one physical stop does
    * not carry one sequence across every trip.
    *
-   * Lives here because near.js and stopboard.js both answer "when does this bus
-   * reach this stop" and must not answer it differently on the same screen.
+   * READ THIS BEFORE CALLING IT. Predictions are ordered, so the first stop_id
+   * match is the NEXT time this bus reaches that stop. That answers near.js's
+   * question exactly -- "I am standing here, when is it coming" -- and it is the
+   * right answer even on the 234 trips that visit one stop twice, because the
+   * rider wants the next arrival, not a nominated one.
+   *
+   * It is the WRONG answer for a question about a specific scheduled departure.
+   * A trip that serves a stop twice has two departures there, and asked by
+   * stop_id alone both get the first pass's time. stopboard.js used to do this:
+   * measured over the 2026-08-19 corpus, 6 rendered rows carried the wrong
+   * arrival, the worst by 51 minutes, three of them discarding a distinct time
+   * CapMetro had published for the second pass. It now joins positionally via
+   * stopTimesForTrip/stopsAheadOf/arrivalPlan and keys on scheduled_at instead.
+   *
+   * So: asking "when next" -> this function. Asking "when on THIS departure"
+   * -> the positional join. They are different questions and this file will not
+   * pretend otherwise.
    */
   function predictionFor(vehicle, stopId) {
     var rows = (vehicle && vehicle.predictions) || [];
@@ -152,6 +167,260 @@
       }
     }
     return null;
+  }
+
+  /*
+   * ---- the trip view's join --------------------------------------------
+   *
+   * These three turn "which bus" into "which stops, when". They live here
+   * rather than in trip.js for the reason predictionFor() and hasFix() do:
+   * a rule with two copies drifts, and the first symptom is one screen
+   * rendering one bus two ways. CLAUDE.md calls that ISSUE-002, and it has
+   * already happened once in this repo.
+   */
+
+  /*
+   * trip_id -> index into dep.trips, memoized for the document currently in
+   * hand. One entry is enough: the trip view has one route open at a time,
+   * and rebuilding the map for route 10's 127 trips costs nothing anyway.
+   */
+  var tripIndexDoc = null;
+  var tripIndexMap = null;
+
+  /*
+   * The assembled stop list per trip, memoized against the same document.
+   *
+   * The index map above is cheap to rebuild; the stop list is not. Building one
+   * is a full scan of dep.departures, which is 8,825 rows on route 10 and 4,116
+   * on route 800, and stopboard.js now asks for one per departure row it draws.
+   * In the browser that is a dozen scans once every sixty seconds and does not
+   * matter. In the corpus tests it is a scan per row across all 2,348 stops,
+   * which pushed tests/node/near-corpus.test.mjs past vitest's 10-second cap on
+   * two runs out of five from a clean checkout -- an intermittently red gate,
+   * which is worse than a reliably red one because the next person just reruns.
+   *
+   * Keyed on the document identity, like the index map, and dropped wholesale
+   * when a different document arrives. app.js parses each departures document
+   * once per route per session and never mutates it, so identity is stable.
+   */
+  var stopTimesDoc = null;
+  var stopTimesByTrip = null;
+
+  function tripIndexOf(dep, tripId) {
+    if (tripIndexDoc !== dep) {
+      tripIndexMap = Object.create(null);
+      var trips = dep.trips || [];
+      for (var i = 0; i < trips.length; i++) { tripIndexMap[trips[i].id] = i; }
+      tripIndexDoc = dep;
+    }
+    var found = tripIndexMap[tripId];
+    return found === undefined ? null : found;
+  }
+
+  /*
+   * stop_id -> display name for one direction. A stop serving both directions
+   * is published twice with a different name each time (section 16), so the
+   * trip's own direction wins and the other is only a fallback for a stop the
+   * pair does not cover.
+   */
+  function stopNamesFor(dep, directionId) {
+    var out = Object.create(null);
+    var stops = dep.stops || [];
+    var i;
+    for (i = 0; i < stops.length; i++) {
+      if (!(stops[i].stop_id in out)) { out[stops[i].stop_id] = stops[i].stop_name; }
+    }
+    for (i = 0; i < stops.length; i++) {
+      if (stops[i].direction_id === directionId) { out[stops[i].stop_id] = stops[i].stop_name; }
+    }
+    return out;
+  }
+
+  /*
+   * One trip's whole ordered stop list, transposed out of the stop-major
+   * departures document. Null when it cannot be built.
+   *
+   * ORDER COMES FROM arrival_seconds AND NOTHING ELSE. Not stops[].stop_sequence:
+   * that is the sequence the greatest number of today's trips agree on, and it
+   * disagrees with real arrival order on 2,221 of the corpus's 4,112 trips.
+   * Section 16 says so in words ("never as a key"); that is the number.
+   *
+   * `ordinal` is the row's identity for rendering and for tests. stop_id cannot
+   * be: 234 trips visit one stop twice, and a key that collides renders one pass
+   * over the other.
+   */
+  function stopTimesForTrip(dep, tripId) {
+    if (!dep || !dep.departures || !dep.trips) return null;
+    if (dep.service_day_start_epoch === null || dep.service_day_start_epoch === undefined) return null;
+
+    var index = tripIndexOf(dep, tripId);
+    if (index === null) return null;
+
+    if (stopTimesDoc !== dep) {
+      stopTimesByTrip = Object.create(null);
+      stopTimesDoc = dep;
+    }
+    /* Cached lists are handed out by reference. Every caller treats them as
+       read-only -- stopsAheadOf slices rather than splices, and arrivalPlan
+       maps -- and a defensive copy here would give back the scan cost this
+       memo exists to remove. */
+    if (tripId in stopTimesByTrip) return stopTimesByTrip[tripId];
+
+    var rows = [];
+    var byStop = dep.departures;
+    for (var stopId in byStop) {
+      if (!Object.prototype.hasOwnProperty.call(byStop, stopId)) continue;
+      var list = byStop[stopId] || [];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i][1] === index) {
+          rows.push({ stop_id: String(stopId), arrival_seconds: list[i][0] });
+        }
+      }
+    }
+    /* Cached too: a trip the document does not carry is asked for once per
+       rendered row otherwise, and the scan that proves it absent is the same
+       full scan. */
+    if (!rows.length) { stopTimesByTrip[tripId] = null; return null; }
+
+    rows.sort(function (a, b) {
+      if (a.arrival_seconds !== b.arrival_seconds) return a.arrival_seconds - b.arrival_seconds;
+      return a.stop_id < b.stop_id ? -1 : a.stop_id > b.stop_id ? 1 : 0;
+    });
+
+    var names = stopNamesFor(dep, dep.trips[index].direction_id);
+    var out = rows.map(function (r, i) {
+      return {
+        stop_id: r.stop_id,
+        stop_name: names[r.stop_id] || r.stop_id,
+        scheduled_at: dep.service_day_start_epoch + r.arrival_seconds,
+        ordinal: i
+      };
+    });
+    stopTimesByTrip[tripId] = out;
+    return out;
+  }
+
+  /*
+   * The stops still ahead of one bus, cut from its own trip.
+   *
+   * The cut is adherence.against, which section 2 defines as the first stop at
+   * or after progress.current_stop_sequence with a usable time. Reusing the
+   * server's answer means there is one definition of "where the bus is" rather
+   * than two that can disagree.
+   *
+   * It matches on stop_id AND scheduled_at. Both halves are load-bearing: 234
+   * trips visit one stop twice and matching on the id alone would cut at the
+   * first pass every time. Measured across the corpus, all 249 live anchors
+   * matched a departures row on both halves exactly, and one of them was on a
+   * repeat-stop trip.
+   *
+   * It never compares progress.current_stop_sequence against
+   * stops[].stop_sequence. Those are different numbering schemes and disagree
+   * on 2,221 of 4,112 trips.
+   *
+   * anchored:false means "we could not tell where this bus is". The caller
+   * shows the whole trip and says so; it does not guess.
+   */
+  function stopsAheadOf(stopTimes, vehicle) {
+    if (!stopTimes) return null;
+    var against = vehicle && vehicle.adherence && vehicle.adherence.against;
+    if (against) {
+      for (var i = 0; i < stopTimes.length; i++) {
+        if (stopTimes[i].stop_id === String(against.stop_id) &&
+            stopTimes[i].scheduled_at === against.scheduled_at) {
+          return { stops: stopTimes.slice(i), anchored: true };
+        }
+      }
+    }
+    return { stops: stopTimes.slice(), anchored: false };
+  }
+
+  /*
+   * An arrival time for each stop ahead, and where that time came from.
+   *
+   * Feed first: 77.5% of the stops ahead of a bus carry CapMetro's own
+   * predicted arrival, and those are published unmodified.
+   *
+   * For the remaining 22.5%, the deviation implied at the LAST stop the feed
+   * did predict is carried forward and held flat. The alternative — the
+   * deviation at the bus's current anchor, which stopboard.js uses — is a
+   * materially different answer, not a rounding of this one: the two disagree
+   * by more than a minute on 76.5% of estimated stops and by up to 15 minutes.
+   * Carrying forward inherits the feed's own modelling of dwell and recovery as
+   * far as the feed goes; the anchor rule throws that modelling away.
+   *
+   * Neither rule has been measured against ground truth. No capture in this
+   * repo records what actually happened later. The argument above is structural
+   * and should not be written up as though it were measured.
+   *
+   * Predictions are consumed with a FORWARD-ONLY CURSOR, matched positionally,
+   * never looked up by stop_id. That is what tells the two passes of a
+   * repeat-stop trip apart. It is deliberately not a call to predictionFor(),
+   * which matches on stop_id alone and returns the first pass for both.
+   *
+   * Monotonicity holds by construction for two of the three transitions: the
+   * feed's own rows are monotonic (0 backward steps across 4,276 adjacent
+   * pairs), and consecutive estimated rows cannot go backwards, because a flat
+   * deviation over ascending scheduled times preserves order. The third
+   * transition, estimate to feed, is NOT guaranteed by construction — the
+   * feed's predicted_at is independent of the estimate it follows. Measured on
+   * the 2026-08-19 capture, that transition occurs on 9 of 249 buses and goes
+   * backwards on none of them. Nothing is clamped, and nothing should be until
+   * a real backward step has been measured.
+   */
+  function arrivalPlan(stopsAhead, vehicle, staleness) {
+    var stops = (stopsAhead && stopsAhead.stops) || [];
+    var adherence = (vehicle && vehicle.adherence) || {};
+    var predictions = (vehicle && vehicle.predictions) || [];
+    var trip = (vehicle && vehicle.trip) || {};
+
+    var reason =
+      (staleness && staleness.suppress_adherence) ? 'stale_data'
+        : trip.schedule_relationship === 'CANCELED' ? 'trip_canceled'
+          : !stopsAhead || !stopsAhead.anchored ? 'no_anchor'
+            : (adherence.seconds === null || adherence.seconds === undefined) ? 'no_adherence'
+              : !predictions.length ? 'no_predictions'
+                : null;
+
+    if (reason) {
+      return {
+        reason: reason,
+        rows: stops.map(function (s) {
+          return {
+            stop_id: s.stop_id, stop_name: s.stop_name, scheduled_at: s.scheduled_at,
+            ordinal: s.ordinal, predicted_at: null, source: null
+          };
+        })
+      };
+    }
+
+    var deviation = adherence.seconds;
+    var cursor = 0;
+
+    return {
+      reason: null,
+      rows: stops.map(function (s) {
+        var hit = -1;
+        for (var k = cursor; k < predictions.length; k++) {
+          if (predictions[k] && String(predictions[k][1]) === s.stop_id) { hit = k; break; }
+        }
+        var predictedAt;
+        var source;
+        if (hit >= 0) {
+          predictedAt = predictions[hit][2];
+          deviation = predictedAt - s.scheduled_at;
+          source = 'feed';
+          cursor = hit + 1;
+        } else {
+          predictedAt = s.scheduled_at + deviation;
+          source = 'estimate';
+        }
+        return {
+          stop_id: s.stop_id, stop_name: s.stop_name, scheduled_at: s.scheduled_at,
+          ordinal: s.ordinal, predicted_at: predictedAt, source: source
+        };
+      })
+    };
   }
 
   function plural(n, one, many) {
@@ -244,6 +513,9 @@
     directionTag: directionTag,
     plural: plural,
     hasFix: hasFix,
-    predictionFor: predictionFor
+    predictionFor: predictionFor,
+    stopTimesForTrip: stopTimesForTrip,
+    stopsAheadOf: stopsAheadOf,
+    arrivalPlan: arrivalPlan
   };
 })(window);

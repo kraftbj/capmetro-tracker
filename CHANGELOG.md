@@ -62,6 +62,79 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   took it, and the saved view says so in words — the announcement alone goes to a
   screen-reader-only region and leaves a sighted reader with no sign at all.
 
+## [0.6.0.0] - 2026-08-25
+
+### Added
+
+- **The board has URLs you can share.** `bus.dillo.dev/route/4/eb` opens the
+  eastbound 4, `/buses` the fleet, `/trip/1234` the board following bus 1234,
+  and `/saved` your saved trips. A bare bus id resolves its own route from the
+  fleet document, so the link is short enough to read to somebody over the
+  phone; it then upgrades itself to `/trip/{route}/{bus}`, which needs no such
+  lookup when the link is opened again.
+
+  `/saved` carries nothing but the tab name. Saved trips live in the browser and
+  a watch in a URL would publish somebody's routine to whoever they sent it to.
+
+  Every link that already existed still works. `?view=`, `?route=`, `?dir=`,
+  `?bus=` and the `?state=` harness are permanent, not deprecated: they are the
+  only form a `file://` copy can use, and a query still overrides a path field
+  by field so a pretty URL and a forced state can be combined.
+
+  **This needs a one-time vhost change.** `deploy/nginx-capmetro.conf` gains a
+  fallback for the four app paths, and `update.sh` deliberately does not install
+  vhosts. Until it is installed by hand and nginx reloaded, path links 404 while
+  `/` and every query link keep working:
+
+      sudo cp /srv/capmetro/src/deploy/nginx-capmetro.conf \
+        /etc/nginx/sites-available/capmetro
+      sudo nginx -t && sudo systemctl reload nginx
+
+  The fallback is scoped to `route`, `buses`, `trip` and `saved` rather than
+  being a blanket one, so a mistyped asset still 404s instead of being answered
+  with a page of HTML that looks like it loaded.
+
+### Fixed
+
+- **The security headers no longer forbid the board its own bootstrap.** The
+  vhosts sent `script-src 'self'` and `base-uri 'none'`, on the stated grounds
+  that the client had no inline script. It has one now — the `<base>` bootstrap
+  that lets a page served at `/route/4/eb` find its own scripts — so both would
+  have been blocked and every pretty URL would have rendered a blank page. The
+  snippet is admitted by sha256 hash, `base-uri` is `'self'`, and
+  `'unsafe-inline'` stays absent. The end-to-end fixture server now serves the
+  real policy read out of the vhost, so this class of break fails the suite
+  rather than the deployment.
+
+- **`/route/4/.env` and `/trip/x.php` reached the app fallback.** nginx takes the
+  first matching regex location and the two `deny all` blocks were declared last,
+  so they were shadowed for every path under the new prefixes — and, already,
+  for anything matching the asset block. They now come first.
+
+- **A legacy `?view=`/`?route=`/`?bus=` link no longer contradicts the path it
+  rewrites to.** Opening an old query link and switching views produced
+  `/buses?view=trip&route=4&bus=2641`, which sent whoever received it to a
+  different screen than the sender was looking at. Those four keys are dropped
+  when the address bar is rewritten; everything else, `?state=` included, is
+  kept.
+
+- **A bare `/trip/1234` no longer sticks when the fleet document fails to load.**
+  The callback that resolves a bus id to its route only ran on success, and the
+  retry only fires while the all-buses view is open, so one bad fetch stranded
+  the link with no way out but a reload.
+
+## [0.5.0.0] - 2026-08-25
+
+### Fixed
+
+- **The nearest-stop panel has been rendering with no styling at all since it
+  shipped.** `.watchcard__canceled` in `client/styles.css` was missing its
+  closing brace, so the parser ran past the end of that rule and swallowed
+  everything up to the next one it could recover at — `.nearhost:empty` and
+  the whole `.near` rule, background, border, radius and padding included.
+  Nothing about the markup or the logic was wrong; the panel simply never had
+  a box around it. Found and fixed while building the trip view below, and
+  unrelated to it.
 - **Every northbound bus said its next run was another northbound one.** Spotted
   on route 837, where all seven live buses claimed a continuation 2.5 hours out
   on a route that runs every fifteen minutes — the bus obviously runs the return
@@ -95,6 +168,24 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Added
 
+- **A trip view: pick a bus, and see every stop it still has ahead of it.**
+  Every other panel is anchored at a stop or a route; this one is anchored at
+  a vehicle. Pick a route and a bus and the board lists the rest of its trip
+  in order, with a scheduled time and an arrival time beside each stop — the
+  agency's own predicted time where the feed still publishes one, and the
+  board's own projection, marked `~` and separated by a divider, once it runs
+  out. Order comes from the stop times' own arrival order rather than the
+  published stop sequence, which disagree on 2,221 of the corpus's 4,112
+  trips; predictions are matched to stops positionally rather than by id,
+  because 234 trips visit one stop twice and an id match would answer both
+  visits with the first one. The projection past the feed's last prediction
+  carries its last known deviation forward rather than recomputing it fresh,
+  which is a materially different number — the two disagree by more than a
+  minute on 76.5% of estimated stops and by up to 15 minutes — and neither has
+  been checked against what a bus actually did later, so the board says which
+  is which rather than presenting one as fact. A bus that drops out of the
+  feed mid-read keeps its last answer on screen, dimmed, with a last-seen
+  time, instead of the list disappearing under the reader.
 - **Nearest stop, and when the next bus reaches it.** Tap "Use my location" and
   the board finds the stop you are standing at on the route you are looking at,
   then shows when each approaching bus is due there — "4 min", "due" — with the
