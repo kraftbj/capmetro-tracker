@@ -221,10 +221,25 @@ deviation `dev`, initialised from `vehicle.adherence.seconds`:
 Consuming in order rather than looking up by `stop_id` is what distinguishes the two passes of
 a repeat stop. This is deliberately **not** a call to `fmt.predictionFor()` — see Known Issues.
 
-Output is monotonic by construction: the feed's own rows are monotonic (0 backward steps across 4,276
-adjacent pairs, all 249 vehicles), and an estimated row is `scheduled + dev` over ascending
-scheduled times with `dev` held flat. No clamping is applied, and none should be added without
-first measuring a real backward step.
+Output is monotonic in two of its three transitions **by construction**, and in the third **by
+measurement** — a distinction this section originally got wrong, and which the Task 3 review
+caught:
+
+- feed → feed is safe: the feed's own rows are monotonic, 0 backward steps across 4,276 adjacent
+  pairs over all 249 vehicles;
+- estimate → estimate is safe: a flat `dev` over ascending scheduled times preserves order;
+- **estimate → feed is not guaranteed.** A feed row's `predicted_at` is independent of the
+  estimate before it, so a bus that the feed models as recovering can in principle be given an
+  earlier time at a later stop.
+
+That third case is not hypothetical — it occurs on **9 of 249** buses, the ones whose feed
+coverage has an interior gap. Measured across all 71 routes of the 2026-08-19 capture it goes
+backwards on **none** of them, worst case 0 seconds.
+
+So no clamping is applied. The rule stands as it was written — a clamp needs a real backward step
+measured first — and the measurement has now been made and found none. What changed is the claim:
+"monotonic by construction" was a stronger statement than the construction supports, and a
+guarantee nobody proved is worse than a measurement anyone can rerun.
 
 **It returns scheduled times only, with `predicted_at` null throughout, when:**
 

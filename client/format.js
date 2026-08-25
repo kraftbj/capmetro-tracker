@@ -309,10 +309,15 @@
    * repeat-stop trip apart. It is deliberately not a call to predictionFor(),
    * which matches on stop_id alone and returns the first pass for both.
    *
-   * Output is monotonic by construction: the feed's rows are monotonic (0
-   * backward steps across 4,276 adjacent pairs), and an estimate is an
-   * ascending scheduled time plus a flat deviation. Nothing is clamped, and
-   * nothing should be until a real backward step has been measured.
+   * Monotonicity holds by construction for two of the three transitions: the
+   * feed's own rows are monotonic (0 backward steps across 4,276 adjacent
+   * pairs), and consecutive estimated rows cannot go backwards, because a flat
+   * deviation over ascending scheduled times preserves order. The third
+   * transition, estimate to feed, is NOT guaranteed by construction — the
+   * feed's predicted_at is independent of the estimate it follows. Measured on
+   * the 2026-08-19 capture, that transition occurs on 9 of 249 buses and goes
+   * backwards on none of them. Nothing is clamped, and nothing should be until
+   * a real backward step has been measured.
    */
   function arrivalPlan(stopsAhead, vehicle, staleness) {
     var stops = (stopsAhead && stopsAhead.stops) || [];
