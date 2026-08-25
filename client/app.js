@@ -638,7 +638,26 @@
     render();
 
     fetchRoute(routeId)
-      .then(function (d) { state.usingFixture = false; return d; })
+      /*
+       * The board's OWN route document, and the one place the shape check was
+       * missing. load() and loadRouteData() call the same fetchRoute against the
+       * same endpoint; the guard went on one of them. loadRouteData returns
+       * early for the open route, so the document on screen — the very first
+       * fetch any reader makes — went exclusively through the unguarded path.
+       *
+       * Deliberately in THIS .then rather than the one below, so that it lands
+       * on the fixture fallback in the catch that follows. A body of `[]` or a
+       * captive portal's `"sorry"` is not data, and the board already knows what
+       * to do when it has no data: show the bundled sample under its banner, or
+       * say it cannot reach the feed. Guarding after the fallback instead would
+       * make a 200 of garbage WORSE than a 502 — the schema screen, which tells
+       * the reader to go and update an app that was never the problem.
+       */
+      .then(function (d) {
+        if (!isDocument(d)) throw new Error('not a route document');
+        state.usingFixture = false;
+        return d;
+      })
       .catch(function (err) {
         var f = embedded(routeId);
         if (!f) throw err;

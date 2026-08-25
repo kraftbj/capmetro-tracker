@@ -160,7 +160,10 @@ test.describe('a delete the browser refuses', () => {
     await page.locator('.watchcard__remove').first().click()
     await expect(page.locator('.watchcard')).toHaveCount(0)
 
-    const spoken = page.locator('[role="status"]').first()
+    /* The sr-only live region specifically: four other elements carry
+     * role="status" and none happen to render on this view today, which is a
+     * coincidence rather than a guarantee. */
+    const spoken = page.locator('p.sr-only[role="status"]').first()
     await expect(spoken).toContainText(/removed/i)
     await expect(spoken).not.toContainText(/would not let/i)
   })

@@ -89,3 +89,56 @@ test('a 200 whose body is null leaves a route document askable again', async ({ 
   expect(status, 'a falsy body must not park the route on a status the retry cannot clear')
     .not.toBe('ok')
 })
+
+test('a 200 that is not a document does not tell the reader to update their app', async ({ page }) => {
+  /*
+   * The route document the board itself is showing, which is the first fetch any
+   * reader makes and was the one loader the guard had been left off.
+   *
+   * The previous test in this file routes route 7 while the board displays route
+   * 4 — and loadRouteData returns early for the open route, so that arrangement
+   * exercises the OTHER loader and left this path green. Same bug class, same
+   * file, wrong route: the test has to name the route on screen.
+   *
+   * `[]` rather than `null` on purpose. An array is truthy and `typeof [] ===
+   * 'object'`, so it passed every shape test that was not looking for it, and it
+   * reached the schema check — the one screen this codebase repeatedly says it
+   * must not show, because it blames the reader's copy of the app for a problem
+   * that is not theirs.
+   */
+  await page.route('**/api/route/4.json', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }))
+
+  await page.goto('/fresh/index.html?route=4')
+  const board = page.locator('#board')
+  await expect(board).toBeVisible()
+  await expect(board).not.toContainText('needs updating')
+  await expect(board).not.toContainText('format undefined')
+  await expect(board).not.toHaveText('')
+})
+
+test('a body that is a bare string is refused the same way', async ({ page }) => {
+  /* What a captive portal or a proxy notice actually answers with. */
+  await page.route('**/api/route/4.json', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '"sorry"' }))
+
+  await page.goto('/fresh/index.html?route=4')
+  const board = page.locator('#board')
+  await expect(board).toBeVisible()
+  await expect(board).not.toContainText('needs updating')
+})
+
+test('the control: an unreachable feed still falls back to the bundled sample', async ({ page }) => {
+  /*
+   * The guard throws into the fixture fallback, so a 200 of garbage now behaves
+   * exactly as an unreachable feed does. This pins the behaviour it was routed
+   * into: without it, "does not say needs updating" would also hold on a board
+   * that had stopped rendering entirely.
+   */
+  await page.route('**/api/route/4.json', (route) => route.fulfill({ status: 502, body: '' }))
+
+  await page.goto('/fresh/index.html?route=4')
+  await expect(page.locator('#board')).toBeVisible()
+  const usingFixture = await page.evaluate(() => window.CMB.app.state.usingFixture)
+  expect(usingFixture).toBe(true)
+})

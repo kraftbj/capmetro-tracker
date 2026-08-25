@@ -124,10 +124,19 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   detail read "Just left · loading the route…" for the life of the tab with
   nothing loading and nothing that ever would.
 
-  All three now go to the error path that already existed. Arrays are refused
-  too: `typeof [] === 'object'`, and an array reached the schema check instead,
-  which is the screen that tells the reader their copy of the app needs
-  updating.
+  And the board's own route document — the first fetch any reader makes — could
+  be answered with `[]` or with a captive portal's `"sorry"`, and land on the
+  screen that says "This app needs updating… written for format undefined". That
+  is the worst of the four, because it is not merely wrong, it is wrong about
+  whose fault it is: it sends the reader off to update an app that was never the
+  problem. An unreachable feed already had an answer for this — show the bundled
+  sample under its banner, or say the feed cannot be reached — and a 200 that is
+  not a document is now treated the same way, rather than better-looking and
+  worse.
+
+  All four go to the paths that already existed. Arrays are refused along with
+  the falsy bodies: `typeof [] === 'object'`, so an array passed every check that
+  was not looking for it.
 
 - **A stop id from a link could blank the whole board.** `departures[stopId]` was
   a bare lookup on an object parsed from JSON, so it also reached
