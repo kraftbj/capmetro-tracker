@@ -240,14 +240,22 @@ describe('the two panels tell one story', () => {
         for (const group of groups) {
           for (const d of group.departures) {
             if (!d.vehicle || d.canceled) continue
-            const feed = cmb.fmt.predictionFor(d.vehicle, stop.stop_id)
-            if (!feed) continue
-            /* The stop board must be showing the feed's number, not its own
-               extrapolation, whenever the feed has one. */
+            if (!d.from_feed) continue
+            /*
+             * The stop board must be showing a number the FEED published for
+             * this stop, not its own extrapolation. Compared against the set of
+             * the vehicle's published times rather than against
+             * fmt.predictionFor(), because that function answers "when next"
+             * and a trip serving this stop twice has two right answers here --
+             * 270 (stop, trip) pairs in this corpus do.
+             */
+            const published = (d.vehicle.predictions || [])
+              .filter((p) => String(p[1]) === String(stop.stop_id))
+              .map((p) => p[2])
             expect(
-              d.predicted_at,
+              published,
               `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}`,
-            ).toBe(feed.predicted_at)
+            ).toContain(d.predicted_at)
 
             const nearStop = cmb.near
               .stopsOnRoute(doc, d.trip.direction_id)
@@ -257,10 +265,23 @@ describe('the two panels tell one story', () => {
               .arrivals(doc, nearStop, doc.generated_at)
               .find((a) => a.vehicle.vehicle_id === d.vehicle.vehicle_id)
             if (!mine) continue
+            /*
+             * The two panels answer DIFFERENT questions at a stop a trip serves
+             * twice: near says "when is it next here", the stop board lists each
+             * scheduled departure separately. So near is never later than any of
+             * the board's rows, and equals the earliest of them -- which is the
+             * same number on every ordinary stop, and the honest relationship on
+             * a loop. Asserting bare equality only held while both panels shared
+             * the stop_id lookup that made the second pass wrong.
+             */
             expect(
               mine.predicted_at,
-              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: the two panels disagree`,
-            ).toBe(d.predicted_at)
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: near is later than a board row`,
+            ).toBeLessThanOrEqual(d.predicted_at)
+            expect(
+              mine.predicted_at,
+              `${name} stop ${stop.stop_id} bus ${d.vehicle.vehicle_id}: near does not match any board row`,
+            ).toBe(Math.min.apply(null, published))
             compared++
           }
         }

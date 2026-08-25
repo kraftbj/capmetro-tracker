@@ -130,15 +130,30 @@
   }
 
   /*
-   * The agency's own predicted arrival for one vehicle at one stop, or null.
+   * The SOONEST predicted arrival for one vehicle at one stop, or null.
    *
    * Rows are Vehicle.predictions triples, [stop_sequence, stop_id, predicted_at].
    * Matching is on stop_id, never stop_sequence: route 4 runs a 17-stop baseline
    * on five services and a 19-stop one on three others, so one physical stop does
    * not carry one sequence across every trip.
    *
-   * Lives here because near.js and stopboard.js both answer "when does this bus
-   * reach this stop" and must not answer it differently on the same screen.
+   * READ THIS BEFORE CALLING IT. Predictions are ordered, so the first stop_id
+   * match is the NEXT time this bus reaches that stop. That answers near.js's
+   * question exactly -- "I am standing here, when is it coming" -- and it is the
+   * right answer even on the 234 trips that visit one stop twice, because the
+   * rider wants the next arrival, not a nominated one.
+   *
+   * It is the WRONG answer for a question about a specific scheduled departure.
+   * A trip that serves a stop twice has two departures there, and asked by
+   * stop_id alone both get the first pass's time. stopboard.js used to do this:
+   * measured over the 2026-08-19 corpus, 6 rendered rows carried the wrong
+   * arrival, the worst by 51 minutes, three of them discarding a distinct time
+   * CapMetro had published for the second pass. It now joins positionally via
+   * stopTimesForTrip/stopsAheadOf/arrivalPlan and keys on scheduled_at instead.
+   *
+   * So: asking "when next" -> this function. Asking "when on THIS departure"
+   * -> the positional join. They are different questions and this file will not
+   * pretend otherwise.
    */
   function predictionFor(vehicle, stopId) {
     var rows = (vehicle && vehicle.predictions) || [];

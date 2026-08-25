@@ -66,7 +66,29 @@ const routeWith = (perTrip, suppress = false) => ({
 const routeWithFeed = (tripId, lateSeconds, predictedAt, stopId = '6293') => {
   const route = routeWith({ [tripId]: lateSeconds })
   route.vehicles[0].predictions = [[9, stopId, predictedAt]]
+  /*
+   * A vehicle carrying predictions ALWAYS carries an anchor. Contract section 2
+   * makes that structural: with no current_stop_sequence the state is unknown,
+   * `against` is null, and the predictions list is published empty. All 249
+   * in-service vehicles in the 2026-08-19 capture match. This fixture used to
+   * omit `against` while supplying predictions, which is a shape the feed cannot
+   * produce -- and the panel now needs the anchor, because locating a departure
+   * among a trip's stops means knowing where the bus is.
+   */
+  route.vehicles[0].adherence.against = {
+    stop_id: stopId,
+    stop_name: stopId,
+    scheduled_at: scheduledAtOf(tripId, stopId),
+    predicted_at: predictedAt,
+  }
   return route
+}
+
+/** The fixture's own scheduled arrival for one trip at one stop. */
+function scheduledAtOf(tripId, stopId) {
+  const ti = DEP.trips.findIndex((t) => t.id === tripId)
+  const row = (DEP.departures[stopId] || []).find((r) => r[1] === ti)
+  return row ? START + row[0] : null
 }
 
 describe('a row never argues with itself', () => {

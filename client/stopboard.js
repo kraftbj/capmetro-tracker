@@ -59,6 +59,41 @@
    * the schedule alone still answers the question, just without predictions,
    * which is the honest state before a route's live file has loaded.
    */
+  /*
+   * The agency's predicted arrival for ONE departure -- one (trip, stop,
+   * scheduled time) triple -- or null.
+   *
+   * This is deliberately not fmt.predictionFor(). That function matches on
+   * stop_id alone and returns the SOONEST occurrence, which is exactly right
+   * for near.js ("when does this bus next reach the stop I am standing at")
+   * and exactly wrong here. A stop board row is a scheduled departure, and 270
+   * (stop, trip) pairs in the 2026-08-19 corpus are stops a trip visits TWICE.
+   * Asked by stop_id alone, both rows get the first pass's time: measured over
+   * that corpus, 6 rendered rows carried the wrong arrival, the worst by 51
+   * minutes, and three of the six discarded a distinct time CapMetro had
+   * actually published for the second pass.
+   *
+   * So the join is positional, through the same three functions the trip view
+   * uses, and the row is then found by its own scheduled_at -- an exact key,
+   * since that is what a departure row IS.
+   */
+  function feedArrivalFor(dep, route, vehicle, stopId, scheduledAt) {
+    if (!vehicle || !dep) return null;
+    var stops = fmt.stopTimesForTrip(dep, vehicle.trip && vehicle.trip.trip_id);
+    if (!stops) return null;
+    var plan = fmt.arrivalPlan(fmt.stopsAheadOf(stops, vehicle), vehicle,
+      route && route.staleness);
+    if (plan.reason) return null;
+    for (var i = 0; i < plan.rows.length; i++) {
+      var r = plan.rows[i];
+      if (r.stop_id === String(stopId) && r.scheduled_at === scheduledAt &&
+          r.source === 'feed') {
+        return { stop_id: r.stop_id, predicted_at: r.predicted_at };
+      }
+    }
+    return null;
+  }
+
   function upcoming(dep, route, stopId, directionId, now, count) {
     var rows = W.departuresAt(dep, stopId, directionId);
     var suppressed = !!(route && route.staleness && route.staleness.suppress_adherence);
@@ -97,7 +132,7 @@
        * vocabulary, and a second one derived here is exactly what this file must
        * not grow.
        */
-      var fromFeed = fmt.predictionFor(vehicle, stopId);
+      var fromFeed = feedArrivalFor(dep, route, vehicle, stopId, scheduledAt);
       var predictedAt = fromFeed ? fromFeed.predicted_at
         : lateness === null ? null : scheduledAt + lateness;
       var dueAt = predictedAt === null ? scheduledAt : predictedAt;
