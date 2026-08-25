@@ -47,8 +47,22 @@
    * that did not happen: the trip would simply be gone next time, with nothing on
    * screen having suggested anything went wrong.
    */
-  var STORAGE_REFUSED = 'This browser would not let the board save the trip — ' +
-    'private browsing or storage turned off. Nothing was kept.';
+  var SAVE_REFUSED = {
+    head: 'Nothing was saved.',
+    detail: 'This browser would not let the board save the trip — private ' +
+      'browsing or storage turned off. Nothing was kept.'
+  };
+
+  /*
+   * A refused delete needs its own words. "Nothing was saved" would be actively
+   * misleading: the trip is not gone, it is still on this device and will be back
+   * on the next load, which is the opposite of what the reader just asked for.
+   */
+  var REMOVE_REFUSED = {
+    head: 'The trip is still saved on this device.',
+    detail: 'This browser would not let the board delete it — storage is full or ' +
+      'switched off. It will be back the next time this page is opened.'
+  };
 
   /*
    * The six routes this household actually rides, pinned to the top of the picker.
@@ -151,7 +165,7 @@
     pendingDir: null,
     /* A bus id from /trip/1234 whose route is not yet known. */
     pendingBus: null,
-    storageFailed: false /* the last save was refused by localStorage */
+    storageError: null   /* {head, detail} when localStorage refused the last write */
   };
 
   var dom = {};
@@ -217,6 +231,30 @@
   }
 
   /*
+   * A 200 is not by itself an answer.
+   *
+   * Every one of these endpoints is a static JSON file, and the things that sit
+   * in front of it — a proxy, a CDN, a captive portal, a half-written file — can
+   * all answer 200 with a body that parses to something that is not a document.
+   * Stored under a success status, a falsy body then reads as "nothing cached"
+   * to one guard and as "loaded" to another, and each endpoint fails a different
+   * ugly way: the schedule spun a request loop, the fleet document told the
+   * reader CapMetro was reporting no buses at all, and a route document sat at
+   * 'ok' holding null where the once-a-minute retry only ever clears 'error'.
+   *
+   * Arrays are refused too. `typeof [] === 'object'`, and an array reaches the
+   * schema check instead, which puts "This app needs updating … written for
+   * format undefined" on screen — a board that is wrong about why it is broken.
+   */
+  function isArray(v) {
+    return Object.prototype.toString.call(v) === '[object Array]';
+  }
+
+  function isDocument(d) {
+    return !!d && typeof d === 'object' && !isArray(d);
+  }
+
+  /*
    * One fetch. Every endpoint is a static JSON file on the same origin, so there
    * is nothing to configure and nothing to authenticate. A file:// board has no
    * origin to fetch from and rejects immediately rather than waiting for a
@@ -278,6 +316,21 @@
     render();
     getJson(API_ALL)
       .then(function (d) {
+        /*
+         * See isDocument. Here the board does not merely fail — it renders
+         * "CapMetro is reporting no buses at all … a CapMetro problem rather
+         * than a problem with this board", which is a confident false statement
+         * about service that names somebody else as the cause. The real
+         * can't-reach-the-feed state, with its Retry, never appeared.
+         */
+        /*
+         * And it has to carry vehicles. isDocument is a transport check — "did
+         * something JSON-shaped come back" — and `{}` passes it while satisfying
+         * no schema at all. On the other two documents that is harmless; here it
+         * reproduces the accusation above word for word, because the empty-fleet
+         * copy keys off the vehicle list being empty rather than absent.
+         */
+        if (!isDocument(d) || !isArray(d.vehicles)) throw new Error('not a fleet document');
         state.all = d;
         state.allStatus = 'ok';
         if (then) then(d);
@@ -335,6 +388,14 @@
     state.routeStatus[routeId] = 'loading';
     fetchRoute(routeId)
       .then(function (d) {
+        /*
+         * See isDocument. This one is unreachable by the retry that was built
+         * for exactly its symptom: the sweep clears 'error', a falsy body lands
+         * on 'ok', and the bus detail then reads "Just left · loading the
+         * route…" for the life of the tab with nothing loading. Throwing puts it
+         * on the error path the retry can actually see.
+         */
+        if (!isDocument(d)) throw new Error('not a route document');
         state.routeData[routeId] = d;
         state.routeStatus[routeId] = 'ok';
         render();
@@ -524,6 +585,16 @@
          */
         if (state.depGen[routeId] !== gen) return;
         delete state.depAbort[routeId];
+        /*
+         * See isDocument. Here the falsy body spun a request loop: stored under
+         * 'ok', read as "nothing cached" by the guard above, re-asked on the
+         * next paint.
+         *
+         * Below the generation check for tidiness rather than for safety — the
+         * .catch opens with the same check, so an abandoned request is turned
+         * away there wherever this throw happens.
+         */
+        if (!isDocument(d)) throw new Error('not a departures document');
         /* The swap. Whatever was here is replaced only now, by something that
          * arrived. */
         state.departures[routeId] = d;
@@ -581,7 +652,26 @@
     render();
 
     fetchRoute(routeId)
-      .then(function (d) { state.usingFixture = false; return d; })
+      /*
+       * The board's OWN route document, and the one place the shape check was
+       * missing. load() and loadRouteData() call the same fetchRoute against the
+       * same endpoint; the guard went on one of them. loadRouteData returns
+       * early for the open route, so the document on screen — the very first
+       * fetch any reader makes — went exclusively through the unguarded path.
+       *
+       * Deliberately in THIS .then rather than the one below, so that it lands
+       * on the fixture fallback in the catch that follows. A body of `[]` or a
+       * captive portal's `"sorry"` is not data, and the board already knows what
+       * to do when it has no data: show the bundled sample under its banner, or
+       * say it cannot reach the feed. Guarding after the fallback instead would
+       * make a 200 of garbage WORSE than a 502 — the schema screen, which tells
+       * the reader to go and update an app that was never the problem.
+       */
+      .then(function (d) {
+        if (!isDocument(d)) throw new Error('not a route document');
+        state.usingFixture = false;
+        return d;
+      })
       .catch(function (err) {
         var f = embedded(routeId);
         if (!f) throw err;
@@ -729,8 +819,9 @@
   }
 
   /*
-   * "Nothing was saved." describes ONE save attempt, and stops being true the
-   * moment the list under it changes for any other reason.
+   * The storage notice describes ONE write — a save or a delete that the browser
+   * refused — and stops being true the moment the list under it changes for any
+   * other reason.
    *
    * Nothing cleared it at first except the next save that happened to succeed,
    * so a single refusal left the notice sitting above the list for the rest of
@@ -739,7 +830,7 @@
    * describing something the reader did several actions ago, as though it
    * described what is on screen now.
    */
-  function clearSaveNotice() { state.storageFailed = false; }
+  function clearSaveNotice() { state.storageError = null; }
 
   function selectView(id) {
     if (id !== state.view) clearSaveNotice();
@@ -1511,9 +1602,39 @@
         state.view = 'saved-edit';
         render();
       },
-      /* The list changed under the notice — a trip removed, most likely — so it
-       * no longer describes what is on screen. */
-      onChange: function () { clearSaveNotice(); render(); }
+      /*
+       * A delete reports the same way a save does. Without this the Remove
+       * button was simply dead on a store that refused the write: the card
+       * stayed, because every render rebuilds the list from the store rather
+       * than from what remove() hands back, and nothing said why.
+       *
+       * A removal that WORKED clears the notice for the same reason any other
+       * change to the list does: it described one earlier write, and the list
+       * under it has moved on.
+       */
+      onChange: function (res, w) {
+        if (res && res.removed === false) {
+          state.storageError = REMOVE_REFUSED;
+          announce(REMOVE_REFUSED.detail);
+        } else {
+          /*
+           * Said out loud, not only cleared.
+           *
+           * The live region is not repainted by render() — it lives outside
+           * dom.main — so whatever was last announced stands until something
+           * replaces it. A refusal followed by a delete that worked therefore
+           * left a screen reader holding "the board would not let it be
+           * deleted… it will be back the next time this page is opened" about a
+           * trip that had just been deleted: the visible notice was cleared and
+           * the spoken one was not, so the two channels disagreed and the
+           * spoken one was the wrong one. onSave has always announced both
+           * outcomes; this is the same courtesy.
+           */
+          announce(w ? 'Removed ' + global.CMB.watch.describe(w) : 'Removed.');
+          clearSaveNotice();
+        }
+        render();
+      }
     });
 
     /*
@@ -1528,8 +1649,8 @@
      * on its own it leaves a sighted reader looking at a list that silently does
      * not contain what they just saved.
      */
-    if (state.storageFailed) {
-      band.appendChild(S.notice('error', 'Nothing was saved.', STORAGE_REFUSED));
+    if (state.storageError) {
+      band.appendChild(S.notice('error', state.storageError.head, state.storageError.detail));
     }
     dom.main.appendChild(footer(state.data));
   }
@@ -1572,9 +1693,9 @@
          * was gone on the next load with nothing having said so.
          */
         var res = global.CMB.watch.add(w);
-        state.storageFailed = !res.saved;
+        state.storageError = res.saved ? null : SAVE_REFUSED;
         state.view = 'saved';
-        announce(res.saved ? 'Saved ' + global.CMB.watch.describe(w) : STORAGE_REFUSED);
+        announce(res.saved ? 'Saved ' + global.CMB.watch.describe(w) : SAVE_REFUSED.detail);
         render();
       }
     });

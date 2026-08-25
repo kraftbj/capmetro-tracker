@@ -127,7 +127,11 @@ for (const name of SCENARIO_NAMES) {
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const parts = url.pathname.split('/').filter(Boolean)
-  const scenario = SCENARIOS[parts[0]] ? parts.shift() : 'fresh'
+  /* hasOwnProperty, not a bare lookup: `/valueOf/index.html` would otherwise
+   * resolve to a function, be called as a scenario, and take the whole fixture
+   * server down mid-run — the same class of bug the client fixes for `?stop=`. */
+  const named = Object.prototype.hasOwnProperty.call(SCENARIOS, parts[0])
+  const scenario = named ? parts.shift() : 'fresh'
   const rest = parts.join('/') || 'index.html'
 
   if (rest.startsWith('api/route/')) {
