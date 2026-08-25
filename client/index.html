@@ -6,9 +6,10 @@
 <!--
   Shareable URLs put this page at a depth its assets are not at. From
   /route/4/eb a relative <script src="format.js"> resolves to
-  /route/4/format.js, and nginx's fallback answers that with this very file --
-  so the board silently loads its own HTML in place of every script and renders
-  nothing at all.
+  /route/4/format.js, which no server answers with the script: nginx matches it
+  against `location ~* \.(js|css)$`, declared before the app-path fallback, and
+  404s; the e2e fixture server has no such ordering and returns this file's own
+  HTML. Either way every script is lost and the board renders nothing.
 
   This runs before any of those tags are parsed and sets a <base> so they all
   resolve against the directory the board is served from. It must stay inline
@@ -26,9 +27,19 @@
 <script>
 (function () {
   if (location.protocol === 'file:') return;
-  var m = location.pathname.match(/^(.*?\/)(?:route|buses|trip|saved)(?:\/|$)/);
+  var p = location.pathname;
+  /*
+   * A path beginning "//" is protocol-relative once it becomes a base href:
+   * //evil.com/route/x would resolve every relative script tag against
+   * evil.com. nginx collapses that to /evil.com/route/x today, so it cannot
+   * arrive, but "cannot arrive today" is a property of merge_slashes rather
+   * than of this file -- and the CSP that would otherwise catch it is now
+   * base-uri 'self' rather than 'none'. Bail instead of relying on either.
+   */
+  if (p.charAt(0) !== '/' || p.charAt(1) === '/') return;
+  var m = p.match(/^(.*?\/)(?:route|buses|trip|saved)(?:\/|$)/);
   var b = document.createElement('base');
-  b.href = m ? m[1] : location.pathname.replace(/[^/]*$/, '');
+  b.href = m ? m[1] : p.replace(/[^/]*$/, '');
   document.head.appendChild(b);
 })();
 </script>

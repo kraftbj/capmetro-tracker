@@ -146,11 +146,15 @@ describe('the query form, which file:// and the harness depend on', () => {
 })
 
 describe('the path written back to the address bar', () => {
-  t('round-trips every form the grammar accepts', (urls) => {
+  t('round-trips every form that names a view', (urls) => {
+    /* The bare board is deliberately absent: it formats to '' and '' parses to
+       view null, not 'board'. That asymmetry is real and is asserted on its own
+       below, rather than hidden behind a conditional in this loop -- a guard
+       that skips the one row which would fail makes the loop look exhaustive
+       while proving nothing about it. */
     const cases = [
       ['board', '4', 'eb', null, 'route/4/eb'],
       ['board', '4', null, null, 'route/4'],
-      ['board', null, null, null, ''],
       ['all', '4', 'eb', null, 'buses'],
       ['saved', null, null, null, 'saved'],
       ['trip', null, null, null, 'trip'],
@@ -159,12 +163,21 @@ describe('the path written back to the address bar', () => {
     ]
     for (const [view, route, dir, bus, want] of cases) {
       expect(urls.format(view, route, dir, bus), want).toBe(want)
-      /* And the path it writes must parse back to what it was given. */
       const back = urls.parse('/' + want, '')
-      if (view !== 'board' || route) expect(back.view, want).toBe(view === 'saved-edit' ? 'saved' : view)
+      expect(back.view, want).toBe(view)
       if (route && want.indexOf(route) >= 0) expect(back.route_id, want).toBe(route)
       if (bus) expect(back.bus_id, want).toBe(bus)
+      if (dir && want.indexOf(dir) >= 0) expect(back.direction, want).toBe(dir)
     }
+  })
+
+  t('does not round-trip the bare board, and says so', (urls) => {
+    /* format() writes '' for a board with no route, and '' means "the URL says
+       nothing" rather than "the board". boot() falls back to the stored route,
+       so the view is still right; what is NOT true is that parse(format(x)) === x
+       for this one input. */
+    expect(urls.format('board', null, null, null)).toBe('')
+    expect(urls.parse('/', '').view).toBeNull()
   })
 
   t('writes the saved editor as the saved tab', (urls) => {

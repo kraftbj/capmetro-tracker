@@ -26,6 +26,29 @@ const SYNTHETIC = path.join(ROOT, 'tests/fixtures/synthetic')
 
 const PORT = Number(process.env.CAPMETRO_E2E_PORT || 4173)
 
+/*
+ * The security headers this server sends are the ones the real vhost sends,
+ * read out of deploy/nginx-capmetro.conf rather than retyped.
+ *
+ * Without this the suite could not see the class of bug that matters most here.
+ * The board's <base> bootstrap is an inline script; production serves
+ * `script-src 'self'` with a hash for exactly that snippet, and a server sending
+ * no CSP at all admits any snippet whatsoever. So every URL test passed while
+ * the deployed board would have rendered nothing at any deep path. Parsing the
+ * live config means editing the snippet without updating the hash turns the
+ * browser tests red here instead of blanking the board on the box.
+ */
+const VHOST = readFileSync(path.join(ROOT, 'deploy/nginx-capmetro.conf'), 'utf8')
+const CSP = (VHOST.match(/add_header Content-Security-Policy "([^"]+)"/) || [])[1]
+if (!CSP) throw new Error('no Content-Security-Policy found in deploy/nginx-capmetro.conf')
+
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': CSP,
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+}
+
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -70,7 +93,7 @@ const server = createServer((req, res) => {
 
   if (rest.startsWith('api/route/')) {
     const { status, body } = SCENARIOS[scenario]()
-    res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+    res.writeHead(status, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(body)
     return
   }
@@ -84,7 +107,7 @@ const server = createServer((req, res) => {
    * any other route.
    */
   if (rest === 'api/departures/4.json') {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(readFileSync(GOLDEN_DEP))
     return
   }
@@ -106,7 +129,7 @@ const server = createServer((req, res) => {
     return
   }
 
-  res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' })
+  res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' })
   res.end(readFileSync(file))
 })
 

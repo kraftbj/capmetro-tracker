@@ -83,11 +83,24 @@ get the directory the board is served from. Hardcoding `/api/` would break every
 browser test in this repo, because `tests/e2e/server.mjs` serves the whole client
 under a scenario prefix.
 
-**The `<base>` bootstrap in `index.html` is not optional.** Same problem, one
-layer earlier: a relative `<script src="format.js">` read from `/route/4/eb`
-resolves to `/route/4/format.js`, which the server's fallback answers with
-`index.html` — so every script becomes a copy of the page and the board renders
-nothing, with no console error saying why. The inline snippet must stay first in
+**The `<base>` bootstrap in `index.html` is not optional, and the CSP has to
+admit it.** Same problem, one layer earlier: a relative `<script
+src="format.js">` read from `/route/4/eb` resolves to `/route/4/format.js`,
+which no server answers with the script. nginx matches it against `location ~*
+\.(js|css)$`, declared before the app-path fallback, and 404s; the e2e fixture
+server has no such ordering and returns the page's own HTML. Either way the
+board renders nothing, with no console error saying why.
+
+The bootstrap is the one inline script in this client, and the vhosts admit it
+by **sha256 hash** rather than by adding `'unsafe-inline'`, which would readmit
+every injected inline script on an origin whose whole defence is having none.
+`base-uri` is `'self'` rather than `'none'` for the same reason: `'none'` makes
+every `<base>` inert however it is inserted, including one built with
+`createElement`. Both are pinned by `tests/node/deploy-vhost-headers.test.mjs`,
+which recomputes the hash from `index.html` on every run — edit the snippet
+without updating the config and the suite goes red instead of the board going
+blank on the box. The e2e fixture server serves the real policy, parsed from the
+vhost, so the browser tests would fail too. The inline snippet must stay first in
 `<head>`, because an external script would need the same base in order to load.
 It states the same rule `urls.baseFor()` does and the two must agree;
 `tests/e2e/urls.spec.mjs` covers it by loading the board at depth and asserting

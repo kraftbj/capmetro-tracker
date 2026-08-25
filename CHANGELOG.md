@@ -35,6 +35,35 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   being a blanket one, so a mistyped asset still 404s instead of being answered
   with a page of HTML that looks like it loaded.
 
+### Fixed
+
+- **The security headers no longer forbid the board its own bootstrap.** The
+  vhosts sent `script-src 'self'` and `base-uri 'none'`, on the stated grounds
+  that the client had no inline script. It has one now — the `<base>` bootstrap
+  that lets a page served at `/route/4/eb` find its own scripts — so both would
+  have been blocked and every pretty URL would have rendered a blank page. The
+  snippet is admitted by sha256 hash, `base-uri` is `'self'`, and
+  `'unsafe-inline'` stays absent. The end-to-end fixture server now serves the
+  real policy read out of the vhost, so this class of break fails the suite
+  rather than the deployment.
+
+- **`/route/4/.env` and `/trip/x.php` reached the app fallback.** nginx takes the
+  first matching regex location and the two `deny all` blocks were declared last,
+  so they were shadowed for every path under the new prefixes — and, already,
+  for anything matching the asset block. They now come first.
+
+- **A legacy `?view=`/`?route=`/`?bus=` link no longer contradicts the path it
+  rewrites to.** Opening an old query link and switching views produced
+  `/buses?view=trip&route=4&bus=2641`, which sent whoever received it to a
+  different screen than the sender was looking at. Those four keys are dropped
+  when the address bar is rewritten; everything else, `?state=` included, is
+  kept.
+
+- **A bare `/trip/1234` no longer sticks when the fleet document fails to load.**
+  The callback that resolves a bus id to its route only ran on success, and the
+  retry only fires while the all-buses view is open, so one bad fetch stranded
+  the link with no way out but a reload.
+
 ## [0.5.0.0] - 2026-08-25
 
 ### Fixed

@@ -207,6 +207,16 @@
       .catch(function (err) {
         state.allStatus = state.all ? 'ok' : 'error';
         state.errorDetail = 'Could not load every-bus data (' + err.message + ').';
+        /*
+         * The callback runs on failure too. resolveBusRoute is the only caller
+         * that passes one, and it is resolving a bare /trip/1234 -- the link
+         * shape this whole feature exists for. Calling back only on success left
+         * it with pendingBus set forever: the refresh retries loadAll only while
+         * the all view is open, and boot has already switched to the trip view
+         * by then, so a bus link opened during one bad fetch stayed stuck with
+         * no way out but a reload.
+         */
+        if (then) then(null);
         render();
       });
   }
@@ -684,9 +694,14 @@
           return;
         }
       }
-      /* Not in the fleet: out of service, or a bus id that never existed. The
-         trip view's own empty state says so; inventing a route would be worse. */
+      /*
+       * Either the fleet document did not load, or the bus is not in it -- out
+       * of service, or an id that never existed. Both end the same way: clear
+       * the pending id and let the trip view's own empty state say so, because
+       * inventing a route would be worse than admitting the bus is not there.
+       */
       state.pendingBus = null;
+      state.tripBusId = null;
     });
   }
 
@@ -701,13 +716,41 @@
    * refuses on an opaque origin -- the query form is the only shareable form
    * there, and it is already in the address bar.
    */
+  /*
+   * The part of the incoming query worth carrying forward.
+   *
+   * view, route, dir and bus are now said by the path, and parse() lets a query
+   * override a path field by field -- so retaining them writes a URL that
+   * contradicts itself. Open a legacy /?view=trip&route=4&bus=2641, tap "All
+   * buses", and the bar would read /buses?view=trip&route=4&bus=2641: share that
+   * and the recipient lands on the trip view, not the buses list you were
+   * looking at. The address bar has to describe the screen, most of all for the
+   * people still holding old links.
+   *
+   * Everything else is kept verbatim. ?state= in particular is how any
+   * interaction state is reached, and it has no path spelling.
+   */
+  var PATH_OWNED = { view: 1, route: 1, dir: 1, bus: 1 };
+
+  function keptSearch() {
+    var raw = String(global.location.search || '').replace(/^\?/, '');
+    if (!raw) return '';
+    var kept = [];
+    raw.split('&').forEach(function (kv) {
+      if (!kv) return;
+      var key = decodeURIComponent(kv.split('=')[0]);
+      if (!Object.prototype.hasOwnProperty.call(PATH_OWNED, key)) kept.push(kv);
+    });
+    return kept.length ? '?' + kept.join('&') : '';
+  }
+
   function syncUrl() {
     if (global.location.protocol === 'file:') return;
     if (!global.history || !global.history.replaceState) return;
     var path = global.CMB.urls.format(
       state.view, state.routeId, directionToken(), state.tripBusId);
     try {
-      global.history.replaceState(null, '', API_PREFIX + path + (global.location.search || ''));
+      global.history.replaceState(null, '', API_PREFIX + path + keptSearch());
     } catch (e) { /* opaque origin, or a browser that refuses; the view is fine */ }
   }
 
@@ -1102,7 +1145,9 @@
     dom.live.setAttribute('aria-live', 'polite');
     dom.root.appendChild(dom.live);
 
-    if (q.state && S.STATE_SCENARIOS[q.state]) {
+    /* hasOwnProperty, not truthiness: ?state=constructor would otherwise pass
+       and Object.apply(d) would replace the payload with {}. */
+    if (q.state && Object.prototype.hasOwnProperty.call(S.STATE_SCENARIOS, q.state)) {
       state.scenario = S.STATE_SCENARIOS[q.state];
       var note = el('p', 'scenario');
       note.textContent = 'STATE PREVIEW · ' + state.scenario.note;
