@@ -40,6 +40,11 @@ because a state table that cannot be looked at does not get verified:
 | `?state=no-timepoints` | Ladder with no timepoint list for either direction |
 | `?state=all-states` | Synthetic adherence covering all six states (grayscale check) |
 | `?state=ladder-probe` | Synthetic 8+9 timepoint route: the BOTH-mode layout ruler |
+| `?view=trip` | The trip view; add `&bus=2641` to follow a specific bus |
+| `?view=trip&bus=2641&state=trip-gone` | The named bus is absent from every payload the session ever sees, so it renders the same "Pick a bus" empty state as never having chosen one. The dimmed-list-with-last-seen-time render path — reached only when a bus that WAS present in an earlier poll drops out of a later one — needs session history a single frozen scenario document cannot carry; it is exercised directly in `tests/node/client-trip.test.mjs` instead. |
+| `?view=trip&state=trip-no-anchor` | No anchor: whole trip listed, no arrival times |
+| `?view=trip&state=trip-canceled` | Canceled trip: scheduled times only |
+| `?view=trip&state=trip-estimated` | Synthetic: half the feed predictions removed, so the feed/estimate divider and `~`/"estimated" markers actually render. The bundled fixture gives every in-service vehicle full feed coverage on its own, so without this the estimate branch — this feature's whole honesty mechanism — cannot be seen or tested at all. |
 
 Also `?route=4` and `?dir=0|1|both`. The last route and direction persist in
 `localStorage`.

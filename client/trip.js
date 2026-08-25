@@ -155,12 +155,33 @@
     var dep = model.dep;
     var now = model.now;
 
+    /*
+     * A bus that has left the feed keeps its answer on screen, dimmed, with a
+     * last-seen time. The list is being read at the moment the bus disappears —
+     * a trip ending, a vehicle going out of service, one dropped poll all look
+     * the same from here — and taking the answer away leaves no trace of what
+     * it said. Dimmed-and-labelled says what is known and what is no longer.
+     *
+     * This is resolved before the picker is built, not inside the `!vehicle`
+     * empty-state below, so the Bus picker row names the vanished bus too —
+     * otherwise the picker would read "choose" while the dimmed list under it
+     * names a bus, one screen saying two different things.
+     */
+    var vehicle = vehicleById(route, model.vehicleId);
+    var stale = null;
+    if (!vehicle && model.lastSeen && model.lastSeen.vehicle &&
+        String(model.lastSeen.vehicle.vehicle_id) === String(model.vehicleId)) {
+      vehicle = model.lastSeen.vehicle;
+      stale = model.lastSeen.at;
+      if (host.classList) host.classList.add('trip--gone');
+      else host.className += ' trip--gone';
+    }
+
     var picker = el('div', 'trip__picker');
     picker.appendChild(pickerRow('Route',
       route && route.route ? (route.route.short_name || route.route.id) : null,
       opts.onPickRoute));
 
-    var vehicle = vehicleById(route, model.vehicleId);
     picker.appendChild(pickerRow('Bus',
       vehicle ? '#' + (vehicle.label || vehicle.vehicle_id) +
         (vehicle.trip ? ' · ' + vehicle.trip.headsign : '') : null,
@@ -177,6 +198,12 @@
         'Choose a route and a bus to see every stop still ahead of it, when it is ' +
         'scheduled there, and when it should actually arrive.'));
       return;
+    }
+
+    if (stale !== null) {
+      host.appendChild(S.notice('stale', 'This bus is no longer in the feed',
+        'Last seen at ' + fmt.clock(stale) + '. The stops below are what it said then, ' +
+        'not what is happening now. Pick another bus to start again.'));
     }
 
     var view = adhLib.view(vehicle, route.staleness);

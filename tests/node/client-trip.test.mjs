@@ -79,3 +79,31 @@ describe('the stop list', () => {
     expect(text).not.toMatch(/in \d+ min/)
   })
 })
+
+describe('when the followed bus leaves the feed', () => {
+  t('keeps the last list on screen and says when it was last seen', (trip) => {
+    /* A bus vanishes for several ordinary reasons — the trip ended, it went out
+       of service, the feed dropped it for one poll — and all of them happen
+       while someone is reading the screen. Clearing the answer at the moment it
+       is being used, with no trace of what it said, is the failure here. */
+    const gone = { ...ROUTE, vehicles: [] }
+    const h = host()
+    trip.render(h, {
+      route: gone, dep: DEP, vehicleId: '2641', now: 5000,
+      lastSeen: { vehicle: ROUTE.vehicles[0], at: 4000 },
+    }, { routes: [] })
+    const text = textDeep(h)
+    expect(text).toMatch(/no longer in the feed/i)
+    expect(text).toContain('Alpha')
+  })
+
+  t('offers the picker rather than a dead end', (trip) => {
+    const gone = { ...ROUTE, vehicles: [] }
+    const h = host()
+    trip.render(h, {
+      route: gone, dep: DEP, vehicleId: '2641', now: 5000,
+      lastSeen: { vehicle: ROUTE.vehicles[0], at: 4000 },
+    }, { routes: [] })
+    expect(textDeep(h)).toMatch(/Bus/)
+  })
+})

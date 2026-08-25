@@ -812,11 +812,26 @@
   function paintTrip() {
     var band = el('section', 'band band--trip');
     dom.main.appendChild(band);
+
+    /*
+     * Refresh the last-seen record whenever the followed bus is actually in
+     * this payload, before render decides whether it is gone. Without this,
+     * the very poll that drops the bus would have nothing to fall back to.
+     */
+    var live = null;
+    ((state.data && state.data.vehicles) || []).forEach(function (v) {
+      if (String(v.vehicle_id) === String(state.tripBusId)) live = v;
+    });
+    if (live && state.data) {
+      state.tripLastSeen = { vehicle: deepCopy(live), at: state.data.generated_at };
+    }
+
     global.CMB.trip.render(band, {
       route: state.data,
       dep: state.departures[state.routeId] || null,
       vehicleId: state.tripBusId,
-      now: (state.data && state.data.generated_at) || null
+      now: (state.data && state.data.generated_at) || null,
+      lastSeen: state.tripLastSeen
     }, {
       routes: catalog(),
       picking: state.tripPicking,
@@ -970,6 +985,14 @@
 
     var view = q.view || recall('view');
     if (view === 'all' || view === 'trip' || view === 'saved') selectView(view);
+
+    /*
+     * The bus is a URL parameter but NOT a stored preference, and that asymmetry
+     * with `view` and `route` is deliberate. A vehicle id means a different trip
+     * an hour later, so recalling one would show the wrong bus with nothing on
+     * screen saying it had changed.
+     */
+    if (q.bus) { state.tripBusId = String(q.bus); }
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
