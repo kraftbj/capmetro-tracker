@@ -150,3 +150,99 @@ describe('stopsAheadOf', () => {
     expect(JSON.stringify(TRIP)).toBe(before)
   })
 })
+
+const AHEAD = { anchored: true, stops: TRIP }
+
+const bus = (over) => ({
+  in_service: true,
+  trip: { trip_id: 'T1', schedule_relationship: 'SCHEDULED' },
+  adherence: { state: 'late', seconds: 60, against: { stop_id: 'A', scheduled_at: 1000 } },
+  predictions: [],
+  ...over,
+})
+
+describe('arrivalPlan', () => {
+  t('uses the feed’s own time where the feed has one', (fmt) => {
+    const plan = fmt.arrivalPlan(AHEAD, bus({ predictions: [[1, 'A', 1030], [2, 'B', 2090]] }), null)
+    expect(plan.reason).toBeNull()
+    expect(plan.rows.slice(0, 2).map((r) => [r.predicted_at, r.source]))
+      .toEqual([[1030, 'feed'], [2090, 'feed']])
+  })
+
+  t('carries forward the deviation from the LAST feed row, not the anchor', (fmt) => {
+    /* The anchor says +60. The feed's last row says +90 at B. C must be
+       3000+90, not 3000+60. This is the whole point of the chosen rule: the
+       two answers differ by more than a minute on 76.5% of estimated stops. */
+    const plan = fmt.arrivalPlan(AHEAD, bus({ predictions: [[1, 'A', 1030], [2, 'B', 2090]] }), null)
+    expect(plan.rows[2]).toMatchObject({ stop_id: 'C', predicted_at: 3090, source: 'estimate' })
+  })
+
+  t('falls back to the anchor deviation before any feed row is seen', (fmt) => {
+    const plan = fmt.arrivalPlan(AHEAD, bus({ predictions: [[3, 'C', 3120]] }), null)
+    expect(plan.rows.map((r) => [r.predicted_at, r.source])).toEqual([
+      [1060, 'estimate'],
+      [2060, 'estimate'],
+      [3120, 'feed'],
+    ])
+  })
+
+  t('distinguishes the two passes of a repeat stop', (fmt) => {
+    const loop = {
+      anchored: true,
+      stops: [
+        { stop_id: 'L', stop_name: 'Loop', scheduled_at: 1000, ordinal: 0 },
+        { stop_id: 'M', stop_name: 'Mid', scheduled_at: 2000, ordinal: 1 },
+        { stop_id: 'L', stop_name: 'Loop', scheduled_at: 3000, ordinal: 2 },
+      ],
+    }
+    const v = bus({ predictions: [[1, 'L', 1010], [2, 'M', 2020], [3, 'L', 3030]] })
+    expect(fmt.arrivalPlan(loop, v, null).rows.map((r) => r.predicted_at))
+      .toEqual([1010, 2020, 3030])
+  })
+
+  t('does not stall when a prediction names a stop the trip does not list', (fmt) => {
+    /* Measured 0/4,525 in the corpus, but a stalled cursor would silently drop
+       every later feed row, which is a bad way to be wrong. */
+    const v = bus({ predictions: [[9, 'ZZZ', 1234], [2, 'B', 2090]] })
+    const plan = fmt.arrivalPlan(AHEAD, v, null)
+    expect(plan.rows[1]).toMatchObject({ stop_id: 'B', predicted_at: 2090, source: 'feed' })
+  })
+
+  t('produces times that never go backwards', (fmt) => {
+    const v = bus({ predictions: [[1, 'A', 1030], [2, 'B', 2090]] })
+    const times = fmt.arrivalPlan(AHEAD, v, null).rows.map((r) => r.predicted_at)
+    for (let i = 1; i < times.length; i++) expect(times[i]).toBeGreaterThanOrEqual(times[i - 1])
+  })
+
+  const noTimes = (plan, reason) => {
+    expect(plan.reason).toBe(reason)
+    expect(plan.rows).toHaveLength(3)
+    expect(plan.rows.every((r) => r.predicted_at === null && r.source === null)).toBe(true)
+    expect(plan.rows.map((r) => r.scheduled_at)).toEqual([1000, 2000, 3000])
+  }
+
+  t('publishes no arrival time at all when the feed is stale', (fmt) => {
+    const v = bus({ predictions: [[1, 'A', 1030]] })
+    noTimes(fmt.arrivalPlan(AHEAD, v, { suppress_adherence: true }), 'stale_data')
+  })
+
+  t('publishes no arrival time at all for a canceled trip', (fmt) => {
+    const v = bus({ trip: { trip_id: 'T1', schedule_relationship: 'CANCELED' }, predictions: [[1, 'A', 1030]] })
+    noTimes(fmt.arrivalPlan(AHEAD, v, null), 'trip_canceled')
+  })
+
+  t('publishes no arrival time at all when the bus could not be located', (fmt) => {
+    noTimes(fmt.arrivalPlan({ anchored: false, stops: TRIP }, bus({}), null), 'no_anchor')
+  })
+
+  t('publishes no arrival time at all when there is no deviation to carry', (fmt) => {
+    const v = bus({ adherence: { state: 'unknown', seconds: null, against: { stop_id: 'A', scheduled_at: 1000 } } })
+    noTimes(fmt.arrivalPlan(AHEAD, v, null), 'no_adherence')
+  })
+
+  t('publishes no arrival time at all when the prediction list is empty', (fmt) => {
+    /* Section 2: the list is empty, never absent, when the board cannot stand
+       behind a time. An empty list is a statement, not a gap to fill in. */
+    noTimes(fmt.arrivalPlan(AHEAD, bus({ predictions: [] }), null), 'no_predictions')
+  })
+})

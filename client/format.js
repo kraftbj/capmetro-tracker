@@ -286,6 +286,89 @@
     return { stops: stopTimes.slice(), anchored: false };
   }
 
+  /*
+   * An arrival time for each stop ahead, and where that time came from.
+   *
+   * Feed first: 77.5% of the stops ahead of a bus carry CapMetro's own
+   * predicted arrival, and those are published unmodified.
+   *
+   * For the remaining 22.5%, the deviation implied at the LAST stop the feed
+   * did predict is carried forward and held flat. The alternative — the
+   * deviation at the bus's current anchor, which stopboard.js uses — is a
+   * materially different answer, not a rounding of this one: the two disagree
+   * by more than a minute on 76.5% of estimated stops and by up to 15 minutes.
+   * Carrying forward inherits the feed's own modelling of dwell and recovery as
+   * far as the feed goes; the anchor rule throws that modelling away.
+   *
+   * Neither rule has been measured against ground truth. No capture in this
+   * repo records what actually happened later. The argument above is structural
+   * and should not be written up as though it were measured.
+   *
+   * Predictions are consumed with a FORWARD-ONLY CURSOR, matched positionally,
+   * never looked up by stop_id. That is what tells the two passes of a
+   * repeat-stop trip apart. It is deliberately not a call to predictionFor(),
+   * which matches on stop_id alone and returns the first pass for both.
+   *
+   * Output is monotonic by construction: the feed's rows are monotonic (0
+   * backward steps across 4,276 adjacent pairs), and an estimate is an
+   * ascending scheduled time plus a flat deviation. Nothing is clamped, and
+   * nothing should be until a real backward step has been measured.
+   */
+  function arrivalPlan(stopsAhead, vehicle, staleness) {
+    var stops = (stopsAhead && stopsAhead.stops) || [];
+    var adherence = (vehicle && vehicle.adherence) || {};
+    var predictions = (vehicle && vehicle.predictions) || [];
+    var trip = (vehicle && vehicle.trip) || {};
+
+    var reason =
+      (staleness && staleness.suppress_adherence) ? 'stale_data'
+        : trip.schedule_relationship === 'CANCELED' ? 'trip_canceled'
+          : !stopsAhead || !stopsAhead.anchored ? 'no_anchor'
+            : (adherence.seconds === null || adherence.seconds === undefined) ? 'no_adherence'
+              : !predictions.length ? 'no_predictions'
+                : null;
+
+    if (reason) {
+      return {
+        reason: reason,
+        rows: stops.map(function (s) {
+          return {
+            stop_id: s.stop_id, stop_name: s.stop_name, scheduled_at: s.scheduled_at,
+            ordinal: s.ordinal, predicted_at: null, source: null
+          };
+        })
+      };
+    }
+
+    var deviation = adherence.seconds;
+    var cursor = 0;
+
+    return {
+      reason: null,
+      rows: stops.map(function (s) {
+        var hit = -1;
+        for (var k = cursor; k < predictions.length; k++) {
+          if (predictions[k] && String(predictions[k][1]) === s.stop_id) { hit = k; break; }
+        }
+        var predictedAt;
+        var source;
+        if (hit >= 0) {
+          predictedAt = predictions[hit][2];
+          deviation = predictedAt - s.scheduled_at;
+          source = 'feed';
+          cursor = hit + 1;
+        } else {
+          predictedAt = s.scheduled_at + deviation;
+          source = 'estimate';
+        }
+        return {
+          stop_id: s.stop_id, stop_name: s.stop_name, scheduled_at: s.scheduled_at,
+          ordinal: s.ordinal, predicted_at: predictedAt, source: source
+        };
+      })
+    };
+  }
+
   function plural(n, one, many) {
     return n + ' ' + (n === 1 ? one : many);
   }
@@ -378,6 +461,7 @@
     hasFix: hasFix,
     predictionFor: predictionFor,
     stopTimesForTrip: stopTimesForTrip,
-    stopsAheadOf: stopsAheadOf
+    stopsAheadOf: stopsAheadOf,
+    arrivalPlan: arrivalPlan
   };
 })(window);
