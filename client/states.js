@@ -279,6 +279,48 @@
     'no-timepoints': {
       note: 'PARTIAL LADDER — no timepoints published',
       apply: function (d) { d.timepoints = []; return d; }
+    },
+    'trip-gone': {
+      note: 'TRIP VIEW — the followed bus has left the feed',
+      apply: function (d) { d.vehicles = []; return d; }
+    },
+    'trip-no-anchor': {
+      note: 'TRIP VIEW — the feed does not say where the bus is',
+      apply: function (d) {
+        d.vehicles.forEach(function (v) {
+          if (!v.in_service) return;
+          v.adherence = { state: 'unknown', seconds: null, glyph: 'question',
+                          against: null, reason: 'no_progress' };
+        });
+        return d;
+      }
+    },
+    'trip-canceled': {
+      note: 'TRIP VIEW — CapMetro has canceled this trip',
+      apply: function (d) {
+        d.vehicles.forEach(function (v) {
+          if (v.trip) v.trip.schedule_relationship = 'CANCELED';
+          v.predictions = [];
+        });
+        return d;
+      }
+    },
+    /*
+     * Every in-service vehicle in the bundled fixture carries a full feed
+     * prediction for every stop ahead of it, so the estimate branch — the
+     * feed/estimate divider, the `~` marker, the "estimated" tag — never
+     * renders from the fixture alone. This is a synthetic instrument, not
+     * data: it truncates each vehicle's predictions to half their length so
+     * both a feed segment and an estimated segment exist to look at.
+     */
+    'trip-estimated': {
+      note: 'TRIP VIEW — synthetic: half the feed times removed, so the estimate branch shows',
+      apply: function (d) {
+        d.vehicles.forEach(function (v) {
+          if (v.predictions) v.predictions = v.predictions.slice(0, Math.floor(v.predictions.length / 2));
+        });
+        return d;
+      }
     }
   });
 

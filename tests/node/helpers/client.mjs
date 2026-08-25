@@ -13,9 +13,49 @@ import path from 'node:path'
 import vm from 'node:vm'
 import { ROOT } from './optional.mjs'
 
-/** Load client scripts in order. Returns window.CMB, or null with a reason. */
-export function loadClient(scripts) {
-  const missing = scripts.filter((s) => {
+/*
+ * The client's load order, read out of client/index.html rather than retyped.
+ *
+ * Every sandbox below takes a list of scripts, and each caller used to hand over
+ * its own hand-written one. That broke the moment app.js gained a dependency:
+ * when the trip view and the URL grammar landed, the list in
+ * client-schedule-eviction.test.mjs still ended at near.js, app.js threw
+ * reaching for CMB.urls.parse before exporting anything, and all fourteen
+ * assertions in the file went out as one unreadable "Cannot read properties of
+ * undefined". Nothing was wrong with the code under test.
+ *
+ * So a test that wants the whole client asks for CLIENT_SCRIPTS and stays right
+ * as the client changes. A test that wants three modules still names its three;
+ * that is a real choice and not a maintenance burden. The data/*.js fixture
+ * includes are left out — they are a frozen capture, and a sandbox that wants
+ * one should say so.
+ */
+export const CLIENT_SCRIPTS = (() => {
+  /*
+   * Comments stripped first, and attributes tolerated after the src. The obvious
+   * one-line regex is wrong in both directions and silently: it matches inside
+   * `<!-- ... -->`, so a commented-out tag still loads, and it requires `>` to
+   * follow the src, so adding `defer` to a real tag drops that script from every
+   * sandbox. Either way the suite goes green having tested something other than
+   * the client. client-scripts.test.mjs is what makes that loud.
+   */
+  const html = readFileSync(path.join(ROOT, 'client/index.html'), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  const out = []
+  const tag = /<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi
+  let m
+  while ((m = tag.exec(html)) !== null) out.push(m[1])
+  const scripts = out.filter((src) => !src.startsWith('data/'))
+  if (!scripts.length) throw new Error('no client scripts found in client/index.html')
+  return scripts
+})()
+
+/*
+ * Which of these do not exist. Written once: all three sandboxes need the same
+ * answer, and the point of the check is to report a missing file as a named
+ * reason rather than as a stack trace from inside vm.
+ */
+function missingScripts(scripts) {
+  return scripts.filter((s) => {
     try {
       readFileSync(path.join(ROOT, 'client', s))
       return false
@@ -23,6 +63,11 @@ export function loadClient(scripts) {
       return true
     }
   })
+}
+
+/** Load client scripts in order. Returns window.CMB, or null with a reason. */
+export function loadClient(scripts) {
+  const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, reason: `client/${missing.join(', client/')} does not exist yet` }
   }
@@ -179,14 +224,7 @@ function stubElement(tag, ns) {
 export function renderClient(scripts) {
   const element = stubElement
 
-  const missing = scripts.filter((s) => {
-    try {
-      readFileSync(path.join(ROOT, 'client', s))
-      return false
-    } catch {
-      return true
-    }
-  })
+  const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, document: null, reason: `client/${missing.join(', client/')} does not exist yet` }
   }
@@ -255,15 +293,8 @@ export function textDeep(node) {
  * a network that is not there, and app.js skips installing the 60s interval
  * entirely, so nothing is left running after the test returns.
  */
-export function bootClient(scripts) {
-  const missing = scripts.filter((s) => {
-    try {
-      readFileSync(path.join(ROOT, 'client', s))
-      return false
-    } catch {
-      return true
-    }
-  })
+export function bootClient(scripts, opts = {}) {
+  const missing = missingScripts(scripts)
   if (missing.length) {
     return { cmb: null, reason: `client/${missing.join(', client/')} does not exist yet` }
   }
@@ -284,7 +315,18 @@ export function bootClient(scripts) {
   const window = {
     CMB: {},
     document,
-    location: { protocol: 'file:', search: '', href: 'file:///index.html', reload() {} },
+    /*
+     * file:// by default because it is the one setting that makes boot inert:
+     * getJson rejects without reaching for a network, and app.js installs no
+     * timer. A test that wants to drive the fetch path says so, and supplies the
+     * fetch it wants driven — there is no real network here either way.
+     */
+    location: {
+      protocol: opts.protocol || 'file:',
+      search: opts.search || '',
+      href: opts.href || 'file:///index.html',
+      reload() {},
+    },
     localStorage: {
       getItem: (k) => (store.has(k) ? store.get(k) : null),
       setItem: (k, v) => void store.set(k, String(v)),
@@ -299,12 +341,15 @@ export function bootClient(scripts) {
     requestAnimationFrame: (fn) => { fn(0); return 0 },
     cancelAnimationFrame() {},
   }
+  if (opts.fetch) window.fetch = opts.fetch
   window.window = window
   const context = vm.createContext({
     window,
     document,
     globalThis: window,
     console,
+    fetch: opts.fetch,
+    AbortController: opts.AbortController,
     localStorage: window.localStorage,
     setInterval: window.setInterval,
     clearInterval: window.clearInterval,
