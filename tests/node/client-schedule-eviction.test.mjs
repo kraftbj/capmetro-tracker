@@ -24,7 +24,8 @@ import { bootClient } from './helpers/client.mjs'
 
 const client = bootClient([
   'format.js', 'adherence.js', 'states.js', 'allbuses.js', 'watch.js',
-  'stopboard.js', 'map.js', 'ladder.js', 'rows.js', 'near.js', 'app.js',
+  'stopboard.js', 'map.js', 'ladder.js', 'rows.js', 'near.js', 'trip.js',
+  'urls.js', 'app.js',
 ])
 
 /*
