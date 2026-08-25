@@ -14,7 +14,6 @@ const DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(DIR, '..', '..');
 const SOURCES = [
   {
-    kind: 'route',
     global: 'CMB_FIXTURES',
     routeId: '4',
     file: 'tests/fixtures/golden/route-4-20260819.json',
@@ -27,13 +26,12 @@ const SOURCES = [
    * cannot verify anything, and CLAUDE.md is explicit about that.
    */
   {
-    kind: 'departures',
     global: 'CMB_FIXTURES_DEPARTURES',
     routeId: '4',
     file: 'tests/fixtures/golden/departures-4-20260819.json',
     dest: 'departures-4-20260819.js',
   },
-]
+];
 
 const HEADER = [
   '/*',

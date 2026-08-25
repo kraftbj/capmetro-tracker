@@ -242,8 +242,14 @@
         render();
       })
       .catch(function () {
-        /* From disk the fixture IS the answer, not a fallback after a timeout. */
-        var disk = embeddedDepartures(routeId);
+        /*
+         * From disk the fixture IS the answer, not a fallback after a timeout.
+         * Over HTTP a failure is a failure: substituting the bundle there would
+         * make route 4 alone recover silently from a real 404/500 while the
+         * other 70 routes correctly error, and a schedule bundled months ago
+         * must never be presented as today's.
+         */
+        var disk = global.location.protocol === 'file:' ? embeddedDepartures(routeId) : null;
         if (disk) {
           state.departures[routeId] = disk;
           state.depStatus[routeId] = 'ok';
