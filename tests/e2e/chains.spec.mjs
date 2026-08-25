@@ -24,7 +24,14 @@ const FILE_BOARD = pathToFileURL(
 
 /* The fixture's own service day; the client's clock follows the feed, not the
  * device, so nothing here depends on when the suite is run. */
-const SAVED = '/fresh/index.html?view=saved'
+/*
+ * The chain scenario, not /fresh/. Both fixture sets carry routes 800 and 4 —
+ * the chain pair built around one 07:52:09 departure, and the golden/synthetic
+ * schedules the rest of the suite asserts against — and neither can stand in for
+ * the other, so the prefix chooses which schedules the board is holding. The
+ * live payload is the ordinary fresh one either way.
+ */
+const SAVED = '/chain/index.html?view=saved'
 
 /** Walk the editor as far as a picked first-leg departure. */
 async function pickFirstLeg(page) {
@@ -283,7 +290,7 @@ test.describe('a chain leg on a route whose feed died', () => {
 
     /* Same origin, so the saved chain survives the hop to the dead-cron scenario,
        which serves a 47-minute-old payload for every route id under it. */
-    await page.goto('/dead/index.html?view=saved')
+    await page.goto('/chaindead/index.html?view=saved')
     const banners = page.locator('.savedbanner')
     await expect(banners.first()).toBeVisible()
 
@@ -295,7 +302,7 @@ test.describe('a chain leg on a route whose feed died', () => {
 
   test('and the card shows no lateness it cannot stand behind', async ({ page }) => {
     await saveTheChain(page)
-    await page.goto('/dead/index.html?view=saved')
+    await page.goto('/chaindead/index.html?view=saved')
     await expect(page.locator('.chaincard').first()).toBeVisible()
 
     /*

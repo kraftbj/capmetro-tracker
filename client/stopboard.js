@@ -40,10 +40,17 @@
    */
   var GRACE_S = 90;
 
-  /** Every direction the stop is served in, in id order. */
+  /*
+   * Every direction the stop is served in, in id order.
+   *
+   * The rows come through W.rowsFor rather than a bare `departures[stopId]`,
+   * which also reaches Object.prototype: a stop id of `constructor` returns a
+   * function that is truthy, has a length, and has nothing at [0]. `?stop=` puts
+   * that id in a link's reach, so it is guarded at the lookup for every caller.
+   */
   function directionsAt(dep, stopId) {
     var seen = Object.create(null);
-    ((dep && dep.departures && dep.departures[stopId]) || []).forEach(function (row) {
+    W.rowsFor((dep && dep.departures) || {}, stopId).forEach(function (row) {
       var trip = (dep.trips || [])[row[1]];
       if (trip && seen[trip.direction_id] === undefined) {
         seen[trip.direction_id] = trip.headsign || null;
@@ -52,6 +59,41 @@
     return Object.keys(seen)
       .map(function (k) { return { id: Number(k), headsign: seen[k] }; })
       .sort(function (a, b) { return a.id - b.id; });
+  }
+
+  /*
+   * The agency's predicted arrival for ONE departure -- one (trip, stop,
+   * scheduled time) triple -- or null.
+   *
+   * This is deliberately not fmt.predictionFor(). That function matches on
+   * stop_id alone and returns the SOONEST occurrence, which is exactly right
+   * for near.js ("when does this bus next reach the stop I am standing at")
+   * and exactly wrong here. A stop board row is a scheduled departure, and 270
+   * (stop, trip) pairs in the 2026-08-19 corpus are stops a trip visits TWICE.
+   * Asked by stop_id alone, both rows get the first pass's time: measured over
+   * that corpus, 6 rendered rows carried the wrong arrival, the worst by 51
+   * minutes, and three of the six discarded a distinct time CapMetro had
+   * actually published for the second pass.
+   *
+   * So the join is positional, through the same three functions the trip view
+   * uses, and the row is then found by its own scheduled_at -- an exact key,
+   * since that is what a departure row IS.
+   */
+  function feedArrivalFor(dep, route, vehicle, stopId, scheduledAt) {
+    if (!vehicle || !dep) return null;
+    var stops = fmt.stopTimesForTrip(dep, vehicle.trip && vehicle.trip.trip_id);
+    if (!stops) return null;
+    var plan = fmt.arrivalPlan(fmt.stopsAheadOf(stops, vehicle), vehicle,
+      route && route.staleness);
+    if (plan.reason) return null;
+    for (var i = 0; i < plan.rows.length; i++) {
+      var r = plan.rows[i];
+      if (r.stop_id === String(stopId) && r.scheduled_at === scheduledAt &&
+          r.source === 'feed') {
+        return { stop_id: r.stop_id, predicted_at: r.predicted_at };
+      }
+    }
+    return null;
   }
 
   /*
@@ -97,7 +139,7 @@
        * vocabulary, and a second one derived here is exactly what this file must
        * not grow.
        */
-      var fromFeed = fmt.predictionFor(vehicle, stopId);
+      var fromFeed = feedArrivalFor(dep, route, vehicle, stopId, scheduledAt);
       var predictedAt = fromFeed ? fromFeed.predicted_at
         : lateness === null ? null : scheduledAt + lateness;
       var dueAt = predictedAt === null ? scheduledAt : predictedAt;
@@ -304,8 +346,16 @@
     host.appendChild(head);
 
     if (!dep) {
+      /*
+       * Reached both before the first schedule arrives and when the one held is
+       * from a service day that has ended — app.js's usableDepartures() hands
+       * null in both cases, because in both the board has no times it is entitled
+       * to show. "Only loads once" used to be the second line here and stopped
+       * being true when the schedule started expiring at the service-day roll.
+       */
       host.appendChild(S.notice('empty', 'Loading this route’s schedule…',
-        'One file for the whole service day, so it only loads once.'));
+        'One file for the whole service day. It is fetched again when the ' +
+        'service day rolls over.'));
       return host;
     }
 

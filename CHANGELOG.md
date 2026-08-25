@@ -5,39 +5,6 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ## [Unreleased]
 
-### Fixed
-
-- **Every northbound bus said its next run was another northbound one.** Spotted
-  on route 837, where all seven live buses claimed a continuation 2.5 hours out
-  on a route that runs every fifteen minutes — the bus obviously runs the return
-  leg first. Measured over the whole feed, **92,418 of 539,513 published
-  continuations named the wrong successor: 17.1%.** It is now 4.
-
-  A `service_id` in this feed is not a service day. `calendar_dates` puts several
-  on one date, and CapMetro splits a physical block across them **by direction**:
-  block 837001 keeps its northbound trips under `9-172` and its southbound trips
-  under `5-172`, and both run on a Friday. The build chained a block per
-  `service_id`, so it saw half of one and linked each trip to the next in the
-  same direction, skipping the return leg in between. Chains are now keyed on the
-  set of services co-active on a date.
-
-  The error was reporting itself and we read it as something else. Skipping the
-  return leg inflates the gap the handoff is graded on, so the wrong successors
-  came out `low` for `layover_too_long` and `stops_too_far_apart` — 88 minutes
-  and 12 km for the 837 case, against a true handoff of 32 minutes and 0 metres.
-  Correcting it drops `stops_too_far_apart` by 90% (3,809 to 395) and
-  `layover_too_long` by 82% (3,724 to 686), and moves 2,791 continuations from
-  `low` to `high`. **Any earlier reading of the grade-reason distribution was
-  measuring this bug rather than real interlining.**
-
-  The successor's facts do not vary by date but its identifier does: of 865 trips
-  in more than one co-active set, none disagree on the successor's direction or
-  start time and 781 differ only in `trip_id`, because CapMetro mints one id per
-  service variant. The shard now carries `next_trip.trip_id_by_service` and the
-  runtime resolves it against the day's services; the API payload is unchanged,
-  so no client needed touching. Four trips genuinely chain differently by date —
-  the build warns about those rather than silently picking one.
-
 ### Added
 
 - **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
@@ -175,6 +142,307 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
     tab: no error, no retry, no way forward, and guaranteed for every route on a
     `file://` board.
 
+### Fixed
+
+- **A phone left on the counter overnight answered from yesterday's schedule.**
+  A departures document was fetched once and kept for the life of the tab, so a
+  board opened the previous evening and picked up at breakfast was still reading
+  the previous service day: saved trips reporting "the last one today has gone",
+  or times belonging to a day that had ended, on the surface someone consults
+  while deciding whether to drive.
+
+  A document is now kept for the service day it describes. The live route payload
+  refreshes every 60 seconds and carries the current service date, so it — never
+  a device clock — is what says the schedule has expired. Two details are load
+  bearing and each is asserted directly. The comparison is **older**, not merely
+  different: `!==` also condemns a document from the future, which is what a tab
+  holds for a few seconds either side of the service-day roll, and re-fetching it
+  once a minute until the live payload catches up. And the current date is never
+  read off the bundled fixture, a frozen capture that would otherwise let one
+  failed request declare every genuinely current schedule expired.
+
+  Keeping an out-of-date document and answering from one are separate decisions,
+  and only the first was safe to make. Every render path goes through a single
+  accessor that hands back nothing when the schedule describes a service day that
+  has ended, so the board falls to its existing "schedule has not loaded" state
+  rather than reading yesterday's times out under today's heading. The first
+  version of this change marked the document and did not do this, which left the
+  original bug intact in the branch where the replacement has not arrived.
+
+  "Every render path" was briefly untrue and is worth recording. The trip view
+  arrived separately and read the held schedule directly, so it went on printing
+  a finished service day's stop times — on the one screen built entirely around
+  scheduled times — while every other surface correctly refused. The whole suite
+  stayed green, because every test for this lived on the board and saved views.
+  The trip view has its own case now.
+
+  A schedule whose date the board cannot read at all is treated the same way:
+  kept, never answered from, asked for again. The comparison used to be a bare
+  `<`, which left the answer to JavaScript's coercion rules and landed on
+  opposite sides depending on how the document was malformed — an ISO date was
+  condemned forever, a missing one was believed forever.
+
+  And a request that never comes back is given up on after two minutes rather
+  than blocking that route's schedule for the life of the tab. A fetch has no
+  timeout, so one outstanding when a phone suspends may simply never settle;
+  withholding turned that from a stale board into an empty one that the network
+  returning could not fix.
+
+  The roll is acted on as soon as the live payload carrying it lands. The refresh
+  timer sweeps schedules synchronously, so the sweep judges against the service
+  date from before that tick's payload arrived; without a re-check when the
+  payload resolves, a roll stayed invisible for a further full minute.
+
+  An expired document is kept and re-requested rather than deleted first.
+  Deleting is only safe when the fetch cannot fail, and this one demonstrably
+  can — taking a correct schedule with it and leaving "Schedule not loaded" where
+  a minute earlier there was a whole service day. The replacement is swapped in
+  once it has arrived, and until then the document is marked `stale`: kept, but
+  not believed, and not re-requested on every repaint.
+
+- **A route id from a link could blank the board and blame the reader's phone
+  for it.** The bundled offline fixtures are two more maps keyed by whatever
+  `?route=` contains, and both were plain objects, so the same prototype-chain
+  reach that the stop id had. `?route=__proto__` produced a board showing
+  nothing but "This app needs updating. The board received data written for
+  format undefined" — not merely broken, but wrong about why, sending the reader
+  off to fix a copy of the app that was never the problem. `?route=constructor`
+  reached the fixture through a copy that cannot be made of a function, and put
+  the parser's own words on screen. Guarded at each lookup, so a fixture written
+  by an older generator is covered too.
+
+- **The saved tab talked to the server about sixty times a second.** Each saved
+  trip's route document was requested on every repaint, and the response
+  repainted, so a board left sitting on that tab — a phone put down, screen
+  still on — spun against the origin indefinitely: measured at 364 requests in
+  six seconds for a single route file. The status now stops a repeat the way the
+  schedule's already did, and the once-a-minute refresh is the only thing that
+  asks again.
+
+- **A link could freeze the board while leaving it looking current.**
+  `?state=` names an entry in the state-preview table, and that lookup was a bare
+  one on a plain object, so every member of `Object.prototype` answered to it.
+  `?state=constructor` rewrote the payload into something the schema check
+  refused, so the board showed the schema notice and no times at all. `?state=
+  valueOf` was quieter and worse: the payload passed through untouched, the board
+  rendered correctly — and because the 60s refresh is gated on there being no
+  scenario, it never updated again. A board that is visibly broken sends someone
+  to look up the timetable; one that looks current and is frozen sends a child to
+  a stop. The table is now null-prototype, the same rule already applied to the
+  route-keyed maps.
+
+- **Remove did nothing, and said nothing, when the browser refused the delete.**
+  `watch.remove()` discarded what `writeStore` reported, exactly as `add()` used
+  to. On a full or read-only store the button was simply dead: the card stayed
+  where it was, no message appeared, and the trip was still on the device. It
+  gets its own words rather than the save wording, because what is wrong is the
+  opposite — not that nothing was kept, but that something the reader asked to
+  destroy is still there, and what it describes is which stop a child waits at
+  and when. A delete that works now says so out loud too; the spoken channel is
+  not repainted, so a refusal followed by a success used to leave a screen reader
+  holding the refusal.
+
+- **A 200 with an empty body was taken for an answer, three different ways.** A
+  proxy error page, or any response parsing to null, was stored under an `ok`
+  status, and each of the three documents then failed differently.
+
+  The schedule spun: the cache guard reads a falsy value as "nothing cached", so
+  the next paint asked again, and the saved view — which re-asks on every render
+  — ran against the origin without limit.
+
+  The fleet document was worse than a wasted request. The board rendered
+  "CapMetro is reporting no buses at all … a CapMetro problem rather than a
+  problem with this board" — a confident, specific and false statement about
+  service, naming somebody else as the cause, while the real can't-reach-the-feed
+  notice and its Retry never appeared.
+
+  A route document parked on the one status the retry cannot see. The
+  once-a-minute sweep clears `error`; a falsy body landed on `ok`, so a bus
+  detail read "Just left · loading the route…" for the life of the tab with
+  nothing loading and nothing that ever would.
+
+  And the board's own route document — the first fetch any reader makes — could
+  be answered with `[]` or with a captive portal's `"sorry"`, and land on the
+  screen that says "This app needs updating… written for format undefined". That
+  is the worst of the four, because it is not merely wrong, it is wrong about
+  whose fault it is: it sends the reader off to update an app that was never the
+  problem. An unreachable feed already had an answer for this — show the bundled
+  sample under its banner, or say the feed cannot be reached — and a 200 that is
+  not a document is now treated the same way, rather than better-looking and
+  worse.
+
+  All four go to the paths that already existed. Arrays are refused along with
+  the falsy bodies — `typeof [] === 'object'`, so an array passed every check
+  that was not looking for it — and the fleet document additionally has to carry
+  a list of vehicles, because `{}` is JSON-shaped enough to satisfy a transport
+  check while reproducing that accusation word for word.
+
+- **A stop id from a link could blank the whole board.** `departures[stopId]` was
+  a bare lookup on an object parsed from JSON, so it also reached
+  `Object.prototype`. `?stop=constructor` returned the Object function — truthy,
+  so the `|| []` fallback never fired, with a `length` of 1 and nothing at `[0]`.
+  The next line read `rows[0][1]` and threw, and because that happened during
+  render the page went blank rather than showing an empty stop. `app.js` takes
+  `state.stopId` straight off the query string, so this was reachable by anyone
+  who could send a URL. Guarded once, at the single lookup every reader goes
+  through, rather than in whichever caller happens to hold an untrusted id.
+
+- **A route document that failed to load stayed failed, on the every-bus view.**
+  Stopping the saved tab spinning meant refusing to re-ask on a repaint, and the
+  only thing putting a route back in play was the saved view itself — so one
+  dropped request on `/buses` left a bus detail reading "loading the route…"
+  with nothing loading and nothing that ever would. Any failed route document is
+  now retried once a minute, from the timer, whichever view asked for it.
+
+- **The trip view said nothing at all when it withheld a schedule, or when one
+  failed to load.** It drew the
+  shimmer that means "this is about to arrive", which is a promise the board
+  cannot keep when what it is actually doing is holding a schedule from a
+  service day that has ended. Those placeholder rows are also hidden from
+  assistive technology, so a screen reader reached the bus name and stopped. It
+  says which of the three is happening now, in words — arriving, withheld, or
+  failed — and only the first of those still gets a shimmer.
+
+- **The saved-trip editor still said the schedule "only loads once".** The board
+  view's copy was corrected when schedules started expiring at the service-day
+  roll; the editor's was not, and the editor is handed exactly the schedule that
+  has been withheld — so the sentence was on screen at the one moment it was
+  provably false. Relatedly, "Nothing was saved." outlived the save it described,
+  sitting above the list on every later visit until some future save happened to
+  succeed; it is cleared when a new one is started.
+
+- **The board said "Saved" when nothing had been saved.** `watch.add()` discarded
+  what `writeStore` already told it, so a write refused by Safari private
+  browsing, an exhausted quota, or storage switched off was announced as a
+  success. The trip was not in the list, and on the next load it was gone
+  entirely, with nothing having said so. `add()` now reports whether the store
+  took it, and the saved view says so in words — the announcement alone goes to a
+  screen-reader-only region and leaves a sighted reader with no sign at all.
+
+## [0.6.0.0] - 2026-08-25
+
+### Added
+
+- **The board has URLs you can share.** `bus.dillo.dev/route/4/eb` opens the
+  eastbound 4, `/buses` the fleet, `/trip/1234` the board following bus 1234,
+  and `/saved` your saved trips. A bare bus id resolves its own route from the
+  fleet document, so the link is short enough to read to somebody over the
+  phone; it then upgrades itself to `/trip/{route}/{bus}`, which needs no such
+  lookup when the link is opened again.
+
+  `/saved` carries nothing but the tab name. Saved trips live in the browser and
+  a watch in a URL would publish somebody's routine to whoever they sent it to.
+
+  Every link that already existed still works. `?view=`, `?route=`, `?dir=`,
+  `?bus=` and the `?state=` harness are permanent, not deprecated: they are the
+  only form a `file://` copy can use, and a query still overrides a path field
+  by field so a pretty URL and a forced state can be combined.
+
+  **This needs a one-time vhost change.** `deploy/nginx-capmetro.conf` gains a
+  fallback for the four app paths, and `update.sh` deliberately does not install
+  vhosts. Until it is installed by hand and nginx reloaded, path links 404 while
+  `/` and every query link keep working:
+
+      sudo cp /srv/capmetro/src/deploy/nginx-capmetro.conf \
+        /etc/nginx/sites-available/capmetro
+      sudo nginx -t && sudo systemctl reload nginx
+
+  The fallback is scoped to `route`, `buses`, `trip` and `saved` rather than
+  being a blanket one, so a mistyped asset still 404s instead of being answered
+  with a page of HTML that looks like it loaded.
+
+### Fixed
+
+- **The security headers no longer forbid the board its own bootstrap.** The
+  vhosts sent `script-src 'self'` and `base-uri 'none'`, on the stated grounds
+  that the client had no inline script. It has one now — the `<base>` bootstrap
+  that lets a page served at `/route/4/eb` find its own scripts — so both would
+  have been blocked and every pretty URL would have rendered a blank page. The
+  snippet is admitted by sha256 hash, `base-uri` is `'self'`, and
+  `'unsafe-inline'` stays absent. The end-to-end fixture server now serves the
+  real policy read out of the vhost, so this class of break fails the suite
+  rather than the deployment.
+
+- **`/route/4/.env` and `/trip/x.php` reached the app fallback.** nginx takes the
+  first matching regex location and the two `deny all` blocks were declared last,
+  so they were shadowed for every path under the new prefixes — and, already,
+  for anything matching the asset block. They now come first.
+
+- **A legacy `?view=`/`?route=`/`?bus=` link no longer contradicts the path it
+  rewrites to.** Opening an old query link and switching views produced
+  `/buses?view=trip&route=4&bus=2641`, which sent whoever received it to a
+  different screen than the sender was looking at. Those four keys are dropped
+  when the address bar is rewritten; everything else, `?state=` included, is
+  kept.
+
+- **A bare `/trip/1234` no longer sticks when the fleet document fails to load.**
+  The callback that resolves a bus id to its route only ran on success, and the
+  retry only fires while the all-buses view is open, so one bad fetch stranded
+  the link with no way out but a reload.
+
+## [0.5.0.0] - 2026-08-25
+
+### Fixed
+
+- **The nearest-stop panel has been rendering with no styling at all since it
+  shipped.** `.watchcard__canceled` in `client/styles.css` was missing its
+  closing brace, so the parser ran past the end of that rule and swallowed
+  everything up to the next one it could recover at — `.nearhost:empty` and
+  the whole `.near` rule, background, border, radius and padding included.
+  Nothing about the markup or the logic was wrong; the panel simply never had
+  a box around it. Found and fixed while building the trip view below, and
+  unrelated to it.
+- **Every northbound bus said its next run was another northbound one.** Spotted
+  on route 837, where all seven live buses claimed a continuation 2.5 hours out
+  on a route that runs every fifteen minutes — the bus obviously runs the return
+  leg first. Measured over the whole feed, **92,418 of 539,513 published
+  continuations named the wrong successor: 17.1%.** It is now 4.
+
+  A `service_id` in this feed is not a service day. `calendar_dates` puts several
+  on one date, and CapMetro splits a physical block across them **by direction**:
+  block 837001 keeps its northbound trips under `9-172` and its southbound trips
+  under `5-172`, and both run on a Friday. The build chained a block per
+  `service_id`, so it saw half of one and linked each trip to the next in the
+  same direction, skipping the return leg in between. Chains are now keyed on the
+  set of services co-active on a date.
+
+  The error was reporting itself and we read it as something else. Skipping the
+  return leg inflates the gap the handoff is graded on, so the wrong successors
+  came out `low` for `layover_too_long` and `stops_too_far_apart` — 88 minutes
+  and 12 km for the 837 case, against a true handoff of 32 minutes and 0 metres.
+  Correcting it drops `stops_too_far_apart` by 90% (3,809 to 395) and
+  `layover_too_long` by 82% (3,724 to 686), and moves 2,791 continuations from
+  `low` to `high`. **Any earlier reading of the grade-reason distribution was
+  measuring this bug rather than real interlining.**
+
+  The successor's facts do not vary by date but its identifier does: of 865 trips
+  in more than one co-active set, none disagree on the successor's direction or
+  start time and 781 differ only in `trip_id`, because CapMetro mints one id per
+  service variant. The shard now carries `next_trip.trip_id_by_service` and the
+  runtime resolves it against the day's services; the API payload is unchanged,
+  so no client needed touching. Four trips genuinely chain differently by date —
+  the build warns about those rather than silently picking one.
+
+### Added
+
+- **A trip view: pick a bus, and see every stop it still has ahead of it.**
+  Every other panel is anchored at a stop or a route; this one is anchored at
+  a vehicle. Pick a route and a bus and the board lists the rest of its trip
+  in order, with a scheduled time and an arrival time beside each stop — the
+  agency's own predicted time where the feed still publishes one, and the
+  board's own projection, marked `~` and separated by a divider, once it runs
+  out. Order comes from the stop times' own arrival order rather than the
+  published stop sequence, which disagree on 2,221 of the corpus's 4,112
+  trips; predictions are matched to stops positionally rather than by id,
+  because 234 trips visit one stop twice and an id match would answer both
+  visits with the first one. The projection past the feed's last prediction
+  carries its last known deviation forward rather than recomputing it fresh,
+  which is a materially different number — the two disagree by more than a
+  minute on 76.5% of estimated stops and by up to 15 minutes — and neither has
+  been checked against what a bus actually did later, so the board says which
+  is which rather than presenting one as fact. A bus that drops out of the
+  feed mid-read keeps its last answer on screen, dimmed, with a last-seen
+  time, instead of the list disappearing under the reader.
 - **Nearest stop, and when the next bus reaches it.** Tap "Use my location" and
   the board finds the stop you are standing at on the route you are looking at,
   then shows when each approaching bus is due there — "4 min", "due" — with the

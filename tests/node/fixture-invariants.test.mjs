@@ -9,8 +9,10 @@
  * proves nothing.
  */
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { FEEDS, SYNTHETIC, feed, readText, synthetic, tripUpdates, vehicles } from './helpers/fixtures.mjs'
+import { ROOT } from './helpers/optional.mjs'
 
 const positions = feed('vehiclepositions.json')
 const updates = feed('tripupdates.json')
@@ -179,5 +181,27 @@ describe('the synthetic fixtures encode what the real minute does not', () => {
       .map((v) => v.trip.tripId)
     expect(live.length).toBeGreaterThan(0)
     expect(live.some((id) => shardTrips.has(id))).toBe(false)
+  })
+})
+
+describe('the bundled departures fixture', () => {
+  it('is present, and is the route 4 document the runtime writes', () => {
+    const dep = JSON.parse(
+      readFileSync(path.join(ROOT, 'tests/fixtures/golden/departures-4-20260819.json'), 'utf8')
+    )
+    expect(dep.route_id).toBe('4')
+    expect(dep.service_date).toBe('20260819')
+    expect(typeof dep.service_day_start_epoch).toBe('number')
+    expect(dep.trips.length).toBeGreaterThan(0)
+    expect(Object.keys(dep.departures).length).toBeGreaterThan(0)
+  })
+
+  it('is bundled for file:// verbatim, with no second spelling', () => {
+    /* The client copy exists because fetch() is blocked on file:// URLs. If the
+       two ever differ, the board shows one thing from disk and another over
+       HTTP, which is the failure mode this assertion exists to catch. */
+    const src = readFileSync(path.join(ROOT, 'tests/fixtures/golden/departures-4-20260819.json'), 'utf8')
+    const bundled = readFileSync(path.join(ROOT, 'client/data/departures-4-20260819.js'), 'utf8')
+    expect(bundled).toContain(src.replace(/\s+$/, ''))
   })
 })
