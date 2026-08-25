@@ -75,7 +75,7 @@
   }
 
   /* One stop. Countdown leads; the two clock times sit under it. */
-  function stopRow(row, now, showEstimate) {
+  function stopRow(row, now) {
     var li = el('li', 'tripstop' + (row.source === 'estimate' ? ' tripstop--est' : ''));
 
     var lead = el('span', 'tripstop__when',
@@ -90,9 +90,10 @@
       times.appendChild(el('span', 'tripstop__arrow', '→'));
       times.appendChild(el('span', 'tripstop__pred',
         (row.source === 'estimate' ? '~' : '') + fmt.clock(row.predicted_at)));
-      if (row.source === 'estimate' && showEstimate) {
-        /* The divider says where the feed stopped, but a screen reader meets
-           each row on its own, so the word travels with the row too. */
+      if (row.source === 'estimate') {
+        /* The divider says where a stretch turns estimated, but a screen
+           reader meets each row on its own, so the word travels with the
+           row too. */
         times.appendChild(el('span', 'tripstop__tag', 'estimated'));
       }
     }
@@ -206,7 +207,7 @@
         'not what is happening now. Pick another bus to start again.'));
     }
 
-    var view = adhLib.view(vehicle, route.staleness);
+    var view = adhLib.view(vehicle, route && route.staleness);
     var head = el('div', 'trip__head');
     head.appendChild(el('b', 'trip__id', '#' + (vehicle.label || vehicle.vehicle_id)));
     head.appendChild(el('span', 'trip__sign',
@@ -246,7 +247,7 @@
     }
 
     var ahead = fmt.stopsAheadOf(stopTimes, vehicle);
-    var plan = fmt.arrivalPlan(ahead, vehicle, route.staleness);
+    var plan = fmt.arrivalPlan(ahead, vehicle, route && route.staleness);
 
     var count = el('p', 'trip__count', plan.reason && !ahead.anchored
       ? fmt.plural(plan.rows.length, 'scheduled stop', 'scheduled stops') + ' on this trip'
@@ -255,14 +256,24 @@
 
     if (plan.reason) { host.appendChild(reasonNotice(plan.reason, vehicle)); }
 
+    /*
+     * A divider at EVERY source change, in both directions. Feed coverage
+     * has an interior gap on 9 of 249 buses — feed, then estimate, then feed
+     * again — so a rule drawn only at the first feed-to-estimate transition
+     * would sit under a later, unmarked return to CapMetro's own numbers and
+     * mislabel them as estimated. Each marker claims something true only
+     * about the rows that follow it up to the next marker, not about the
+     * rest of the trip.
+     */
     var list = el('ol', 'tripstops');
-    var dividerDrawn = false;
     plan.rows.forEach(function (row, i) {
-      if (!dividerDrawn && row.source === 'estimate' && i > 0 && plan.rows[i - 1].source === 'feed') {
-        list.appendChild(el('li', 'tripstops__divider', 'CapMetro’s times end here'));
-        dividerDrawn = true;
+      if (i > 0 && row.source && row.source !== plan.rows[i - 1].source) {
+        var marker = row.source === 'estimate'
+          ? 'Estimated stops begin here'
+          : 'CapMetro’s times begin again here';
+        list.appendChild(el('li', 'tripstops__divider', marker));
       }
-      var li = stopRow(row, now, true);
+      var li = stopRow(row, now);
       if (i === plan.rows.length - 1) li.appendChild(el('span', 'tripstop__end', '(end)'));
       list.appendChild(li);
     });

@@ -596,6 +596,11 @@
     state.routeId = id;
     state.data = null;
     state.errorDetail = null;
+    /* A followed bus cannot survive a route change: it belongs to the route
+     * being left. Leaving these set would let the trip view resurrect the
+     * previous route's vehicle under the new route's (missing) data. */
+    state.tripBusId = null;
+    state.tripLastSeen = null;
     /* Each route remembers its own stop, so switching back is one tap and not
      * a fresh hunt through sixty-six of them. */
     state.stopId = recall('stop.' + id);
@@ -849,7 +854,6 @@
       now: (state.data && state.data.generated_at) || null,
       lastSeen: state.tripLastSeen
     }, {
-      routes: catalog(),
       picking: state.tripPicking,
       onPickRoute: function () { state.pickerOpen = !state.pickerOpen; render(); },
       onPickBus: function () {
