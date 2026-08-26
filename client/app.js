@@ -1600,6 +1600,22 @@
         routes.push(id);
       });
     }
+    /*
+     * And their live payloads, not only their schedules.
+     *
+     * A stops card names the bus bringing your trip in — "Bus 2867 brings it in
+     * on the 3:04p WB, due here in 4 minutes" — and a frozen payload leaves that
+     * bus four minutes away for as long as the tab stays open. The schedules
+     * above answer WHEN; these answer WHICH BUS, and the second is the half that
+     * goes stale in a way a reader cannot see.
+     *
+     * Only the route on the board is refreshed by load(), and a plan names up to
+     * six. refreshRoute is the same handshake the saved trips use, and it
+     * declines over a request still in flight.
+     */
+    if (state.view === 'stops' && state.plan.entries && state.plan.entries.length) {
+      global.CMB.plan.routesIn(state.plan.entries).forEach(refreshRoute);
+    }
     routes.filter(function (id, i) { return id && routes.indexOf(id) === i; })
       .forEach(loadDepartures);
     /*
@@ -2660,27 +2676,6 @@
    * is to wait sixty seconds for one. It is exported for that, and calling it is
    * the same thing the timer does, not a shortcut around it.
    */
-  function tick() {
-    if (state.status !== 'loading') load(state.routeId);
-    if (state.view === 'all') loadAll();
-    /* One retry per minute for a schedule that failed to load, or that came
-     * back describing a service day that is no longer today — and only here,
-     * where a retry cannot become a render loop. */
-    retryDepartures(state.routeId);
-    loadDepartures(state.routeId);
-    if (state.view === 'saved') {
-      /* A frozen saved trip is worse than none: it reads as a live prediction. */
-      global.CMB.watch.list().forEach(function (w) {
-        refreshRoute(w.route_id);
-      });
-    }
-    if (state.view === 'stops') {
-      /* Same rule, and it bites harder here: a stops card names the bus that
-       * is bringing your trip in, and a frozen one puts it eight minutes away
-       * for as long as the tab stays open. */
-      global.CMB.plan.routesIn(state.plan.entries || []).forEach(refreshRoute);
-    }
-  }
 
   /* ---- boot ----------------------------------------------------------- */
   function boot() {
@@ -2858,7 +2853,6 @@
   global.CMB.app = {
     state: state,
     load: load,
-    tick: tick,
     selectView: selectView,
     matchesFilter: matchesFilter,
     /*
@@ -2870,6 +2864,13 @@
     currentServiceDate: currentServiceDate,
     scheduleExpired: scheduleExpired,
     usableDepartures: usableDepartures,
+    /*
+     * The one the timer runs, and therefore the one the suite must drive. There
+     * used to be a second tick alongside it, left by a merge — setInterval ran
+     * this one while the stops tests drove the other, so those tests were
+     * exercising a function the board never called and could not have seen a
+     * regression in the one it did.
+     */
     refreshTick: refreshTick,
     /* Exported for the suite alone: the generation guard is only observable by
      * letting an abandoned request answer, which needs a fetch under test

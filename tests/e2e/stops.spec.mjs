@@ -631,7 +631,7 @@ test.describe('a schedule is kept for the service day it describes, and no longe
     })
   const tick = (page, times = 1) =>
     page.evaluate((n) => {
-      for (let i = 0; i < n; i += 1) window.CMB.app.tick()
+      for (let i = 0; i < n; i += 1) window.CMB.app.refreshTick()
     }, times)
 
   test('keeps one dated today, and does not ask for it again', async ({ page }) => {
@@ -803,6 +803,39 @@ test.describe('a schedule is kept for the service day it describes, and no longe
       .toBeGreaterThanOrEqual(2)
   })
 
+  /*
+   * A stops card names the bus bringing your trip in — "Bus 2867 brings it in on
+   * the 3:04p WB, due here in 4 minutes". That sentence is made of a live
+   * payload, and only the route on the board is refreshed by the poll, while a
+   * plan names up to six. A frozen one leaves that bus four minutes away for as
+   * long as the tab stays open, which is a live prediction that stopped being
+   * live without saying so.
+   *
+   * This exists because a merge dropped exactly that refresh and every test in
+   * this file still passed.
+   */
+  test('refreshes the live payload of every route the plan names, not just the open one', async ({ page }) => {
+    const asked = {}
+    await page.route('**/api/route/*.json', async (route) => {
+      const id = new URL(route.request().url()).pathname.split('/').pop().replace('.json', '')
+      asked[id] = (asked[id] || 0) + 1
+      await route.continue()
+    })
+
+    /* Two routes, so there is one the board is not already polling. */
+    await page.goto('/turnaround/index.html#plan=1;4.1.6243.all;800.1.6293.all')
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    await page.waitForTimeout(300)
+    const before = { ...asked }
+    const other = Object.keys(asked).find((id) => id !== '4')
+    expect(other, 'the plan should name a route other than the open one').toBeTruthy()
+
+    await tick(page)
+    await expect
+      .poll(() => asked[other] || 0, { message: 'a plan route stopped being refreshed' })
+      .toBeGreaterThan(before[other] || 0)
+  })
+
   test('does not fire a second request while one is still in flight', async ({ page }) => {
     /*
      * The retry runs once a minute against a document that is still expired,
@@ -823,7 +856,18 @@ test.describe('a schedule is kept for the service day it describes, and no longe
 
     await tick(page)
     await page.waitForFunction(() => window.CMB.app.state.depStatus['4'] === 'loading')
-    await tick(page, 3)
+    /*
+     * One more turn, deliberately not four.
+     *
+     * The retry must not duplicate a request that is still running, and that is
+     * what this asserts. A request outstanding for TWO turns is a different case
+     * with its own rule — the board gives up on it, bumps the generation so the
+     * abandoned answer cannot land later, and asks again — because a fetch has no
+     * deadline of its own and one outstanding when a phone suspends may never
+     * settle at all. Ticking past that threshold here would be testing the
+     * give-up, which has its own tests, and would read as this rule failing.
+     */
+    await tick(page)
     await page.waitForTimeout(300)
     expect(asked(), 'a request in flight was forgotten and re-issued').toBe(2)
   })
