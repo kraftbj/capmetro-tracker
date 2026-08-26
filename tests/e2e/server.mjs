@@ -63,6 +63,12 @@ const TYPES = {
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  /* Neither nginx nor Apache ships a mapping for this, which is why both vhosts
+     declare one. This server has to declare it for the same reason: served as
+     octet-stream under nosniff, the manifest is refused and the board is not
+     installable -- a failure with no symptom on screen. */
+  '.webmanifest': 'application/manifest+json',
   '.woff2': 'font/woff2',
   '.woff': 'font/woff',
 }

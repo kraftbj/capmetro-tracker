@@ -193,3 +193,75 @@ describe('the app-path verbs agree everywhere they are written', () => {
     expect(table.match(/(\w+):/g).map((s) => s.slice(0, -1)).sort()).toEqual([...VERBS].sort())
   })
 })
+
+/*
+ * Being installable is a property of the HEADERS, not of the client.
+ *
+ * `default-src 'none'` is the whole point of this origin's policy, and both
+ * manifest-src and worker-src fall back to it. With neither named, index.html
+ * can link a perfect manifest and register a perfect worker and the browser
+ * will refuse both: no install prompt, no offline board, one console line each,
+ * and nothing wrong on screen to notice. Every other test in this repo would
+ * stay green.
+ *
+ * The MIME type is the same shape of failure one layer down. Neither nginx nor
+ * Apache ships a mapping for .webmanifest, so an unconfigured origin serves it
+ * as application/octet-stream -- which Chrome parses anyway and Safari does not,
+ * on an origin that sends X-Content-Type-Options: nosniff.
+ */
+describe('the vhosts let the board be installed', () => {
+  const policies = (conf) =>
+    [...conf.matchAll(/Content-Security-Policy[" ]+([^"]+)"/g)].map((m) => m[1])
+
+  it.each(['manifest-src', 'worker-src'])(
+    'names %s explicitly in every policy, rather than letting it fall back to none',
+    (directive) => {
+      for (const [name, conf] of [['nginx', nginx], ['apache', apache]]) {
+        const found = policies(conf)
+        expect(found.length, `${name} declares no CSP`).toBeGreaterThan(0)
+        for (const policy of found) {
+          expect(policy, `${name} would refuse the ${directive} fetch`).toContain(`${directive} 'self'`)
+        }
+      }
+    },
+  )
+
+  it('still starts from default-src none, which is what makes the two necessary', () => {
+    for (const conf of [nginx, apache]) {
+      for (const policy of policies(conf)) expect(policy).toContain("default-src 'none'")
+    }
+  })
+
+  it('serves the manifest as application/manifest+json in both', () => {
+    expect(nginx).toMatch(/location = \/manifest\.webmanifest \{/)
+    expect(nginx).toMatch(/default_type application\/manifest\+json;/)
+    expect(apache).toMatch(/^\s*AddType application\/manifest\+json \.webmanifest$/m)
+  })
+
+  it('does not let the manifest or the worker script cache past a deploy', () => {
+    /*
+     * The manifest names every icon and the start URL, and sw.js is the one file
+     * whose staleness the worker cannot fix for itself -- it is what decides
+     * what everything else does.
+     */
+    const manifestBlock = locationBlocks(nginx).find((b) => b.name === '= /manifest.webmanifest')
+    expect(manifestBlock).toBeDefined()
+    expect(manifestBlock.body).toMatch(/Cache-Control "public, max-age=0, must-revalidate"/)
+    /* sw.js is served by the js|css rule, which already revalidates. */
+    const scripts = locationBlocks(nginx).find((b) => b.name === '~* \\.(js|css)$')
+    expect(scripts.body).toMatch(/Cache-Control "public, max-age=0, must-revalidate"/)
+    expect(apache).toMatch(/<Files "manifest\.webmanifest">/)
+  })
+
+  it('keeps the deny blocks above the icon location, like every other asset rule', () => {
+    /*
+     * The regression the deny blocks were moved for: nginx takes the FIRST
+     * matching regex location, so an asset block declared above them is a hole
+     * they never see. A new one added in the wrong place reopens it silently.
+     */
+    const deny = nginx.indexOf('location ~ /\\. { deny all; }')
+    const icons = nginx.indexOf('location ~* \\.(png|svg|ico)$')
+    expect(deny).toBeGreaterThan(0)
+    expect(icons).toBeGreaterThan(deny)
+  })
+})

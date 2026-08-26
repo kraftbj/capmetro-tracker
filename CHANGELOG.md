@@ -7,6 +7,72 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Added
 
+- **Installable on a phone, and it opens with no signal.** A web app manifest, a
+  set of icons cut from the board's own palette, the Apple meta tags iOS reads
+  instead of the manifest, and a service worker. Added to a home screen the board
+  runs without browser chrome, in its own task, at its own colour.
+
+  The worker exists for one reason: to make the board OPEN at a bus stop with one
+  bar. It caches the document, the scripts, the stylesheet, the fonts and the
+  bundled fixture — and it **never touches `/api/`**, not even to look. Those
+  documents are regenerated every 60 seconds and a cache in front of them is the
+  board showing where the buses were the last time the phone had signal, with
+  nothing on screen saying so. Offline, the feed fetch fails exactly as it does
+  today, `app.js` falls back to the committed fixture, and the reader gets the
+  **Sample data** banner that already exists. There is no new offline screen
+  because the board already has an honest one.
+
+  Everything else is network-first rather than cache-first, which is the deploy
+  story: `update.sh` rsyncs new client files and restarts nothing, so a
+  cache-first worker would serve the previous release until somebody remembered
+  to bump a version string. New code lands on the next load exactly as it does
+  without a worker; the cache is a floor, not a ceiling. Fonts are the one
+  exception — immutable for a year in both vhosts, and 70 KB of not-refetching.
+
+  Three things had to change outside the client. Both vhosts now name
+  `manifest-src 'self'` and `worker-src 'self'`: this origin's policy starts at
+  `default-src 'none'`, both directives fall back to it, and without them a
+  perfect manifest and a perfect worker are both refused — no install prompt, no
+  offline board, one console line each and nothing wrong on screen. Both vhosts
+  also declare `application/manifest+json` for `.webmanifest`, which neither
+  nginx nor Apache ships a mapping for; served as octet-stream under `nosniff`,
+  Safari refuses the manifest. And `styles.css` pads for `safe-area-inset-*`,
+  because standalone mode has no browser chrome to absorb a notch and the
+  viewport meta has said `viewport-fit=cover` all along.
+
+  Every URL in the manifest and every `href` added to `index.html` is relative,
+  for the reason the `<base>` bootstrap exists: the board reads its own directory
+  out of the path, and `tests/e2e/server.mjs` serves the whole client under a
+  scenario prefix. An absolute `/manifest.webmanifest` passes every unit test and
+  404s under the fixture server. The manifest has no `id` for the same reason and
+  it cannot be fixed the same way — `id` resolves against the origin, not the
+  manifest, so there is no prefix-safe spelling of it. Omitted, it defaults to
+  `start_url`, which is correct everywhere.
+
+  The icons are generated rather than committed as five files nobody can
+  re-derive: `node client/icons/regenerate.js` cuts every PNG, the SVG favicon
+  and the `.ico` from node's own zlib and eighty lines of arithmetic, so they can
+  be recut from `tokens.css` by anybody with node installed. The mark is the
+  board's own string-line — a spine with three dots placed by how late each bus
+  is, in the same `--adh-early`/`--adh-ontime`/`--adh-late` hexes the board uses.
+  A test pins those hexes to `tokens.css`, so a repalette cannot leave the old
+  colours on somebody's home screen, where they are not next to the board and
+  nobody would notice.
+
+  The service worker is **driven rather than read** by its tests: it is evaluated
+  against a fake `ServiceWorkerGlobalScope` and dispatched real install, activate
+  and fetch events, because a text assertion passes for a worker that checks
+  `isApi` and then ignores the answer. Its shell list is hand-written — the file
+  is shipped verbatim and there is no build step — and derived independently in
+  the test from the tags in `index.html`, the `@import` chain in the CSS and the
+  manifest's own icons, so a script added to the page without being added to the
+  shell fails there instead of opening offline with one namespace missing. The
+  browser suite covers the three things only a browser can see: that the manifest
+  and icons are served at the right type under the prefix, that the worker's
+  scope follows the prefix rather than claiming the origin root, and that with
+  the network off a never-visited `/trip/7/2641` still opens while
+  `api/route/4.json` still fails.
+
 - **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
   the 350, the 337 to the 7 to the 837 — saved and shown as one card instead of two
   or three route boards to compare by hand. The card leads with when the first bus

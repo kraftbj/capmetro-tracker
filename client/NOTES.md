@@ -150,6 +150,145 @@ board invents a value.
 
 ---
 
+## Installed on a phone (`manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`)
+
+Added to a home screen the board runs in its own task with no browser chrome.
+`manifest.webmanifest` describes it, `client/icons/` holds the art,
+`client/pwa.js` registers `client/sw.js`, and the two vhosts had to change for
+any of it to be allowed.
+
+### The rule the service worker is written under
+
+**`/api/*` is never cached, never inspected, never answered.** Requests under an
+`api/` segment fall straight through with no `respondWith()`, so the browser
+does exactly what the page asked. Those documents are rebuilt every 60 seconds
+and both vhosts serve them `no-cache`; CLAUDE.md is explicit that a cache in
+front of them shows stale positions while looking current, which is the failure
+this whole project exists to avoid.
+
+Offline that means the feed fetch **fails**, which is correct: failing is how
+`app.js` knows to fall back to the bundled fixture and raise the **Sample data**
+banner. There is deliberately no new offline screen. The board has an honest one
+already and it says more than a generic one could.
+
+Everything else is **network-first**, cache as fallback only. That is the deploy
+story, not a preference: `deploy/update.sh` rsyncs new client files and restarts
+nothing, so a cache-first worker would keep serving the previous release until
+its version string changed and somebody remembered to change it. Network-first
+means a deploy lands on the next load exactly as it does with no worker, and the
+same fetch that serves the page refreshes the cached copy behind it. The fonts
+are the one exception: immutable for a year in both vhosts, cache-first, 70 KB.
+
+`VERSION` in `sw.js` therefore does **not** need bumping for a code change. It
+needs bumping when the SHELL list changes, so a file that was removed stops
+being served out of an old cache — the one thing network-first cannot fix by
+itself.
+
+### Everything here is a relative URL, for the reason the `<base>` bootstrap exists
+
+`register('sw.js')` resolves against the document base the bootstrap set, so the
+worker lands at `/sw.js` in production and `/fresh/sw.js` under
+`tests/e2e/server.mjs`, and its scope follows. `register('/sw.js')` would claim
+the origin root and, on the fixture server, every other scenario with it. The
+same goes for `<link rel="manifest">`, the icon links, and every URL inside the
+manifest: an absolute one passes every unit test and 404s under the prefix.
+
+The manifest has **no `id`**, and that is not an oversight that a relative
+spelling would fix. `id` is resolved against the ORIGIN rather than against the
+manifest, so no spelling of it survives a prefix. Left out it defaults to
+`start_url`, which is right everywhere.
+
+`sw.js` is registered on `load` rather than at parse, so it never competes with
+the first paint. Registration failure is swallowed: a worker that will not
+register costs the reader nothing they can see, and telling somebody waiting for
+a bus about a caching layer is not a feature.
+
+### What the vhosts had to grow
+
+`default-src 'none'` is the point of this origin's policy, and **`manifest-src`
+and `worker-src` both fall back to it**. Without naming them, the browser
+refuses a perfect manifest and a perfect worker: no install prompt, no offline
+board, one console line each, nothing wrong on screen, every other test green.
+`worker-src` would in fact reach `script-src` through `child-src`, but a feature
+that works by two-step fallback stops working the next time `script-src` is
+edited.
+
+Neither nginx nor Apache ships a MIME mapping for `.webmanifest`. Served as
+`application/octet-stream` on an origin sending `X-Content-Type-Options:
+nosniff`, Chrome parses it anyway and **Safari does not**. Both vhosts now
+declare `application/manifest+json`, and `tests/e2e/server.mjs` declares it too
+for the same reason.
+
+Icons and favicons cache for a day; the manifest and `sw.js` revalidate like
+`index.html` does. The manifest names every icon and the start URL, and `sw.js`
+is the one file whose staleness the worker cannot fix for itself.
+
+### The icons
+
+Generated, not committed as five files nobody can re-derive:
+
+```
+node client/icons/regenerate.js
+```
+
+That writes every PNG, `client/favicon.svg` and `client/favicon.ico` using
+node's own zlib and nothing else — this project has no build step and adding an
+image dependency to produce five files that change roughly never is the worse
+trade. The mark is the board's own string-line: a spine with three dots offset
+by how late each bus is, drawn in the same `--adh-early`, `--adh-ontime` and
+`--adh-late` hexes `tokens.css` publishes.
+`tests/node/client-installable.test.mjs` pins those hexes to `tokens.css`, so a
+repalette cannot leave the old colours on a home screen where nobody is looking
+at them next to the board.
+
+`maskable-*.png` are separate files rather than `purpose: "any maskable"` on the
+same ones. A launcher may crop a maskable icon to 80% of its width; the tiled
+art fills its frame, so one file declared as both would be shown cropped through
+its own rounded corners.
+
+iOS reads **none** of the manifest's icons and only `<link rel="apple-touch-icon">`
+plus the `apple-` meta tags. `status-bar-style` is `black` rather than
+`black-translucent`: translucent puts the board under the notch, and
+`styles.css` pads for the safe area — it does not lay out around it. If that
+ever changes, `tests/node/client-installable.test.mjs` is the test to change
+with it.
+
+### Safe-area padding
+
+Four declarations at the end of `styles.css`. Standalone mode has no browser
+chrome to absorb a notch or a home indicator and the viewport meta has said
+`viewport-fit=cover` since before any of this. `env()` is 0 in a tab and on
+every device without an inset, so the 412px design does not move — the
+horizontal-overflow checks in the browser suite cover that. The horizontal inset
+sits on `<body>` rather than on `--pad-band` because the panels are full-width
+bands on one continuous surface, and the strip beside a landscape notch has to
+be that same surface rather than a gap cut into it.
+
+### What is tested where
+
+| | |
+|---|---|
+| `tests/node/client-installable.test.mjs` | the manifest, the tags, the icon files, the palette they were cut from |
+| `tests/node/client-sw.test.mjs` | the worker DRIVEN against a fake `ServiceWorkerGlobalScope` — install, activate and fetch events dispatched for real. A text assertion would pass for a worker that reads `isApi` and ignores the answer. Also derives the SHELL list independently from `index.html`, the CSS `@import` chain and the manifest's icons |
+| `tests/node/deploy-vhost-headers.test.mjs` | `manifest-src`, `worker-src`, the MIME type, and that the new icon location stayed below the deny blocks |
+| `tests/e2e/installable.spec.mjs` | the three things only a browser sees: served at the right type under the prefix, the worker's scope following the prefix, and a never-visited `/trip/7/2641` opening offline while `api/route/4.json` still fails |
+
+### Not done
+
+- **No install prompt of our own.** No `beforeinstallprompt` handler, no "add to
+  home screen" button on the board. The browser already offers it, and a banner
+  the reader did not ask for is a banner between them and a bus time.
+- **No push, no background sync, no periodic sync.** All three want a server
+  that can talk back; the runtime here is a cron job writing JSON to disk.
+- **No `orientation` in the manifest.** The board is designed at 412px portrait,
+  but locking rotation on a device somebody is holding sideways for a reason is
+  not ours to do.
+- **No screenshots in the manifest.** They only change the install dialog on
+  Android and would mean committing rendered PNGs of the board that go stale
+  every time it changes.
+
+---
+
 ## Gaps in the API contract that the design spec depends on
 
 These are the ones that changed what I could build. Each is a request to whoever
