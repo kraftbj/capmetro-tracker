@@ -921,6 +921,27 @@ describe('a store somebody edited by hand', () => {
     expect(t0.scheduled_slack_s).toBe(t0.board_at - t0.alight_at - worst)
   })
 
+  /*
+   * The timetable figure keeps its sign.
+   *
+   * minutesWord is Math.abs, which is right everywhere it sits beside a sentence
+   * that supplies the direction — "missed" says which way a number runs. The
+   * ungraded hedge does not, and it is the last quantitative claim standing
+   * after the card has refused to grade, so a timetable that is six minutes
+   * SHORT read as one that allows six.
+   */
+  t('an ungraded change does not describe a short timetable as a generous one', (chain) => {
+    const short = { ungraded_legs: [{ side: 'arriving', why: 'feed_stale', vehicle: true }],
+      scheduled_slack_s: -332, walk_m: null, walk_s: null, state: 'unknown' }
+    const roomy = { ungraded_legs: [{ side: 'arriving', why: 'feed_stale', vehicle: true }],
+      scheduled_slack_s: 332, walk_m: null, walk_s: null, state: 'unknown' }
+
+    expect(chain.connectionDetail(short)).toMatch(/short here/)
+    expect(chain.connectionDetail(short)).not.toMatch(/allows \d+ minutes? here/)
+    /* And the ordinary case is untouched. */
+    expect(chain.connectionDetail(roomy)).toMatch(/allows 6 minutes here/)
+  })
+
   t('a hand-edited stop id that names a prototype member does not take the view down', (chain) => {
     const { chain: c } = theChain(chain)
     const now = FIXTURE._now

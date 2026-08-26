@@ -428,9 +428,26 @@
       });
   }
 
-  /* The live payload for a route, wherever it happens to be cached. */
+  /*
+   * The live payload for a route, wherever it happens to be cached — and only
+   * when it IS live.
+   *
+   * The bundled fixture is a frozen capture that declares its own staleness as
+   * `fresh` with adherence usable, because it was fresh on the day it was taken.
+   * So a board that has fallen back to it was handing months-old lateness to the
+   * graders as a current measurement: a saved trip printed "Bus 2216 · on time
+   * to the second" directly under the banner saying no live feed was reachable.
+   * GTFS trip ids are stable within a feed version, so the join succeeds and the
+   * contradiction never surfaces by itself.
+   *
+   * currentServiceDate() has always excluded the fixture on the same argument —
+   * a frozen capture must not define what today is — and this is the other half
+   * of it. Withholding costs nothing anybody wanted: with no live feed there is
+   * no lateness to grade with, and saying so is a state both cards already have
+   * words for.
+   */
   function liveRoute(routeId) {
-    if (routeId === state.routeId) return state.data;
+    if (routeId === state.routeId) return state.usingFixture ? null : state.data;
     return state.routeData[routeId] || null;
   }
 
@@ -1378,19 +1395,20 @@
      * board's route and are not yet in either store, so without this a schedule
      * that failed once left the editor on "Loading…" until the tab was closed.
      */
-    editorRouteIds().forEach(function (id) {
-      retrySchedule(id);
-      /*
-       * And ask outright, because retrySchedule only acts on 'error' and
-       * 'stale'. A schedule that is present, still marked 'ok', and WITHHELD —
-       * the service-day roll, or a document whose date cannot be read — is none
-       * of those, and it is the case the editor cannot recover from on its own:
-       * renderLive() suppresses the repaint while an editor is open, so the
-       * paint-time re-ask in paintChainEdit never runs to notice. The tick is
-       * the one place that keeps working behind an open editor.
-       */
-      loadDepartures(id);
-    });
+    /*
+     * Asked for outright, not through retrySchedule.
+     *
+     * retrySchedule acts only on 'error' and 'stale', and the sweep at the top of
+     * this same tick has already deleted both — so calling it from here was dead
+     * code describing a mechanism that could not run. loadDepartures is what
+     * actually covers the case: a schedule that is present, still marked 'ok',
+     * and WITHHELD — the service-day roll, or a document whose date cannot be
+     * read — is neither 'error' nor 'stale', and it is what an open editor
+     * cannot recover from on its own, because renderLive() suppresses the
+     * repaint and the paint-time re-ask never runs to notice. The tick is the
+     * one thing that keeps working behind an open editor.
+     */
+    editorRouteIds().forEach(loadDepartures);
 
     /*
      * Every route either store names — a saved trip names one, a chain names two
@@ -1414,9 +1432,10 @@
     if (state.view === 'saved' || editing()) {
       Object.keys(savedRouteIds()).forEach(function (id) {
         refreshRoute(id);
-        /* And one retry for a schedule that failed. The sweep above covers the
-         * routes with a cached status; a chain's other legs may have none. */
-        retrySchedule(id);
+        /* And the schedule, for the same reason and by the same route: the sweep
+         * above has already cleared any 'error' or 'stale', so this asks rather
+         * than retries. loadDepartures declines a document it may still use. */
+        loadDepartures(id);
       });
     }
   }
@@ -2039,7 +2058,14 @@
     Object.keys(state.routeData).forEach(function (id) {
       map[id] = age(state.routeData[id], id);
     });
-    if (state.routeId && state.data) map[state.routeId] = age(state.data, state.routeId);
+    /*
+     * Through liveRoute, so the rule about the bundled fixture is written once.
+     * This used to reach for state.data itself, which meant the exclusion had to
+     * be remembered in two places — and the copy the chain card reads was the
+     * one no test covered.
+     */
+    var open = state.routeId ? liveRoute(state.routeId) : null;
+    if (open) map[state.routeId] = age(open, state.routeId);
     return map;
   }
 

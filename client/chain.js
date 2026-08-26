@@ -427,12 +427,40 @@
    * what rowsFor was written for, and the reason it is shared rather than
    * reimplemented here.
    */
-  function tripTimeAt(dep, tripIndex, stopId) {
+  function tripTimeAt(dep, tripIndex, stopId, afterSeconds) {
     var rows = watchLib.rowsFor(dep && dep.departures, stopId);
+    var best = null;
     for (var i = 0; i < rows.length; i++) {
-      if (rows[i][1] === tripIndex) return rows[i][0];
+      if (rows[i][1] !== tripIndex) continue;
+      /*
+       * The call AFTER boarding, not the first one in the table.
+       *
+       * A trip can reach the same stop twice — a loop, a turnaround, a route
+       * that runs out and back past its own kerb — and 270 trip-and-stop pairs
+       * in the current feed do. downstreamStops(), which is what the editor
+       * offers connections from, has always been occurrence-aware: it filters to
+       * calls strictly after boarding. This did not, so the editor offered the
+       * SECOND call and the resolver graded the FIRST, and the two disagreed
+       * about which bus the rider was even on.
+       *
+       * It ran one way every time. The earlier call is always the earlier one,
+       * so the alighting time came out too early, so the slack came out too
+       * long: 1,035 of the 1,040 connections the editor will offer at such a
+       * stop were graded from a time more than a minute early, the worst by an
+       * hour — and 107 of them read "Connection holds" when the timetable alone
+       * already said tight or missed, before a single bus was late. The optimistic
+       * direction, on the one screen whose whole job is to say whether a change
+       * can be made.
+       *
+       * Nothing on a saved leg records which call it meant, and adding one would
+       * pin a chain to a timetable that gets republished. The boarding time is
+       * enough to pick the same occurrence the editor did, and it is recomputed
+       * from today's document every render, which is how walkFor already works.
+       */
+      if (afterSeconds !== null && afterSeconds !== undefined && rows[i][0] <= afterSeconds) continue;
+      if (best === null || rows[i][0] < best) best = rows[i][0];
     }
-    return null;
+    return best;
   }
 
   /*
@@ -763,7 +791,7 @@
     };
     if (!prev.resolved || !next.resolved) return out;
 
-    var alightSeconds = tripTimeAt(prevDep, prev.trip_index, next.leg.alight_stop_id);
+    var alightSeconds = tripTimeAt(prevDep, prev.trip_index, next.leg.alight_stop_id, prev.board_seconds);
     if (alightSeconds === null) {
       /*
        * The first leg's trip no longer calls at the stop this chain gets off at.
@@ -1284,8 +1312,23 @@
        * — it is what the schedule says — but the thing the reader wants is the gap
        * after lateness, and that is exactly what has gone missing.
        */
+      /*
+       * The sign has to survive. minutesWord is Math.abs, which is right
+       * everywhere it is paired with a sentence that supplies the direction —
+       * "missed" says which way a number runs. This sentence does not, and this
+       * is the one line left standing after the card has refused to grade, so
+       * "allows 6 minutes" was printed for a timetable that allows minus six,
+       * directly above a row reading "in 8:25a · out 8:20a".
+       *
+       * Negative is reachable without anything being broken: a boarding is
+       * matched with ten minutes of drift tolerance while the alighting time is
+       * read live off the trip, so a republish that moves the onward trip earlier
+       * flips it.
+       */
       var scheduled = t.scheduled_slack_s === null ? ''
-        : ' The timetable allows ' + minutesWord(t.scheduled_slack_s) + ' here.';
+        : t.scheduled_slack_s < 0
+          ? ' The timetable is ' + minutesWord(t.scheduled_slack_s) + ' short here even before any bus is late.'
+          : ' The timetable allows ' + minutesWord(t.scheduled_slack_s) + ' here.';
       return walk + ungradedSentence(t.ungraded_legs) + scheduled;
     }
     return walk + 'Not enough is known about these buses to say.';
