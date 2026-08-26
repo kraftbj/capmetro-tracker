@@ -221,7 +221,19 @@ if (preg_match('/^\d{8}$/', $feed_start) === 1) {
     }
 }
 
-$staleness = cm_staleness($now, $feed_times, $schedule_age_days);
+/*
+ * A schedule is spent when the service day being generated runs past feed_end_date,
+ * not when feed_start_date is merely a while ago -- this feed is republished about
+ * three times a year, so "a while ago" is the normal, healthy state. Compared against
+ * the service date rather than the wall clock, because after midnight the run is still
+ * finishing yesterday's service day and must be graded against yesterday's timetable.
+ */
+$feed_end = (string) ($index['feed_end_date'] ?? '');
+$schedule_expired_on = (preg_match('/^\d{8}$/', $feed_end) === 1 && $service_date > $feed_end)
+    ? $feed_end
+    : null;
+
+$staleness = cm_staleness($now, $feed_times, $schedule_age_days, $schedule_expired_on);
 $suppress = (bool) $staleness['suppress_adherence'];
 
 /* ------------------------------------------------------------------------------------

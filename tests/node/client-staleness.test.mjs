@@ -59,6 +59,30 @@ describe('the banner escalates with the level rather than being one flat warning
     expect(ns.stalenessBanner(at('dead', 4000), fresh.feeds).className).toContain('danger')
   })
 
+  /*
+   * `stale` has two causes and they need different sentences. A schedule that has
+   * run out arrives with the realtime feed perfectly healthy, and the banner that
+   * shipped announced "Data 12 sec old. Lateness is hidden until the feed catches
+   * up." over it — a fault where there is none, and a wait that never ends.
+   */
+  t('does not blame the feed for a schedule that ran out under a healthy feed', (ns) => {
+    const st = { level: 'stale', oldest_feed_age_s: 12, schedule_age_days: 190,
+      suppress_adherence: true, reason: 'Schedule data ran out on 2027-01-09' }
+    const text = textOf(ns.stalenessBanner(st, fresh.feeds))
+
+    expect(text).not.toMatch(/12 sec/)
+    expect(text).not.toMatch(/feed catches up/)
+    expect(text.toLowerCase()).toContain('schedule')
+    expect(text.toLowerCase()).toMatch(/hidden/)
+    expect(text).toContain('2027-01-09')
+  })
+
+  t('still blames the feed when the feed is the one that stopped', (ns) => {
+    const text = textOf(ns.stalenessBanner(at('stale', 900), fresh.feeds))
+
+    expect(text).toMatch(/feed catches up/)
+  })
+
   t('names the last position time so the user can judge the data themselves', (ns) => {
     const banner = ns.stalenessBanner(at('dead', 4000), fresh.feeds)
     expect(textOf(banner)).toMatch(/last position/i)
