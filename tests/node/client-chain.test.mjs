@@ -919,6 +919,15 @@ describe('a store somebody edited by hand', () => {
     const worst = Math.ceil(chain.WALK_RADIUS_M * chain.WALK_CIRCUITY / chain.WALK_SPEED_MS)
     expect(worst).toBeGreaterThan(0)
     expect(t0.scheduled_slack_s).toBe(t0.board_at - t0.alight_at - worst)
+
+    /*
+     * And the charge is on the card. Charging it silently left the card
+     * contradicting its own evidence — a verdict computed with a term the
+     * printed times do not contain, directly above those times, which exist so a
+     * reader can check the arithmetic rather than take it on trust.
+     */
+    expect(t0.walk_assumed).toBe(true)
+    expect(chain.connectionDetail(t0)).toMatch(/could not be measured/)
   })
 
   /*
@@ -942,12 +951,87 @@ describe('a store somebody edited by hand', () => {
     expect(chain.connectionDetail(roomy)).toMatch(/allows 6 minutes here/)
   })
 
+  /*
+   * The whole-journey verdict may not reach past a change nobody could judge.
+   *
+   * model.connection is one transfer, and it is both the card's colour and the
+   * only chain-level sentence a screen reader is given. A first change whose bus
+   * publishes no lateness — around 7% of active vehicle trips on this feed — used
+   * to leave the SECOND change graded as though the rider had certainly boarded,
+   * and a graded change outranks an ungraded one in the table. The summary read
+   * "with no live time" and "Tight connection, 5 minutes spare" in one breath;
+   * with the second bus later still it read "Connection missed, 1 minute short"
+   * — a definite claim about a change she may never reach.
+   */
+  /*
+   * A clock field that is not a clock took the whole Saved band down — not just
+   * the bad chain, but the valid chains beside it, the valid saved trips, the
+   * staleness banners and the button to add another, because the chains are
+   * painted first. Truthiness let 75209 through where "07:52:09" was meant, and
+   * every reader downstream calls .split on it.
+   */
+  t('a scheduled_time that is not a clock is refused rather than thrown on', (chain) => {
+    const { chain: c } = theChain(chain)
+    const bad = [75209, 1, -1, true, {}, [], 1e18, '', null, undefined, '7:52', 'noon']
+    for (const value of bad) {
+      const edited = JSON.parse(JSON.stringify(c))
+      edited.legs[0].scheduled_time = value
+      expect(chain.isWellFormed(edited), `scheduled_time ${JSON.stringify(value)}`).toBe(false)
+    }
+    /* And the shape that IS a clock still passes, including a one-digit hour and
+     * a GTFS hour past midnight. */
+    for (const value of ['07:52:09', '7:52:09', '25:10:00']) {
+      const edited = JSON.parse(JSON.stringify(c))
+      edited.legs[0].scheduled_time = value
+      expect(chain.isWellFormed(edited), `scheduled_time ${value}`).toBe(true)
+    }
+  })
+
+  t('a change nobody could judge stops the journey verdict there', (chain) => {
+    const unknownFirst = [
+      { state: 'unknown', slack_s: null },
+      { state: 'tight', slack_s: 298 },
+    ]
+    expect(chain.worstTransfer(unknownFirst).state).toBe('unknown')
+
+    /* Including when what follows is definite. A missed change downstream of a
+     * doubt is not established either. */
+    const missedAfterUnknown = [
+      { state: 'unknown', slack_s: null },
+      { state: 'missed', slack_s: -60 },
+    ]
+    expect(chain.worstTransfer(missedAfterUnknown).state).toBe('unknown')
+
+    /* But a doubt AFTER a definite failure changes nothing: the rider never
+     * reaches the doubt, and the failure is the news. */
+    const missedFirst = [
+      { state: 'missed', slack_s: -60 },
+      { state: 'unknown', slack_s: null },
+    ]
+    expect(chain.worstTransfer(missedFirst).state).toBe('missed')
+
+    /* And an ordinary chain still reports its worst change, not its first. */
+    const ordinary = [
+      { state: 'made', slack_s: 900 },
+      { state: 'tight', slack_s: 120 },
+    ]
+    expect(chain.worstTransfer(ordinary).state).toBe('tight')
+  })
+
   t('a hand-edited stop id that names a prototype member does not take the view down', (chain) => {
     const { chain: c } = theChain(chain)
     const now = FIXTURE._now
+    /*
+     * `stop_id` and `alight_stop_id` are the two a saved leg actually has —
+     * legFromConnection writes `stop_id` for the boarding stop, not
+     * `board_stop_id`. The first version of this looped over `board_stop_id`,
+     * which no leg carries, so half the matrix set a field nothing reads and
+     * asserted nothing; the boarding stop, which is what reaches departuresAt
+     * and stopIndex, went untested.
+     */
     const spots = []
     for (let leg = 0; leg < c.legs.length; leg++) {
-      for (const field of ['alight_stop_id', 'board_stop_id']) spots.push([leg, field])
+      for (const field of ['alight_stop_id', 'stop_id']) spots.push([leg, field])
     }
     for (const hostile of ['constructor', 'hasOwnProperty', 'toString', 'valueOf', '__proto__']) {
      for (const [leg, field] of spots) {

@@ -285,7 +285,24 @@
     if (!chain.day_type) return false;
     for (var i = 0; i < legs.length; i++) {
       var leg = legs[i];
-      if (!leg || !leg.route_id || !leg.stop_id || !leg.scheduled_time) return false;
+      if (!leg || !leg.route_id || !leg.stop_id) return false;
+      /*
+       * The same argument one field further in. Truthiness let a NUMBER through
+       * — 75209 rather than "07:52:09" — and every reader downstream treats this
+       * as a clock string, so it reached serviceClock and threw on .split, out of
+       * resolve() and out of the paint. That took the whole Saved band with it:
+       * the chains are painted first, so one edited chain lost the valid chains,
+       * the valid saved trips, the staleness banners and the button to add
+       * another. A bad saved TRIP is less costly precisely because it is painted
+       * second.
+       *
+       * A clock is the shape this has to be, so that is what is checked. Not the
+       * value — a time this route never runs is a chain that will not resolve,
+       * which is a refusal the card knows how to draw.
+       */
+      if (typeof leg.scheduled_time !== 'string' || !/^\d{1,2}:\d{2}:\d{2}$/.test(leg.scheduled_time)) {
+        return false;
+      }
       if (i > 0 && !leg.alight_stop_id) return false;
     }
     return true;
@@ -825,6 +842,16 @@
      * about.
      */
     var walkCost = out.walk_s === null ? walkSeconds(WALK_RADIUS_M) : out.walk_s;
+    /*
+     * And say that it was charged. Charging the longest walk on offer and then
+     * printing nothing about it left the card contradicting its own evidence:
+     * "Connection missed, 1 minute short" directly above "In 8:12a · out 8:16a",
+     * which is four minutes the other way. transferRow prints those two times
+     * precisely so a reader can check the arithmetic instead of taking it on
+     * trust, and a term missing from the subtraction is what turns an invisible
+     * error into a visible contradiction.
+     */
+    out.walk_assumed = out.walk_s === null;
     out.scheduled_slack_s = out.board_at - out.alight_at - walkCost;
     out.slack_s = out.predicted_board_at - out.predicted_alight_at - walkCost;
 
@@ -1172,8 +1199,36 @@
      the thing upstream of it is. */
   var TRANSFER_RANK = { missed: 0, tight: 1, broken: 2, void: 3, unknown: 4, made: 5 };
 
+  /*
+   * The chain's own verdict, which is one transfer: it colours the card and it
+   * IS the sentence a screen reader is given for the whole journey.
+   *
+   * Only the changes up to and including the first one that could not be judged
+   * are eligible, because nothing past that point is established. A first change
+   * whose bus publishes no lateness — about 7% of active vehicle trips on this
+   * feed, so ordinary rather than exotic — left the second change graded as
+   * though the rider had certainly boarded, and the second change outranks the
+   * first in this table. The summary then read "Scheduled 7:52 AM, with no live
+   * time. Tight connection, 5 minutes spare" in one breath, and with the second
+   * bus a little later still, "Connection missed, 1 minute short" — a definite
+   * claim about a change she may never reach.
+   *
+   * The same shape as the cascade's rule one state over: that one stops grading
+   * at the first change that cannot be MADE, this one stops at the first that
+   * cannot be JUDGED. The per-change rows below still show what is known about
+   * each; it is the whole-journey verdict that may not reach past the doubt.
+   */
+  function judgeable(transfers) {
+    var out = [];
+    for (var i = 0; i < transfers.length; i++) {
+      out.push(transfers[i]);
+      if (transfers[i].state === 'unknown') break;
+    }
+    return out;
+  }
+
   function worstTransfer(transfers) {
-    var sorted = transfers.slice().sort(function (a, b) {
+    var sorted = judgeable(transfers).slice().sort(function (a, b) {
       var ra = TRANSFER_RANK[a.state] === undefined ? 9 : TRANSFER_RANK[a.state];
       var rb = TRANSFER_RANK[b.state] === undefined ? 9 : TRANSFER_RANK[b.state];
       if (ra !== rb) return ra - rb;
@@ -1280,8 +1335,11 @@
    */
   function connectionDetail(t) {
     if (!t) return '';
-    var walk = t.walk_m === null ? '' :
-      (t.walk_m === 0 ? 'Same stop' : 'A ' + t.walk_m + ' m walk') + ' at ' + t.alight_stop_name + '. ';
+    var walk = t.walk_assumed
+      ? 'The walk at ' + t.alight_stop_name + ' could not be measured, so the longest one ' +
+        'this board will offer is charged against the change. '
+      : t.walk_m === null ? '' :
+        (t.walk_m === 0 ? 'Same stop' : 'A ' + t.walk_m + ' m walk') + ' at ' + t.alight_stop_name + '. ';
     /*
      * Void first, and with no walk sentence in front of it. Describing the walk to
      * a change nobody reaches is the same mistake as grading it: true of the
@@ -1429,7 +1487,9 @@
         (ungraded ? 'Timetable only · in ' : 'In ') +
         fmt.clock(ungraded ? t.alight_at : t.predicted_alight_at) + ' · out ' +
         fmt.clock(ungraded ? t.board_at : t.predicted_board_at) +
-        (t.walk_s ? ' · ' + Math.round(t.walk_s / 60) + ' min walk' : '')));
+        (t.walk_s ? ' · ' + Math.round(t.walk_s / 60) + ' min walk'
+          : t.walk_assumed ? ' · walk not measured, ' +
+            Math.round(walkSeconds(WALK_RADIUS_M) / 60) + ' min charged' : '')));
     }
     var note = assumptionNote(t);
     if (note) row.appendChild(el('p', 'chaincard__note', note));
@@ -2001,6 +2061,9 @@
     MAX_WAIT_S: MAX_WAIT_S,
     TIGHT_S: TIGHT_S,
     MAX_LEGS: MAX_LEGS,
+    /* Exported for the suite: the whole-journey verdict is one transfer chosen
+     * from many, and which one is chosen is the claim the card makes. */
+    worstTransfer: worstTransfer,
     BEFORE_S: BEFORE_S,
     AFTER_S: AFTER_S,
     UNGRADED_HOLD_S: UNGRADED_HOLD_S,
