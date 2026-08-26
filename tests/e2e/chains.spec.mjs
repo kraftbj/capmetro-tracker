@@ -613,6 +613,59 @@ test.describe('a route that loaded once and then stopped refreshing', () => {
  * button, and no way forward. On a file:// board, which is a supported way to open
  * this, every route takes that path every time.
  */
+/*
+ * The other way an editor can be left with no schedule, and the one nothing
+ * covered: the document is present and the board is WITHHOLDING it.
+ *
+ * A schedule from a service day that has ended is kept and refused rather than
+ * deleted, so its status stays 'ok' — and 'ok' is not 'error', which is the only
+ * thing the interval's retry acts on. The routes a chain is part-way through
+ * naming are also in neither store yet, so the schedule sweep does not know
+ * them either. The saved-trip editor has re-asked on every paint since that
+ * withholding landed; this editor was written on another branch and the merge
+ * never paired them, which left it on "Loading the schedule for route 800…"
+ * with no retry button for the life of the view.
+ */
+test.describe('a schedule the editor is holding but may not use', () => {
+  test('is asked for again rather than leaving the step list empty', async ({ page }) => {
+    /* Serve it dated a day before the live payload: present, and unusable. */
+    let stale = true
+    await page.route('**/api/departures/800.json', async (route) => {
+      const res = await route.fetch()
+      const doc = await res.json()
+      if (!stale) return route.fulfill({ response: res })
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ...doc, service_date: '20260818' }),
+      })
+    })
+
+    /* One tick per 300 ms rather than per minute. Real timers, real callback --
+       only the delay is compressed, so what runs is what ships. The tick is what
+       has to notice, because renderLive() stops the repaint while an editor is
+       open and the paint-time re-ask therefore never runs. */
+    await page.addInitScript(() => {
+      const real = window.setInterval.bind(window)
+      window.setInterval = (fn, ms) => real(fn, ms >= 60000 ? 300 : ms)
+    })
+
+    await page.goto(SAVED)
+    await page.locator('button:visible', { hasText: 'Save a chain' }).first().click()
+    await page.locator('.routegrid__item', { hasText: '800' }).first().click()
+    await page.waitForTimeout(300)
+
+    /* The replacement arrives. The editor must go and get it. */
+    stale = false
+    await page.waitForTimeout(1500)
+
+    /* Directions come from the schedule, so their presence is the schedule
+     * having been re-asked for and used. */
+    await expect(page.locator('button:visible', { hasText: /Goodnight SB|Mueller NB/ }).first())
+      .toBeVisible({ timeout: 5000 })
+  })
+})
+
 test.describe('a schedule the editor cannot load is not a dead end', () => {
   test('says what happened and offers a way out', async ({ page }) => {
     let failing = true

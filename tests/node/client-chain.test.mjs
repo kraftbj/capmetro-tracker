@@ -868,6 +868,88 @@ describe('a store somebody edited by hand', () => {
     expect(chain.isWellFormed({ legs: null, day_type: 'weekday' })).toBe(false)
   })
 
+  /*
+   * A store somebody edited by hand is this file's declared threat model, and
+   * isWellFormed only checks an alight_stop_id is truthy. A bare lookup on the
+   * departures object reaches Object.prototype, so `constructor` came back a
+   * function — truthy, length 1, nothing at [0] — and the next line threw out of
+   * resolve(), out of paintSaved(), and took the whole Saved view down until the
+   * store was cleared by hand. The same shape as the `?stop=` bug, one file over.
+   */
+  /*
+   * A walk the board cannot measure is charged the longest one it would ever
+   * offer, not nothing. Zero is the optimistic end, and this file leans the
+   * other way everywhere else — the slow pace, the circuity factor, the `<=` at
+   * the tight threshold — because both errors that ever reached a reader ran the
+   * same way: making a connection look easier than it is.
+   */
+  t('an unmeasurable walk is charged the worst one on offer, not nothing', (chain) => {
+    const { chain: c } = theChain(chain)
+    const now = FIXTURE._now
+    const edited = JSON.parse(JSON.stringify(c))
+    /* No stored distance to fall back on. */
+    edited.legs.forEach(function (leg) { delete leg.walk_m; delete leg.walk_s })
+
+    /*
+     * And a boarding stop the feed lists WITHOUT coordinates, which is the shape
+     * that actually reaches this branch: the stop has to exist, or the leg is
+     * refused as broken long before a walk is priced. metres() treats a missing
+     * fix as unknown rather than as a point in the Atlantic, so the hop comes
+     * back unmeasurable while everything else about the chain still resolves.
+     */
+    const deps = JSON.parse(JSON.stringify(DEPS))
+    const target = deps['4'].stops.filter((st) => st.stop_id === edited.legs[1].stop_id)[0]
+    expect(target, 'the fixture should list the boarding stop').toBeTruthy()
+    delete target.lat
+    delete target.lon
+
+    const m = resolveLive(chain, edited, deps, {}, now)
+    const t0 = m.transfers[0]
+    /*
+     * Asserted, not skipped past. An early return here would make this test
+     * silently vacuous the moment the fixture changed — which is the failure
+     * this suite has already shipped more than once.
+     */
+    expect(t0, 'the transfer should still resolve').toBeTruthy()
+    expect(t0.walk_s, 'the walk should be unmeasurable in this setup').toBe(null)
+
+    /* The full radius at the modelled pace: what an offered connection is capped
+     * at, so an unpriceable walk can never look cheaper than the dearest one the
+     * editor would have let anybody save. */
+    const worst = Math.ceil(chain.WALK_RADIUS_M * chain.WALK_CIRCUITY / chain.WALK_SPEED_MS)
+    expect(worst).toBeGreaterThan(0)
+    expect(t0.scheduled_slack_s).toBe(t0.board_at - t0.alight_at - worst)
+  })
+
+  t('a hand-edited stop id that names a prototype member does not take the view down', (chain) => {
+    const { chain: c } = theChain(chain)
+    const now = FIXTURE._now
+    const spots = []
+    for (let leg = 0; leg < c.legs.length; leg++) {
+      for (const field of ['alight_stop_id', 'board_stop_id']) spots.push([leg, field])
+    }
+    for (const hostile of ['constructor', 'hasOwnProperty', 'toString', 'valueOf', '__proto__']) {
+     for (const [leg, field] of spots) {
+      const edited = JSON.parse(JSON.stringify(c))
+      edited.legs[leg][field] = hostile
+      /* The contract is that it resolves to SOMETHING rather than throwing. What
+       * it resolves to is a refusal, because the chain no longer describes a
+       * journey the schedule knows about — but a refusal renders, and a throw
+       * out of resolve() takes paintSaved and the whole view with it. */
+      let model
+      /* With the first bus reporting, so resolution runs the whole way through
+       * the transfer rather than stopping at "nothing is reporting" before it
+       * ever looks the alight stop up. */
+      expect(() => {
+        model = resolveLive(chain, edited, DEPS,
+          { 800: routeWith(WATCHED_TRIP, 0, 'ontime') }, now)
+      }, `leg${leg}.${field}=${hostile}`).not.toThrow()
+      expect(model, `leg${leg}.${field}=${hostile}`).toBeTruthy()
+      expect(model.state, `leg${leg}.${field}=${hostile}`).toBeTruthy()
+     }
+    }
+  })
+
   t('add reports whether the chain is actually in the store', (chain, cmb) => {
     const { chain: c } = theChain(chain)
     /*

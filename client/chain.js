@@ -414,9 +414,21 @@
     return out;
   }
 
-  /* One trip's scheduled time at one stop, or null when it does not call there. */
+  /*
+   * One trip's scheduled time at one stop, or null when it does not call there.
+   *
+   * Through watch.rowsFor, not a bare lookup. `stopId` is an alight_stop_id read
+   * back out of localStorage, and isWellFormed only checks it is truthy — so a
+   * store somebody edited by hand, which is this file's declared threat model,
+   * could put `constructor` there. A bare lookup on a JSON-parsed object reaches
+   * Object.prototype and hands back a function: truthy, `length` 1, nothing at
+   * [0], and the next line throws out of resolve() and out of paintSaved(),
+   * taking the whole Saved view down until the store is cleared by hand. Exactly
+   * what rowsFor was written for, and the reason it is shared rather than
+   * reimplemented here.
+   */
   function tripTimeAt(dep, tripIndex, stopId) {
-    var rows = ((dep && dep.departures) || {})[stopId] || [];
+    var rows = watchLib.rowsFor(dep && dep.departures, stopId);
     for (var i = 0; i < rows.length; i++) {
       if (rows[i][1] === tripIndex) return rows[i][0];
     }
@@ -766,7 +778,25 @@
       ? out.alight_at
       : out.alight_at + prev.lateness;
 
-    var walkCost = out.walk_s === null ? 0 : out.walk_s;
+    /*
+     * A walk that cannot be priced is charged the longest one this feature will
+     * ever offer, not zero.
+     *
+     * Zero was the optimistic end, and optimism is the one direction this file
+     * refuses everywhere else — the slow pace, the circuity factor and the `<=`
+     * at TIGHT_S all lean the same way, because both errors that reached a reader
+     * ran the same way: making a connection look easier than it is. Charging
+     * nothing also said nothing: connectionDetail() omits the walk sentence when
+     * walk_s is null, so a term had been dropped from the subtraction with no
+     * mark on the card.
+     *
+     * Not reachable from a chain this app built — connections() skips any pair
+     * whose stops it cannot measure, so walk_m is always a number at save time —
+     * which is exactly why it is worth pinning: the reachable route is a store
+     * somebody edited, and that is the case the rest of this file is careful
+     * about.
+     */
+    var walkCost = out.walk_s === null ? walkSeconds(WALK_RADIUS_M) : out.walk_s;
     out.scheduled_slack_s = out.board_at - out.alight_at - walkCost;
     out.slack_s = out.predicted_board_at - out.predicted_alight_at - walkCost;
 
@@ -956,7 +986,7 @@
     /*
      * Only cancellations the reader would actually run into.
      *
-     * `dead` is the index of the first leg the cascade could not reach, so a
+     * `deadFrom` is the index of the first leg the cascade could not reach, so a
      * cancellation at or beyond it is not news: they were never going to be on that
      * bus. Counting every leg meant a 3-leg chain with a missed change at transfer 1
      * and a canceled leg 3 led with the cancellation and erased the due time,

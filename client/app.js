@@ -1378,7 +1378,19 @@
      * board's route and are not yet in either store, so without this a schedule
      * that failed once left the editor on "Loading…" until the tab was closed.
      */
-    editorRouteIds().forEach(retrySchedule);
+    editorRouteIds().forEach(function (id) {
+      retrySchedule(id);
+      /*
+       * And ask outright, because retrySchedule only acts on 'error' and
+       * 'stale'. A schedule that is present, still marked 'ok', and WITHHELD —
+       * the service-day roll, or a document whose date cannot be read — is none
+       * of those, and it is the case the editor cannot recover from on its own:
+       * renderLive() suppresses the repaint while an editor is open, so the
+       * paint-time re-ask in paintChainEdit never runs to notice. The tick is
+       * the one place that keeps working behind an open editor.
+       */
+      loadDepartures(id);
+    });
 
     /*
      * Every route either store names — a saved trip names one, a chain names two
@@ -1740,7 +1752,7 @@
      * state, and rendering it for four routes while silently trusting a fifth is
      * the same failure the whole staleness machinery exists to prevent.
      */
-    savedStalenessBanners(now).forEach(function (b) { dom.main.appendChild(b); });
+    savedStalenessBanners().forEach(function (b) { dom.main.appendChild(b); });
 
     /*
      * Chains sit above saved trips. A chain is the higher-stakes item on this
@@ -2035,6 +2047,25 @@
     var band = el('section', 'band band--saved');
     band.setAttribute('aria-label', 'Save a transfer chain');
     dom.main.appendChild(band);
+
+    /*
+     * The same paint-time re-ask the saved-trip editor makes, for the same
+     * reason: this editor asks again for a schedule usableDepartures() has
+     * withheld, or it sits on an empty step list until something else happens to
+     * fetch one.
+     *
+     * Nothing else covers it. The refresh tick's schedule sweep knows the routes
+     * in the two STORES and the route on the board; a chain being built names
+     * routes that are in neither yet. And retrySchedule declines any status but
+     * 'error' or 'stale', so a schedule that is present, current-looking and
+     * withheld — the service-day roll, or a document whose date cannot be read —
+     * leaves the editor on "Loading the schedule for route N…" with no retry
+     * button for the life of the view.
+     *
+     * Safe from looping for the same reason the other editor's is: loadDepartures
+     * returns early on a document it may use, and on loading/error/stale.
+     */
+    editorRouteIds().forEach(loadDepartures);
 
     var ed = state.chainEditor;
     global.CMB.chain.renderEditor(band, {
