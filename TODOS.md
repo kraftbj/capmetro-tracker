@@ -115,6 +115,36 @@ continues past the edge. The second is better and needs a test either way.
 **Priority:** P2
 **Depends on:** None
 
+### Decide whether the departures document belongs in the offline cache
+
+**What:** The service worker refuses to cache anything under an `api/` segment,
+which includes `api/departures/{id}.json`. Offline, the board therefore opens on
+the bundled route 4 fixture and the trip view has no scheduled stop times for any
+other route.
+
+**Why:** Installing the board on a home screen is an invitation to open it with no
+signal, and "when is this bus scheduled at my stop" is a question a schedule can
+answer without a feed. Route 4 is the only route that answers it today.
+
+**Context:** The blanket `api/` rule is deliberate and should not be relaxed
+casually — it is what guarantees `api/route/{id}.json` can never be served stale,
+and a rule with one exception in it is a rule somebody will add a second exception
+to. But the departures document is genuinely not a live one: both vhosts already
+serve it `public, max-age=21600` because it turns over only when `service_date` or
+`feed_version` changes, and the client is already required to union its
+`trips[].canceled` with the live payload rather than trusting it. So a
+cache-with-a-service-date-check for that one path is defensible in a way that
+caching the route payload never is. What has to be designed first is the eviction:
+the client already has schedule-expiry logic for exactly this
+(`tests/e2e/schedule-eviction.spec.mjs`), and a worker cache that outlives it would
+reintroduce the bug that suite was written for. The cheaper alternative is to
+bundle a second route's schedule the way route 4's is bundled — 58 KB per route,
+and it does not scale to six.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** The service worker
+
 ## Infrastructure
 
 ### Deploy it somewhere you can actually open on a phone
