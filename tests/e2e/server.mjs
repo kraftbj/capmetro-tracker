@@ -219,8 +219,16 @@ const lookup = (table, key) =>
  * — went untested end to end. Built from the departures fixture rather than
  * committed, so the two cannot drift.
  *
- * `confidence: 'low'` because that is what every real 837 block in the
- * 2026-08-19 capture carries, and it is what the hedge is for.
+ * `confidence: 'low'` to exercise the hedge, which is what a continuation the
+ * feed has not confirmed must be said with.
+ *
+ * It used to be here because it was what every real 837 block carried, and that
+ * has stopped being true — the block-chaining fix was found on this very route,
+ * and correcting it moved 2,791 continuations from `low` to `high`; regenerating
+ * the 20260819 capture now reports `high` for all twelve of 837's blocks. So this
+ * is a deliberate choice of a value the contract still allows, not a copy of what
+ * the feed happens to say today. The hedge has to keep working for the routes
+ * that are still low.
  */
 function turnaroundRoute() {
   const dep = wireFormat(readJson(path.join(SYNTHETIC, STOPS_DEPARTURES[837])))
