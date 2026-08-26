@@ -290,11 +290,13 @@
        * The same argument one field further in. Truthiness let a NUMBER through
        * — 75209 rather than "07:52:09" — and every reader downstream treats this
        * as a clock string, so it reached serviceClock and threw on .split, out of
-       * resolve() and out of the paint. That took the whole Saved band with it:
-       * the chains are painted first, so one edited chain lost the valid chains,
-       * the valid saved trips, the staleness banners and the button to add
+       * resolve() and out of the paint. That took the rest of the Saved band with
+       * it: the chains are painted before the saved trips, so one edited chain
+       * lost the valid chains, the valid saved trips and the button to add
        * another. A bad saved TRIP is less costly precisely because it is painted
-       * second.
+       * second. The staleness banners survive either way — they are appended
+       * before the chain band is built, and nothing already on screen is undone
+       * by a throw.
        *
        * A clock is the shape this has to be, so that is what is checked. Not the
        * value — a time this route never runs is a chain that will not resolve,
@@ -655,9 +657,12 @@
    *     is nothing to know yet, and the schedule is the honest prior. `assumed`
    *     records that the verdict rests on one.
    *   no lateness  — a live feed, a bus joined, and no lateness published for it:
-   *     a deadhead, an unknown state, `no_trip_update`. About 7% of active vehicle
-   *     trips on this feed. The bus is drawn on this very screen, so "not
-   *     reporting yet" is flatly false and the timetable may not stand in.
+   *     a deadhead, an unknown state, `no_trip_update`. The bus is drawn on this
+   *     very screen, so "not reporting yet" is flatly false and the timetable may
+   *     not stand in. No frequency is claimed here: it could not be reproduced —
+   *     on the one capture in this repo, 20260819, all 249 vehicles joined to a
+   *     trip carried a number. This is a state the feed defines and adherence.js
+   *     names, not one measured into existence.
    *
    * A null `seconds` is never a zero. Treating it as "on time" would print a
    * confident prediction built on nothing, and it would err optimistically —
@@ -1203,15 +1208,14 @@
    * The chain's own verdict, which is one transfer: it colours the card and it
    * IS the sentence a screen reader is given for the whole journey.
    *
-   * Only the changes up to and including the first one that could not be judged
-   * are eligible, because nothing past that point is established. A first change
-   * whose bus publishes no lateness — about 7% of active vehicle trips on this
-   * feed, so ordinary rather than exotic — left the second change graded as
-   * though the rider had certainly boarded, and the second change outranks the
-   * first in this table. The summary then read "Scheduled 7:52 AM, with no live
-   * time. Tight connection, 5 minutes spare" in one breath, and with the second
-   * bus a little later still, "Connection missed, 1 minute short" — a definite
-   * claim about a change she may never reach.
+   * Eligible: the changes up to and including the first one that could not be
+   * judged, plus any later one that fails regardless of how that doubt resolves.
+   * Nothing else past the doubt is established. A first change whose bus
+   * publishes no lateness left the second one graded as though the rider had
+   * certainly boarded, and a graded change outranks an ungraded one in this
+   * table — so the summary read "Scheduled 7:52 AM, with no live time. Tight
+   * connection, 5 minutes spare" in one breath: a claim about a change she may
+   * never reach, in the same sentence that admits the first cannot be judged.
    *
    * The same shape as the cascade's rule one state over: that one stops grading
    * at the first change that cannot be MADE, this one stops at the first that
@@ -1220,9 +1224,28 @@
    */
   function judgeable(transfers) {
     var out = [];
+    var doubt = false;
     for (var i = 0; i < transfers.length; i++) {
-      out.push(transfers[i]);
-      if (transfers[i].state === 'unknown') break;
+      var t = transfers[i];
+      if (!doubt) {
+        out.push(t);
+        if (t.state === 'unknown') doubt = true;
+        continue;
+      }
+      /*
+       * Past the doubt, only a failure that does not depend on reaching it.
+       *
+       * A later 'tight' or 'made' IS conditional — it describes a change the
+       * rider may never get to, so it must not speak for the journey. A later
+       * 'missed' is not: it comes from that leg's own buses, and it holds
+       * whichever way the doubt resolves. If she makes the first change she
+       * misses the second; if she does not make the first, the journey fails
+       * there. It fails on both branches, and leading with "unknown" would be
+       * the card looking better than the road — the direction this file refuses
+       * everywhere else, and the reason the walk is charged slow and the tight
+       * threshold uses `<=`.
+       */
+      if (t.state === 'missed' || t.state === 'broken') out.push(t);
     }
     return out;
   }

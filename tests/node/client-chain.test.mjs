@@ -970,6 +970,36 @@ describe('a store somebody edited by hand', () => {
    * painted first. Truthiness let 75209 through where "07:52:09" was meant, and
    * every reader downstream calls .split on it.
    */
+  /*
+   * The same rule reached the way a reader reaches it: through resolve(), on a
+   * real chain, with a real feed. The test above builds transfer objects by
+   * hand, which is fine for the ranking itself and useless for showing that the
+   * state can actually occur — and this project's own rule is that a
+   * reproduction has to run through the real path.
+   */
+  t('a first bus with no lateness does not let the card grade the second change', (chain) => {
+    const { chain: c } = theChain(chain)
+    const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+    /*
+     * Leg 1's bus is on the road and publishes no lateness — a live feed, a
+     * vehicle joined to the trip, and `seconds` null. Leg 2's bus is fine.
+     */
+    const noLateness = routeWith(WATCHED_TRIP, null, 'unknown')
+    noLateness.vehicles[0].adherence.reason = 'no_trip_update'
+
+    const m = resolveLive(chain, c, DEPS, { 800: noLateness }, now)
+
+    expect(m.transfers[0].state, 'the first change cannot be judged').toBe('unknown')
+    expect(m.transfers[0].slack_s, 'and carries no slack figure').toBe(null)
+    /*
+     * Whatever the card says about the journey, it may not be a graded verdict
+     * borrowed from a change downstream of that doubt.
+     */
+    expect(m.connection.state).toBe('unknown')
+    expect(m.connection.slack_s, 'and no slack rides along with it').toBe(null)
+  })
+
   t('a scheduled_time that is not a clock is refused rather than thrown on', (chain) => {
     const { chain: c } = theChain(chain)
     const bad = [75209, 1, -1, true, {}, [], 1e18, '', null, undefined, '7:52', 'noon']
@@ -994,13 +1024,18 @@ describe('a store somebody edited by hand', () => {
     ]
     expect(chain.worstTransfer(unknownFirst).state).toBe('unknown')
 
-    /* Including when what follows is definite. A missed change downstream of a
-     * doubt is not established either. */
+    /*
+     * But a definite failure past the doubt still speaks, because it does not
+     * depend on the doubt resolving either way: if she makes the first change
+     * she misses the second, and if she does not make the first the journey
+     * fails there. It fails on both branches, so leading with "unknown" would be
+     * the card reading better than the road.
+     */
     const missedAfterUnknown = [
       { state: 'unknown', slack_s: null },
       { state: 'missed', slack_s: -60 },
     ]
-    expect(chain.worstTransfer(missedAfterUnknown).state).toBe('unknown')
+    expect(chain.worstTransfer(missedAfterUnknown).state).toBe('missed')
 
     /* But a doubt AFTER a definite failure changes nothing: the rider never
      * reaches the doubt, and the failure is the news. */
