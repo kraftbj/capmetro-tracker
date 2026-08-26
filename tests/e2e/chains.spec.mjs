@@ -25,11 +25,15 @@ const FILE_BOARD = pathToFileURL(
 /* The fixture's own service day; the client's clock follows the feed, not the
  * device, so nothing here depends on when the suite is run. */
 /*
- * The chain scenario, not /fresh/. Both fixture sets carry routes 800 and 4 —
- * the chain pair built around one 07:52:09 departure, and the golden/synthetic
- * schedules the rest of the suite asserts against — and neither can stand in for
- * the other, so the prefix chooses which schedules the board is holding. The
- * live payload is the ordinary fresh one either way.
+ * The chain scenario, not /fresh/: it serves the schedules this feature was
+ * designed against rather than the ones the rest of the suite uses. The live
+ * payload is the ordinary fresh one either way.
+ *
+ * Not load bearing, and worth saying so plainly: pointed at /fresh/ these 24
+ * tests all still pass, because the synthetic route 800 schedule happens to
+ * carry the same trip and the golden route 4 document is a superset. The prefix
+ * is here so that editing either fixture cannot quietly change what the other
+ * one's tests mean — it is insulation, not a dependency.
  */
 const SAVED = '/chain/index.html?view=saved'
 

@@ -713,7 +713,7 @@ describe('a canceled leg is never graded', () => {
     expect(m.detail).toMatch(/CapMetro has canceled/)
   })
 
-  t('a canceled chain outranks a live one that holds', (chain) => {
+  t('a canceled chain sits above everything waiting, but a live one still leads', (chain) => {
     const sorted = chain.sortModels([
       { state: 'live', seconds_until: 600, connection: { state: 'made', slack_s: 600 } },
       { state: 'canceled', seconds_until: 900, connection: { state: 'void', slack_s: null } },
@@ -868,13 +868,46 @@ describe('a store somebody edited by hand', () => {
     expect(chain.isWellFormed({ legs: null, day_type: 'weekday' })).toBe(false)
   })
 
-  t('add reports whether the chain is actually in the store', (chain) => {
+  t('add reports whether the chain is actually in the store', (chain, cmb) => {
     const { chain: c } = theChain(chain)
     /*
      * The board announced "Saved …" and navigated away from six steps of work even
      * when localStorage refused, landing the reader on "No transfer chains yet".
+     *
+     * Both directions, against a real store and a refusing one. Asserting only
+     * `typeof === 'boolean'` was the whole of this test before, and a boolean is
+     * what a function that always returns true also returns: mutating add() to
+     * ignore writeStore entirely left it green, which is the exact bug the
+     * comment above describes.
      */
-    expect(typeof chain.add(c)).toBe('boolean')
+    const store = {}
+    const before = client.window.localStorage
+    client.window.localStorage = {
+      getItem: (k) => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v) },
+      removeItem: (k) => { delete store[k] },
+    }
+    try {
+      expect(chain.add(c)).toBe(true)
+      expect(chain.list()).toHaveLength(1)
+
+      /* Already there: nothing to write, and nothing to warn about. */
+      expect(chain.add(c)).toBe(true)
+      expect(chain.list()).toHaveLength(1)
+
+      /* Now the store refuses. The answer has to change with it. */
+      client.window.localStorage.setItem = () => { throw new Error('QuotaExceededError') }
+      /* A copy: theChain hands back references into the shared fixture, and
+       * editing one in place corrupts every test that runs after this. */
+      const other = JSON.parse(JSON.stringify(c))
+      other.legs[0].scheduled_time = '09:15:00'
+      expect(chain.add(other)).toBe(false)
+      /* And the refusal is about the STORE, not about the chain: the one that
+       * was already written is still readable. */
+      expect(chain.list()).toHaveLength(1)
+    } finally {
+      client.window.localStorage = before
+    }
   })
 })
 

@@ -99,13 +99,22 @@ const SCENARIOS = {
    * what they change is the SCHEDULE, which comes from the committed chain
    * fixture instead of the per-route defaults below.
    *
-   * They need their own prefix because the two fixture sets collide: both carry
-   * routes 800 and 4, and both are load bearing for different tests. The chain
-   * fixture is a filtered pair built around one 07:52:09 departure and the route
-   * 4 buses it can reach, chosen because those two routes share NO stop ids; the
-   * defaults are a whole golden service day for route 4 and the synthetic
-   * schedule the expiry tests are written against. Neither can stand in for the
-   * other, so the prefix says which question is being asked.
+   * The prefix says which fixture set the board is holding. Both sets carry
+   * routes 800 and 4: the chain pair is a filtered set built around one 07:52:09
+   * departure and the route 4 buses it can reach, chosen because those two
+   * routes share NO stop ids; the defaults are a whole golden service day for
+   * route 4 and the synthetic schedule the expiry tests are written against.
+   *
+   * Measured rather than assumed, because the first version of this comment
+   * claimed the two could not substitute for each other and that is not true
+   * today: point every chain test at /fresh/ and all 24 still pass, because
+   * departures-800 happens to carry the same trip id and the golden route 4
+   * document is a superset containing the same Pleasant Valley stops. So this is
+   * a defensive split, not a load-bearing one — it pins the tests to the data
+   * the feature was designed against, so that editing either fixture cannot
+   * quietly change what the other one's tests mean. What actually pins the chain
+   * fixture's CONTENT is tests/node/client-chain.test.mjs, which reads it
+   * directly.
    */
   chain: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
   chaindead: () => ({ status: 200, body: JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, 'route-4-dead-cron.json')))) }),
