@@ -247,7 +247,10 @@ export function renderClient(scripts) {
     return { cmb: null, document: null, reason: `client/${scripts.join(', ')} failed to evaluate: ${err.message}` }
   }
 
-  return { cmb: window.CMB, document, reason: null }
+  /* The window comes back for the same reason bootClient's does: a test that
+   * wants to break localStorage has to reach the one the scripts actually read,
+   * which is this sandbox's, not the test process's. */
+  return { cmb: window.CMB, document, window, reason: null }
 }
 
 /*

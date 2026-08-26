@@ -1,8 +1,12 @@
-# PHP (Composer is dev-only here; the runtime job itself has no deps)
+# PHP (Composer is dev-only here; the runtime job itself has no deps).
+# Both spellings: the trailing slash matches a directory only, and a worktree
+# that symlinks its dependencies at the root would otherwise commit the link.
 vendor/
+vendor
 
 # Node
 node_modules/
+node_modules
 npm-debug.log*
 .npm/
 

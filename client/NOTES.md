@@ -363,6 +363,136 @@ variation on it.
 - **"Now" is `generated_at`.** The client never uses the device clock to judge
   freshness; every age comes from `staleness.oldest_feed_age_s`.
 
+- **A transfer is a PAIR of stops within a short walk, not a shared stop id.**
+  `chain.js` finds connections geometrically because on this feed the headline
+  example cannot be found any other way: routes 800 and 4 share **zero** stop ids
+  and meet at Pleasant Valley under two ids 27 m apart. Radius 300 m, walking pace
+  1.2 m/s charged against the slack, minimum 2 minutes of slack, maximum 45 minutes
+  from alighting to the onward departure, walk included. All four numbers are read off this feed rather than off a standard, and
+  all four are exported so a test can assert against them instead of restating them.
+
+- **`chain.js` uses `watch.js` rather than copying it.** Departure matching, the
+  service-day clock and the trip-to-vehicle join are one rule each, and ISSUE-002 is
+  what two copies of one rule cost. It is loaded after `watch.js` and throws on load
+  if that is not there, rather than failing one `undefined` at a time.
+
+- **A chain is over when the last bus is BOARDED, not when it finishes its run.**
+  Nothing records where the rider gets off the final leg, so the last boarding is the
+  only honest end marker. Using the trip's final stop would leave a finished chain on
+  screen for another forty minutes on the 800. The cost is that the card cannot say
+  "she gets in at 8:40" — see `TODOS.md`.
+
+- **A leg the feed cannot supply a lateness for refuses the verdict, it does not
+  fall back to the timetable.** Refusing to read `null` as zero is only half the
+  job; the other half is where the `null` leads. The timetable always reads *on
+  time*, so substituting it is never neutral — it moves the verdict optimistically
+  on exactly the input that should make it cautious. There is one case where it is
+  still honest, and it is the only one: **no vehicle on a live feed**, where the
+  bus has not started its run and the schedule is the prior. Everything else is a
+  refusal, and `unknown` is a reachable verdict. Measured: the same chain, same
+  ten-minutes-late bus, graded `missed` fresh and `made` dead.
+
+  Two ways this was got wrong, both found by review, both because the reasoning
+  above was written where the code could not act on it:
+
+  - `suppress_adherence` is a property of the **route**, and it was read inside
+    `if (out.vehicle)`. The refusal therefore only fired when the frozen snapshot
+    happened to contain that leg's bus. On a cron that died before the bus
+    appeared, "no vehicle" and "a vehicle we have stopped hearing from" are the
+    same observation and the join cannot tell them apart. Read it from
+    `route.staleness`, before the join, always.
+  - The refusal covered `stale_data` and none of the other unknown reasons, so a
+    reporting bus with `no_trip_update` graded confidently and was called "not
+    reporting yet" with its badge on the same card. The copy needs three
+    sentences, not one: a bus in a dead feed's snapshot **is** on the road, a bus
+    missing from one cannot be described either way, and a bus on a live feed with
+    no lateness published is reporting perfectly well.
+
+- **A refused verdict must not come back as a number somewhere else.** Three did.
+  `end_at` retired the chain on `predicted_board_at`, which on an ungraded leg is
+  the timetable — so the card went to "Gone. Back tomorrow" about a bus still at
+  the kerb; an ungraded chain now stands down on the clock (`UNGRADED_HOLD_S`).
+  The headline counted down to the same time in the largest type on the card. And
+  the two times under the verdict were printed unlabeled in the slot used for real
+  predictions, where they subtract to the withheld answer in the reader's head.
+
+- **The walk is recomputed from current stop positions on every render.** Everything
+  else in a chain is re-resolved from current documents; the walk was the one frozen
+  value, so a cost-model change reached new chains and not saved ones. The stored
+  metres survive only as a fallback for a stop with no fix, and even then the
+  seconds are re-derived rather than trusted.
+
+- **A canceled leg is never graded.** `resolveLeg()` checks `trip.canceled` before
+  the vehicle join, because every check after it concludes "not reporting yet" —
+  which reads as *not yet* when it means *never*, and would then grade the transfer
+  against a timetable for a bus that is not running. Same order `watch.js` uses, and
+  for the same reason its comment records. Transfers either side of a canceled leg
+  are `void`, not graded.
+
+- **Grading stops at the first change that cannot be made.** Everything downstream
+  of a missed, broken or canceled change is `void` and says why, rather than showing
+  a slack figure computed from a bus the rider will not be on. Grading each transfer
+  independently printed "Connection holds" six lines under "Connection missed" on a
+  three-leg chain, which is the shipped path for "337 to the 7 to the 837".
+
+- **`TIGHT_S` is five minutes, and deliberately not `MIN_SLACK_S`.** The two used
+  to be the same two minutes, on the reasoning that offering a connection and
+  trusting one are the same judgment. They are not. The estimator holds the first
+  leg's *currently observed* lateness constant all the way to the alighting stop,
+  and for a bus twenty minutes upstream that number moves by minutes before it
+  arrives — so a three-minute verdict sat inside the noise of the measurement that
+  produced it and still read "Connection holds". Nothing is hidden by the higher
+  threshold: those connections still appear, still print their slack, and still say
+  which half of the sum is measured. They say "tight" instead. The comparison is
+  `<=`, which mattered acutely while the constants were equal (a strict `<` graded
+  the tightest connection the board will ever offer as comfortable) and is still
+  the honest boundary. Tests assert the verdict at `MIN_SLACK_S`, at `MIN_SLACK_S
+  + 1`, at `TIGHT_S` and at `TIGHT_S + 1`.
+
+- **A verdict requires evidence; there is no default.** `gradeDecision()` is
+  written as an exhaustive set of named cases with no fall-through, and that shape
+  is the point. It was previously an enumeration of reasons to *refuse*, which
+  means it had a default, and the default was "grade it" — so every case nobody had
+  thought of graded confidently from the timetable. Four review rounds each found
+  another one and each fixed it by adding a fifth refusal. The last one found was
+  `route === null`, which is the state **every page load starts in**, because the
+  live route map is built from payloads that have already landed and the chain
+  paints before they do: the first frame of every visit printed "Connection holds"
+  beside the board's own "No live data for route N" banner. Adding a case here
+  means adding a branch, not discovering later that an unnamed one graded.
+
+- **The walk is charged with a 1.4 circuity factor.** Great-circle distance is
+  accurate to centimetres here and still wrong for the purpose: the straight line
+  between two stops is not a path anyone walks, and Pleasant Valley is a divided
+  arterial. Kept as a separate constant from `WALK_SPEED_MS` because they are
+  different claims — one about the street, one about the rider — and a blended
+  number would leave neither checkable. This is also what lets `WALK_RADIUS_M` stay
+  at 300 m when the cited examples only cover 215: the wide pairs are offered but
+  priced, at 5.8 minutes for a 300 m hop.
+
+- **A connection's verdict is computed from predicted times, and says which halves
+  are predictions.** A bus that has not started its run contributes its scheduled
+  time and the card prints "the timetable, not a prediction". A lateness the feed
+  will not supply is treated as absent rather than as zero, and refuses the verdict
+  outright — the `adherence.view()` contract already decides when a number may be
+  shown, and this reads that rather than re-deciding it.
+
+- **The Saved view ages the payloads it holds.** `staleness` describes the feed
+  when the file was generated and cannot speak for the minutes since, so a route
+  fetched once and never refreshed kept saying `fresh` for the life of the tab and
+  was graded with full confidence against hour-old positions. `liveRouteMap()` adds
+  the time this browser has held each document to the age the server measured and
+  applies the contract's own thresholds to the sum. `Date.now()` is the right clock
+  for that and the wrong one almost anywhere else here: it subtracts two readings of
+  the same local clock and never compares one with a time in a payload.
+
+- **A cached schedule is evicted only when it is STRICTLY older than the board's
+  service day, and eviction marks the route rather than clearing its fetch guard.**
+  Both halves are a request loop otherwise. Evicting on "different" threw away
+  today's schedule whenever the board was on the embedded fixture; clearing the
+  guard let the eviction refetch inside the paint that evicted. `YYYYMMDD` compares
+  chronologically as text, which is why no parsing is involved.
+
 ---
 
 ## Verification performed

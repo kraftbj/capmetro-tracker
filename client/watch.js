@@ -684,7 +684,7 @@
     head.appendChild(el('span', 'step__label', label));
     if (chosen) head.appendChild(el('span', 'step__chosen', chosen));
     box.appendChild(head);
-    if (open) box.appendChild(build());
+    if (open && build) box.appendChild(build());
     return box;
   }
 
@@ -752,6 +752,18 @@
     render: render,
     renderEditor: renderEditor,
     stopsFor: stopsFor,
-    directionsOf: directionsOf
+    directionsOf: directionsOf,
+    /*
+     * The step-based editor's presentation, exported because chain.js builds the
+     * same one. They were copy-pasted there first, which is the shape CLAUDE.md
+     * forbids after ISSUE-002: two implementations of one rule drift, and here the
+     * first symptom would be the two editors numbering or labeling their steps
+     * differently on one screen.
+     */
+    step: step,
+    cleanName: cleanName,
+    routeLabel: routeLabel,
+    dirLabel: dirLabel,
+    stopName: stopName
   };
 })(window);

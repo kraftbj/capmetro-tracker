@@ -1,0 +1,2741 @@
+{
+ "_comment": "Transfer chains: the 07:52:09 route 800 SB from Simond SB (6293) and the route 4 buses it can reach. Routes 800 and 4 share NO stop ids — they meet at Pleasant Valley where the MetroRapid platform (1369/1349) and the local kerb (938/3337) are tens of metres apart — so a transfer found by intersecting stop ids finds nothing here. That is the case this fixture exists for.",
+ "_now": 1787142600,
+ "_expected": {
+  "watched_trip": "3010894_22201",
+  "watched_stop_id": "6293",
+  "watched_time": "07:52:09",
+  "shared_stop_ids": 0,
+  "note": "connections() must still return transfers, all of them across a walk."
+ },
+ "departures": {
+  "4": {
+   "schema": 1,
+   "generated_at": 1787152239,
+   "route_id": "4",
+   "service_date": "20260819",
+   "service_day_start_epoch": 1787115600,
+   "day_type": "weekday",
+   "feed_version": "260818_1456",
+   "stops": [
+    {
+     "stop_id": "1368",
+     "stop_name": "Pleasant Valley/5th",
+     "stop_name_full": "501 Pleasant Valley/5th",
+     "direction_id": 0,
+     "stop_sequence": 1,
+     "lat": 30.257443,
+     "lon": -97.710596,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "1822",
+     "stop_name": "Gardner/Jain Ln.",
+     "stop_name_full": "Gardner/Jain Ln.",
+     "direction_id": 0,
+     "stop_sequence": 1,
+     "lat": 30.259882,
+     "lon": -97.681633,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "3337",
+     "stop_name": "7th/Pleasant Valley",
+     "stop_name_full": "2730 7th/Pleasant Valley",
+     "direction_id": 0,
+     "stop_sequence": 2,
+     "lat": 30.260388,
+     "lon": -97.710078,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "942",
+     "stop_name": "7th/Shady",
+     "stop_name_full": "4999 7th/Shady",
+     "direction_id": 0,
+     "stop_sequence": 2,
+     "lat": 30.253397,
+     "lon": -97.697886,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6450",
+     "stop_name": "Eastside Bus Plaza Bay J",
+     "stop_name_full": "5119 Eastside Bus Plaza Bay J",
+     "direction_id": 0,
+     "stop_sequence": 3,
+     "lat": 30.251893,
+     "lon": -97.698021,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "847",
+     "stop_name": "7th/Calles",
+     "stop_name_full": "2700 7th/Calles",
+     "direction_id": 0,
+     "stop_sequence": 3,
+     "lat": 30.260665,
+     "lon": -97.711521,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6261",
+     "stop_name": "Cesar Chavez/Springdale",
+     "stop_name_full": "3513 Cesar Chavez/Springdale",
+     "direction_id": 0,
+     "stop_sequence": 4,
+     "lat": 30.252034,
+     "lon": -97.7047,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "848",
+     "stop_name": "7th/Pedernales",
+     "stop_name_full": "2500 7th/Pedernales",
+     "direction_id": 0,
+     "stop_sequence": 4,
+     "lat": 30.260963,
+     "lon": -97.71356,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "4181",
+     "stop_name": "7th/Northwestern",
+     "stop_name_full": "7th/Northwestern",
+     "direction_id": 0,
+     "stop_sequence": 5,
+     "lat": 30.261408,
+     "lon": -97.716495,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6263",
+     "stop_name": "Cesar Chavez/Tillery",
+     "stop_name_full": "3069 Cesar Chavez/Tillery",
+     "direction_id": 0,
+     "stop_sequence": 5,
+     "lat": 30.251738,
+     "lon": -97.708599,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5119",
+     "stop_name": "7th/Chicon",
+     "stop_name_full": "7th/Chicon",
+     "direction_id": 0,
+     "stop_sequence": 6,
+     "lat": 30.262602,
+     "lon": -97.721983,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6265",
+     "stop_name": "Cesar Chavez/Pleasant…",
+     "stop_name_full": "2719 Cesar Chavez/Pleasant Valley",
+     "direction_id": 0,
+     "stop_sequence": 6,
+     "lat": 30.253005,
+     "lon": -97.712584,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5120",
+     "stop_name": "7th/Concho",
+     "stop_name_full": "7th/Concho",
+     "direction_id": 0,
+     "stop_sequence": 7,
+     "lat": 30.26388,
+     "lon": -97.725646,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6460",
+     "stop_name": "7th/Waller",
+     "stop_name_full": "1114 7th/Waller",
+     "direction_id": 0,
+     "stop_sequence": 8,
+     "lat": 30.265561,
+     "lon": -97.7305,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5949",
+     "stop_name": "8th/Trinity",
+     "stop_name_full": "411 8th/Trinity",
+     "direction_id": 0,
+     "stop_sequence": 9,
+     "lat": 30.268997,
+     "lon": -97.738479,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5937",
+     "stop_name": "8th/Congress",
+     "stop_name_full": "104 8th/Congress",
+     "direction_id": 0,
+     "stop_sequence": 10,
+     "lat": 30.269914,
+     "lon": -97.741869,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "5938",
+     "stop_name": "8th/Lavaca",
+     "stop_name_full": "216 8Th/Lavaca",
+     "direction_id": 0,
+     "stop_sequence": 11,
+     "lat": 30.270613,
+     "lon": -97.744215,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5499",
+     "stop_name": "6th/West",
+     "stop_name_full": "714 6th/West",
+     "direction_id": 0,
+     "stop_sequence": 12,
+     "lat": 30.270316,
+     "lon": -97.75049,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1970",
+     "stop_name": "6th/Wood",
+     "stop_name_full": "842 6th/Wood",
+     "direction_id": 0,
+     "stop_sequence": 13,
+     "lat": 30.270962,
+     "lon": -97.752215,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1972",
+     "stop_name": "6th/Harthan",
+     "stop_name_full": "1208 6th/Harthan",
+     "direction_id": 0,
+     "stop_sequence": 14,
+     "lat": 30.273061,
+     "lon": -97.757846,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1973",
+     "stop_name": "6th/Pressler",
+     "stop_name_full": "6th/Pressler",
+     "direction_id": 0,
+     "stop_sequence": 15,
+     "lat": 30.273935,
+     "lon": -97.760118,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1974",
+     "stop_name": "6th/West Lynn",
+     "stop_name_full": "6th/West Lynn",
+     "direction_id": 0,
+     "stop_sequence": 16,
+     "lat": 30.274836,
+     "lon": -97.762509,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1977",
+     "stop_name": "Veterans/Atlanta",
+     "stop_name_full": "Veterans/Atlanta",
+     "direction_id": 0,
+     "stop_sequence": 17,
+     "lat": 30.276121,
+     "lon": -97.771658,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6243",
+     "stop_name": "Campbell/5th",
+     "stop_name_full": "504 Campbell/5th",
+     "direction_id": 0,
+     "stop_sequence": 17,
+     "lat": 30.275026,
+     "lon": -97.764825,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "1977",
+     "stop_name": "Veterans/Atlanta",
+     "stop_name_full": "Veterans/Atlanta",
+     "direction_id": 1,
+     "stop_sequence": 1,
+     "lat": 30.276121,
+     "lon": -97.771658,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6243",
+     "stop_name": "Campbell/5th",
+     "stop_name_full": "504 Campbell/5th",
+     "direction_id": 1,
+     "stop_sequence": 1,
+     "lat": 30.275026,
+     "lon": -97.764825,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "4086",
+     "stop_name": "5th/West Lynn",
+     "stop_name_full": "5th/West Lynn",
+     "direction_id": 1,
+     "stop_sequence": 2,
+     "lat": 30.273605,
+     "lon": -97.763241,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "2104",
+     "stop_name": "5th/Pressler",
+     "stop_name_full": "5Th/Pressler",
+     "direction_id": 1,
+     "stop_sequence": 3,
+     "lat": 30.2726,
+     "lon": -97.760749,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "2106",
+     "stop_name": "5th/Baylor",
+     "stop_name_full": "5th/Baylor",
+     "direction_id": 1,
+     "stop_sequence": 4,
+     "lat": 30.270977,
+     "lon": -97.756406,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "2107",
+     "stop_name": "5th/Bowie",
+     "stop_name_full": "5th/Bowie",
+     "direction_id": 1,
+     "stop_sequence": 5,
+     "lat": 30.269522,
+     "lon": -97.752626,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "2108",
+     "stop_name": "5th/West",
+     "stop_name_full": "5th/West",
+     "direction_id": 1,
+     "stop_sequence": 6,
+     "lat": 30.26926,
+     "lon": -97.75113,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "2110",
+     "stop_name": "5th/Nueces",
+     "stop_name_full": "5th/Nueces",
+     "direction_id": 1,
+     "stop_sequence": 7,
+     "lat": 30.268672,
+     "lon": -97.748979,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "2112",
+     "stop_name": "5th/Guadalupe",
+     "stop_name_full": "5th/Guadalupe (Republic Square)",
+     "direction_id": 1,
+     "stop_sequence": 8,
+     "lat": 30.268054,
+     "lon": -97.74679,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6314",
+     "stop_name": "7th/Colorado",
+     "stop_name_full": "115 7Th/Colorado",
+     "direction_id": 1,
+     "stop_sequence": 9,
+     "lat": 30.269226,
+     "lon": -97.743548,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6370",
+     "stop_name": "7th/San Jacinto",
+     "stop_name_full": "303 7th/San Jacinto",
+     "direction_id": 1,
+     "stop_sequence": 10,
+     "lat": 30.268158,
+     "lon": -97.739822,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "928",
+     "stop_name": "7th/Red River",
+     "stop_name_full": "511 7th/Red River",
+     "direction_id": 1,
+     "stop_sequence": 11,
+     "lat": 30.267462,
+     "lon": -97.737166,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "929",
+     "stop_name": "7th/San Marcos",
+     "stop_name_full": "7th/San Marcos",
+     "direction_id": 1,
+     "stop_sequence": 12,
+     "lat": 30.265971,
+     "lon": -97.732268,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6461",
+     "stop_name": "7th/Attayac",
+     "stop_name_full": "1225 7th/Attayac",
+     "direction_id": 1,
+     "stop_sequence": 13,
+     "lat": 30.264972,
+     "lon": -97.729337,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5610",
+     "stop_name": "7th/Comal",
+     "stop_name_full": "1601 7th/Comal",
+     "direction_id": 1,
+     "stop_sequence": 14,
+     "lat": 30.263763,
+     "lon": -97.725888,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "934",
+     "stop_name": "Chicon/East 7th",
+     "stop_name_full": "Chicon/East 7th",
+     "direction_id": 1,
+     "stop_sequence": 15,
+     "lat": 30.262511,
+     "lon": -97.722327,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "935",
+     "stop_name": "7th/Robert T Martinez Jr",
+     "stop_name_full": "7th/Robert T Martinez Jr",
+     "direction_id": 1,
+     "stop_sequence": 16,
+     "lat": 30.261532,
+     "lon": -97.718195,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "936",
+     "stop_name": "7th/Pedernales",
+     "stop_name_full": "2425 7th/Pedernales",
+     "direction_id": 1,
+     "stop_sequence": 17,
+     "lat": 30.260851,
+     "lon": -97.713904,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "937",
+     "stop_name": "7th/Calles",
+     "stop_name_full": "2621 7th/Calles",
+     "direction_id": 1,
+     "stop_sequence": 18,
+     "lat": 30.260533,
+     "lon": -97.711831,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "938",
+     "stop_name": "7th/Pleasant Valley",
+     "stop_name_full": "2789 7th/Pleasant Valley",
+     "direction_id": 1,
+     "stop_sequence": 19,
+     "lat": 30.260049,
+     "lon": -97.709665,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "939",
+     "stop_name": "7th/Allen",
+     "stop_name_full": "3223 7th/Allen",
+     "direction_id": 1,
+     "stop_sequence": 20,
+     "lat": 30.257758,
+     "lon": -97.704514,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6570",
+     "stop_name": "7th/Springdale",
+     "stop_name_full": "7th/Springdale",
+     "direction_id": 1,
+     "stop_sequence": 21,
+     "lat": 30.255952,
+     "lon": -97.701621,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1822",
+     "stop_name": "Gardner/Jain Ln.",
+     "stop_name_full": "Gardner/Jain Ln.",
+     "direction_id": 1,
+     "stop_sequence": 22,
+     "lat": 30.259882,
+     "lon": -97.681633,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "942",
+     "stop_name": "7th/Shady",
+     "stop_name_full": "4999 7th/Shady",
+     "direction_id": 1,
+     "stop_sequence": 22,
+     "lat": 30.253397,
+     "lon": -97.697886,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6450",
+     "stop_name": "Eastside Bus Plaza Bay J",
+     "stop_name_full": "5119 Eastside Bus Plaza Bay J",
+     "direction_id": 1,
+     "stop_sequence": 23,
+     "lat": 30.251893,
+     "lon": -97.698021,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6261",
+     "stop_name": "Cesar Chavez/Springdale",
+     "stop_name_full": "3513 Cesar Chavez/Springdale",
+     "direction_id": 1,
+     "stop_sequence": 24,
+     "lat": 30.252034,
+     "lon": -97.7047,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6263",
+     "stop_name": "Cesar Chavez/Tillery",
+     "stop_name_full": "3069 Cesar Chavez/Tillery",
+     "direction_id": 1,
+     "stop_sequence": 25,
+     "lat": 30.251738,
+     "lon": -97.708599,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6265",
+     "stop_name": "Cesar Chavez/Pleasant…",
+     "stop_name_full": "2719 Cesar Chavez/Pleasant Valley",
+     "direction_id": 1,
+     "stop_sequence": 26,
+     "lat": 30.253005,
+     "lon": -97.712584,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1368",
+     "stop_name": "Pleasant Valley/5th",
+     "stop_name_full": "501 Pleasant Valley/5th",
+     "direction_id": 1,
+     "stop_sequence": 27,
+     "lat": 30.257443,
+     "lon": -97.710596,
+     "is_timepoint": true
+    }
+   ],
+   "trips": [
+    {
+     "id": "3014698_15602",
+     "direction_id": 0,
+     "headsign": "4 Mopac WB",
+     "start_time": "07:45:00",
+     "block_id": "4003",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014760_15194",
+     "direction_id": 1,
+     "headsign": "4 Shady EB",
+     "start_time": "07:45:00",
+     "block_id": "4030",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014699_15603",
+     "direction_id": 0,
+     "headsign": "4 Mopac WB",
+     "start_time": "08:00:00",
+     "block_id": "4002",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014761_15195",
+     "direction_id": 1,
+     "headsign": "4 Shady EB",
+     "start_time": "08:00:00",
+     "block_id": "4001",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014701_15768",
+     "direction_id": 0,
+     "headsign": "4 Mopac WB",
+     "start_time": "08:14:00",
+     "block_id": "4031",
+     "is_special": true,
+     "canceled": false
+    },
+    {
+     "id": "3014700_15472",
+     "direction_id": 0,
+     "headsign": "4 Mopac WB",
+     "start_time": "08:15:00",
+     "block_id": "1010",
+     "is_special": true,
+     "canceled": false
+    },
+    {
+     "id": "3014762_15196",
+     "direction_id": 1,
+     "headsign": "4 Shady EB",
+     "start_time": "08:15:00",
+     "block_id": "4003",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014763_15197",
+     "direction_id": 1,
+     "headsign": "4 Shady EB",
+     "start_time": "08:30:00",
+     "block_id": "4002",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014702_15604",
+     "direction_id": 0,
+     "headsign": "4 Mopac WB",
+     "start_time": "08:45:00",
+     "block_id": "4001",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014764_15198",
+     "direction_id": 1,
+     "headsign": "4 Shady EB",
+     "start_time": "08:45:00",
+     "block_id": "4004",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3014765_15065",
+     "direction_id": 1,
+     "headsign": "4 Shady EB",
+     "start_time": "08:59:00",
+     "block_id": "1010",
+     "is_special": true,
+     "canceled": false
+    }
+   ],
+   "departures": {
+    "847": [
+     [
+      28030,
+      0
+     ],
+     [
+      28930,
+      2
+     ],
+     [
+      29830,
+      5
+     ],
+     [
+      30730,
+      4
+     ],
+     [
+      31630,
+      8
+     ]
+    ],
+    "848": [
+     [
+      28079,
+      0
+     ],
+     [
+      28979,
+      2
+     ],
+     [
+      29879,
+      5
+     ],
+     [
+      30779,
+      4
+     ],
+     [
+      31679,
+      8
+     ]
+    ],
+    "928": [
+     [
+      28684,
+      1
+     ],
+     [
+      29584,
+      3
+     ],
+     [
+      30484,
+      6
+     ],
+     [
+      31384,
+      7
+     ],
+     [
+      32415,
+      9
+     ],
+     [
+      33407,
+      10
+     ]
+    ],
+    "929": [
+     [
+      28809,
+      1
+     ],
+     [
+      29709,
+      3
+     ],
+     [
+      30609,
+      6
+     ],
+     [
+      31509,
+      7
+     ],
+     [
+      32561,
+      9
+     ],
+     [
+      33539,
+      10
+     ]
+    ],
+    "934": [
+     [
+      29043,
+      1
+     ],
+     [
+      29943,
+      3
+     ],
+     [
+      30843,
+      6
+     ],
+     [
+      31743,
+      7
+     ],
+     [
+      32823,
+      9
+     ],
+     [
+      33783,
+      10
+     ]
+    ],
+    "935": [
+     [
+      29113,
+      1
+     ],
+     [
+      30013,
+      3
+     ],
+     [
+      30913,
+      6
+     ],
+     [
+      31813,
+      7
+     ],
+     [
+      32893,
+      9
+     ],
+     [
+      33853,
+      10
+     ]
+    ],
+    "936": [
+     [
+      29184,
+      1
+     ],
+     [
+      30084,
+      3
+     ],
+     [
+      30984,
+      6
+     ],
+     [
+      31884,
+      7
+     ],
+     [
+      32964,
+      9
+     ],
+     [
+      33924,
+      10
+     ]
+    ],
+    "937": [
+     [
+      29220,
+      1
+     ],
+     [
+      30120,
+      3
+     ],
+     [
+      31020,
+      6
+     ],
+     [
+      31920,
+      7
+     ],
+     [
+      33000,
+      9
+     ],
+     [
+      33960,
+      10
+     ]
+    ],
+    "938": [
+     [
+      29259,
+      1
+     ],
+     [
+      30159,
+      3
+     ],
+     [
+      31059,
+      6
+     ],
+     [
+      31959,
+      7
+     ],
+     [
+      33039,
+      9
+     ],
+     [
+      33999,
+      10
+     ]
+    ],
+    "939": [
+     [
+      29352,
+      1
+     ],
+     [
+      30252,
+      3
+     ],
+     [
+      31152,
+      6
+     ],
+     [
+      32052,
+      7
+     ],
+     [
+      33132,
+      9
+     ],
+     [
+      34092,
+      10
+     ]
+    ],
+    "942": [
+     [
+      29494,
+      1
+     ],
+     [
+      30202,
+      4
+     ],
+     [
+      30394,
+      3
+     ],
+     [
+      31294,
+      6
+     ],
+     [
+      32194,
+      7
+     ],
+     [
+      33274,
+      9
+     ],
+     [
+      34234,
+      10
+     ]
+    ],
+    "1368": [
+     [
+      27900,
+      0
+     ],
+     [
+      28800,
+      2
+     ],
+     [
+      29700,
+      5
+     ],
+     [
+      29880,
+      1
+     ],
+     [
+      30600,
+      4
+     ],
+     [
+      30780,
+      3
+     ],
+     [
+      31500,
+      8
+     ],
+     [
+      31680,
+      6
+     ],
+     [
+      32580,
+      7
+     ],
+     [
+      33660,
+      9
+     ],
+     [
+      34620,
+      10
+     ]
+    ],
+    "1822": [
+     [
+      29640,
+      4
+     ]
+    ],
+    "1970": [
+     [
+      29079,
+      0
+     ],
+     [
+      29979,
+      2
+     ],
+     [
+      30858,
+      5
+     ],
+     [
+      31779,
+      4
+     ],
+     [
+      32679,
+      8
+     ]
+    ],
+    "1972": [
+     [
+      29217,
+      0
+     ],
+     [
+      30117,
+      2
+     ],
+     [
+      30986,
+      5
+     ],
+     [
+      31917,
+      4
+     ],
+     [
+      32817,
+      8
+     ]
+    ],
+    "1973": [
+     [
+      29274,
+      0
+     ],
+     [
+      30174,
+      2
+     ],
+     [
+      31038,
+      5
+     ],
+     [
+      31974,
+      4
+     ],
+     [
+      32874,
+      8
+     ]
+    ],
+    "1974": [
+     [
+      29332,
+      0
+     ],
+     [
+      30232,
+      2
+     ],
+     [
+      31093,
+      5
+     ],
+     [
+      32032,
+      4
+     ],
+     [
+      32932,
+      8
+     ]
+    ],
+    "1977": [
+     [
+      31320,
+      5
+     ],
+     [
+      32340,
+      10
+     ]
+    ],
+    "2104": [
+     [
+      28022,
+      1
+     ],
+     [
+      28922,
+      3
+     ],
+     [
+      29822,
+      6
+     ],
+     [
+      30722,
+      7
+     ],
+     [
+      31642,
+      9
+     ],
+     [
+      32705,
+      10
+     ]
+    ],
+    "2106": [
+     [
+      28140,
+      1
+     ],
+     [
+      29040,
+      3
+     ],
+     [
+      29940,
+      6
+     ],
+     [
+      30840,
+      7
+     ],
+     [
+      31780,
+      9
+     ],
+     [
+      32831,
+      10
+     ]
+    ],
+    "2107": [
+     [
+      28240,
+      1
+     ],
+     [
+      29140,
+      3
+     ],
+     [
+      30040,
+      6
+     ],
+     [
+      30940,
+      7
+     ],
+     [
+      31897,
+      9
+     ],
+     [
+      32936,
+      10
+     ]
+    ],
+    "2108": [
+     [
+      28281,
+      1
+     ],
+     [
+      29181,
+      3
+     ],
+     [
+      30081,
+      6
+     ],
+     [
+      30981,
+      7
+     ],
+     [
+      31944,
+      9
+     ],
+     [
+      32980,
+      10
+     ]
+    ],
+    "2110": [
+     [
+      28339,
+      1
+     ],
+     [
+      29239,
+      3
+     ],
+     [
+      30139,
+      6
+     ],
+     [
+      31039,
+      7
+     ],
+     [
+      32012,
+      9
+     ],
+     [
+      33041,
+      10
+     ]
+    ],
+    "2112": [
+     [
+      28398,
+      1
+     ],
+     [
+      29298,
+      3
+     ],
+     [
+      30198,
+      6
+     ],
+     [
+      31098,
+      7
+     ],
+     [
+      32081,
+      9
+     ],
+     [
+      33103,
+      10
+     ]
+    ],
+    "3337": [
+     [
+      27992,
+      0
+     ],
+     [
+      28892,
+      2
+     ],
+     [
+      29792,
+      5
+     ],
+     [
+      30692,
+      4
+     ],
+     [
+      31592,
+      8
+     ]
+    ],
+    "4086": [
+     [
+      27958,
+      1
+     ],
+     [
+      28858,
+      3
+     ],
+     [
+      29758,
+      6
+     ],
+     [
+      30658,
+      7
+     ],
+     [
+      31568,
+      9
+     ],
+     [
+      32638,
+      10
+     ]
+    ],
+    "4181": [
+     [
+      28149,
+      0
+     ],
+     [
+      29049,
+      2
+     ],
+     [
+      29949,
+      5
+     ],
+     [
+      30849,
+      4
+     ],
+     [
+      31749,
+      8
+     ]
+    ],
+    "5119": [
+     [
+      28279,
+      0
+     ],
+     [
+      29179,
+      2
+     ],
+     [
+      30079,
+      5
+     ],
+     [
+      30979,
+      4
+     ],
+     [
+      31879,
+      8
+     ]
+    ],
+    "5120": [
+     [
+      28372,
+      0
+     ],
+     [
+      29272,
+      2
+     ],
+     [
+      30172,
+      5
+     ],
+     [
+      31072,
+      4
+     ],
+     [
+      31972,
+      8
+     ]
+    ],
+    "5499": [
+     [
+      29035,
+      0
+     ],
+     [
+      29935,
+      2
+     ],
+     [
+      30817,
+      5
+     ],
+     [
+      31735,
+      4
+     ],
+     [
+      32635,
+      8
+     ]
+    ],
+    "5610": [
+     [
+      28980,
+      1
+     ],
+     [
+      29880,
+      3
+     ],
+     [
+      30780,
+      6
+     ],
+     [
+      31680,
+      7
+     ],
+     [
+      32760,
+      9
+     ],
+     [
+      33720,
+      10
+     ]
+    ],
+    "5937": [
+     [
+      28800,
+      0
+     ],
+     [
+      29700,
+      2
+     ],
+     [
+      30600,
+      5
+     ],
+     [
+      31500,
+      4
+     ],
+     [
+      32400,
+      8
+     ]
+    ],
+    "5938": [
+     [
+      28857,
+      0
+     ],
+     [
+      29757,
+      2
+     ],
+     [
+      30652,
+      5
+     ],
+     [
+      31557,
+      4
+     ],
+     [
+      32457,
+      8
+     ]
+    ],
+    "5949": [
+     [
+      28718,
+      0
+     ],
+     [
+      29618,
+      2
+     ],
+     [
+      30518,
+      5
+     ],
+     [
+      31418,
+      4
+     ],
+     [
+      32318,
+      8
+     ]
+    ],
+    "6243": [
+     [
+      27900,
+      1
+     ],
+     [
+      28800,
+      3
+     ],
+     [
+      29400,
+      0
+     ],
+     [
+      29700,
+      6
+     ],
+     [
+      30300,
+      2
+     ],
+     [
+      30600,
+      7
+     ],
+     [
+      31500,
+      9
+     ],
+     [
+      32100,
+      4
+     ],
+     [
+      33000,
+      8
+     ]
+    ],
+    "6261": [
+     [
+      29651,
+      1
+     ],
+     [
+      30362,
+      4
+     ],
+     [
+      30551,
+      3
+     ],
+     [
+      31451,
+      6
+     ],
+     [
+      32351,
+      7
+     ],
+     [
+      33431,
+      9
+     ],
+     [
+      34391,
+      10
+     ]
+    ],
+    "6263": [
+     [
+      29715,
+      1
+     ],
+     [
+      30429,
+      4
+     ],
+     [
+      30615,
+      3
+     ],
+     [
+      31515,
+      6
+     ],
+     [
+      32415,
+      7
+     ],
+     [
+      33495,
+      9
+     ],
+     [
+      34455,
+      10
+     ]
+    ],
+    "6265": [
+     [
+      29784,
+      1
+     ],
+     [
+      30500,
+      4
+     ],
+     [
+      30684,
+      3
+     ],
+     [
+      31584,
+      6
+     ],
+     [
+      32484,
+      7
+     ],
+     [
+      33564,
+      9
+     ],
+     [
+      34524,
+      10
+     ]
+    ],
+    "6314": [
+     [
+      28532,
+      1
+     ],
+     [
+      29432,
+      3
+     ],
+     [
+      30332,
+      6
+     ],
+     [
+      31232,
+      7
+     ],
+     [
+      32237,
+      9
+     ],
+     [
+      33245,
+      10
+     ]
+    ],
+    "6370": [
+     [
+      28616,
+      1
+     ],
+     [
+      29516,
+      3
+     ],
+     [
+      30416,
+      6
+     ],
+     [
+      31316,
+      7
+     ],
+     [
+      32335,
+      9
+     ],
+     [
+      33334,
+      10
+     ]
+    ],
+    "6450": [
+     [
+      29531,
+      1
+     ],
+     [
+      30237,
+      4
+     ],
+     [
+      30431,
+      3
+     ],
+     [
+      31331,
+      6
+     ],
+     [
+      32231,
+      7
+     ],
+     [
+      33311,
+      9
+     ],
+     [
+      34271,
+      10
+     ]
+    ],
+    "6460": [
+     [
+      28494,
+      0
+     ],
+     [
+      29394,
+      2
+     ],
+     [
+      30294,
+      5
+     ],
+     [
+      31194,
+      4
+     ],
+     [
+      32094,
+      8
+     ]
+    ],
+    "6461": [
+     [
+      28888,
+      1
+     ],
+     [
+      29788,
+      3
+     ],
+     [
+      30688,
+      6
+     ],
+     [
+      31588,
+      7
+     ],
+     [
+      32653,
+      9
+     ],
+     [
+      33623,
+      10
+     ]
+    ],
+    "6570": [
+     [
+      29419,
+      1
+     ],
+     [
+      30319,
+      3
+     ],
+     [
+      31219,
+      6
+     ],
+     [
+      32119,
+      7
+     ],
+     [
+      33199,
+      9
+     ],
+     [
+      34159,
+      10
+     ]
+    ]
+   }
+  },
+  "800": {
+   "schema": 1,
+   "generated_at": 1787152239,
+   "route_id": "800",
+   "service_date": "20260819",
+   "service_day_start_epoch": 1787115600,
+   "day_type": "weekday",
+   "feed_version": "260818_1456",
+   "stops": [
+    {
+     "stop_id": "6558",
+     "stop_name": "Goodnight Ranch Bay A",
+     "stop_name_full": "Goodnight Ranch Bay A",
+     "direction_id": 0,
+     "stop_sequence": 1,
+     "lat": 30.151526,
+     "lon": -97.759005,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6530",
+     "stop_name": "Easton Park NB",
+     "stop_name_full": "Easton Park NB (McKinney Falls/William Cannon)",
+     "direction_id": 0,
+     "stop_sequence": 2,
+     "lat": 30.161429,
+     "lon": -97.726837,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6510",
+     "stop_name": "Onion Creek NB",
+     "stop_name_full": "Onion Creek NB (William Cannon/Pleasant Valley)",
+     "direction_id": 0,
+     "stop_sequence": 3,
+     "lat": 30.179559,
+     "lon": -97.746488,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1220",
+     "stop_name": "Village Square NB",
+     "stop_name_full": "Village Square NB (Pleasant Valley/Village Square)",
+     "direction_id": 0,
+     "stop_sequence": 4,
+     "lat": 30.188891,
+     "lon": -97.74529,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1222",
+     "stop_name": "Dove Springs NB",
+     "stop_name_full": "Dove Springs NB (Pleasant Valley/Stassney)",
+     "direction_id": 0,
+     "stop_sequence": 5,
+     "lat": 30.193732,
+     "lon": -97.744558,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6490",
+     "stop_name": "Franklin Park NB",
+     "stop_name_full": "Franklin Park NB (Pleasant Valley/St Elmo)",
+     "direction_id": 0,
+     "stop_sequence": 6,
+     "lat": 30.204087,
+     "lon": -97.741937,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6511",
+     "stop_name": "Oltorf at Burton NB",
+     "stop_name_full": "Oltorf at Burton NB (Oltorf/Burton)",
+     "direction_id": 0,
+     "stop_sequence": 7,
+     "lat": 30.230755,
+     "lon": -97.733322,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "1027",
+     "stop_name": "Oltorf East NB",
+     "stop_name_full": "Oltorf East NB (Pleasant Valley/Oltorf)",
+     "direction_id": 0,
+     "stop_sequence": 8,
+     "lat": 30.228002,
+     "lon": -97.727295,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1028",
+     "stop_name": "Sheringham NB",
+     "stop_name_full": "Sheringham NB (Pleasant Valley/Sheringham)",
+     "direction_id": 0,
+     "stop_sequence": 9,
+     "lat": 30.231158,
+     "lon": -97.725309,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5779",
+     "stop_name": "Riverside NB",
+     "stop_name_full": "Riverside NB (Pleasant Valley HEB)",
+     "direction_id": 0,
+     "stop_sequence": 10,
+     "lat": 30.235813,
+     "lon": -97.721325,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "4284",
+     "stop_name": "Elmont NB",
+     "stop_name_full": "Elmont NB (Pleasant Valley/Elmont)",
+     "direction_id": 0,
+     "stop_sequence": 11,
+     "lat": 30.239806,
+     "lon": -97.718797,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1364",
+     "stop_name": "Roy G Guerrero NB",
+     "stop_name_full": "Roy G Guerrero NB (Pleasant Valley/Lakeshore)",
+     "direction_id": 0,
+     "stop_sequence": 12,
+     "lat": 30.242205,
+     "lon": -97.717284,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6515",
+     "stop_name": "Cesar Chavez NB",
+     "stop_name_full": "Cesar Chavez NB (Pleasant Valley/Cesar Chavez)",
+     "direction_id": 0,
+     "stop_sequence": 13,
+     "lat": 30.253159,
+     "lon": -97.712655,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1369",
+     "stop_name": "7th Street NB",
+     "stop_name_full": "7th Street NB (Pleasant Valley/7th)",
+     "direction_id": 0,
+     "stop_sequence": 14,
+     "lat": 30.25986,
+     "lon": -97.709481,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6489",
+     "stop_name": "ACC Eastview NB",
+     "stop_name_full": "ACC Eastview NB (Webberville/Govalle)",
+     "direction_id": 0,
+     "stop_sequence": 15,
+     "lat": 30.268094,
+     "lon": -97.707357,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "3262",
+     "stop_name": "Oak Springs NB",
+     "stop_name_full": "Oak Springs NB (Airport/Oak Springs)",
+     "direction_id": 0,
+     "stop_sequence": 16,
+     "lat": 30.27388,
+     "lon": -97.697907,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5616",
+     "stop_name": "Airport Blvd NB",
+     "stop_name_full": "Airport Blvd NB (Manor/Airport)",
+     "direction_id": 0,
+     "stop_sequence": 17,
+     "lat": 30.286327,
+     "lon": -97.705715,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6091",
+     "stop_name": "Mueller Tower NB",
+     "stop_name_full": "Mueller Tower NB (Berkman/Tom Miller)",
+     "direction_id": 0,
+     "stop_sequence": 18,
+     "lat": 30.290322,
+     "lon": -97.698669,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6292",
+     "stop_name": "Simond NB",
+     "stop_name_full": "Simond NB (Berkman/Simond)",
+     "direction_id": 0,
+     "stop_sequence": 19,
+     "lat": 30.296343,
+     "lon": -97.700088,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "5926",
+     "stop_name": "Barbara Jordan SB",
+     "stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+     "direction_id": 0,
+     "stop_sequence": 20,
+     "lat": 30.302693,
+     "lon": -97.699868,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "5926",
+     "stop_name": "Barbara Jordan SB",
+     "stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+     "direction_id": 1,
+     "stop_sequence": 1,
+     "lat": 30.302693,
+     "lon": -97.699868,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6293",
+     "stop_name": "Simond SB",
+     "stop_name_full": "Simond SB (Berkman/Simond)",
+     "direction_id": 1,
+     "stop_sequence": 2,
+     "lat": 30.296149,
+     "lon": -97.700385,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6291",
+     "stop_name": "Mueller Tower Station SB",
+     "stop_name_full": "Mueller Tower Station SB (Berkman/Tom Miller)",
+     "direction_id": 1,
+     "stop_sequence": 3,
+     "lat": 30.290214,
+     "lon": -97.699019,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6496",
+     "stop_name": "Airport Blvd SB",
+     "stop_name_full": "Airport Blvd SB (Airport/Manor)",
+     "direction_id": 1,
+     "stop_sequence": 4,
+     "lat": 30.285952,
+     "lon": -97.706369,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "634",
+     "stop_name": "Oak Springs SB",
+     "stop_name_full": "Oak Springs SB (Oak Springs/Airport)",
+     "direction_id": 1,
+     "stop_sequence": 5,
+     "lat": 30.27361,
+     "lon": -97.69835,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6488",
+     "stop_name": "ACC Eastview SB",
+     "stop_name_full": "ACC Eastview SB (Webberville/Govalle)",
+     "direction_id": 1,
+     "stop_sequence": 6,
+     "lat": 30.267713,
+     "lon": -97.707739,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1349",
+     "stop_name": "7th Street SB",
+     "stop_name_full": "7th Street SB (Pleasant Valley/7th)",
+     "direction_id": 1,
+     "stop_sequence": 7,
+     "lat": 30.259748,
+     "lon": -97.709736,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6516",
+     "stop_name": "Cesar Chavez SB",
+     "stop_name_full": "Cesar Chavez SB (Pleasant Valley/Cesar Chavez)",
+     "direction_id": 1,
+     "stop_sequence": 8,
+     "lat": 30.25282,
+     "lon": -97.713,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1353",
+     "stop_name": "Roy G Guerrero SB",
+     "stop_name_full": "Roy G Guerrero SB (Pleasant Valley/Lakeshore)",
+     "direction_id": 1,
+     "stop_sequence": 9,
+     "lat": 30.2422,
+     "lon": -97.717511,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "4283",
+     "stop_name": "Elmont SB",
+     "stop_name_full": "Elmont SB (Pleasant Valley/Elmont)",
+     "direction_id": 1,
+     "stop_sequence": 10,
+     "lat": 30.240131,
+     "lon": -97.718817,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "4288",
+     "stop_name": "Riverside SB",
+     "stop_name_full": "Riverside SB (Pleasant Valley HEB)",
+     "direction_id": 1,
+     "stop_sequence": 11,
+     "lat": 30.23524,
+     "lon": -97.721977,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "4298",
+     "stop_name": "Sheringham SB",
+     "stop_name_full": "Sheringham SB (Pleasant Valley/Sheringham)",
+     "direction_id": 1,
+     "stop_sequence": 12,
+     "lat": 30.230883,
+     "lon": -97.725761,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1356",
+     "stop_name": "Oltorf East SB",
+     "stop_name_full": "Oltorf East SB (Oltorf/Pleasant Valley)",
+     "direction_id": 1,
+     "stop_sequence": 13,
+     "lat": 30.227843,
+     "lon": -97.728279,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6512",
+     "stop_name": "Oltorf at Burton SB",
+     "stop_name_full": "Oltorf at Burton SB (Oltorf/Burton)",
+     "direction_id": 1,
+     "stop_sequence": 14,
+     "lat": 30.23107,
+     "lon": -97.734031,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6508",
+     "stop_name": "Iroquois SB",
+     "stop_name_full": "Iroquois SB (Burleson/Iroquois)",
+     "direction_id": 1,
+     "stop_sequence": 15,
+     "lat": 30.227672,
+     "lon": -97.735483,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6506",
+     "stop_name": "Mission Hill SB",
+     "stop_name_full": "Mission Hill SB (Burleson/Mission Hill)",
+     "direction_id": 1,
+     "stop_sequence": 16,
+     "lat": 30.216742,
+     "lon": -97.734364,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6491",
+     "stop_name": "Franklin Park SB",
+     "stop_name_full": "Franklin Park SB (Pleasant Valley/St Elmo)",
+     "direction_id": 1,
+     "stop_sequence": 17,
+     "lat": 30.204118,
+     "lon": -97.742184,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1212",
+     "stop_name": "Dove Springs SB",
+     "stop_name_full": "Dove Springs SB (Pleasant Valley/Stassney)",
+     "direction_id": 1,
+     "stop_sequence": 18,
+     "lat": 30.193748,
+     "lon": -97.744772,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "1213",
+     "stop_name": "Village Square SB",
+     "stop_name_full": "Village Square SB (Pleasant Valley/Village Square)",
+     "direction_id": 1,
+     "stop_sequence": 19,
+     "lat": 30.188889,
+     "lon": -97.745545,
+     "is_timepoint": false
+    },
+    {
+     "stop_id": "6509",
+     "stop_name": "Onion Creek SB",
+     "stop_name_full": "Onion Creek SB (William Cannon/Pleasant Valley)",
+     "direction_id": 1,
+     "stop_sequence": 20,
+     "lat": 30.17902,
+     "lon": -97.746313,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6441",
+     "stop_name": "Easton Park SB",
+     "stop_name_full": "Easton Park SB (McKinney Falls/William Cannon)",
+     "direction_id": 1,
+     "stop_sequence": 21,
+     "lat": 30.16283,
+     "lon": -97.726298,
+     "is_timepoint": true
+    },
+    {
+     "stop_id": "6558",
+     "stop_name": "Goodnight Ranch Bay A",
+     "stop_name_full": "Goodnight Ranch Bay A",
+     "direction_id": 1,
+     "stop_sequence": 22,
+     "lat": 30.151526,
+     "lon": -97.759005,
+     "is_timepoint": true
+    }
+   ],
+   "trips": [
+    {
+     "id": "3010846_22200",
+     "direction_id": 1,
+     "headsign": "800 Goodnight SB",
+     "start_time": "07:40:00",
+     "block_id": "800002",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3010796_21714",
+     "direction_id": 0,
+     "headsign": "800 Mueller NB",
+     "start_time": "07:50:00",
+     "block_id": "800004",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3010894_22201",
+     "direction_id": 1,
+     "headsign": "800 Goodnight SB",
+     "start_time": "07:50:00",
+     "block_id": "800005",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3010749_21715",
+     "direction_id": 0,
+     "headsign": "800 Mueller NB",
+     "start_time": "08:00:00",
+     "block_id": "800006",
+     "is_special": false,
+     "canceled": false
+    },
+    {
+     "id": "3010847_22202",
+     "direction_id": 1,
+     "headsign": "800 Goodnight SB",
+     "start_time": "08:00:00",
+     "block_id": "800013",
+     "is_special": false,
+     "canceled": false
+    }
+   ],
+   "departures": {
+    "634": [
+     [
+      28273,
+      0
+     ],
+     [
+      28873,
+      2
+     ],
+     [
+      29473,
+      4
+     ]
+    ],
+    "1027": [
+     [
+      30169,
+      1
+     ],
+     [
+      30769,
+      3
+     ]
+    ],
+    "1028": [
+     [
+      30231,
+      1
+     ],
+     [
+      30831,
+      3
+     ]
+    ],
+    "1212": [
+     [
+      30034,
+      0
+     ],
+     [
+      30634,
+      2
+     ],
+     [
+      31234,
+      4
+     ]
+    ],
+    "1213": [
+     [
+      30118,
+      0
+     ],
+     [
+      30718,
+      2
+     ],
+     [
+      31318,
+      4
+     ]
+    ],
+    "1220": [
+     [
+      29198,
+      1
+     ],
+     [
+      29798,
+      3
+     ]
+    ],
+    "1222": [
+     [
+      29260,
+      1
+     ],
+     [
+      29860,
+      3
+     ]
+    ],
+    "1349": [
+     [
+      28620,
+      0
+     ],
+     [
+      29220,
+      2
+     ],
+     [
+      29820,
+      4
+     ]
+    ],
+    "1353": [
+     [
+      28935,
+      0
+     ],
+     [
+      29535,
+      2
+     ],
+     [
+      30135,
+      4
+     ]
+    ],
+    "1356": [
+     [
+      29240,
+      0
+     ],
+     [
+      29840,
+      2
+     ],
+     [
+      30440,
+      4
+     ]
+    ],
+    "1364": [
+     [
+      30453,
+      1
+     ],
+     [
+      31053,
+      3
+     ]
+    ],
+    "1369": [
+     [
+      30780,
+      1
+     ],
+     [
+      31380,
+      3
+     ]
+    ],
+    "3262": [
+     [
+      31100,
+      1
+     ],
+     [
+      31700,
+      3
+     ]
+    ],
+    "4283": [
+     [
+      28979,
+      0
+     ],
+     [
+      29579,
+      2
+     ],
+     [
+      30179,
+      4
+     ]
+    ],
+    "4284": [
+     [
+      30414,
+      1
+     ],
+     [
+      31014,
+      3
+     ]
+    ],
+    "4288": [
+     [
+      29067,
+      0
+     ],
+     [
+      29667,
+      2
+     ],
+     [
+      30267,
+      4
+     ]
+    ],
+    "4298": [
+     [
+      29165,
+      0
+     ],
+     [
+      29765,
+      2
+     ],
+     [
+      30365,
+      4
+     ]
+    ],
+    "5616": [
+     [
+      31327,
+      1
+     ],
+     [
+      31927,
+      3
+     ]
+    ],
+    "5779": [
+     [
+      30330,
+      1
+     ],
+     [
+      30930,
+      3
+     ]
+    ],
+    "5926": [
+     [
+      27600,
+      0
+     ],
+     [
+      28200,
+      2
+     ],
+     [
+      28800,
+      4
+     ],
+     [
+      31800,
+      1
+     ],
+     [
+      32400,
+      3
+     ]
+    ],
+    "6091": [
+     [
+      31443,
+      1
+     ],
+     [
+      32043,
+      3
+     ]
+    ],
+    "6291": [
+     [
+      27839,
+      0
+     ],
+     [
+      28439,
+      2
+     ],
+     [
+      29039,
+      4
+     ]
+    ],
+    "6292": [
+     [
+      31536,
+      1
+     ],
+     [
+      32136,
+      3
+     ]
+    ],
+    "6293": [
+     [
+      27729,
+      0
+     ],
+     [
+      28329,
+      2
+     ],
+     [
+      28929,
+      4
+     ]
+    ],
+    "6441": [
+     [
+      30600,
+      0
+     ],
+     [
+      31200,
+      2
+     ],
+     [
+      31800,
+      4
+     ]
+    ],
+    "6488": [
+     [
+      28468,
+      0
+     ],
+     [
+      29068,
+      2
+     ],
+     [
+      29668,
+      4
+     ]
+    ],
+    "6489": [
+     [
+      30914,
+      1
+     ],
+     [
+      31514,
+      3
+     ]
+    ],
+    "6490": [
+     [
+      29440,
+      1
+     ],
+     [
+      30040,
+      3
+     ]
+    ],
+    "6491": [
+     [
+      29856,
+      0
+     ],
+     [
+      30456,
+      2
+     ],
+     [
+      31056,
+      4
+     ]
+    ],
+    "6496": [
+     [
+      28019,
+      0
+     ],
+     [
+      28619,
+      2
+     ],
+     [
+      29219,
+      4
+     ]
+    ],
+    "6506": [
+     [
+      29615,
+      0
+     ],
+     [
+      30215,
+      2
+     ],
+     [
+      30815,
+      4
+     ]
+    ],
+    "6508": [
+     [
+      29429,
+      0
+     ],
+     [
+      30029,
+      2
+     ],
+     [
+      30629,
+      4
+     ]
+    ],
+    "6509": [
+     [
+      30300,
+      0
+     ],
+     [
+      30900,
+      2
+     ],
+     [
+      31500,
+      4
+     ]
+    ],
+    "6510": [
+     [
+      29078,
+      1
+     ],
+     [
+      29678,
+      3
+     ]
+    ],
+    "6511": [
+     [
+      30060,
+      1
+     ],
+     [
+      30660,
+      3
+     ]
+    ],
+    "6512": [
+     [
+      29340,
+      0
+     ],
+     [
+      29940,
+      2
+     ],
+     [
+      30540,
+      4
+     ]
+    ],
+    "6515": [
+     [
+      30662,
+      1
+     ],
+     [
+      31262,
+      3
+     ]
+    ],
+    "6516": [
+     [
+      28746,
+      0
+     ],
+     [
+      29346,
+      2
+     ],
+     [
+      29946,
+      4
+     ]
+    ],
+    "6530": [
+     [
+      28740,
+      1
+     ],
+     [
+      29340,
+      3
+     ]
+    ],
+    "6558": [
+     [
+      28200,
+      1
+     ],
+     [
+      28800,
+      3
+     ],
+     [
+      31200,
+      0
+     ],
+     [
+      31800,
+      2
+     ],
+     [
+      32400,
+      4
+     ]
+    ]
+   }
+  }
+ }
+}

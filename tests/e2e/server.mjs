@@ -13,6 +13,10 @@
  *   /yesterday/ a fresh live payload with a departures document from the
  *             service day before it — the phone left on the counter overnight
  *
+ * `api/departures/{id}.json` is served under every prefix from the chain fixture,
+ * because the saved-trip and transfer-chain editors are built entirely from that
+ * document and neither can be driven without it.
+ *
  * Run standalone with: node tests/e2e/server.mjs
  */
 import { createServer } from 'node:http'
@@ -90,7 +94,34 @@ const SCENARIOS = {
    * hold everything else still.
    */
   yesterday: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
+  /*
+   * The chain scenarios. The live payload is the ordinary fresh or dead one —
+   * what they change is the SCHEDULE, which comes from the committed chain
+   * fixture instead of the per-route defaults below.
+   *
+   * The prefix says which fixture set the board is holding. Both sets carry
+   * routes 800 and 4: the chain pair is a filtered set built around one 07:52:09
+   * departure and the route 4 buses it can reach, chosen because those two
+   * routes share NO stop ids; the defaults are a whole golden service day for
+   * route 4 and the synthetic schedule the expiry tests are written against.
+   *
+   * Measured rather than assumed, because the first version of this comment
+   * claimed the two could not substitute for each other and that is not true
+   * today: point every chain test at /fresh/ and all 24 still pass, because
+   * departures-800 happens to carry the same trip id and the golden route 4
+   * document is a superset containing the same Pleasant Valley stops. So this is
+   * a defensive split, not a load-bearing one — it pins the tests to the data
+   * the feature was designed against, so that editing either fixture cannot
+   * quietly change what the other one's tests mean. What actually pins the chain
+   * fixture's CONTENT is tests/node/client-chain.test.mjs, which reads it
+   * directly.
+   */
+  chain: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
+  chaindead: () => ({ status: 200, body: JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, 'route-4-dead-cron.json')))) }),
 }
+
+/* Which scenarios take their schedules from the chain fixture. */
+const CHAIN_SCENARIOS = { chain: true, chaindead: true }
 
 /*
  * The service date the golden route payload publishes, and the day before it.
@@ -122,6 +153,18 @@ for (const name of SCENARIO_NAMES) {
   if (APP_VERBS.includes(name)) {
     throw new Error(`scenario "${name}" collides with an app path verb; rename it`)
   }
+}
+
+/*
+ * The service-day departure boards from the committed chain fixture. It carries
+ * routes 800 and 4 — the pair that shares no stop ids — which is what the chain
+ * editor has to be exercised against rather than a stub.
+ */
+function chainDeparturesFor(routeId) {
+  const doc = wireFormat(readJson(path.join(SYNTHETIC, 'chain-800-to-4.json')))
+  return Object.prototype.hasOwnProperty.call(doc.departures, routeId)
+    ? doc.departures[routeId]
+    : null
 }
 
 const server = createServer((req, res) => {
@@ -161,11 +204,17 @@ const server = createServer((req, res) => {
    *              scenario where the live payload 500s while the schedule answers
    *              200 is not a state the box can be in, and a test written
    *              against it proves nothing about the real one.
+   *
+   * The chain scenarios swap the whole map for the chain fixture's pair, which
+   * is why they exist: both fixture sets carry routes 800 and 4, and neither can
+   * stand in for the other.
    */
-  const DEPARTURES = {
-    4: () => readJson(GOLDEN_DEP),
-    800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
-  }
+  const DEPARTURES = CHAIN_SCENARIOS[scenario]
+    ? { 4: () => chainDeparturesFor('4'), 800: () => chainDeparturesFor('800') }
+    : {
+      4: () => readJson(GOLDEN_DEP),
+      800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
+    }
   const depMatch = rest.match(/^api\/departures\/([^/]+)\.json$/)
   if (depMatch && Object.prototype.hasOwnProperty.call(DEPARTURES, depMatch[1])) {
     if (scenario === 'missing') {
