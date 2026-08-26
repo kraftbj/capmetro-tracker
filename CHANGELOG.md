@@ -144,6 +144,39 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **A schedule eight days old blanked every lateness number on the board.** The
+  staleness ladder graded the realtime feeds and the schedule on one scale, and
+  more than seven days past `feed_start_date` forced `stale` — which sets
+  `suppress_adherence`, so no bus anywhere may show how late it is. CapMetro
+  republishes about three times a year, so that threshold was passed within a week
+  of every publication and stayed passed for months. The board spent almost all of
+  its life refusing to answer the question it exists to answer, under a warning
+  that read "Data 14 sec old. Lateness is hidden until the feed catches up." about
+  positions that were fourteen seconds old and arriving on time — a fault where
+  there was none, and a wait that could never end.
+
+  Schedule age no longer sets the level. What invalidates a lateness number is a
+  schedule that has **run out**: past `feed_end_date` there is no timetable for
+  today to measure against, and that — the condition `health.json` already fails
+  on — is what forces `stale` now. `schedule_age_days` is still reported and still
+  appears under a banner raised by something else; it simply no longer raises one.
+  The realtime thresholds are untouched, so a feed that genuinely stops still goes
+  `aging`, `stale`, `dead` at 120s, 600s and 3600s exactly as before.
+
+  The banner had no way to say which of the two had happened and always blamed the
+  feed. It now names the schedule when the schedule is what gave out, and offers a
+  new publication rather than a wait. `?state=schedule-expired` renders that row.
+
+- **One warning, shouted four times.** The Saved view drew a staleness banner per
+  saved route and the board drew its own above them, so a single dead feed — one
+  cron run, one pair of feeds, the same `staleness` object word for word on every
+  route — stacked four identical warnings above the cards they were about. Routes
+  are now bucketed by what their banner would actually say and each distinct
+  warning is drawn once, labelled with every route it covers ("Routes 4, 800 and
+  837"), and the board's unlabelled copy is not drawn on that view at all. Nothing
+  is collapsed that is not identical: a route this browser alone has failed to
+  refresh reports a different reason, and keeps its own banner and its own retry.
+
 - **A phone left on the counter overnight answered from yesterday's schedule.**
   A departures document was fetched once and kept for the life of the tab, so a
   board opened the previous evening and picked up at breakfast was still reading

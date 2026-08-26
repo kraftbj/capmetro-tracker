@@ -73,6 +73,18 @@
   /*
    * The staleness banner. Wording comes from the level, the numbers come from
    * the server. The client never decides that data is stale.
+   *
+   * It does decide which SENTENCE to write, and that needs one more bit than the
+   * level carries. `stale` has two causes -- the realtime feed has stopped
+   * arriving, or the schedule has run out -- and only the first is fixed by
+   * waiting. Announcing "Data 14 sec old. Lateness is hidden until the feed
+   * catches up." over a feed that is fourteen seconds old and arriving fine sends
+   * the reader to look for a fault that is not there, and offers them a wait that
+   * will never end. The cause is read off the contract's own feed thresholds
+   * (section 1), the same ones app.js applies when it ages a held payload: at
+   * `stale` with the feed itself under ten minutes old, the schedule is what gave
+   * out. That is naming the server's reason, not second-guessing its verdict --
+   * suppress_adherence is still the only thing that decides what may be drawn.
    */
   function stalenessBanner(staleness, feeds, onRetry) {
     if (!staleness || staleness.level === 'fresh') return null;
@@ -81,12 +93,18 @@
     var b = el('div', 'banner banner--' + kind);
     b.setAttribute('role', 'status');
 
+    var age = staleness.oldest_feed_age_s;
+    var feedIsStale = typeof age === 'number' && age > 600;
+
     var head;
-    if (level === 'aging') head = 'Data ' + fmt.age(staleness.oldest_feed_age_s) + '.';
-    else if (level === 'stale') head = 'Data ' + fmt.age(staleness.oldest_feed_age_s) +
-      '. Lateness is hidden until the feed catches up.';
-    else head = 'Feed is down. Showing the last positions received, ' +
-      fmt.age(staleness.oldest_feed_age_s) + '.';
+    if (level === 'aging') head = 'Data ' + fmt.age(age) + '.';
+    else if (level === 'stale') {
+      head = feedIsStale
+        ? 'Data ' + fmt.age(age) + '. Lateness is hidden until the feed catches up.'
+        : 'The schedule this board compares against has run out. Lateness is hidden ' +
+          'until a new one is published.';
+    } else head = 'Feed is down. Showing the last positions received, ' +
+      fmt.age(age) + '.';
 
     b.appendChild(el('strong', 'banner__head', head));
     var bits = [];
@@ -196,6 +214,22 @@
         d.staleness = {
           level: 'stale', oldest_feed_age_s: 940, schedule_age_days: 1,
           suppress_adherence: true, reason: 'positions feed has not updated since 9:54a'
+        };
+        return d;
+      }
+    },
+    /*
+     * The other way to reach `stale`, and the one with no feed problem behind it:
+     * positions are arriving normally and it is the timetable that has run out.
+     * Worth its own row because the banner has to say something different here —
+     * waiting will not fix it.
+     */
+    'schedule-expired': {
+      note: 'STALE — schedule ran out; the realtime feed is fine',
+      apply: function (d) {
+        d.staleness = {
+          level: 'stale', oldest_feed_age_s: 12, schedule_age_days: 190,
+          suppress_adherence: true, reason: 'Schedule data ran out on 2027-01-09'
         };
         return d;
       }

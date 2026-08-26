@@ -27,9 +27,9 @@ final class StalenessTest extends TestCase
         Runtime::functionsOrSkip($this, ['cm_staleness'], self::FILES);
     }
 
-    private function atAge(int $age, int $scheduleAgeDays = 1): array
+    private function atAge(int $age, int $scheduleAgeDays = 1, ?string $expiredOn = null): array
     {
-        return cm_staleness(self::NOW, ['positions' => self::NOW - $age], $scheduleAgeDays);
+        return cm_staleness(self::NOW, ['positions' => self::NOW - $age], $scheduleAgeDays, $expiredOn);
     }
 
     #[DataProvider('levels')]
@@ -57,7 +57,17 @@ final class StalenessTest extends TestCase
         yield 'the stale boundary at 3600 seconds' => [3600, 1, 'stale', true];
         yield 'one second past stale' => [3601, 1, 'dead', true];
         yield 'a fresh feed on a two-day-old schedule' => [43, 2, 'fresh', false];
-        yield 'a fresh feed on an eight-day-old schedule' => [43, 8, 'stale', true];
+        /*
+         * The bug this pair pins. CapMetro republishes about three times a year, so
+         * these two schedule ages are what an ordinary healthy week and an ordinary
+         * healthy November look like. Both used to force `stale`, which suppressed
+         * every lateness number on the board and captioned it "Data 43 sec old.
+         * Lateness is hidden until the feed catches up." about a feed that was
+         * forty-three seconds old and arriving on time.
+         */
+        yield 'a fresh feed on an eight-day-old schedule' => [43, 8, 'fresh', false];
+        yield 'a fresh feed on a schedule published four months ago' => [43, 121, 'fresh', false];
+        yield 'a schedule old enough to have been aging, with a fresh feed' => [43, 3, 'fresh', false];
     }
 
     public function testTakesTheOldestOfSeveralFeedsRatherThanTheNewest(): void
@@ -95,15 +105,60 @@ final class StalenessTest extends TestCase
         self::assertNull($this->atAge(43)['reason']);
     }
 
-    public function testSuppressesAdherenceOnScheduleAgeAloneEvenWhenTheRealtimeFeedsAreFresh(): void
+    public function testSuppressesAdherenceWhenTheScheduleHasRunOutEvenThoughTheFeedsAreFresh(): void
     {
-        // The stale-shard case wearing a different hat: positions keep arriving,
-        // so nothing looks broken, but the schedule they are compared against is
-        // three weeks out of date.
-        $result = $this->atAge(43, 21);
+        // The stale-shard case wearing a different hat: positions keep arriving, so
+        // nothing looks broken, but the timetable they are graded against ended --
+        // there is no scheduled time for today, so any lateness number is measured
+        // against nothing.
+        $result = $this->atAge(43, 190, '20270109');
 
+        self::assertSame('stale', $result['level']);
         self::assertTrue($result['suppress_adherence']);
-        self::assertStringContainsString('Schedule', (string) $result['reason']);
+        self::assertStringContainsString('2027-01-09', (string) $result['reason']);
+    }
+
+    public function testAnExpiredScheduleOutranksAnAgingFeedRatherThanBeingOverwrittenByIt(): void
+    {
+        // Both conditions hold. A level is never lowered by a second condition, and
+        // `aging` would have dropped suppress_adherence on a payload that must not
+        // carry a lateness number.
+        $result = $this->atAge(300, 190, '20270109');
+
+        self::assertSame('stale', $result['level']);
+        self::assertTrue($result['suppress_adherence']);
+    }
+
+    public function testAFeedThatHasActuallyStoppedStillNamesTheFeedAndNotTheSchedule(): void
+    {
+        // The reverse precedence: with both wrong, the reason has to name the one a
+        // reader can act on, and a feed 15 minutes down is that one.
+        $result = $this->atAge(900, 190, '20270109');
+
+        self::assertSame('stale', $result['level']);
+        self::assertStringContainsString('positions feed', (string) $result['reason']);
+    }
+
+    public function testAMalformedExpiryDateIsIgnoredRatherThanSuppressingTheWholeBoard(): void
+    {
+        // An index.json with a junk feed_end_date must not be able to blank every
+        // lateness number on the board on the strength of being unparseable.
+        foreach (['', 'soon', '2027-01-09', '2027019'] as $junk) {
+            $result = $this->atAge(43, 8, $junk);
+
+            self::assertSame('fresh', $result['level'], "junk expiry '$junk' changed the level");
+            self::assertFalse($result['suppress_adherence']);
+        }
+    }
+
+    public function testReportsScheduleAgeEvenThoughItNoLongerSetsTheLevel(): void
+    {
+        // The number still has a job: it is the "schedule 8 days old" line under a
+        // banner raised by something else. Dropping it would take that away.
+        $result = $this->atAge(900, 8);
+
+        self::assertSame(8, $result['schedule_age_days']);
+        self::assertSame('stale', $result['level']);
     }
 
     public function testClampsAFeedTimestampThatRunsAheadOfOurOwnClockToZeroRatherThanNegative(): void

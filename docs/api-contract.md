@@ -86,7 +86,7 @@ The primary endpoint. One file per route, regenerated every cron run.
   "staleness": {                        // server decides; client does not compute this
     "level": "fresh",                   // fresh | aging | stale | dead
     "oldest_feed_age_s": 43,
-    "schedule_age_days": 1,
+    "schedule_age_days": 1,             // reported only; does not set the level, see §1
     "suppress_adherence": false,        // when true the client MUST NOT render any lateness value
     "reason": null                      // human-readable string when level != fresh
   },
@@ -141,13 +141,27 @@ reason it exists, but a route showing five buses can still answer "when does the
 
 | level | Condition | Client behavior |
 |---|---|---|
-| `fresh` | oldest feed age <= 120s and schedule_age_days <= 2 | Normal render |
+| `fresh` | oldest feed age <= 120s | Normal render |
 | `aging` | oldest feed age <= 600s | Render normally, show age chip |
-| `stale` | oldest feed age > 600s **or** schedule_age_days > 7 | `suppress_adherence: true`; positions shown, no lateness numbers, banner |
+| `stale` | oldest feed age > 600s **or** the service date is past `feed_end_date` | `suppress_adherence: true`; positions shown, no lateness numbers, banner |
 | `dead` | oldest feed age > 3600s | Positions shown greyed; prominent banner with last-good time |
 
 `suppress_adherence` is authoritative. The client checks that flag, not the ages. This is the
 enforcement rule the engineering review required: staleness is a rendered state, not a log line.
+
+**`schedule_age_days` does not set the level.** It is reported so a banner can say
+"schedule 8 days old" beside its reason, and that is all it does. It used to force `stale`
+past seven days and `aging` past two, which read schedule age as schedule decay — on this
+feed the two are unrelated. CapMetro republishes about three times a year, so
+`feed_start_date` is routinely months behind while the timetable it carries is the current
+one; the old rule spent all but the first week of every feed suppressing lateness and
+telling the reader a feed fourteen seconds old was behind. What invalidates adherence is a
+schedule that has run out — past `feed_end_date` there is no timetable for today to measure
+against — and that is the condition above. It is the same one `health.json` fails on (§10).
+
+The two causes of `stale` need different words on screen, and the client tells them apart
+from `oldest_feed_age_s` against the thresholds in this table: at `stale` with a feed under
+600s, the schedule is what gave out. Waiting fixes the first and never the second.
 
 ---
 
