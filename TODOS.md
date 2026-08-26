@@ -2,7 +2,29 @@
 
 ## Client
 
+### Let a stops link be built inside the app
 
+**What:** The stops view opens, resolves and keeps a `#plan=` link, and hands one
+back out for sharing. It cannot make a new one. Adding a stop today means editing
+the fragment by hand: `#plan=1;4.1.6243.pm` is route 4, direction 1, stop 6243,
+afternoons.
+
+**Why:** The five stops this shipped for are the five that were asked for, and a
+link covers a second parent's phone. The moment either kid's route changes, or
+anyone wants a sixth stop, it is a hand-edited URL and a lookup in `data/stops.json`
+to find the id.
+
+**Context:** Most of the work exists. `watch.js`'s editor already walks route →
+direction → stop against the departures document, and its first three steps are
+exactly the three fields a plan entry needs; only step 4, the specific departure,
+does not apply — a window control replaces it. The honest shape is probably to
+lift those three steps into something both editors call rather than to fork them,
+since two pickers over one document is the divergence CLAUDE.md keeps warning
+about. `CMB.plan.encode` and `CMB.plan.linkFor` already produce the link.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** None
 
 ### Decide whether the map ever gets streets under it
 

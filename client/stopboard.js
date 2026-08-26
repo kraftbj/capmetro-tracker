@@ -45,8 +45,9 @@
    *
    * The rows come through W.rowsFor rather than a bare `departures[stopId]`,
    * which also reaches Object.prototype: a stop id of `constructor` returns a
-   * function that is truthy, has a length, and has nothing at [0]. `?stop=` puts
-   * that id in a link's reach, so it is guarded at the lookup for every caller.
+   * function that is truthy, has a length, and has nothing at [0]. `?stop=` and
+   * a stops link both put that id within a link's reach, so it is guarded at the
+   * lookup for every caller.
    */
   function directionsAt(dep, stopId) {
     var seen = Object.create(null);

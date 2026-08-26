@@ -37,7 +37,7 @@
    * base-uri 'self' rather than 'none'. Bail instead of relying on either.
    */
   if (p.charAt(0) !== '/' || p.charAt(1) === '/') return;
-  var m = p.match(/^(.*?\/)(?:route|buses|trip|saved)(?:\/|$)/);
+  var m = p.match(/^(.*?\/)(?:route|buses|trip|saved|stops)(?:\/|$)/);
   var b = document.createElement('base');
   b.href = m ? m[1] : p.replace(/[^/]*$/, '');
   document.head.appendChild(b);
@@ -46,6 +46,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0d12">
+<!-- The stops link keeps its plan in the '#' fragment, which browsers never send.
+     This makes that hold even where the vhost does not reach: a board opened from
+     disk, or served by anything other than the shipped nginx config. -->
+<meta name="referrer" content="no-referrer">
 <meta name="description" content="Live CapMetro bus positions and schedule adherence for one route, on a phone.">
 <title>Dillo Bus Board</title>
 
@@ -86,6 +90,9 @@
 <script src="allbuses.js"></script>
 <script src="watch.js"></script>
 <script src="stopboard.js"></script>
+<!-- plan.js reuses watch.js's schedule/live join and stopboard.js's ranking,
+     so it loads after both. -->
+<script src="plan.js"></script>
 <script src="chain.js"></script>
 <script src="trip.js"></script>
 <script src="urls.js"></script>

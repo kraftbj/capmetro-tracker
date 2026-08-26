@@ -46,8 +46,14 @@ because a state table that cannot be looked at does not get verified:
 | `?view=trip&bus=2641&state=trip-canceled` | Canceled trip: scheduled times only |
 | `?view=trip&bus=2641&state=trip-estimated` | Synthetic: half the feed predictions removed, so the feed/estimate divider and `~`/"estimated" markers actually render. The bundled fixture gives every in-service vehicle full feed coverage on its own, so without this the estimate branch — this feature's whole honesty mechanism — cannot be seen or tested at all. |
 
-Also `?route=4` and `?dir=0|1|both`. The last route and direction persist in
-`localStorage`.
+Also `?route=4` and `?dir=0|1|both`, and `?view=board|stops|all|saved`. The last
+route, direction and view persist in `localStorage`.
+
+There is no `?state=` scenario for the stops view, and there cannot be a useful
+one yet: a stop card needs `api/departures/{route}.json`, the scenarios rewrite
+the bundled route fixture, and no departures document is bundled. The view is
+covered end to end instead, in `tests/e2e/stops.spec.mjs`, against fixtures the
+e2e server serves over HTTP.
 
 ### Shareable URLs
 
@@ -147,6 +153,245 @@ deliberately — so until it is installed by hand and nginx reloaded, path links
 The `all-states` and `ladder-probe` scenarios rewrite the fixture and are labelled
 on screen as synthetic. They are instruments, not data — nothing in the shipped
 board invents a value.
+
+---
+
+## The stops link (`#plan=`)
+
+The fourth view. A **saved trip** is one named departure — "the 7:50a 800 SB from
+Simond/Berkman". A **stop** is a place and a time of day — "the 4 eastbound from
+Campbell/5th in the afternoons" — and it resolves to the next few departures,
+because which of the afternoon's buses gets caught is decided on the day.
+
+### The grammar
+
+```
+https://bus.dillo.dev/#plan=1;800.1.6293.am;4.0.3337.am;4.1.6243.pm
+                            │ └───────────┘
+                            │  route . direction . stop . window
+                            └ format version
+```
+
+`direction` is the GTFS `direction_id`, `0` or `1` — not a compass letter, since
+which of the two is northbound is a property of the route. `window` is `am`
+(04:00–12:00), `pm` (12:00–20:00), `all`, or an explicit `HHMM-HHMM` whose end may
+run past midnight (`2200-0200` is 22:00 to 26:00 in service-day seconds, the same
+convention every other clock in this contract uses). It is optional and defaults
+to `all`.
+
+A window decides which SECTION a stop lands in, never whether it is on the page.
+An afternoon stop at seven in the morning sits under "Later today" with its next
+departure printed, because "where did my stop go" is a worse question than "why is
+that one greyed out".
+
+Malformed entries are dropped and the rest still open. A plan is not a
+transaction; if four of five stops parse, the reader is standing at one of the
+four.
+
+### Why the fragment, and not the query — and what that does not buy
+
+Contract §9 hashes the watch tuple for one stated reason: *"so a URL or server log
+never carries a legible description of a child's daily routine."* A feature whose
+whole point is a URL has to answer that rather than inherit it.
+
+The fragment answers the half about **passive** leakage. Browsers do not send it,
+so `bus.dillo.dev`'s access log sees `GET /` however many stops the link carries,
+and it does not ride along in a `Referer` header either. `index.html` declares
+`referrer: no-referrer` as well as the vhost doing so, because the board is also
+meant to open from disk, where no vhost applies.
+
+**It is not the guarantee the hash gives, and an earlier draft of this file said it
+was.** The sha256 in §9 is one-way: no decoder exists, only guess-and-check against
+a stop you already suspect. This encoding is reversible and *this application is
+the decoder* — paste a link into the board and the stops are on screen, named, with
+times. No stop table needed, and stop ids are public GTFS besides. The true claim,
+which is still worth having:
+
+> The server never learns which stops a link carries. Anyone the link is *given* to
+> can open it and read them, which is the entire point of sharing it.
+
+A link somebody chose to send is a different thing from a URL that leaks into logs
+and referrers by itself, and only the second is what §9 is about.
+
+One thing the fragment does not hide: opening a plan immediately fetches that
+plan's **routes**, so the access log does learn the route set — just not the stops,
+the directions or the times.
+
+A `?plan=` query is still accepted, because a link that has been through three
+messaging apps can arrive in any shape — and is rewritten into the fragment via
+`replaceState` before any fetch goes out, with the banner saying so. That does not
+un-send the request that already reached the server; it stops the leak repeating on
+reload and on the next share.
+
+### What a link may carry
+
+At most 12 entries across at most 6 routes, and the rest of the fragment is
+dropped. Every surviving entry becomes a route whose schedule and live payload are
+fetched, and the refresh timer re-runs the set every 60 seconds; a fragment with a
+few hundred entries is a few hundred requests a minute from one phone, and a wedged
+board with the fan on is indistinguishable from the app being broken. The commute
+this shipped for has five entries on three routes.
+
+A link is also the first untrusted string this codebase feeds into paths that only
+ever saw internal state. `departures['constructor']` on a plain object returns the
+`Object` function — truthy, so an `|| []` fallback never fires, with a `.length` of
+1 and nothing at `[0]` — and the next read threw during render, blanking the board.
+Guarded once in `watch.rowsFor()`, which every caller goes through, and the
+route-keyed caches in `app.js` are `Object.create(null)`.
+
+The same string reaches the ROUTE field, where it becomes a request path. That one
+did not blank the board; it killed the e2e fixture server, which looked its route
+ids up in a bare object and then handed `path.join()` a function. An uncaught throw
+in a request handler ends the process, so one hostile link took the server down and
+every test scheduled after it failed for reasons of its own. Guarded there too, with
+a `try`/`catch` behind it so the next one is a 500 on one request rather than an
+invisible cause for a whole run.
+
+### A second link, and what it must not do to the first
+
+Keeping is an ADD, never a replace. The case is a parent with one child's stops kept
+who opens the other child's link: `save()` overwrites, so the obvious button threw
+the first set away with no warning and no way back but the original link. `merge()`
+puts the existing entries first, so if a cap bites it bites on what is arriving —
+and returns what it dropped rather than swallowing it, because 12 entries across 6
+routes is a limit somebody can actually reach with two children. The offer says
+which case it is in: "This phone already keeps 3 stops", and the button reads "Add
+to this phone".
+
+A decline is about a SET OF STOPS, not about a page load. `adoptPlan()` rebuilds the
+offer from the link and storage every time it runs, and anything that sends the
+reader through it a second time — a detour to another link and Back is the ordinary
+way — used to put the offer they had just dismissed back on screen. Asking twice is
+how a board teaches somebody to stop reading it.
+
+And a fragment carrying no plan is not about this view at all, so nothing reacts to
+it. Rebuilding the plan whenever the board had been opened from a link meant an
+in-page anchor, or a Back onto the URL as it was before the link, replaced the stops
+on screen with "No stops on this phone yet".
+
+### Turnarounds, which are the reason this is not a list of times
+
+Three of the five stops this was built for are turnaround points: route 4 eastbound
+starts at Campbell/5th and at Veterans/Atlanta, route 837 northbound starts at
+Republic Square. **There is no eastbound bus approaching Campbell/5th, ever.** The
+bus that answers the question is westbound until it gets there, turns its headsign
+round and leaves as the eastbound trip. A board that looks for an approaching
+eastbound vehicle shows a scheduled time and no bus — the exact blank the design
+doc calls the failure this project exists to avoid.
+
+Three published facts answer it, and the card says which one it is using:
+
+| What is known | The card says |
+|---|---|
+| The trip is cancelled | "CANCELED · CapMetro has canceled this trip. No bus is coming for it." |
+| A vehicle is on the outbound trip and `STOPPED_AT` the stop | "Bus 2867 is at the stop now." |
+| A vehicle is on the inbound leg and `STOPPED_AT` the stop | "Bus 2867 is standing at this stop now, in on the 3:04p WB, and goes back out as this trip." |
+| A vehicle is running the inbound leg elsewhere | "Bus 2867 brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds late." |
+| The inbound leg itself is canceled, and nothing is reporting | "The 3:04p WB that would bring this bus in is canceled, and nothing in the schedule says what runs this trip instead." |
+| The inbound leg is canceled but a bus is reporting on it anyway | "Bus 2867 is standing at this stop now, and goes back out as this trip. The 3:04p WB it was scheduled to come in on is canceled." |
+| Only the schedule knows | "Comes in on the 3:04p WB. No bus is reporting on that trip yet." |
+
+**Live evidence is read before the cancellation, not after it.** The last two rows
+are the same schedule fact and they read very differently, because a bus you can
+see out of the window settles the question and a withdrawn leg does not. The
+ladder in `decorate()` therefore asks what is reporting — `at_stop`, then any
+vehicle at all — before it asks what was planned, and the cancellation comes back
+as a trailing clause rather than the whole sentence. Both facts get said; neither
+gets to delete the other. Ordering these the other way round told a reader nothing
+was coming for a trip whose bus was idling in front of them, which is the failure
+this board exists to prevent, inverted.
+
+**A continuation the feed has not confirmed is a likelihood, not a fact** —
+contract §4, and the same hedge `rows.js` `continuationText()` makes: "Bus 8021
+*likely* brings it in on the 10:20a SB". The word is on every line; what it means
+is said once per card, because three identical caveats in a row bury the times the
+card exists to show. That is not an edge case here. Every route 837 block in the
+2026-08-19 capture is `confidence: low`, so it is the ordinary reading on one of
+the three turnarounds this shipped for, and it matters more on this card than on
+the rows band — the whole point of a turnaround card is answering "is a bus
+actually coming for me" at a stop where none is visible, which is exactly where a
+false certainty costs somebody a wait in the dark.
+
+**Cancellations, ranking and the grace window are `stopboard.js`'s**, not restated
+here: `plan.js` calls `stopboard.upcoming()` and decorates each departure with the
+turnaround facts. So a departure is upcoming when its *predicted* arrival is still
+ahead, a cancelled one is listed and does not consume one of the three slots, and a
+cancelled trip gets no continuation reasoning at all — "Bus 8021 brings it in"
+printed beside CANCELED is the contradiction this board exists to avoid. Those
+rules were paid for once, when a kid waited for a bus that was never coming.
+
+The inbound leg gets the same check. "Comes in on the 3:04p WB. No bus is
+reporting on that trip yet" means *it has not started*, and using it for *it is
+never running* is the confusion cancellations exist to remove — worst here, since
+the inbound leg is the only evidence a bus is coming at a stop where none is
+visible. The whole-block case never reaches that code (the outbound is cancelled
+too, and `decorate()` returns first), so what it covers is one leg of a block
+called off on its own. The real capture only cancels whole blocks, so the test
+edits a fixture rather than pretending the case is in the data.
+
+**The screen-reader summary mirrors the card, not just its first row.** The card
+lists a cancellation and then the buses still running; taking only the first entry
+meant that when the soonest departure was cancelled a screen-reader user heard
+"cancelled" and nothing else — the half of the message that sends someone home.
+
+### A cancellation announced after the page loaded
+
+`trip.canceled` rides the departures document, which is cached for the service day
+it describes, so on its own it cannot carry a cancellation announced since the tab
+was opened. `watch.isCanceled()` (0.4.0.2) takes the union of that and the live
+`route.schedule.canceled_trips`, which is rebuilt every 60 seconds.
+
+Both paths on this view go through it: the outbound departures via
+`stopboard.upcoming()`, and the inbound leg via `legCanceled()`. The second is easy
+to miss — the leg is looked up in the cached document, so reading `trip.canceled`
+off it directly would have been the natural thing to write and would have left
+exactly the hole 0.4.0.2 closed, on the one card where the inbound leg is the only
+evidence a bus is coming.
+
+The live half comes from `vehicle.block.next_trip` (§2), the server's own block
+continuity with `is_direction_flip` already computed, falling back to the vehicle
+running the scheduled inbound leg — route 837 publishes `next_trip` without ever
+setting `is_direction_flip`, so that flag is read as extra information and never as
+a gate. The scheduled half comes from `departures.trips[].block_id`: the latest
+arrival at this stop, on the same block, in the other direction. Block continuity
+is the only honest link. Two trips sharing a stop and a plausible gap is a guess;
+two trips sharing a `block_id` is the agency saying one vehicle runs both.
+
+Whether a stop is a turnaround is **detected, never encoded in the link** — a
+departure is compared against its own trip's published `start_time`, so a schedule
+change three times a year cannot leave a hand-written flag lying about the
+geometry. It is also compared against `start_time` rather than a `stop_sequence`
+of 1, because sequence numbers belong to whichever pattern a trip runs and route 4
+publishes six patterns in one direction.
+
+### What is deliberately not computed
+
+When the inbound bus is nine minutes late, the outbound departure it becomes will
+almost certainly leave late too. The board does not print that number. Both facts
+are shown next to each other and the subtraction — which is one subtraction — is
+left to a reader who can see where it came from. A predicted departure derived from
+another trip's lateness is an invention with a plausible face, and nothing on this
+board invents a value.
+
+### Verified
+
+Rendered at 412×915 against **real generated output** (`.local/test-webroot` from
+`runtime/generate-api.php` over the committed shards), not the golden fixture,
+because CLAUDE.md says so and because the fixture is route 4 only.
+
+- All five stops resolve. Campbell/5th, Veterans/Atlanta and Republic Square are
+  detected as turnarounds; Simond SB and 7th/Pleasant Valley are not.
+- The inbound sentence names a real bus, a real leg and a real lateness on all
+  three turnarounds: "Bus 2867 brings it in on the 10:14a WB — due here in 4
+  minutes, running 35 seconds late."
+- No horizontal overflow at 412px; no console errors.
+- From a `file://` URL the cards say the schedule is fetched rather than bundled
+  and that this view needs the board served — not "loading", which would be a lie
+  with a spinner attached.
+- The cancelled 10:13 northbound at Republic Square renders as CANCELED with no
+  bus attributed to it, and does not displace a running departure from the three.
+
+Not verified on real hardware.
 
 ---
 

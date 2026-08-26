@@ -174,7 +174,7 @@ describe('the inline bootstrap and its CSP hash', () => {
  * board. Neither shows up in any other test.
  */
 describe('the app-path verbs agree everywhere they are written', () => {
-  const VERBS = ['route', 'buses', 'trip', 'saved']
+  const VERBS = ['route', 'buses', 'trip', 'saved', 'stops']
   const sources = {
     nginx,
     apache,
@@ -182,13 +182,13 @@ describe('the app-path verbs agree everywhere they are written', () => {
     'client/urls.js': readFileSync(new URL('../../client/urls.js', import.meta.url), 'utf8'),
   }
 
-  it('lists the same four in every file that names them', () => {
+  it('lists the same verbs in every file that names them', () => {
     for (const [name, src] of Object.entries(sources)) {
-      const group = src.match(/\(\??:?(route\|buses\|trip\|saved)\)/)
-        || src.match(/route: 1, buses: 1, trip: 1, saved: 1/)
+      const group = src.match(/\(\??:?(route\|buses\|trip\|saved\|stops)\)/)
+        || src.match(/route: 1, buses: 1, trip: 1, saved: 1, stops: 1/)
       expect(group, `${name} does not spell the verb list in the expected shape`).not.toBeNull()
     }
-    /* And the client's own table is exactly those four, no more. */
+    /* And the client's own table is exactly those, no more. */
     const table = sources['client/urls.js'].match(/var VERBS = \{([^}]*)\}/)[1]
     expect(table.match(/(\w+):/g).map((s) => s.slice(0, -1)).sort()).toEqual([...VERBS].sort())
   })

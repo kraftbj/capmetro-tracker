@@ -7,6 +7,25 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Added
 
+- **A stops link.** `#plan=1;800.1.6293.am;4.1.6243.pm` opens the board on the
+  places somebody actually waits, resolved and on screen, and offers to keep
+  them on that phone. A saved trip pins one departure; a stop is a place and a
+  time of day, and shows the next few — which of the afternoon's buses gets
+  caught is decided on the day, not in advance.
+- **Turnaround stops answer the question that has no visible bus.** Route 4
+  eastbound starts at Campbell/5th and Veterans/Atlanta; route 837 northbound
+  starts at Republic Square. No eastbound bus ever approaches Campbell/5th — the
+  bus that answers the question is westbound until it gets there. The card names
+  the inbound leg and, when one is reporting, the bus running it: "Bus 2867
+  brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds
+  late." A continuation the feed has not confirmed is said as a likelihood, per
+  contract section 4; every route 837 block in the 2026-08-19 capture is
+  `confidence: low`, so that is the ordinary case, not an edge one.
+- The plan rides in the URL fragment, which browsers never send, so the access
+  log never carries the stops. `index.html` now also declares
+  `referrer: no-referrer` so that holds where the vhost does not reach — a board
+  opened from disk, or served by something other than the shipped nginx config.
+
 - **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
   the 350, the 337 to the 7 to the 837 — saved and shown as one card instead of two
   or three route boards to compare by hand. The card leads with when the first bus
@@ -528,6 +547,107 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **A bus standing at the stop was answered with "nothing is coming."** The
+  boarding ladder read the schedule's cancellation before it read anything live,
+  so a turnaround departure whose feeder bus was `STOPPED_AT` the stop — its
+  block naming this very trip as the next one it runs — printed "the 10:00a SB
+  that would bring this bus in is canceled, and nothing in the schedule says what
+  runs this trip instead" while that bus idled in front of the reader. That is
+  the failure this board exists to prevent, inverted. Live evidence is read
+  first now, and the cancellation is still said, as the trailing clause it is:
+  both facts, and neither one deleting the other.
+- **A stop id containing a `;` resolved to a different stop.** The link escapes
+  its separators precisely so an id carrying one cannot split an entry in half,
+  and then the parameter was percent-decoded whole before the split ran, which
+  undid the escaping exactly. Every id in this feed is digits today, which is
+  why nobody noticed and why it is now a test rather than an assumption.
+- The once-a-minute schedule retry could clear the status of a request that was
+  still in flight, firing a duplicate alongside it — the same bug already fixed
+  for the route payload, on a slow connection, which is the only place either
+  one happens.
+- **A schedule left over from yesterday said today's service was over.** A
+  departures document from a previous service day has every one of today's times
+  behind it, so nothing resolved and every stop read "The last one today has
+  gone. Back tomorrow." — a claim about today, made from a document that does not
+  describe today, on a board left open overnight and picked up at breakfast. It
+  is still kept, because deleting it is how a failed refetch loses a whole service
+  day, but it no longer answers as though it were current: the card says the
+  schedule is out of date and is being refreshed.
+- A document from AHEAD of today counted as expired too. Around the service-day
+  roll the live payload can still be from before it while a schedule fetched a
+  moment later is from after, and the fresher of the two was re-requested every
+  sixty seconds until the payload caught up. Expiry means older, not different.
+- **"Forget these stops" and "Remove" announced success on a write that was
+  refused**, leaving the stops in storage to reappear on the next load having
+  been declared gone. The save path was already honest about this; these are its
+  siblings.
+- **Keeping a second link silently threw away the stops already kept.** Someone
+  with one child's stops on their phone who opened the other child's link and
+  tapped the obvious button lost the first set, with no warning and no way back
+  short of finding the original link again. The two sets are merged now, the
+  offer says so before it is tapped, and the button reads "Add to this phone".
+  If a cap is reached it is what is arriving that does not fit, never what is
+  already kept, and the board says how many did not.
+- An offer the reader had already declined came back after a detour to another
+  link and a Back, and a fragment carrying no plan at all — an in-page anchor, a
+  Back onto the URL from before the link — emptied a board that was showing
+  stops.
+- **An unbounded fetch-and-render loop.** `loadRouteData` and `loadDepartures`
+  call `render()` from their callbacks, and the views that need them call the
+  loaders from inside `paint()`. Both treated any status other than `loading` as
+  fetchable, so a route that had already resolved was re-fetched by the very
+  paint its own response triggered — a request per animation frame. It made the
+  stops view's offer button unclickable, being detached and rebuilt faster than
+  a tap could land, and spun hardest from a `file://` URL where the rejection is
+  immediate. Only an idle status is fetchable now, which is the contract the
+  refresh timer was already written to.
+- **A schedule was cached for the life of the tab.** A departures document
+  describes one service day, and nothing evicted it. A phone left on the counter
+  overnight and picked up at seven still held yesterday's: every stop reading
+  "the last one today has gone", on the exact surface someone consults at
+  breakfast and has no reason to doubt. It is now checked against the service
+  date the live payload reports, and re-asked for on the timer.
+- **A stop id naming something on `Object.prototype` blanked the board.**
+  `departures['constructor']` returns the `Object` function — truthy, so an
+  `|| []` fallback never fires, with a length of 1 and nothing at [0]. The next
+  read threw, during render. Unreachable while every id came from internal
+  state; a URL fragment made it reachable. Guarded at the shared lookup, and the
+  route-keyed caches are now prototype-free.
+- **"Keep on this phone" reported success when nothing was kept.** Both
+  `plan.save()` and `watch.add()` already reported a refusal — Safari private
+  browsing, an exhausted quota — and both call sites discarded it. The board
+  said saved, and the stops were gone on the next load with nothing on screen
+  having suggested otherwise.
+- The refresh timer forced a route's status back to idle even while its fetch
+  was still in flight, firing a second request alongside the first — on a slow
+  connection, which is exactly when it mattered.
+- Opening a kept stops link a second time landed on the route board: the view
+  switch hung off the unanswered offer rather than off the link. Removing a stop
+  also left the old fragment in the address bar, so a reload restored it. The
+  same applies to pasting a link into a tab that is already open, which is the
+  commonest way a link gets used and went through a different code path.
+- **A failed route fetch could delete a good schedule.** Falling back to the
+  bundled fixture made its frozen `20260819` read as today, so every cached
+  departures document looked expired and was dropped -- on a connection that had
+  just proved it could not fetch a replacement, and on route 4, which is the
+  default and the only bundled route. The fixture is no longer treated as a
+  statement about today, and a document is now swapped out only when its
+  replacement has actually arrived rather than deleted before the request.
+- **A cancelled inbound leg was named as the bus bringing a turnaround departure
+  in**, with "no bus is reporting on that trip yet" -- the sentence that means
+  "it has not started" used for "it is never running". That is the confusion
+  cancellations were surfaced to remove, on the one card where the inbound leg is
+  the only evidence a bus is coming at all. It reads the same cached/live union
+  `watch.isCanceled()` gives every other surface, so a cancellation announced
+  after the page loaded reaches it too.
+- **The screen-reader summary announced only the cancellation** when the soonest
+  departure on a card was cancelled, hiding the buses that were still running.
+  It now mirrors the card.
+- Two more bare object lookups reachable from a link: a window name resolving
+  through `Object.prototype` rendered `NaN:NaNp-NaN:NaNp` permanently, and a
+  prototype-named route id was dropped from the preload and the refresh while
+  paint went on fetching it.
+
 - **The Saved view was fetching route payloads in an unthrottled loop.**
   `loadRouteData()` is called from `paint()` and its success handler calls
   `render()`; its only guard was "am I already fetching", which is false by the time
@@ -614,7 +734,6 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   cancellations in the feed, 100 in the departures documents, 0 in
   `canceled_trips`. This is the carrier the fix above depends on, so the first
   fix was worthless without this one.
-
 ## [0.4.0.1] - 2026-08-20
 
 ### Fixed

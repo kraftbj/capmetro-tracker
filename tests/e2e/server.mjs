@@ -118,10 +118,22 @@ const SCENARIOS = {
    */
   chain: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
   chaindead: () => ({ status: 200, body: JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, 'route-4-dead-cron.json')))) }),
+  /*
+   * And the same arrangement for the stops view, whose route 4 schedule is the
+   * turnaround trim rather than the golden service day.
+   *
+   * Named for the fixture rather than for the view, because `stops` is an app
+   * path verb now and a scenario may not be one — the client reads the first
+   * such segment as the start of the app path, so a prefix called `stops` would
+   * resolve every asset against the wrong base. The guard below enforces it.
+   */
+  turnaround: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
+  turnarounddead: () => ({ status: 200, body: JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, 'route-4-dead-cron.json')))) }),
 }
 
-/* Which scenarios take their schedules from the chain fixture. */
+/* Which scenarios take their schedules from which committed set. */
 const CHAIN_SCENARIOS = { chain: true, chaindead: true }
+const STOPS_SCENARIOS = { turnaround: true, turnarounddead: true }
 
 /*
  * The service date the golden route payload publishes, and the day before it.
@@ -139,6 +151,153 @@ function dayBefore(yyyymmdd) {
 }
 const DAY_BEFORE_GOLDEN = dayBefore(GOLDEN_SERVICE_DATE)
 
+/*
+ * The schedule documents the stops view needs.
+ *
+ * A stop card cannot fall back to the bundled route fixture: it needs a whole
+ * service day of scheduled departures at one stop, and only this endpoint has
+ * that. Route 4 is served by the turnaround trim, because the turnaround is the
+ * case the view exists for; route 800 by the ordinary mid-route trim, so a
+ * non-turnaround card is on screen next to it.
+ *
+ * Behind the `stops` prefix rather than by default, for the reason the chain
+ * scenarios give: route 4 already answers with a whole golden service day that
+ * the trip view is asserted against, and the turnaround trim cannot stand in for
+ * it. Route 837 is only in this set, so it needs no prefix and is served
+ * everywhere.
+ */
+const STOPS_DEPARTURES = {
+  4: 'departures-4-turnaround.json',
+  800: 'departures-800.json',
+  837: 'departures-837-turnaround-canceled.json',
+}
+
+/*
+ * A schedule for a service day that is not the one the route payload reports.
+ * The client must keep asking for it on the timer rather than trusting it for
+ * the session — and must not ask for it on every repaint while doing so, which
+ * is how the fetch-and-render loop this suite guards against would come back.
+ */
+const YESTERDAY_ROUTE = '7'
+
+/*
+ * A route whose schedule loads exactly once; every request after that is a 500.
+ *
+ * ONE COUNTER PER ROUTE ID, and any id starting `flaky` is one of these, so each
+ * test picks its own and no two share anything. It used to be a single flag
+ * reset through GET /__reset, which two tests running in parallel could reset out
+ * from under each other: the second page then got the 500 meant for the first,
+ * and a test about a cached schedule failed for having no schedule at all. Test
+ * infrastructure that fails for reasons of its own is the thing hardest to
+ * debug, because the failure names the wrong culprit.
+ */
+const isFlakyRoute = (id) => /^flaky/.test(id)
+const flakyServed = new Map()
+
+/*
+ * EVERY LOOKUP KEYED BY SOMETHING OFF THE WIRE GOES THROUGH HERE.
+ *
+ * Route ids and path prefixes arrive from a link, and the suite has tests that
+ * deliberately put `constructor` in one. `TABLE['constructor']` is the Object
+ * function: truthy, so a 404 branch never fires, and then path.join() is handed
+ * a function and throws inside the request handler. An uncaught throw there
+ * takes the process down, so a single hostile-input test killed the fixture
+ * server and every test scheduled after it failed for a reason with nothing to
+ * do with what it was testing. A suite that dies mid-run is worse than one that
+ * fails, because the cause is invisible.
+ */
+const lookup = (table, key) =>
+  Object.prototype.hasOwnProperty.call(table, key) ? table[key] : undefined
+
+/*
+ * A live route payload for route 837 whose vehicle is genuinely on the inbound
+ * leg of a northbound departure from Republic Square.
+ *
+ * Without this every `api/route/*` request answers with the golden route 4 file,
+ * whose vehicles are on 10:xx route 4 trips, so no plan departure ever resolves a
+ * live bus and the turnaround's whole point — naming the bus coming the other way
+ * — went untested end to end. Built from the departures fixture rather than
+ * committed, so the two cannot drift.
+ *
+ * `confidence: 'low'` to exercise the hedge, which is what a continuation the
+ * feed has not confirmed must be said with.
+ *
+ * It used to be here because it was what every real 837 block carried, and that
+ * has stopped being true — the block-chaining fix was found on this very route,
+ * and correcting it moved 2,791 continuations from `low` to `high`; regenerating
+ * the 20260819 capture now reports `high` for all twelve of 837's blocks. So this
+ * is a deliberate choice of a value the contract still allows, not a copy of what
+ * the feed happens to say today. The hedge has to keep working for the routes
+ * that are still low.
+ */
+function turnaroundRoute() {
+  const dep = wireFormat(readJson(path.join(SYNTHETIC, STOPS_DEPARTURES[837])))
+  const stop = dep._expected?.turnaround_stop_id ?? '2112'
+  const tripAt = (seconds, dir) => {
+    const row = dep.departures[stop].find(
+      ([s, i]) => s === seconds && dep.trips[i].direction_id === dir,
+    )
+    return dep.trips[row[1]]
+  }
+  const golden = readJson(GOLDEN)
+  /* A departure that is still ahead of the golden file's clock and is running,
+   * so the card actually has a live bus to name. */
+  const nowSeconds = golden.generated_at - dep.service_day_start_epoch
+  const pair = readJson(path.join(SYNTHETIC, STOPS_DEPARTURES[837]))._expected.pairs.find(
+    (x) =>
+      x.inbound_arrival_s !== null &&
+      x.outbound_departure_s > nowSeconds &&
+      !tripAt(x.outbound_departure_s, 1).canceled,
+  )
+  const outbound = tripAt(pair.outbound_departure_s, 1)
+  const inbound = tripAt(pair.inbound_arrival_s, 0)
+
+  return {
+    ...golden,
+    route: { ...golden.route, id: '837', short_name: '837', long_name: 'Expo Center' },
+    vehicles: [
+      {
+        vehicle_id: '8021',
+        label: '8021',
+        route_id: '837',
+        route_short_name: '837',
+        in_service: true,
+        position: { lat: 30.2685, lon: -97.7462, bearing: 180, speed: 8 },
+        position_at: golden.generated_at,
+        trip: {
+          trip_id: inbound.id,
+          start_time: inbound.start_time,
+          start_epoch: dep.service_day_start_epoch,
+          direction_id: inbound.direction_id,
+          headsign: inbound.headsign,
+          schedule_relationship: 'SCHEDULED',
+        },
+        progress: { current_stop_sequence: 18, current_stop_id: '6502', current_status: 'IN_TRANSIT_TO' },
+        pattern: { is_baseline: true, is_special: false, trips_in_pattern: 40, adds: [], skips: [] },
+        block: {
+          block_id: inbound.block_id,
+          confidence: 'low',
+          spans_routes: false,
+          route_ids: ['837'],
+          is_last_trip: false,
+          next_trip: {
+            trip_id: outbound.id,
+            route_id: '837',
+            route_short_name: '837',
+            direction_id: 1,
+            start_time: outbound.start_time,
+            start_epoch: dep.service_day_start_epoch + pair.outbound_departure_s,
+            start_stop_id: stop,
+            start_stop_name: '5th/Guadalupe',
+            is_direction_flip: true,
+          },
+        },
+        adherence: { state: 'late', seconds: 210, glyph: 'up-triangle', reason: null, against: null },
+      },
+    ],
+  }
+}
+
 export const SCENARIO_NAMES = Object.keys(SCENARIOS)
 
 /*
@@ -148,7 +307,7 @@ export const SCENARIO_NAMES = Object.keys(SCENARIOS)
  * app path and every asset would resolve against the wrong base -- a blank board
  * with nothing in the console. Cheap to prevent, invisible to debug.
  */
-const APP_VERBS = ['route', 'buses', 'trip', 'saved']
+const APP_VERBS = ['route', 'buses', 'trip', 'saved', 'stops']
 for (const name of SCENARIO_NAMES) {
   if (APP_VERBS.includes(name)) {
     throw new Error(`scenario "${name}" collides with an app path verb; rename it`)
@@ -170,14 +329,63 @@ function chainDeparturesFor(routeId) {
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
   const parts = url.pathname.split('/').filter(Boolean)
-  /* hasOwnProperty, not a bare lookup: `/valueOf/index.html` would otherwise
+  /* Through lookup(), never a bare index: `/valueOf/index.html` would otherwise
    * resolve to a function, be called as a scenario, and take the whole fixture
    * server down mid-run — the same class of bug the client fixes for `?stop=`. */
-  const named = Object.prototype.hasOwnProperty.call(SCENARIOS, parts[0])
-  const scenario = named ? parts.shift() : 'fresh'
+  const scenario = lookup(SCENARIOS, parts[0]) ? parts.shift() : 'fresh'
   const rest = parts.join('/') || 'index.html'
 
+  if (rest.startsWith('api/departures/')) {
+    const id = path.basename(rest, '.json')
+    /*
+     * A schedule that loads once and then cannot be re-fetched, dated for a
+     * service day that is not the bundled fixture's. Models the failure exactly:
+     * a dropped route request makes the client fall back to the frozen capture,
+     * and if that date were read as "today" every cached schedule would look
+     * expired. Evicting one before its replacement lands then loses a whole
+     * service day to a connection that has already proved it cannot fetch.
+     */
+    if (isFlakyRoute(id)) {
+      if (flakyServed.get(id)) {
+        res.writeHead(500, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8' })
+        res.end('{"error":"gone"}')
+        return
+      }
+      flakyServed.set(id, true)
+      const doc = wireFormat(readJson(path.join(SYNTHETIC, STOPS_DEPARTURES[4])))
+      doc.route_id = id
+      doc.service_date = '20260818'
+      res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+      res.end(JSON.stringify(doc))
+      return
+    }
+    if (id === YESTERDAY_ROUTE) {
+      const doc = wireFormat(readJson(path.join(SYNTHETIC, STOPS_DEPARTURES[4])))
+      doc.route_id = YESTERDAY_ROUTE
+      doc.service_date = '20260818'
+      res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+      res.end(JSON.stringify(doc))
+      return
+    }
+    /* Route 837 exists only in the stops set, so it needs no prefix. */
+    if (id === '837' || STOPS_SCENARIOS[scenario]) {
+      const file = lookup(STOPS_DEPARTURES, id)
+      if (file) {
+        res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+        res.end(JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, file)))))
+        return
+      }
+    }
+  }
+
   if (rest.startsWith('api/route/')) {
+    /* The one live payload with a bus genuinely on the inbound leg of a
+     * northbound departure, which is what the turnaround card names. */
+    if (path.basename(rest, '.json') === '837') {
+      res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
+      res.end(JSON.stringify(turnaroundRoute()))
+      return
+    }
     const { status, body } = SCENARIOS[scenario]()
     res.writeHead(status, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
     res.end(body)
@@ -236,7 +444,7 @@ const server = createServer((req, res) => {
    * board's HTML for every missing asset, and a broken script tag would then
    * look like it loaded.
    */
-  const file = /^(route|buses|trip|saved)(\/|$)/.test(rest)
+  const file = /^(route|buses|trip|saved|stops)(\/|$)/.test(rest)
     ? path.join(CLIENT, 'index.html')
     : path.join(CLIENT, rest)
 

@@ -26,8 +26,17 @@
  * filesystem and the network. These watches never reach either: they live in
  * localStorage and are never put in a URL. A plain tuple key is honest about what
  * it is, and hashing it locally would be theatre — the readable original would be
- * sitting in the same store. If a watch ever becomes shareable, it needs the hash
- * and this comment needs deleting.
+ * sitting in the same store.
+ *
+ * This paragraph used to end "if a watch ever becomes shareable, it needs the
+ * hash". plan.js has since made a sibling shape shareable, so that condition has
+ * been met and the conclusion turned out to be wrong. Hashing would not have
+ * helped: a shared link has to be resolvable by the phone that receives it, so
+ * whatever it carries must be reversible by the app at the other end, and a hash
+ * that the client can turn back into a stop is not doing the work §9's hash does.
+ * What actually answers §9 is keeping the thing out of the request — the plan
+ * rides in the '#' fragment, which browsers never send. See the header of
+ * plan.js. A saved watch still never leaves this browser at all.
  */
 (function (global) {
   'use strict';
@@ -174,9 +183,9 @@
    * because that happens during render the whole board goes blank.
    *
    * The stop id is not always internal. app.js takes `?stop=` straight from the
-   * query string, so any link can choose it. The guard belongs here, at the one
-   * lookup every caller goes through, rather than in whichever caller happens to
-   * be holding an untrusted id today.
+   * query string, and a stops link carries one too, so any link can choose it.
+   * The guard belongs here, at the one lookup every caller goes through, rather
+   * than in whichever caller happens to be holding an untrusted id today.
    */
   function rowsFor(departures, stopId) {
     if (!departures) return [];

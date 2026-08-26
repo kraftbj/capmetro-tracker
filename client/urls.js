@@ -35,7 +35,7 @@
 
   /* The verbs that begin an app path. Anything before the first one is the
      directory the board is served from. */
-  var VERBS = { route: 1, buses: 1, trip: 1, saved: 1 };
+  var VERBS = { route: 1, buses: 1, trip: 1, saved: 1, stops: 1 };
 
   /* Direction tokens. The letters are per-route -- the 4 runs EB/WB and the 7
      runs NB/SB -- so a token cannot be mapped to a direction_id until that
@@ -125,6 +125,11 @@
         out.view = 'all';
       } else if (verb === 'saved') {
         out.view = 'saved';
+      } else if (verb === 'stops') {
+        /* The stops themselves ride in the fragment, which parse() never reads —
+         * a path is sent in a Referer where a fragment is not, and what this
+         * names is where a child stands and when. */
+        out.view = 'stops';
       } else if (verb === 'route') {
         out.view = 'board';
         if (segs[1]) out.route_id = segs[1];
@@ -161,6 +166,18 @@
    */
   function format(view, routeId, direction, busId) {
     if (view === 'all') return 'buses';
+    /*
+     * The stops view has a path like every other view, and the stops themselves
+     * stay in the fragment. Without a verb of its own it fell through to
+     * `route/{id}/{dir}`, so a reload landed on the board with the stops gone —
+     * and, on a page already served from a deep path, resolved every asset
+     * against the wrong base.
+     *
+     * The plan does NOT move into the path. It is a legible description of where
+     * a child stands and when, and a path is sent in a Referer where a fragment
+     * is not; that is the whole reason it lives after the `#`.
+     */
+    if (view === 'stops') return 'stops';
     if (view === 'saved' || view === 'saved-edit') return 'saved';
     if (view === 'trip') {
       if (busId && routeId) return 'trip/' + routeId + '/' + busId;
