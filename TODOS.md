@@ -48,23 +48,27 @@ publishes it before costing this.
 **Priority:** P3
 **Depends on:** None
 
-### Transfer chains
+### Name the end of a transfer chain
 
-**What:** Show a connection as one thing: 800 to the 4, 337 to the 350, 337 to the 7
-to the 837.
+**What:** A chain records where you board each bus but never where you get off the
+last one, so the card cannot say "she gets in at 8:40". Add a destination step to
+the final leg and lead the card with the arrival.
 
-**Why:** "she rides 800 to the 4 Austin HS run in the mornings and then 4 to 837 on
-the way home. The other daughter varies." Two separate route views mean doing the
-arithmetic yourself, at the exact moment you are trying not to think.
+**Why:** "Will she make the connection" is answered. "When does she actually get
+there" is not, and it is the second question every time.
 
-**Context:** Block continuity via `block_id` already links consecutive trips run by
-one vehicle, which is the harder half of this problem. A transfer is the easier
-half: two trips, two routes, a shared stop, and enough slack between them. Best
-built on top of saved trips, since a chain is a watch with two legs.
+**Context:** Deliberately left out of transfer chains rather than guessed at. The
+alternative considered and rejected was using the final trip's last stop as the
+arrival: on the 800 that is another forty minutes past where anyone in this
+household gets off, so a finished chain would sit on screen looking live. Until
+there is a destination, `resolve()` treats the chain as over once the last bus is
+boarded, which is honest but says less than it could. One more step in an editor
+that already has six is the cost; the connection picker already knows the onward
+trip's downstream stops, so the data is in hand.
 
-**Effort:** L
-**Priority:** P2
-**Depends on:** Saved trips
+**Effort:** S
+**Priority:** P3
+**Depends on:** Transfer chains
 
 ### Normalize all-caps stop and route names (ISSUE-003)
 

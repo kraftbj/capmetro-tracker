@@ -1,0 +1,1744 @@
+/**
+ * chain.js — transfer chains.
+ *
+ * The feature answers a question a saved trip cannot: not "when is her bus" but "is she
+ * going to make the change". Almost every test here is about a way that answer can be
+ * wrong in a way nobody would notice.
+ *
+ * The one that matters most is the first. The obvious way to find a transfer is to
+ * intersect two routes' stop ids, and on this feed that returns NOTHING for routes 800
+ * and 4 — the exact pair the feature was asked for. They meet at Pleasant Valley under
+ * two different ids tens of metres apart. An implementation built on shared ids would
+ * pass a hand-written unit test, report "these routes do not connect", and be wrong
+ * about a change two children in this household make every morning. So the fixture is
+ * trimmed from real generated output for that pair specifically, and the shared-id count
+ * is asserted to be zero so the premise cannot rot silently.
+ *
+ * The second thing under test is that the verdict moves with the feed. A connection with
+ * eight scheduled minutes is not a fact about today; it is a fact about the timetable.
+ * Put the first bus nine minutes down and the same connection is missed, and it is missed
+ * an hour before anyone reaches the stop. That transition is the whole product.
+ */
+import { existsSync, readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { renderClient, textOf } from './helpers/client.mjs'
+import { ROOT } from './helpers/optional.mjs'
+import { API, hasGeneratedOutput, MISSING, requireGenerated } from './helpers/webroot.mjs'
+
+const client = renderClient(['format.js', 'adherence.js', 'states.js', 'watch.js', 'chain.js'])
+
+const t = (name, fn) =>
+  it(name, (ctx) => {
+    if (!client.cmb) ctx.skip(client.reason)
+    if (!client.cmb.chain) ctx.skip('client scripts loaded but window.CMB.chain is not defined')
+    return fn(client.cmb.chain, client.cmb)
+  })
+
+/*
+ * Like t(), for the tests that need real generated output rather than the
+ * fixture.
+ *
+ * They used to open with `if (!hasGeneratedOutput()) return void 0`, and an early
+ * return is a PASS. So the three highest-value tests in this file — the ones that
+ * check the household's actual chains against the whole corpus rather than
+ * against two trimmed routes — reported green while asserting nothing, under the
+ * per-suite command CLAUDE.md documents. run-all.sh already carries the note "a
+ * skip that reads as a pass is worse than a failure" about exactly this.
+ */
+const tReal = (name, fn) =>
+  it(name, (ctx) => {
+    if (!client.cmb) ctx.skip(client.reason)
+    if (!client.cmb.chain) ctx.skip('client scripts loaded but window.CMB.chain is not defined')
+    requireGenerated(ctx)
+    return fn(client.cmb.chain, ctx)
+  })
+
+const FIXTURE = JSON.parse(
+  readFileSync(path.join(ROOT, 'tests/fixtures/synthetic/chain-800-to-4.json'), 'utf8')
+)
+const DEPS = FIXTURE.departures
+const DEP800 = DEPS['800']
+const DEP4 = DEPS['4']
+const MIDNIGHT = DEP800.service_day_start_epoch
+
+/* The contract's own worked example: the 07:52:09 southbound from Simond SB. */
+const WATCHED_TRIP = '3010894_22201'
+const BOARD_STOP = '6293'
+const BOARD_TIME = '07:52:09'
+
+const LEG1 = {
+  route_id: '800',
+  direction_id: 1,
+  direction_tag: 'SB',
+  stop_id: BOARD_STOP,
+  stop_name: 'Simond SB',
+  scheduled_time: BOARD_TIME,
+}
+
+/** The chain the fixture exists for: 800 SB, change at Pleasant Valley, route 4 west. */
+function theChain(chain) {
+  const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+  const boardSeconds = chain.tripTimeAt(DEP800, index, BOARD_STOP)
+  const found = chain.connections(DEP800, index, boardSeconds, DEP4, 0)
+  /* The 78 m hop across 7th at Pleasant Valley — the one with real slack in it. */
+  const pick = found.filter((c) => c.walk_m > 0 && c.walk_m < 100)[0] ?? found[0]
+  return {
+    connection: pick,
+    chain: {
+      legs: [LEG1, chain.legFromConnection(pick, { route_id: '4', direction_id: 0 })],
+      day_type: 'weekday',
+    },
+  }
+}
+
+/** A route payload with one vehicle on `tripId`, `late` seconds down. */
+const routeWith = (tripId, late, state = 'late') => ({
+  staleness: { level: 'fresh', suppress_adherence: false },
+  vehicles: [
+    {
+      vehicle_id: '8021',
+      label: '8021',
+      trip: { trip_id: tripId },
+      adherence: { state, seconds: late, reason: null },
+    },
+  ],
+})
+
+/*
+ * A live feed for a route with no bus joined to any trip.
+ *
+ * This is NOT the same as having no payload for the route, and the difference is
+ * the whole of what four review rounds kept getting wrong. "The feed is up and
+ * this bus has not started its run" is a real observation, and the timetable is
+ * the honest prior for it. "Nothing has loaded for this route" is the absence of
+ * an observation, and nothing may be concluded from it.
+ *
+ * An empty routes map means the second. Every test below that means the FIRST
+ * says so by going through liveFeed(), so an assertion about timetable grading
+ * cannot quietly become an assertion about ungraded output.
+ */
+const liveRoute = () => ({
+  staleness: { level: 'fresh', suppress_adherence: false },
+  vehicles: [],
+})
+
+const liveFeed = (overrides) =>
+  Object.assign({ 800: liveRoute(), 4: liveRoute() }, overrides || {})
+
+/* resolve() against a live feed, with any named route overridden. */
+const resolveLive = (chain, c, deps, routes, now) => chain.resolve(c, deps, liveFeed(routes), now)
+
+describe('the premise: these two routes share no stops at all', () => {
+  t('routes 800 and 4 have zero stop ids in common', () => {
+    const a = new Set(DEP800.stops.map((s) => s.stop_id))
+    const shared = DEP4.stops.filter((s) => a.has(s.stop_id))
+    /*
+     * If this ever becomes non-zero the fixture has been rebuilt from a feed where
+     * the two routes were merged onto shared stops, and the test below stops proving
+     * what it claims. Fail loudly here rather than passing hollowly there.
+     */
+    expect(shared).toHaveLength(0)
+    expect(FIXTURE._expected.shared_stop_ids).toBe(0)
+  })
+
+  t('and connections are found anyway, every one of them across a walk', (chain) => {
+    const { connection } = theChain(chain)
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    const found = chain.connections(
+      DEP800,
+      index,
+      chain.tripTimeAt(DEP800, index, BOARD_STOP),
+      DEP4,
+      0
+    )
+    expect(found.length).toBeGreaterThan(0)
+    expect(connection.walk_m).toBeGreaterThan(0)
+    found.forEach((c) => {
+      expect(c.alight_stop_id).not.toBe(c.board_stop_id)
+      expect(c.walk_m).toBeLessThanOrEqual(chain.WALK_RADIUS_M)
+    })
+  })
+})
+
+describe('what may be offered as a connection', () => {
+  const found = (chain, dir = 0) => {
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    return chain.connections(
+      DEP800,
+      index,
+      chain.tripTimeAt(DEP800, index, BOARD_STOP),
+      DEP4,
+      dir
+    )
+  }
+
+  t('never one that cannot physically be made', (chain) => {
+    found(chain).forEach((c) => {
+      expect(c.slack_s).toBeGreaterThanOrEqual(chain.MIN_SLACK_S)
+    })
+  })
+
+  t('never one that means waiting most of an hour', (chain) => {
+    found(chain).forEach((c) => {
+      expect(c.slack_s).toBeLessThanOrEqual(chain.MAX_WAIT_S)
+    })
+  })
+
+  t('the walk is charged against the slack, not assumed free', (chain) => {
+    found(chain).forEach((c) => {
+      /* slack is what is left AFTER walking; the raw gap is always larger. */
+      expect(c.board_seconds - c.alight_seconds).toBe(c.slack_s + c.walk_s)
+      /* walk_m is rounded for display and walk_s is derived from the unrounded
+         distance THROUGH the circuity factor, so the two agree to within the
+         second or two that rounding cost. */
+      const expected = Math.ceil((c.walk_m * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+      expect(Math.abs(c.walk_s - expected)).toBeLessThanOrEqual(2)
+    })
+  })
+
+  t('only the earliest onward bus per pair of stops, so the list is choices not repeats',
+    (chain) => {
+      const pairs = found(chain).map((c) => `${c.alight_stop_id}>${c.board_stop_id}`)
+      expect(new Set(pairs).size).toBe(pairs.length)
+    })
+
+  t('earliest onward departure first', (chain) => {
+    const times = found(chain).map((c) => c.board_seconds)
+    expect(times.slice().sort((a, b) => a - b)).toEqual(times)
+  })
+
+  t('only stops the bus has not already passed', (chain) => {
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    const boardSeconds = chain.tripTimeAt(DEP800, index, BOARD_STOP)
+    found(chain).forEach((c) => {
+      expect(c.alight_seconds).toBeGreaterThan(boardSeconds)
+    })
+  })
+
+  t('the onward direction is honoured', (chain) => {
+    const trips = new Set(DEP4.trips.filter((x) => x.direction_id === 1).map((x) => x.id))
+    found(chain, 1).forEach((c) => expect(trips.has(c.trip.id)).toBe(true))
+  })
+})
+
+describe('geography', () => {
+  t('a stop is nought metres from itself', (chain) => {
+    const s = DEP800.stops[0]
+    expect(chain.metres(s, s)).toBe(0)
+  })
+
+  t('a stop with no fix is unknown, not in the Atlantic', (chain) => {
+    /* lat/lon are 0 in the departures document when the shard has no position. 0,0
+       is a real point in the Gulf of Guinea, and treating it as one would put every
+       unlocated stop 10,000 km away and quietly call it "too far to walk" — which is
+       the right answer for the wrong reason, and the wrong answer the moment the
+       radius is used for anything else. */
+    expect(chain.metres({ lat: 0, lon: 0 }, DEP800.stops[0])).toBeNull()
+    expect(chain.metres(DEP800.stops[0], null)).toBeNull()
+  })
+
+  t('walking time always rounds up', (chain) => {
+    expect(chain.walkSeconds(0)).toBe(0)
+    expect(chain.walkSeconds(78)).toBe(
+      Math.ceil((78 * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+    )
+    /* Never rounds a real walk down to nothing. */
+    expect(chain.walkSeconds(1)).toBeGreaterThanOrEqual(1)
+  })
+})
+
+describe('reading a trip out of a stop-keyed document', () => {
+  t('downstream stops come back in the order the bus visits them', (chain) => {
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    const hops = chain.downstreamStops(DEP800, index, 0)
+    expect(hops.length).toBeGreaterThan(5)
+    const seconds = hops.map((h) => h.seconds)
+    expect(seconds.slice().sort((a, b) => a - b)).toEqual(seconds)
+  })
+
+  t('a stop the trip does not call at has no time on it', (chain) => {
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    expect(chain.tripTimeAt(DEP800, index, 'no-such-stop')).toBeNull()
+  })
+})
+
+describe('the verdict, which is the whole product', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60 /* 07:50, ten minutes before the first bus */
+
+  t('with nothing reporting it is the timetable, and says so', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, {}, now)
+    expect(m.state).toBe('no-vehicle')
+    expect(m.connection.state).toBe('made')
+    expect(m.connection.assumed).toEqual(['arriving', 'onward'])
+    expect(chain.assumptionNote(m.connection)).toMatch(/timetable, not a prediction/)
+  })
+
+  t('an on-time first bus keeps the connection', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, 0, 'ontime') }, now)
+    expect(m.state).toBe('live')
+    expect(m.connection.state).toBe('made')
+    expect(m.connection.slack_s).toBe(m.connection.scheduled_slack_s)
+  })
+
+  t('a late enough first bus loses it, and the slack goes negative', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const late = connection.slack_s + 60 /* one minute past what there was to spare */
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+    expect(m.connection.state).toBe('missed')
+    expect(m.connection.slack_s).toBeLessThan(0)
+    expect(chain.slackText(m.connection.slack_s)).toMatch(/short$/)
+    expect(chain.connectionDetail(m.connection)).toMatch(/Plan on the next one/)
+  })
+
+  t('and the step in between is called tight rather than fine', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    /* Eat all but sixty seconds of the spare time. */
+    const late = connection.slack_s - 60
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+    expect(m.connection.state).toBe('tight')
+    expect(m.connection.slack_s).toBeGreaterThanOrEqual(0)
+    expect(m.connection.slack_s).toBeLessThan(chain.TIGHT_S)
+  })
+
+  t('a late ONWARD bus gives the connection back', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const late = connection.slack_s + 60
+    const held = resolveLive(chain, 
+      c,
+      DEPS,
+      {
+        800: routeWith(WATCHED_TRIP, late, 'very_late'),
+        /* the connecting bus is running just as late, so it is still there */
+        4: routeWith(connection.trip.id, late + 120, 'very_late'),
+      },
+      now
+    )
+    expect(held.connection.state).toBe('made')
+  })
+
+  /*
+   * This test used to assert that a suppressed lateness fell back to the timetable
+   * and recorded the assumption — which it did, and which is the WRONG outcome. It
+   * checked the guard (a null is not a zero) and never followed where the null led:
+   * to `board_at`, and to a confident verdict built on it. Rewritten to assert the
+   * outcome, which is what a reader of the card actually gets.
+   */
+  t('a suppressed lateness refuses to grade rather than grading optimistically',
+    (chain) => {
+      const { chain: c, connection } = theChain(chain)
+      const late = connection.slack_s + 60 /* enough to miss it, and known */
+      const vehicle = {
+        vehicle_id: '8021',
+        label: '8021',
+        trip: { trip_id: WATCHED_TRIP },
+        adherence: { state: 'very_late', seconds: late, reason: null },
+      }
+
+      const fresh = resolveLive(chain, c, DEPS, {
+        800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [vehicle] },
+      }, now)
+      expect(fresh.connection.state).toBe('missed')
+
+      /*
+       * Same chain, same bus, same lateness in the payload — only the feed's
+       * staleness differs. Before this fix the verdict flipped from 'missed' to
+       * 'made' with +480 s of slack: the timetable stood in for a measurement that
+       * existed and was lost, and the substitution always reads "on time".
+       */
+      const dead = resolveLive(chain, c, DEPS, {
+        800: { staleness: { level: 'dead', suppress_adherence: true }, vehicles: [vehicle] },
+      }, now)
+      expect(dead.connection.state).toBe('unknown')
+      expect(dead.connection.state).not.toBe('made')
+      expect(dead.connection.slack_s).toBeNull()
+      expect(dead.connection.ungraded_legs).toEqual([
+        { side: 'arriving', why: 'feed_stale', vehicle: true },
+      ])
+    })
+
+  t('and never calls a suppressed bus one that has not reported', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, {
+      800: {
+        staleness: { level: 'dead', suppress_adherence: true },
+        vehicles: [{
+          vehicle_id: '8021', label: '8021', trip: { trip_id: WATCHED_TRIP },
+          adherence: { state: 'very_late', seconds: 900, reason: null },
+        }],
+      },
+    }, now)
+    /* The bus reported, and its badge is drawn on the same screen. */
+    expect(chain.assumptionNote(m.connection)).toBeNull()
+    const said = chain.connectionDetail(m.connection)
+    expect(said).toMatch(/feed has stopped updating/)
+    expect(said).not.toMatch(/not reporting yet/)
+    /* The timetable gap may be quoted, but never as slack. */
+    expect(said).toMatch(/timetable allows/)
+  })
+})
+
+describe('the states a chain can be in', () => {
+  t('before the window it is a plan, not news', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, {}, MIDNIGHT + 5 * 3600)
+    expect(m.state).toBe('upcoming')
+  })
+
+  t('after the last bus has been boarded it is over', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, {}, MIDNIGHT + 12 * 3600)
+    expect(m.state).toBe('passed')
+  })
+
+  t('saved for a weekday, opened on a Sunday, says which', (chain) => {
+    const { chain: c } = theChain(chain)
+    const sunday = { ...DEPS, 800: { ...DEP800, day_type: 'sunday' } }
+    const m = resolveLive(chain, c, sunday, {}, MIDNIGHT + 8 * 3600)
+    expect(m.state).toBe('not-today')
+    expect(m.detail).toMatch(/Today is a sunday/)
+  })
+
+  t('a departure that no longer exists breaks the chain and names the route', (chain) => {
+    const { chain: c } = theChain(chain)
+    const moved = { legs: [{ ...c.legs[0], scheduled_time: '03:03:03' }, c.legs[1]],
+      day_type: 'weekday' }
+    const m = resolveLive(chain, moved, DEPS, {}, MIDNIGHT + 8 * 3600)
+    expect(m.state).toBe('broken')
+    expect(m.detail).toMatch(/[Rr]oute 800/)
+  })
+
+  t('a change at a stop the first bus no longer calls at breaks it too', (chain) => {
+    const { chain: c } = theChain(chain)
+    const wrong = {
+      legs: [c.legs[0], { ...c.legs[1], alight_stop_id: 'not-on-this-trip' }],
+      day_type: 'weekday',
+    }
+    const m = resolveLive(chain, wrong, DEPS, {}, MIDNIGHT + 8 * 3600)
+    expect(m.state).toBe('broken')
+    expect(m.detail).toMatch(/no longer stops where the change was made/)
+  })
+
+  t('a missing schedule is not a broken chain', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, {}, {}, MIDNIGHT + 8 * 3600)
+    expect(m.state).toBe('no-schedule')
+  })
+
+  t('the SECOND route missing its schedule is also not-yet, not broken', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, { 800: DEP800 }, {}, MIDNIGHT + 8 * 3600)
+    expect(m.state).toBe('no-schedule')
+  })
+})
+
+describe('what the store will keep', () => {
+  t('a chain needs at least one change in it', (chain) => {
+    expect(chain.isWellFormed({ legs: [LEG1], day_type: 'weekday' })).toBe(false)
+  })
+
+  t('and no more than three buses', (chain) => {
+    const leg = { ...LEG1, alight_stop_id: 'x' }
+    expect(chain.isWellFormed({ legs: [LEG1, leg, leg, leg], day_type: 'weekday' })).toBe(false)
+  })
+
+  t('every leg after the first must say where it was reached from', (chain) => {
+    const noAlight = { ...LEG1, route_id: '4' }
+    expect(chain.isWellFormed({ legs: [LEG1, noAlight], day_type: 'weekday' })).toBe(false)
+  })
+
+  t('a chain with two legs and a day type is kept', (chain) => {
+    const { chain: c } = theChain(chain)
+    expect(chain.isWellFormed(c)).toBe(true)
+  })
+
+  t('the key distinguishes chains that differ only in a later leg', (chain) => {
+    const { chain: c } = theChain(chain)
+    const other = { legs: [c.legs[0], { ...c.legs[1], scheduled_time: '09:09:09' }],
+      day_type: 'weekday' }
+    expect(chain.keyFor(c)).not.toBe(chain.keyFor(other))
+  })
+
+  t('routesIn names every route once, in order', (chain) => {
+    const { chain: c } = theChain(chain)
+    expect(chain.routesIn(c)).toEqual(['800', '4'])
+    expect(chain.routesIn({ legs: [LEG1, { ...LEG1, alight_stop_id: 'x' }] })).toEqual(['800'])
+  })
+
+  t('resolve refuses a one-leg chain rather than throwing', (chain) => {
+    const m = resolveLive(chain, { legs: [LEG1], day_type: 'weekday' }, DEPS, {}, MIDNIGHT)
+    expect(m.state).toBe('broken')
+  })
+})
+
+describe('ordering: the connection at risk comes first', () => {
+  t('a live chain with a missed change outranks a live chain that holds', (chain) => {
+    const sorted = chain.sortModels([
+      { state: 'live', seconds_until: 60, connection: { state: 'made', slack_s: 600 } },
+      { state: 'live', seconds_until: 900, connection: { state: 'missed', slack_s: -60 } },
+    ])
+    expect(sorted[0].connection.state).toBe('missed')
+  })
+
+  t('but anything already gone still sinks below anything live', (chain) => {
+    const sorted = chain.sortModels([
+      { state: 'passed', seconds_until: -10, connection: { state: 'missed', slack_s: -60 } },
+      { state: 'live', seconds_until: 600, connection: { state: 'made', slack_s: 600 } },
+    ])
+    expect(sorted[0].state).toBe('live')
+  })
+})
+
+describe('words a person reads at six in the morning', () => {
+  t('slack is never a bare signed number', (chain) => {
+    expect(chain.slackText(600)).toBe('10 minutes spare')
+    expect(chain.slackText(-600)).toBe('10 minutes short')
+    expect(chain.slackText(null)).toBe('no timing')
+  })
+
+  t('half a minute short is one minute short, never none', (chain) => {
+    /* Rounding 34 seconds down to "0 minutes short" reads as having made it. */
+    expect(chain.slackText(-34)).toBe('1 minute short')
+  })
+
+  t('a same-stop change says so instead of naming a nought-metre walk', (chain) => {
+    const said = chain.connectionDetail({
+      state: 'made', walk_m: 0, alight_stop_name: 'Simond SB', slack_s: 300,
+    })
+    expect(said).toMatch(/^Same stop at Simond SB/)
+    expect(said).not.toMatch(/0 m/)
+  })
+})
+
+describe('the card', () => {
+  t('leads with the first bus and names the change', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, { 800: routeWith(WATCHED_TRIP, 0, 'ontime') },
+      MIDNIGHT + 7 * 3600 + 50 * 60)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    expect(said).toMatch(/Transfer chains/)
+    expect(said).toMatch(/800 → 4/)
+    expect(said).toMatch(/1 change/)
+    expect(said).toMatch(/Connection holds/)
+  })
+
+  t('an empty list explains what a chain is rather than showing nothing', (chain, cmb) => {
+    const host = cmb.states.el('div')
+    chain.render(host, [], {})
+    expect(textOf(host)).toMatch(/journey with a change in it/)
+  })
+})
+
+/*
+ * CLAUDE.md is explicit that QA runs against real generated output and not the golden
+ * fixture, because both bugs /qa found on 2026-08-19 came from routes the fixture does
+ * not contain. The fixture above is trimmed from real output but it is still two routes;
+ * this runs the household's actual chains over the whole generated corpus.
+ */
+describe('against real generated output', () => {
+  const dep = (id) => {
+    const f = path.join(API, 'departures', `${id}.json`)
+    return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null
+  }
+
+  const REAL = [
+    { from: '800', stop: '6293', dir: 1, at: '07:52:09', to: '4' },
+    { from: '337', to: '350' },
+    { from: '7', to: '837' },
+  ]
+
+  REAL.forEach((leg) => {
+    tReal(`route ${leg.from} really does connect to route ${leg.to}`, (chain) => {
+      const a = dep(leg.from)
+      const b = dep(leg.to)
+      /*
+       * A missing departures document with a generated webroot present is a
+       * regression in what the runtime publishes, not a reason to say nothing.
+       * These two routes are on the watch list; if they stop being generated the
+       * board loses a chain and this is where it should surface.
+       */
+      expect(a, `no generated departures document for route ${leg.from}`).toBeTruthy()
+      expect(b, `no generated departures document for route ${leg.to}`).toBeTruthy()
+      /*
+       * Pick a real morning trip on the first route rather than a named one, so this
+       * keeps working across a feed rebuild. The claim under test is not "this exact
+       * bus connects" but "these routes connect at all", which is the claim an
+       * intersection of stop ids gets wrong.
+       */
+      let found = []
+      for (const trip of a.trips) {
+        const index = a.trips.indexOf(trip)
+        const hops = chain.downstreamStops(a, index, 0)
+        if (!hops.length) continue
+        const start = hops[0].seconds
+        if (start < 6 * 3600 || start > 10 * 3600) continue
+        found = chain
+          .connections(a, index, start - 1, b, 0)
+          .concat(chain.connections(a, index, start - 1, b, 1))
+        if (found.length) break
+      }
+      expect(found.length).toBeGreaterThan(0)
+      found.forEach((c) => {
+        expect(c.slack_s).toBeGreaterThanOrEqual(chain.MIN_SLACK_S)
+        expect(c.walk_m).toBeLessThanOrEqual(chain.WALK_RADIUS_M)
+      })
+    })
+  })
+
+  /*
+   * This used to read `if (!hasGeneratedOutput()) ctx.skip(MISSING)` followed by
+   * an assertion that it exists — so it skipped in precisely the case it was
+   * written to report, and the three tests above passed silently alongside it.
+   * The reporting now lives in tReal, which skips each of them by name and with a
+   * reason; this just states the requirement in one place.
+   */
+  it('needs generated output, and says so by name when there is none', (ctx) => {
+    requireGenerated(ctx)
+    expect(hasGeneratedOutput()).toBe(true)
+    expect(existsSync(API)).toBe(true)
+  })
+})
+
+/*
+ * Cancellation. The highest-consequence gap the review found: `trip.canceled` is
+ * published on every departures trip, `resolveLeg` ignored it, and a canceled leg
+ * therefore took the no-vehicle path — lateness null, scheduled time standing in,
+ * the transfer graded against a timetable for a bus that is not running. The card
+ * could print "Connection holds" about a leg the agency had already called off.
+ *
+ * On the 2026-08-19 feed there are 100 canceled trips across 10 routes, 14 of them
+ * on route 837 and 8 on route 7 — both legs of "337 to the 7 to the 837". This is
+ * the shipped path.
+ */
+describe('a canceled leg is never graded', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /** The same fixture with one trip marked canceled, by trip id. */
+  const withCanceled = (tripId) => {
+    const clone = JSON.parse(JSON.stringify(DEPS))
+    let hit = 0
+    for (const doc of Object.values(clone)) {
+      for (const t of doc.trips) if (t.id === tripId) { t.canceled = true; hit += 1 }
+    }
+    expect(hit, `trip ${tripId} is not in the fixture`).toBe(1)
+    return clone
+  }
+
+  t('the fixture publishes the field at all', () => {
+    /* If a feed rebuild ever drops `canceled`, every assertion below would pass
+       vacuously against a field that is always undefined. */
+    DEP800.trips.forEach((x) => expect(x).toHaveProperty('canceled'))
+    DEP4.trips.forEach((x) => expect(x).toHaveProperty('canceled'))
+  })
+
+  /*
+   * The cached-document fuse, closed on trunk in 30dd6a9 and inherited here.
+   *
+   * `trip.canceled` rides api/departures/{route}.json, which the client fetches once
+   * and keeps for the session, so it cannot carry a cancellation announced after the
+   * tab was opened — which is exactly how somebody waiting at a stop uses this. The
+   * live `route.schedule.canceled_trips` covers that, and the union of the two is
+   * one rule living in watch.js.
+   */
+  t('a cancellation announced after the tab opened still reaches the chain', (chain) => {
+    const { chain: c } = theChain(chain)
+    /* The cached schedule says nothing is canceled — as it would in a tab opened
+       before the announcement. Every trip's flag is explicitly false so this
+       cannot pass vacuously against a document that simply lacks the field. */
+    const cached = JSON.parse(JSON.stringify(DEPS))
+    Object.values(cached).forEach((doc) => doc.trips.forEach((x) => { x.canceled = false }))
+
+    const live = {
+      800: {
+        staleness: { level: 'fresh', suppress_adherence: false },
+        vehicles: [],
+        schedule: { canceled_trips: [WATCHED_TRIP] },
+      },
+    }
+    const m = resolveLive(chain, c, cached, live, now)
+    expect(m.state).toBe('canceled')
+    expect(m.transfers[0].state).toBe('void')
+
+    /* Negative control: without the live list the same input grades normally, so
+       the assertion above is about the union and not about the fixture. */
+    const without = resolveLive(chain, c, cached, {}, now)
+    expect(without.state).not.toBe('canceled')
+  })
+
+  t('the FIRST leg canceled does not read as a bus that has yet to start', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
+    expect(m.state).toBe('canceled')
+    expect(m.detail).toMatch(/canceled the 7:52a route 800/)
+    expect(m.detail).not.toMatch(/normal until it starts its run/)
+  })
+
+  t('and its transfer is void rather than graded', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
+    expect(m.transfers[0].state).toBe('void')
+    expect(m.transfers[0].slack_s).toBeNull()
+    expect(m.connection.state).toBe('void')
+  })
+
+  t('the ONWARD leg canceled is caught too, and named', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const m = resolveLive(chain, c, withCanceled(connection.trip.id), {}, now)
+    expect(m.state).toBe('canceled')
+    expect(m.detail).toMatch(/route 4/)
+    expect(m.transfers[0].state).toBe('void')
+  })
+
+  t('the card says CANCELED and never a connection verdict', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    expect(said).toMatch(/CANCELED/)
+    expect(said).toMatch(/No bus is running that trip today/)
+    /* The exact string the bug produced. */
+    expect(said).not.toMatch(/Connection holds/)
+    expect(said).not.toMatch(/normal until it starts its run/)
+  })
+
+  t('and a screen reader hears it, not just the color', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, withCanceled(WATCHED_TRIP), {}, now)
+    /* spoken() is exercised through the card; assert the model carries the words. */
+    expect(m.detail).toMatch(/CapMetro has canceled/)
+  })
+
+  t('a canceled chain sits above everything waiting, but a live one still leads', (chain) => {
+    const sorted = chain.sortModels([
+      { state: 'live', seconds_until: 600, connection: { state: 'made', slack_s: 600 } },
+      { state: 'canceled', seconds_until: 900, connection: { state: 'void', slack_s: null } },
+    ])
+    expect(sorted[0].state).toBe('live')
+    /* live still leads, but canceled sits above everything that is merely waiting. */
+    const sorted2 = chain.sortModels([
+      { state: 'upcoming', seconds_until: 60, connection: null },
+      { state: 'canceled', seconds_until: 900, connection: null },
+    ])
+    expect(sorted2[0].state).toBe('canceled')
+  })
+})
+
+/*
+ * The cascade. Grading each transfer independently printed "Connection holds" six
+ * lines under "Connection missed" on a three-leg chain — the second verdict
+ * computed from a bus the rider will not be on.
+ */
+describe('a change nobody reaches is not graded either', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /** A three-leg chain: 800 -> 4 -> 4, the third leg reached from the second. */
+  const threeLeg = (chain) => {
+    const { chain: two, connection } = theChain(chain)
+    const secondIdx = chain.tripIndexOf(DEP4, connection.trip.id)
+    const onward = chain.connections(DEP4, secondIdx, connection.board_seconds, DEP4, 1)
+    if (!onward.length) return null
+    return {
+      legs: two.legs.concat([
+        chain.legFromConnection(onward[0], { route_id: '4', direction_id: 1 }),
+      ]),
+      day_type: 'weekday',
+    }
+  }
+
+  t('a missed first change voids every change after it', (chain, cmb) => {
+    const three = threeLeg(chain)
+    /*
+     * The fixture is committed and deterministic, so a missing third leg is a
+     * fixture regression, not a legitimate skip — and `return void 0` would report
+     * it as three passes. This test and the two below cover the cascade bug
+     * ("Connection holds" printed six lines under "Connection missed") and the
+     * cancellation ranking, which are the findings this file exists to defend.
+     */
+    expect(three, 'the fixture no longer offers a third leg').toBeTruthy()
+    const { connection } = theChain(chain)
+    const late = connection.slack_s + 60
+    const m = resolveLive(chain, three, DEPS,
+      { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+
+    expect(m.transfers).toHaveLength(2)
+    expect(m.transfers[0].state).toBe('missed')
+    expect(m.transfers[1].state).toBe('void')
+    expect(m.transfers[1].slack_s).toBeNull()
+
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    expect(said).toMatch(/Connection missed/)
+    /* The whole point: no second, contradictory verdict underneath the first. */
+    expect(said).not.toMatch(/Connection holds/)
+    expect(said).toMatch(/Not reached/)
+  })
+})
+
+describe('the boundary between tight and fine', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /** Grade this chain with the first bus late enough to leave exactly `slack`. */
+  const atSlack = (chain, slack) => {
+    const { chain: c, connection } = theChain(chain)
+    const m = resolveLive(
+      chain,
+      c,
+      DEPS,
+      { 800: routeWith(WATCHED_TRIP, connection.slack_s - slack, 'late') },
+      now
+    )
+    /* The arithmetic landed where the test says it did, so the state assertion
+       below is about the threshold and not about a miscalculated setup. */
+    expect(m.connection.slack_s).toBe(slack)
+    return m.connection.state
+  }
+
+  /*
+   * The two thresholds are deliberately different numbers now.
+   *
+   * They used to both be two minutes, on the reasoning that offering a connection
+   * and trusting one are the same judgment. They are not. The estimator holds the
+   * first leg's observed lateness constant to the alighting stop, and for a bus
+   * twenty minutes upstream that drifts by minutes — so a three-minute verdict
+   * sat inside the noise of the number that produced it, and still read
+   * "Connection holds".
+   */
+  t('trusting a connection now takes more slack than offering one', (chain) => {
+    expect(chain.TIGHT_S).toBeGreaterThan(chain.MIN_SLACK_S)
+  })
+
+  t('slack of exactly MIN_SLACK_S is tight, not holding', (chain) => {
+    expect(atSlack(chain, chain.MIN_SLACK_S)).toBe('tight')
+  })
+
+  /*
+   * The old boundary. One second above MIN_SLACK_S used to grade "made"; it is
+   * the case this change exists for, so it is asserted rather than left to be
+   * inferred from the constant.
+   */
+  t('one second above MIN_SLACK_S is still tight, where it used to hold', (chain) => {
+    expect(atSlack(chain, chain.MIN_SLACK_S + 1)).toBe('tight')
+  })
+
+  t('slack of exactly TIGHT_S is tight', (chain) => {
+    expect(atSlack(chain, chain.TIGHT_S)).toBe('tight')
+  })
+
+  t('one second above TIGHT_S is holding', (chain) => {
+    expect(atSlack(chain, chain.TIGHT_S + 1)).toBe('made')
+  })
+})
+
+describe('the walk is longer than the straight line', () => {
+  t('circuity is charged, so a walk costs more than distance over pace', (chain) => {
+    /* The straight line between two stops is not a path anyone walks. Pleasant
+       Valley, the junction this feature was built for, is a divided arterial. */
+    expect(chain.WALK_CIRCUITY).toBeGreaterThan(1)
+    expect(chain.walkSeconds(300)).toBe(
+      Math.ceil((300 * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+    )
+    expect(chain.walkSeconds(300)).toBeGreaterThan(300 / chain.WALK_SPEED_MS)
+  })
+
+  t('a nought-metre walk still costs nothing', (chain) => {
+    expect(chain.walkSeconds(0)).toBe(0)
+  })
+
+  t('the widest offered walk is priced past the tight threshold', (chain) => {
+    /* A 300 m hop is near six minutes, not four. That pricing is the whole reason
+       the radius may stay at 300 rather than being cut to the 215 m the three
+       hand-picked examples cover. */
+    expect(chain.walkSeconds(chain.WALK_RADIUS_M)).toBeGreaterThan(300)
+  })
+})
+
+describe('a store somebody edited by hand', () => {
+  t('legs that are not an array are rejected, not thrown on', (chain) => {
+    /* `legs.length` on an object is undefined, and every comparison against
+       undefined is false — so this passed validation and then threw inside
+       resolve(), taking out the whole Saved view until the store was cleared. */
+    expect(chain.isWellFormed({ legs: { 0: LEG1, 1: LEG1 }, day_type: 'weekday' })).toBe(false)
+    expect(chain.isWellFormed({ legs: 'two', day_type: 'weekday' })).toBe(false)
+    expect(chain.isWellFormed({ legs: null, day_type: 'weekday' })).toBe(false)
+  })
+
+  /*
+   * A store somebody edited by hand is this file's declared threat model, and
+   * isWellFormed only checks an alight_stop_id is truthy. A bare lookup on the
+   * departures object reaches Object.prototype, so `constructor` came back a
+   * function — truthy, length 1, nothing at [0] — and the next line threw out of
+   * resolve(), out of paintSaved(), and took the whole Saved view down until the
+   * store was cleared by hand. The same shape as the `?stop=` bug, one file over.
+   */
+  /*
+   * A walk the board cannot measure is charged the longest one it would ever
+   * offer, not nothing. Zero is the optimistic end, and this file leans the
+   * other way everywhere else — the slow pace, the circuity factor, the `<=` at
+   * the tight threshold — because both errors that ever reached a reader ran the
+   * same way: making a connection look easier than it is.
+   */
+  t('an unmeasurable walk is charged the worst one on offer, not nothing', (chain) => {
+    const { chain: c } = theChain(chain)
+    const now = FIXTURE._now
+    const edited = JSON.parse(JSON.stringify(c))
+    /* No stored distance to fall back on. */
+    edited.legs.forEach(function (leg) { delete leg.walk_m; delete leg.walk_s })
+
+    /*
+     * And a boarding stop the feed lists WITHOUT coordinates, which is the shape
+     * that actually reaches this branch: the stop has to exist, or the leg is
+     * refused as broken long before a walk is priced. metres() treats a missing
+     * fix as unknown rather than as a point in the Atlantic, so the hop comes
+     * back unmeasurable while everything else about the chain still resolves.
+     */
+    const deps = JSON.parse(JSON.stringify(DEPS))
+    const target = deps['4'].stops.filter((st) => st.stop_id === edited.legs[1].stop_id)[0]
+    expect(target, 'the fixture should list the boarding stop').toBeTruthy()
+    delete target.lat
+    delete target.lon
+
+    const m = resolveLive(chain, edited, deps, {}, now)
+    const t0 = m.transfers[0]
+    /*
+     * Asserted, not skipped past. An early return here would make this test
+     * silently vacuous the moment the fixture changed — which is the failure
+     * this suite has already shipped more than once.
+     */
+    expect(t0, 'the transfer should still resolve').toBeTruthy()
+    expect(t0.walk_s, 'the walk should be unmeasurable in this setup').toBe(null)
+
+    /* The full radius at the modelled pace: what an offered connection is capped
+     * at, so an unpriceable walk can never look cheaper than the dearest one the
+     * editor would have let anybody save. */
+    const worst = Math.ceil(chain.WALK_RADIUS_M * chain.WALK_CIRCUITY / chain.WALK_SPEED_MS)
+    expect(worst).toBeGreaterThan(0)
+    expect(t0.scheduled_slack_s).toBe(t0.board_at - t0.alight_at - worst)
+
+    /*
+     * And the charge is on the card. Charging it silently left the card
+     * contradicting its own evidence — a verdict computed with a term the
+     * printed times do not contain, directly above those times, which exist so a
+     * reader can check the arithmetic rather than take it on trust.
+     */
+    expect(t0.walk_assumed).toBe(true)
+    expect(chain.connectionDetail(t0)).toMatch(/could not be measured/)
+  })
+
+  /*
+   * The timetable figure keeps its sign.
+   *
+   * minutesWord is Math.abs, which is right everywhere it sits beside a sentence
+   * that supplies the direction — "missed" says which way a number runs. The
+   * ungraded hedge does not, and it is the last quantitative claim standing
+   * after the card has refused to grade, so a timetable that is six minutes
+   * SHORT read as one that allows six.
+   */
+  t('an ungraded change does not describe a short timetable as a generous one', (chain) => {
+    const short = { ungraded_legs: [{ side: 'arriving', why: 'feed_stale', vehicle: true }],
+      scheduled_slack_s: -332, walk_m: null, walk_s: null, state: 'unknown' }
+    const roomy = { ungraded_legs: [{ side: 'arriving', why: 'feed_stale', vehicle: true }],
+      scheduled_slack_s: 332, walk_m: null, walk_s: null, state: 'unknown' }
+
+    expect(chain.connectionDetail(short)).toMatch(/short here/)
+    expect(chain.connectionDetail(short)).not.toMatch(/allows \d+ minutes? here/)
+    /* And the ordinary case is untouched. */
+    expect(chain.connectionDetail(roomy)).toMatch(/allows 6 minutes here/)
+  })
+
+  /*
+   * The whole-journey verdict may not reach past a change nobody could judge.
+   *
+   * model.connection is one transfer, and it is both the card's colour and the
+   * only chain-level sentence a screen reader is given. A first change whose bus
+   * publishes no lateness — around 7% of active vehicle trips on this feed — used
+   * to leave the SECOND change graded as though the rider had certainly boarded,
+   * and a graded change outranks an ungraded one in the table. The summary read
+   * "with no live time" and "Tight connection, 5 minutes spare" in one breath;
+   * with the second bus later still it read "Connection missed, 1 minute short"
+   * — a definite claim about a change she may never reach.
+   */
+  /*
+   * A clock field that is not a clock took the whole Saved band down — not just
+   * the bad chain, but the valid chains beside it, the valid saved trips, the
+   * staleness banners and the button to add another, because the chains are
+   * painted first. Truthiness let 75209 through where "07:52:09" was meant, and
+   * every reader downstream calls .split on it.
+   */
+  /*
+   * The same rule reached the way a reader reaches it: through resolve(), on a
+   * real chain, with a real feed. The test above builds transfer objects by
+   * hand, which is fine for the ranking itself and useless for showing that the
+   * state can actually occur — and this project's own rule is that a
+   * reproduction has to run through the real path.
+   */
+  t('a first bus with no lateness does not let the card grade the second change', (chain) => {
+    const { chain: c } = theChain(chain)
+    const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+    /*
+     * Leg 1's bus is on the road and publishes no lateness — a live feed, a
+     * vehicle joined to the trip, and `seconds` null. Leg 2's bus is fine.
+     */
+    const noLateness = routeWith(WATCHED_TRIP, null, 'unknown')
+    noLateness.vehicles[0].adherence.reason = 'no_trip_update'
+
+    const m = resolveLive(chain, c, DEPS, { 800: noLateness }, now)
+
+    expect(m.transfers[0].state, 'the first change cannot be judged').toBe('unknown')
+    expect(m.transfers[0].slack_s, 'and carries no slack figure').toBe(null)
+    /*
+     * Whatever the card says about the journey, it may not be a graded verdict
+     * borrowed from a change downstream of that doubt.
+     */
+    expect(m.connection.state).toBe('unknown')
+    expect(m.connection.slack_s, 'and no slack rides along with it').toBe(null)
+  })
+
+  t('a scheduled_time that is not a clock is refused rather than thrown on', (chain) => {
+    const { chain: c } = theChain(chain)
+    const bad = [75209, 1, -1, true, {}, [], 1e18, '', null, undefined, '7:52', 'noon']
+    for (const value of bad) {
+      const edited = JSON.parse(JSON.stringify(c))
+      edited.legs[0].scheduled_time = value
+      expect(chain.isWellFormed(edited), `scheduled_time ${JSON.stringify(value)}`).toBe(false)
+    }
+    /* And the shape that IS a clock still passes, including a one-digit hour and
+     * a GTFS hour past midnight. */
+    for (const value of ['07:52:09', '7:52:09', '25:10:00']) {
+      const edited = JSON.parse(JSON.stringify(c))
+      edited.legs[0].scheduled_time = value
+      expect(chain.isWellFormed(edited), `scheduled_time ${value}`).toBe(true)
+    }
+  })
+
+  t('a change nobody could judge stops the journey verdict there', (chain) => {
+    const unknownFirst = [
+      { state: 'unknown', slack_s: null },
+      { state: 'tight', slack_s: 298 },
+    ]
+    expect(chain.worstTransfer(unknownFirst).state).toBe('unknown')
+
+    /*
+     * But a definite failure past the doubt still speaks, because it does not
+     * depend on the doubt resolving either way: if she makes the first change
+     * she misses the second, and if she does not make the first the journey
+     * fails there. It fails on both branches, so leading with "unknown" would be
+     * the card reading better than the road.
+     */
+    const missedAfterUnknown = [
+      { state: 'unknown', slack_s: null },
+      { state: 'missed', slack_s: -60 },
+    ]
+    expect(chain.worstTransfer(missedAfterUnknown).state).toBe('missed')
+
+    /* But a doubt AFTER a definite failure changes nothing: the rider never
+     * reaches the doubt, and the failure is the news. */
+    const missedFirst = [
+      { state: 'missed', slack_s: -60 },
+      { state: 'unknown', slack_s: null },
+    ]
+    expect(chain.worstTransfer(missedFirst).state).toBe('missed')
+
+    /* And an ordinary chain still reports its worst change, not its first. */
+    const ordinary = [
+      { state: 'made', slack_s: 900 },
+      { state: 'tight', slack_s: 120 },
+    ]
+    expect(chain.worstTransfer(ordinary).state).toBe('tight')
+  })
+
+  t('a hand-edited stop id that names a prototype member does not take the view down', (chain) => {
+    const { chain: c } = theChain(chain)
+    const now = FIXTURE._now
+    /*
+     * `stop_id` and `alight_stop_id` are the two a saved leg actually has —
+     * legFromConnection writes `stop_id` for the boarding stop, not
+     * `board_stop_id`. The first version of this looped over `board_stop_id`,
+     * which no leg carries, so half the matrix set a field nothing reads and
+     * asserted nothing; the boarding stop, which is what reaches departuresAt
+     * and stopIndex, went untested.
+     */
+    const spots = []
+    for (let leg = 0; leg < c.legs.length; leg++) {
+      for (const field of ['alight_stop_id', 'stop_id']) spots.push([leg, field])
+    }
+    for (const hostile of ['constructor', 'hasOwnProperty', 'toString', 'valueOf', '__proto__']) {
+     for (const [leg, field] of spots) {
+      const edited = JSON.parse(JSON.stringify(c))
+      edited.legs[leg][field] = hostile
+      /* The contract is that it resolves to SOMETHING rather than throwing. What
+       * it resolves to is a refusal, because the chain no longer describes a
+       * journey the schedule knows about — but a refusal renders, and a throw
+       * out of resolve() takes paintSaved and the whole view with it. */
+      let model
+      /* With the first bus reporting, so resolution runs the whole way through
+       * the transfer rather than stopping at "nothing is reporting" before it
+       * ever looks the alight stop up. */
+      expect(() => {
+        model = resolveLive(chain, edited, DEPS,
+          { 800: routeWith(WATCHED_TRIP, 0, 'ontime') }, now)
+      }, `leg${leg}.${field}=${hostile}`).not.toThrow()
+      expect(model, `leg${leg}.${field}=${hostile}`).toBeTruthy()
+      expect(model.state, `leg${leg}.${field}=${hostile}`).toBeTruthy()
+     }
+    }
+  })
+
+  t('add reports whether the chain is actually in the store', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    /*
+     * The board announced "Saved …" and navigated away from six steps of work even
+     * when localStorage refused, landing the reader on "No transfer chains yet".
+     *
+     * Both directions, against a real store and a refusing one. Asserting only
+     * `typeof === 'boolean'` was the whole of this test before, and a boolean is
+     * what a function that always returns true also returns: mutating add() to
+     * ignore writeStore entirely left it green, which is the exact bug the
+     * comment above describes.
+     */
+    const store = {}
+    const before = client.window.localStorage
+    client.window.localStorage = {
+      getItem: (k) => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v) },
+      removeItem: (k) => { delete store[k] },
+    }
+    try {
+      expect(chain.add(c)).toBe(true)
+      expect(chain.list()).toHaveLength(1)
+
+      /* Already there: nothing to write, and nothing to warn about. */
+      expect(chain.add(c)).toBe(true)
+      expect(chain.list()).toHaveLength(1)
+
+      /* Now the store refuses. The answer has to change with it. */
+      client.window.localStorage.setItem = () => { throw new Error('QuotaExceededError') }
+      /* A copy: theChain hands back references into the shared fixture, and
+       * editing one in place corrupts every test that runs after this. */
+      const other = JSON.parse(JSON.stringify(c))
+      other.legs[0].scheduled_time = '09:15:00'
+      expect(chain.add(other)).toBe(false)
+      /* And the refusal is about the STORE, not about the chain: the one that
+       * was already written is still readable. */
+      expect(chain.list()).toHaveLength(1)
+    } finally {
+      client.window.localStorage = before
+    }
+  })
+})
+
+describe('MAX_WAIT_S caps the wait, which is what its name says', () => {
+  t('no offered connection waits longer than the constant, walk included', (chain) => {
+    const index = chain.tripIndexOf(DEP800, WATCHED_TRIP)
+    const found = chain.connections(
+      DEP800, index, chain.tripTimeAt(DEP800, index, BOARD_STOP), DEP4, 0
+    )
+    expect(found.length).toBeGreaterThan(0)
+    found.forEach((c) => {
+      /*
+       * Measured from stepping off the first bus, not from finishing the walk.
+       * Capping post-walk slack made the real ceiling MAX_WAIT_S plus the walk —
+       * 49 minutes before circuity and 50.8 after, against a stated 45 — so the
+       * walk-model fix silently widened the gap.
+       */
+      expect(c.board_seconds - c.alight_seconds).toBeLessThanOrEqual(chain.MAX_WAIT_S)
+    })
+  })
+})
+
+describe('the walk is recomputed, not inherited from the store', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  t('a chain saved before the circuity factor gets today\'s cost anyway', (chain) => {
+    const { chain: c } = theChain(chain)
+    const legs = [c.legs[0], { ...c.legs[1] }]
+    /* What the old model would have stored: distance over pace, no circuity. */
+    const stale = Math.ceil(legs[1].walk_m / chain.WALK_SPEED_MS)
+    legs[1].walk_s = stale
+
+    const m = resolveLive(chain, { legs, day_type: 'weekday' }, DEPS, {}, now)
+    const t0 = m.transfers[0]
+    expect(t0.walk_source).toBe('current')
+    expect(t0.walk_s).toBeGreaterThan(stale)
+    /* walk_m is rounded for display; walk_s comes off the unrounded distance. */
+    const expected = Math.ceil((t0.walk_m * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS)
+    expect(Math.abs(t0.walk_s - expected)).toBeLessThanOrEqual(2)
+  })
+
+  t('and a stop with no fix falls back to the stored metres, re-priced', (chain) => {
+    const { chain: c } = theChain(chain)
+    const legs = [c.legs[0], { ...c.legs[1], alight_stop_id: 'no-such-stop', walk_m: 100,
+      walk_s: 1 }]
+    const walk = chain.walkFor(DEP800, DEP4, legs[1])
+    expect(walk.source).toBe('stored')
+    expect(walk.m).toBe(100)
+    /* The stored SECONDS are not trusted — they are re-derived from the metres, so
+       an old chain still gets the current model. */
+    expect(walk.s).toBe(Math.ceil((100 * chain.WALK_CIRCUITY) / chain.WALK_SPEED_MS))
+    expect(walk.s).not.toBe(1)
+  })
+})
+
+describe('a cancellation nobody reaches is not the headline', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  const threeLeg = (chain) => {
+    const { chain: two, connection } = theChain(chain)
+    const secondIdx = chain.tripIndexOf(DEP4, connection.trip.id)
+    const onward = chain.connections(DEP4, secondIdx, connection.board_seconds, DEP4, 1)
+    if (!onward.length) return null
+    return {
+      chain: {
+        legs: two.legs.concat([
+          chain.legFromConnection(onward[0], { route_id: '4', direction_id: 1 }),
+        ]),
+        day_type: 'weekday',
+      },
+      connection,
+      third: onward[0],
+    }
+  }
+
+  t('a missed change at transfer 1 outranks a canceled leg 3', (chain) => {
+    const built = threeLeg(chain)
+    expect(built, 'the fixture no longer offers a third leg').toBeTruthy()
+    const clone = JSON.parse(JSON.stringify(DEPS))
+    let hit = 0
+    for (const tr of clone['4'].trips) {
+      if (tr.id === built.third.trip.id) { tr.canceled = true; hit += 1 }
+    }
+    expect(hit).toBe(1)
+
+    const late = built.connection.slack_s + 60
+    const m = resolveLive(chain, built.chain, clone,
+      { 800: routeWith(WATCHED_TRIP, late, 'very_late') }, now)
+
+    /*
+     * The reader was never going to be on leg 3, so its cancellation is not news.
+     * Leading with it erased the due time and buried the missed change at transfer
+     * 1 — the earlier problem, and the one that decides the morning.
+     */
+    expect(m.state).not.toBe('canceled')
+    expect(m.transfers[0].state).toBe('missed')
+    expect(m.connection.state).toBe('missed')
+  })
+
+  t('but a cancellation on a leg still reachable does lead', (chain) => {
+    const built = threeLeg(chain)
+    expect(built, 'the fixture no longer offers a third leg').toBeTruthy()
+    const clone = JSON.parse(JSON.stringify(DEPS))
+    for (const tr of clone['4'].trips) {
+      if (tr.id === built.third.trip.id) tr.canceled = true
+    }
+    /* Nothing upstream is broken this time, so leg 3 is reached. */
+    const m = resolveLive(chain, built.chain, clone, {}, now)
+    expect(m.state).toBe('canceled')
+  })
+})
+
+describe('two service days must not be subtracted from each other', () => {
+  t('refuses rather than reporting a day of spare time', (chain) => {
+    const { chain: c } = theChain(chain)
+    /*
+     * Departures documents are cached for the session and change only when the
+     * service date does, so a board left open across 3 a.m. holds one from
+     * yesterday and fetches one from today. Subtracting across the two anchors gave
+     * "Connection holds — 1448 minutes spare".
+     */
+    const yesterday = {
+      ...DEPS,
+      4: {
+        ...DEP4,
+        service_date: '20260818',
+        service_day_start_epoch: DEP4.service_day_start_epoch - 86400,
+      },
+    }
+    const m = resolveLive(chain, c, yesterday, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+    expect(m.state).toBe('no-schedule')
+    expect(m.detail).toMatch(/different service/)
+    expect(m.connection).toBeUndefined()
+  })
+})
+
+/*
+ * Round three of the same failure.
+ *
+ * The refusal to grade a bus the feed will not stand behind was written twice and
+ * reached through the vehicle join both times, so it only ever fired when the frozen
+ * snapshot happened to contain a bus for that trip. Suppression is a property of the
+ * ROUTE — it is the route's feed that has stopped updating — and a leg on a suppressed
+ * route cannot be graded whether or not a vehicle was found for it.
+ *
+ * And the refusal covered exactly one of the six ways `adherence.state` can be unknown.
+ * Every other one still fell through to the timetable, which always reads on time,
+ * about a bus whose position is drawn on the same screen.
+ */
+/*
+ * The rule itself, case by case, without building a chain.
+ *
+ * Four review rounds each found another way for a leg to be graded with nothing
+ * behind it, and each fixed it by adding one more reason to refuse. That shape is
+ * why there was always another one: a list of refusals has a default, the default
+ * was "grade it", and every case nobody had enumerated landed there.
+ *
+ * These assert the decision directly so a new hole shows up as a failing case
+ * here rather than as a confident sentence on a card six months later. The
+ * fully-built-chain tests below stay, because a rule that is right in isolation
+ * and wired up wrong is still wrong.
+ */
+describe('what a leg may be graded from', () => {
+  const fresh = { staleness: { level: 'fresh', suppress_adherence: false } }
+  const dead = { staleness: { level: 'dead', suppress_adherence: true } }
+  const bus = { vehicle_id: '8021' }
+
+  t('no route payload at all refuses, and says which refusal it is', (chain) => {
+    expect(chain.gradeDecision(null, null, null)).toEqual({ ungraded: 'no_route', lateness: null })
+    expect(chain.gradeDecision(undefined, null, null).ungraded).toBe('no_route')
+  })
+
+  /*
+   * Not a variation on the one above. "Nothing has loaded" and "the feed has
+   * died" are different facts about the world and the card says different
+   * sentences for them; collapsing them would put "its feed has stopped
+   * updating" on screen during a normal page load.
+   */
+  t('a dead feed refuses, and is distinguishable from nothing having loaded', (chain) => {
+    expect(chain.gradeDecision(dead, null, null).ungraded).toBe('feed_stale')
+    expect(chain.gradeDecision(dead, bus, { seconds: 60 }).ungraded).toBe('feed_stale')
+  })
+
+  t('a live feed with no bus grades from the timetable, which is the one substitution allowed',
+    (chain) => {
+      expect(chain.gradeDecision(fresh, null, null)).toEqual({ ungraded: null, lateness: null })
+    })
+
+  t('a bus with no lateness refuses rather than reading null as on time', (chain) => {
+    expect(chain.gradeDecision(fresh, bus, { seconds: null }).ungraded).toBe('no_lateness')
+    expect(chain.gradeDecision(fresh, bus, { seconds: undefined }).ungraded).toBe('no_lateness')
+    expect(chain.gradeDecision(fresh, bus, null).ungraded).toBe('no_lateness')
+  })
+
+  t('a bus with a lateness is the only thing that yields one', (chain) => {
+    expect(chain.gradeDecision(fresh, bus, { seconds: 90 })).toEqual({ ungraded: null, lateness: 90 })
+    /* Zero is a measurement, not a missing value. */
+    expect(chain.gradeDecision(fresh, bus, { seconds: 0 })).toEqual({ ungraded: null, lateness: 0 })
+    expect(chain.gradeDecision(fresh, bus, { seconds: -120 }).lateness).toBe(-120)
+  })
+
+  /*
+   * The property the four rounds kept violating: there is no input that produces
+   * a lateness without a live feed AND a bus AND a number. Enumerated rather than
+   * asserted in prose, so a future branch that grades something new has to come
+   * through here.
+   */
+  t('nothing else in the space yields a lateness', (chain) => {
+    const routes = [null, undefined, fresh, dead]
+    const vehicles = [null, undefined, bus]
+    const views = [null, undefined, { seconds: null }, { seconds: 45 }]
+    routes.forEach((r) => {
+      vehicles.forEach((v) => {
+        views.forEach((w) => {
+          const d = chain.gradeDecision(r, v, w)
+          if (d.lateness !== null) {
+            expect(r).toBe(fresh)
+            expect(v).toBe(bus)
+            expect(w && typeof w.seconds).toBe('number')
+          }
+          /* Every outcome is either a named refusal or a grade. Never both, never
+             neither. */
+          expect(d.ungraded === null || d.lateness === null).toBe(true)
+        })
+      })
+    })
+  })
+})
+
+describe('a chain whose routes have not loaded yet', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  /*
+   * The state EVERY page load starts in. The live route map is built from
+   * payloads that have already landed, and the chain paints before they do — so
+   * this is not a corner case, it is the first frame of every visit.
+   *
+   * It used to fall through to timetable grading, which put "Connection holds"
+   * on screen beside the board's own "No live data for route N" banner.
+   */
+  t('refuses to grade rather than answering from the timetable', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, {}, now)
+    expect(m.connection.state).toBe('unknown')
+    expect(m.connection.slack_s).toBeNull()
+    expect(['made', 'tight', 'missed']).not.toContain(m.connection.state)
+  })
+
+  t('names both legs as waiting on data, not as buses that are not reporting', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, {}, now)
+    const whys = m.connection.ungraded_legs.map((u) => u.why)
+    expect(whys).toEqual(['arriving', 'onward'].map(() => 'no_route'))
+  })
+
+  /*
+   * Wording, because this is the one refusal that is not a fault. A board that is
+   * working normally must not look broken for its first second.
+   */
+  t('reads as not yet, rather than as a dead feed or a missing bus', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, {}, now)
+    const said = chain.connectionDetail(m.connection)
+    expect(said).toMatch(/has not loaded yet/)
+    expect(said).toMatch(/as soon as it does/)
+    expect(said).not.toMatch(/feed has stopped updating/)
+    expect(said).not.toMatch(/is on the road/)
+    expect(chain.assumptionNote(m.connection)).toBeNull()
+  })
+
+  t('one loaded route and one missing still refuses, on the missing side', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = chain.resolve(c, DEPS, { 800: liveRoute() }, now)
+    expect(m.connection.state).toBe('unknown')
+    const whys = m.connection.ungraded_legs.map((u) => `${u.side}:${u.why}`)
+    expect(whys).toEqual(['onward:no_route'])
+  })
+
+  t('and grades as soon as both payloads land, so this is not "never grade"', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, {}, now)
+    expect(['made', 'tight', 'missed']).toContain(m.connection.state)
+  })
+})
+
+describe('a leg the feed cannot answer for is not graded, however it fails', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  const deadRoute = (vehicles) => ({
+    staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
+    vehicles,
+  })
+
+  t('a dead feed refuses even when the snapshot holds no bus for the leg', (chain) => {
+    const { chain: c } = theChain(chain)
+    /*
+     * The whole point. On a dead cron "no vehicle" and "a vehicle that stopped being
+     * reported" are the same observation, so the absence of a bus is not evidence the
+     * bus has not started — and the timetable is not a fair stand-in for either.
+     */
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute([]) }, now)
+    expect(m.legs[0].vehicle).toBeNull()
+    expect(m.connection.state).toBe('unknown')
+    expect(m.connection.slack_s).toBeNull()
+    expect(['made', 'tight', 'missed']).not.toContain(m.connection.state)
+  })
+
+  t('and says the feed stopped rather than that the bus has not started', (chain) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute([]) }, now)
+    const said = chain.connectionDetail(m.connection)
+    expect(said).toMatch(/feed has stopped updating/)
+    /* There is no bus in the snapshot, so it must not be described as being on one. */
+    expect(said).not.toMatch(/is on the road/)
+    expect(chain.assumptionNote(m.connection)).toBeNull()
+  })
+
+  t('the same chain grades normally the moment the feed is fresh again', (chain) => {
+    const { chain: c } = theChain(chain)
+    /* Guards the fix against becoming "never grade": with no vehicle and a LIVE feed
+       the timetable is the honest prior and the verdict may still be asserted. */
+    const m = resolveLive(chain, c, DEPS, {
+      800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] },
+    }, now)
+    expect(['made', 'tight', 'missed']).toContain(m.connection.state)
+    expect(chain.assumptionNote(m.connection)).toMatch(/reporting yet/)
+  })
+
+  /* Every unknown reason the contract's decision table can produce with a bus
+     joined to the trip. None of them is a lateness, so none of them may be graded. */
+  const UNKNOWN_REASONS = [
+    'no_trip_update',
+    'no_stop_predictions',
+    'trip_not_in_schedule',
+    'no_progress',
+  ]
+
+  UNKNOWN_REASONS.forEach((reason) => {
+    t(`a reporting bus with reason "${reason}" is refused, not graded`, (chain) => {
+      const { chain: c } = theChain(chain)
+      const m = resolveLive(chain, c, DEPS, {
+        800: {
+          staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
+          vehicles: [{
+            vehicle_id: '8021', label: '8021', trip: { trip_id: WATCHED_TRIP },
+            adherence: { state: 'unknown', seconds: null, reason },
+          }],
+        },
+      }, now)
+      expect(m.legs[0].vehicle).not.toBeNull()
+      expect(m.connection.state).toBe('unknown')
+      expect(m.connection.slack_s).toBeNull()
+    })
+
+    t(`and a bus reporting with "${reason}" is never called one that is not reporting`,
+      (chain) => {
+        const { chain: c } = theChain(chain)
+        const m = resolveLive(chain, c, DEPS, {
+          800: {
+            staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
+            vehicles: [{
+              vehicle_id: '8021', label: '8021', trip: { trip_id: WATCHED_TRIP },
+              adherence: { state: 'unknown', seconds: null, reason },
+            }],
+          },
+        }, now)
+        const said = chain.connectionDetail(m.connection)
+        /* Its badge is on the same screen. "Not reporting yet" is false twice over. */
+        expect(said).not.toMatch(/not reporting/)
+        expect(said).toMatch(/is on the road/)
+        expect(chain.assumptionNote(m.connection)).toBeNull()
+      })
+  })
+})
+
+/*
+ * What a card that has refused to grade may still assert.
+ *
+ * The refusal fixed the verdict and left three other places reading the timetable
+ * out loud as though it were a prediction: the retirement clock, the headline
+ * countdown, and the pair of times printed under the verdict.
+ */
+describe('a refused verdict does not leak back in as a confident number', () => {
+  const deadRoute = (tripId, late) => ({
+    staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
+    vehicles: [{
+      vehicle_id: '8021', label: '8021', trip: { trip_id: tripId },
+      adherence: { state: 'very_late', seconds: late, reason: null },
+    }],
+  })
+  const freshRoute = (tripId, late) => ({
+    staleness: { level: 'fresh', oldest_feed_age_s: 30, suppress_adherence: false },
+    vehicles: [{
+      vehicle_id: '8021', label: '8021', trip: { trip_id: tripId },
+      adherence: { state: 'very_late', seconds: late, reason: null },
+    }],
+  })
+
+  t('a chain it cannot grade is not retired on the timetable it refused', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    /*
+     * `end_at` retires a card by asserting the last bus has been boarded, and the
+     * prediction it normally uses IS that assertion. Refusing the prediction sent
+     * predicted_board_at back to the scheduled time -- which reads exactly like a
+     * bus running on time -- so a chain whose onward bus was last seen ten minutes
+     * down went to "Gone. Back tomorrow" while that bus was still at the kerb.
+     */
+    const boardAt = MIDNIGHT + connection.board_seconds
+    const justPastScheduled = boardAt + chain.AFTER_S + 100
+
+    const dead = resolveLive(chain, c, DEPS, { 4: deadRoute(connection.trip.id, 600) },
+      justPastScheduled)
+    expect(dead.state).not.toBe('passed')
+
+    /* And the hold is bounded: far enough past and it does retire. */
+    const later = boardAt + chain.AFTER_S + chain.UNGRADED_HOLD_S + 100
+    expect(resolveLive(chain, c, DEPS, { 4: deadRoute(connection.trip.id, 600) }, later).state)
+      .toBe('passed')
+  })
+
+  t('but a chain it CAN grade still retires on time', (chain) => {
+    const { chain: c, connection } = theChain(chain)
+    const boardAt = MIDNIGHT + connection.board_seconds
+    const m = resolveLive(chain, c, DEPS, { 4: freshRoute(connection.trip.id, 0) },
+      boardAt + chain.AFTER_S + 100)
+    expect(m.state).toBe('passed')
+  })
+
+  t('the headline does not count down to a time it refused to predict', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    /* First leg suppressed, and the card is inside its live window. */
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
+      MIDNIGHT + 7 * 3600 + 40 * 60)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    /*
+     * "due 7:52a · in 12 minutes" about a bus last seen twelve minutes down is the
+     * same optimistic substitution the verdict just refused, printed larger.
+     */
+    expect(said).not.toMatch(/in \d+ minutes?/)
+    expect(said).toMatch(/scheduled/)
+  })
+
+  t('and the two times under the verdict are labeled as the timetable', (chain, cmb) => {
+    const { chain: c } = theChain(chain)
+    const m = resolveLive(chain, c, DEPS, { 800: deadRoute(WATCHED_TRIP, 720) },
+      MIDNIGHT + 7 * 3600 + 40 * 60)
+    const host = cmb.states.el('div')
+    chain.render(host, [m], {})
+    const said = textOf(host)
+    /*
+     * The card withholds the conclusion and then prints both operands of it in the
+     * slot it uses for real predictions, which reads as one.
+     */
+    expect(said).toMatch(/Timetable only · in /)
+    expect(said).not.toMatch(/(^|[^a-zA-Z])In \d+:\d+/)
+  })
+})
+
+/*
+ * The guard on two service days compared the `service_date` LABEL while the
+ * arithmetic subtracts `service_day_start_epoch`. They are different fields, and
+ * defending one does not defend the other.
+ */
+describe('the service-day guard defends the quantity actually subtracted', () => {
+  const now = MIDNIGHT + 7 * 3600 + 50 * 60
+
+  t('two schedules anchored to different midnights are refused, label or no label',
+    (chain) => {
+      const { chain: c } = theChain(chain)
+      /* Same label on both documents, anchors a day apart. The old guard saw one
+         date, waved it through, and subtracted across twenty-four hours. */
+      const skewed = {
+        ...DEPS,
+        4: { ...DEP4, service_day_start_epoch: DEP4.service_day_start_epoch - 86400 },
+      }
+      const m = resolveLive(chain, c, skewed, {}, now)
+      expect(m.state).toBe('no-schedule')
+      expect(m.detail).toMatch(/service day/)
+      expect(m.connection).toBeUndefined()
+    })
+
+  t('and a schedule that does not say which midnight it counts from is refused too',
+    (chain) => {
+      const { chain: c } = theChain(chain)
+      /*
+       * The old guard skipped a document with no `service_date` rather than
+       * refusing it -- so the one document least able to answer "which service day
+       * is this?" was the one exempted from being asked. Without an anchor every
+       * time on the leg is NaN.
+       */
+      const anchorless = { ...DEPS, 4: { ...DEP4 } }
+      delete anchorless['4'].service_day_start_epoch
+      delete anchorless['4'].service_date
+      const m = resolveLive(chain, c, anchorless, {}, now)
+      expect(m.state).toBe('no-schedule')
+      expect(m.detail).toMatch(/service day/)
+      expect(m.connection).toBeUndefined()
+    })
+})
+
+/*
+ * MAX_WAIT_S was fixed to cap the wait rather than the post-walk slack; the editor
+ * row that offers the connection still called the post-walk slack "wait".
+ */
+describe('the editor calls post-walk slack what it is', () => {
+  const editorState = (connection) => ({
+    routes: [
+      { id: '800', short_name: '800', long_name: '800-North Lamar', directions: [] },
+      { id: '4', short_name: '4', long_name: '4-7th Street', directions: [] },
+    ],
+    legs: [LEG1],
+    day_type: 'weekday',
+    start: {},
+    onward: { route_id: '4', direction_id: 0 },
+    departures: DEPS,
+    connections: [connection],
+  })
+  const noop = {
+    onPickOnwardRoute() {}, onPickOnwardDirection() {}, onPickConnection() {},
+    onSave() {},
+  }
+
+  t('a row says how much is spare after the walk, not how long the wait is',
+    (chain, cmb) => {
+      const { connection } = theChain(chain)
+      const host = cmb.states.el('div')
+      chain.renderEditor(host, editorState(connection), noop)
+      const said = textOf(host)
+      const spare = Math.round(connection.slack_s / 60)
+      expect(said).toMatch(new RegExp(`${spare} min spare`))
+      /*
+       * The actual wait is longer than the figure by the whole walk -- at 300 m
+       * that is nearly six minutes -- so calling the figure "wait" understated the
+       * time a child stands around by exactly the amount the walk model was
+       * corrected to charge.
+       */
+      expect(said).not.toMatch(/min wait/)
+      expect(said).not.toMatch(/minutes to wait/)
+    })
+})
+
+/*
+ * From a file there is no origin to fetch api/departures/ from, so a chain can
+ * never resolve. The Saved view's banner already says that in as many words; the
+ * card beside it went on saying the schedule "has not loaded yet", which is a
+ * promise. It reads as a spinner, and the reader waits for something that is not
+ * coming.
+ */
+describe('a chain on a board opened from a file', () => {
+  t('says the schedule cannot arrive, not that it has not arrived yet',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = resolveLive(chain, c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+      expect(m.state).toBe('no-schedule')
+
+      const host = cmb.states.el('div')
+      chain.render(host, [m], { fromDisk: true })
+      const said = textOf(host)
+      expect(said).not.toMatch(/has not loaded yet/)
+      expect(said).toMatch(/open from a file/)
+      /* And the sentence is spoken too, not only drawn. */
+      expect(said.match(/open from a file/g).length).toBeGreaterThanOrEqual(2)
+    })
+
+  t('and still says "not loaded yet" when there IS an origin to wait on',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = resolveLive(chain, c, {}, {}, MIDNIGHT + 7 * 3600 + 50 * 60)
+      const host = cmb.states.el('div')
+      chain.render(host, [m], {})
+      expect(textOf(host)).toMatch(/has not loaded yet/)
+    })
+})
+
+/*
+ * The same sentence, in the other place it is printed. The transfer's copy was
+ * fixed; the line above it -- the card's own headline detail -- still explained a
+ * missing bus as "normal until it starts its run" on a feed that had stopped
+ * updating, where the absence of a bus is not evidence of anything.
+ */
+describe('a missing bus on a dead feed is not called normal', () => {
+  t('the card does not explain the silence of a dead feed as a bus not yet out',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = resolveLive(chain, c, DEPS, {
+        800: {
+          staleness: { level: 'dead', oldest_feed_age_s: 4000, suppress_adherence: true },
+          vehicles: [],
+        },
+      }, MIDNIGHT + 7 * 3600 + 40 * 60)
+      expect(m.state).toBe('no-vehicle')
+
+      const host = cmb.states.el('div')
+      chain.render(host, [m], {})
+      const said = textOf(host)
+      expect(said).not.toMatch(/That is normal until it starts its run/)
+      expect(said).toMatch(/feed has stopped updating/)
+    })
+
+  t('but still does when the feed is live and the bus simply has not started',
+    (chain, cmb) => {
+      const { chain: c } = theChain(chain)
+      const m = resolveLive(chain, c, DEPS, {
+        800: { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] },
+      }, MIDNIGHT + 7 * 3600 + 40 * 60)
+      const host = cmb.states.el('div')
+      chain.render(host, [m], {})
+      expect(textOf(host)).toMatch(/That is normal until it starts its run/)
+    })
+})

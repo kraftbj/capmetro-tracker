@@ -64,11 +64,18 @@
 
   /* ---- storage --------------------------------------------------------- */
 
+  /* Both readers of untrusted shapes want this: the stored watch list, which the
+   * reader can edit by hand, and a departures row set reached by a stop id off
+   * the URL. It was written out twice before rowsFor arrived. */
+  function isArray(v) {
+    return Object.prototype.toString.call(v) === '[object Array]';
+  }
+
   function readStore() {
     try {
       var raw = global.localStorage.getItem(STORE_KEY);
       var list = raw ? JSON.parse(raw) : [];
-      return Object.prototype.toString.call(list) === '[object Array]' ? list : [];
+      return isArray(list) ? list : [];
     } catch (e) {
       /* Private mode, disabled storage, or a corrupted value. An unreadable store
        * is an empty one; it must never take the board down with it. */
@@ -99,7 +106,7 @@
    * Returns whether the store now holds the watch, not just the new list.
    *
    * writeStore already reports a refusal — Safari private browsing, an exhausted
-   * quota, storage disabled — and every caller used to discard it, so the UI
+   * quota, storage switched off — and every caller used to discard it, so the UI
    * announced "saved" on a write that did not happen and the trip was gone on the
    * next load. That is the failure this board is otherwise careful about: not
    * that something broke, but that the interface said it worked.
@@ -114,10 +121,29 @@
     return { list: all, saved: writeStore(all) };
   }
 
+  /*
+   * Reports whether the store actually dropped it, for the same reason add()
+   * does — and with more at stake.
+   *
+   * A refused save loses something the reader wanted kept. A refused DELETE keeps
+   * something the reader asked to destroy, and what it keeps is a legible
+   * statement of which stop a child stands at, at what time, on which days. On a
+   * borrowed or shared phone that is the whole of the harm.
+   *
+   * What the reader saw before this was a dead button: the card stayed, nothing
+   * moved, nothing was said. Every render rebuilds the list from a fresh read of
+   * the store — `list()`, not the array returned here — so a write that did not
+   * happen simply does not show up. The `list` in the return shape is read by
+   * the tests and by nothing in the client, and it should stay that way: a
+   * render path that trusted it INSTEAD of the store is what would produce the
+   * vanishing card this comment used to describe.
+   *
+   * Private browsing is not the case here — nothing was written to delete. The
+   * cases are an exhausted quota, or storage switched to read-only mid-session.
+   */
   function remove(k) {
     var all = list().filter(function (x) { return keyFor(x) !== k; });
-    writeStore(all);
-    return all;
+    return { list: all, removed: writeStore(all) };
   }
 
   /* ---- pure helpers ---------------------------------------------------- */
@@ -156,19 +182,16 @@
    * of 1 and no element at [0]. The next line reads `rows[0][1]` and throws, and
    * because that happens during render the whole board goes blank.
    *
-   * That was unreachable while every stop id came from internal state. The stops
-   * link made it reachable from a URL fragment anyone can send, so the guard
-   * belongs here, at the one lookup every caller goes through, rather than in
-   * whichever caller happens to be holding an untrusted id today.
+   * The stop id is not always internal. app.js takes `?stop=` straight from the
+   * query string, and a stops link carries one too, so any link can choose it.
+   * The guard belongs here, at the one lookup every caller goes through, rather
+   * than in whichever caller happens to be holding an untrusted id today.
    */
   function rowsFor(departures, stopId) {
+    if (!departures) return [];
     if (!Object.prototype.hasOwnProperty.call(departures, stopId)) return [];
     var rows = departures[stopId];
     return isArray(rows) ? rows : [];
-  }
-
-  function isArray(v) {
-    return Object.prototype.toString.call(v) === '[object Array]';
   }
 
   /*
@@ -464,8 +487,10 @@
     del.textContent = 'Remove';
     del.setAttribute('aria-label', 'Remove the saved trip ' + describe(w));
     del.addEventListener('click', function () {
-      remove(model.key);
-      if (opts && opts.onChange) opts.onChange();
+      var res = remove(model.key);
+      /* The trip goes with the result: the announcement has to name what left,
+       * and this is the only place that still knows. */
+      if (opts && opts.onChange) opts.onChange(res, w);
     });
     box.appendChild(del);
 
@@ -569,8 +594,16 @@
     if (state.route_id === null || state.route_id === undefined) return host;
 
     if (!dep) {
+      /*
+       * Same sentence, same reason, as the Next-buses notice in stopboard.js:
+       * "it only loads once" stopped being true when the schedule started
+       * expiring at the service-day roll, and this notice is exactly what a
+       * reader sees at the moment it is provably false -- the editor is handed
+       * usableDepartures(), so a withheld schedule lands here.
+       */
       host.appendChild(S.notice('empty', 'Loading the schedule for route ' + state.route_id + '…',
-        'This is one file for the whole service day, so it only loads once.'));
+        'One file for the whole service day. It is fetched again when the ' +
+        'service day rolls over.'));
       return host;
     }
 
@@ -660,7 +693,7 @@
     head.appendChild(el('span', 'step__label', label));
     if (chosen) head.appendChild(el('span', 'step__chosen', chosen));
     box.appendChild(head);
-    if (open) box.appendChild(build());
+    if (open && build) box.appendChild(build());
     return box;
   }
 
@@ -728,6 +761,18 @@
     render: render,
     renderEditor: renderEditor,
     stopsFor: stopsFor,
-    directionsOf: directionsOf
+    directionsOf: directionsOf,
+    /*
+     * The step-based editor's presentation, exported because chain.js builds the
+     * same one. They were copy-pasted there first, which is the shape CLAUDE.md
+     * forbids after ISSUE-002: two implementations of one rule drift, and here the
+     * first symptom would be the two editors numbering or labeling their steps
+     * differently on one screen.
+     */
+    step: step,
+    cleanName: cleanName,
+    routeLabel: routeLabel,
+    dirLabel: dirLabel,
+    stopName: stopName
   };
 })(window);

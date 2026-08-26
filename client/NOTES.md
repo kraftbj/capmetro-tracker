@@ -40,6 +40,11 @@ because a state table that cannot be looked at does not get verified:
 | `?state=no-timepoints` | Ladder with no timepoint list for either direction |
 | `?state=all-states` | Synthetic adherence covering all six states (grayscale check) |
 | `?state=ladder-probe` | Synthetic 8+9 timepoint route: the BOTH-mode layout ruler |
+| `?view=trip` | The trip view; add `&bus=2641` to follow a specific bus |
+| `?view=trip&bus=2641&state=trip-gone` | The followed bus has left the feed — dimmed list, last-seen time |
+| `?view=trip&bus=2641&state=trip-no-anchor` | No anchor: whole trip listed, no arrival times |
+| `?view=trip&bus=2641&state=trip-canceled` | Canceled trip: scheduled times only |
+| `?view=trip&bus=2641&state=trip-estimated` | Synthetic: half the feed predictions removed, so the feed/estimate divider and `~`/"estimated" markers actually render. The bundled fixture gives every in-service vehicle full feed coverage on its own, so without this the estimate branch — this feature's whole honesty mechanism — cannot be seen or tested at all. |
 
 Also `?route=4` and `?dir=0|1|both`, and `?view=board|stops|all|saved`. The last
 route, direction and view persist in `localStorage`.
@@ -49,6 +54,101 @@ one yet: a stop card needs `api/departures/{route}.json`, the scenarios rewrite
 the bundled route fixture, and no departures document is bundled. The view is
 covered end to end instead, in `tests/e2e/stops.spec.mjs`, against fixtures the
 e2e server serves over HTTP.
+
+### Shareable URLs
+
+Served over HTTP the board also answers to paths, so a link can be read out loud:
+
+| Path | What it opens |
+|---|---|
+| `/route/4/eb` | The board, route 4, eastbound. Also `wb`, `nb`, `sb`, `both`, `0`, `1` |
+| `/buses` | Every bus in the system |
+| `/trip/1234` | The trip view following bus 1234 |
+| `/trip/7/1234` | The same, with the route named |
+| `/saved` | Saved trips |
+
+Four things about this are load-bearing rather than incidental.
+
+**The query form is permanent.** `?view=`, `?route=`, `?dir=`, `?bus=` and the
+whole `?state=` harness above keep working, and are the ONLY form used from
+`file://`, where a path means nothing and the History API refuses on an opaque
+origin. A path is read first and the query then overrides it field by field, so
+a pretty URL and a forced interaction state can be combined — which is the only
+way to look at a state on a path.
+
+**Direction tokens are per-route.** `eb` is direction 0 on the 4 and means
+nothing on the 7, so a token cannot become a `direction_id` until that route's
+document has loaded and its headsigns are known. It resolves during load,
+before the first meaningful paint. A route that does not run the direction asked
+for keeps the saved one rather than retrying forever.
+
+**Every fetch hangs off a derived base, never a hardcoded `/api/`.** The client
+fetches relative to the page, so `api/route/4.json` read from `/trip/1234` asks
+for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognised app path to
+get the directory the board is served from. Hardcoding `/api/` would break every
+browser test in this repo, because `tests/e2e/server.mjs` serves the whole client
+under a scenario prefix.
+
+**The `<base>` bootstrap in `index.html` is not optional, and the CSP has to
+admit it.** Same problem, one layer earlier: a relative `<script
+src="format.js">` read from `/route/4/eb` resolves to `/route/4/format.js`,
+which no server answers with the script. nginx matches it against `location ~*
+\.(js|css)$`, declared before the app-path fallback, and 404s; the e2e fixture
+server has no such ordering and returns the page's own HTML. Either way the
+board renders nothing, with no console error saying why.
+
+The bootstrap is the one inline script in this client, and the vhosts admit it
+by **sha256 hash** rather than by adding `'unsafe-inline'`, which would readmit
+every injected inline script on an origin whose whole defence is having none.
+`base-uri` is `'self'` rather than `'none'` for the same reason: `'none'` makes
+every `<base>` inert however it is inserted, including one built with
+`createElement`. Both are pinned by `tests/node/deploy-vhost-headers.test.mjs`,
+which recomputes the hash from `index.html` on every run — edit the snippet
+without updating the config and the suite goes red instead of the board going
+blank on the box. The e2e fixture server serves the real policy, parsed from the
+vhost, so the browser tests would fail too. The inline snippet must stay first in
+`<head>`, because an external script would need the same base in order to load.
+It states the same rule `urls.baseFor()` does and the two must agree;
+`tests/e2e/urls.spec.mjs` covers it by loading the board at depth and asserting
+`window.CMB` exists.
+
+`/saved` carries nothing but the tab name. Saved trips live in `localStorage`,
+and a watch in a URL would publish somebody's routine to whoever they were sent
+the link by.
+
+The address bar is written with `replaceState`, never `pushState`, so Back
+leaves the site exactly as it did before any of this existed. A bare
+`/trip/1234` upgrades itself to `/trip/{route}/{bus}` once the fleet document
+names the route, so the link that gets copied onward is the one that needs no
+extra fetch.
+
+### What the real nginx actually does
+
+Run against the rendered vhost in a throwaway container, because the fixture
+server is a different program and this is the seam where the two disagree:
+
+| Path | | |
+|---|---|---|
+| `/route/4/eb`, `/buses`, `/trip/1234`, `/saved` | 200 | the board |
+| `/route/4/eb/` | 200 | a trailing slash is fine |
+| `/routeXYZ` | 404 | the `(/|$)` in the regex is doing its job |
+| `/route/4/format.js` | **404** | `location ~* \.(js|css)$` is declared first and has no `try_files` — this is why the `<base>` bootstrap exists, and why the failure has no console error |
+| `/route/4/.env`, `/trip/x.log` | **403** | 200 before the deny blocks were moved above the asset and app-path locations |
+| `/saved/../../etc/passwd`, `%00` | 400 | nginx rejects before any location matches |
+| `/route/4/%2e%2e/api/health.json` | 200 | normalizes inside the app path; nothing escapes |
+| `/Route/4/eb` | 404 | **verbs are case-sensitive** — see below |
+
+**Case is not normalized on the verb.** `/route/4/EB` works because direction
+tokens are lowercased, but `/Route/4/eb` 404s at nginx and never reaches the
+client. It fails honestly rather than rendering something wrong, and links are
+pasted rather than typed, so this is recorded rather than fixed. Making it
+case-insensitive means `~*` in both vhosts AND lowercasing the verb in
+`urls.split()` — one without the other is worse than neither.
+
+**This needs a vhost change to work in production.** `deploy/nginx-capmetro.conf`
+gains a fallback for the four app verbs. `update.sh` does not install vhosts —
+deliberately — so until it is installed by hand and nginx reloaded, path links
+404 while `/` and every `?query=` link keep working.
 
 The `all-states` and `ladder-probe` scenarios rewrite the fixture and are labelled
 on screen as synthetic. They are instruments, not data — nothing in the shipped
@@ -392,8 +492,16 @@ no tile server, no geocoder, no key, no network call.
   prompt UI; a browser that refuses to grant one reports the same code 1 a
   person tapping Block does, so that message names both possibilities rather
   than picking one. Still worth ten minutes in a real browser opened from disk.
-- **The arrival time is shared with the stop board.** Both panels answer "when
-  does this bus reach this stop", so both read `fmt.predictionFor()` first.
+- **The arrival time is NOT shared with the stop board, and that is deliberate.**
+  The two panels sound like they ask one question and do not. This panel asks
+  "when is this bus next here", where the soonest occurrence is the answer even
+  on the 234 trips that visit a stop twice — so it reads `fmt.predictionFor()`,
+  which matches on `stop_id` and returns exactly that. The stop board asks about
+  one scheduled departure, and a loop trip has two of them at the same stop, so
+  it joins positionally instead (see its `feedArrivalFor()`). Asking
+  `predictionFor()` the stop board's question is what made both rows print the
+  first pass's time; six rendered rows carried the wrong arrival, the worst by
+  51 minutes.
   stopboard.js used to add the bus's current lateness to the scheduled time,
   which assumes the deviation measured at whatever stop the bus is approaching
   still holds by the time it reaches yours — across the corpus the two disagree
@@ -417,6 +525,53 @@ no tile server, no geocoder, no key, no network call.
 Gap 3 above is now partly closed: `Vehicle.predictions` gives per-stop predicted
 times, so a rider-facing arrival time no longer has to be invented. A true
 time-axis string-line would still need scheduled times per timepoint per trip.
+
+---
+
+## Trip view: "I'm on this bus. Where does it go from here?" (`trip.js`)
+
+Every other panel is anchored at a stop or a route: pick a place, see which
+buses pass it. This one is anchored at a bus: pick a vehicle, see every stop it
+still has ahead of it on its current trip, with a scheduled time and an
+arrival time beside it. It is the transpose of `stopboard.js`, not a
+variation on it.
+
+- **Stop order comes from `arrival_seconds`, never from `stops[].stop_sequence`.**
+  The two are different numbering schemes and they disagree on **2,221 of the
+  corpus's 4,112 trips**. `stops[].stop_sequence` is the order the greatest
+  number of trips happen to agree on, not the order any one trip runs in;
+  ordering a trip's own stop list by it would draw stops out of the order the
+  bus actually visits them.
+- **Predictions are consumed positionally, with a forward-only cursor, never
+  by looking up `stop_id`.** `fmt.predictionFor()` matches on `stop_id` alone
+  and returns the SOONEST occurrence, and **234 trips visit one stop twice**.
+  That is the right answer for `near.js` — a rider standing there wants the
+  next arrival — and the wrong one for anything asking about a specific
+  scheduled departure. `arrivalPlan()` walks `vehicle.predictions` in order and
+  never rewinds, so the two passes of a repeat-stop trip land on their own
+  occasions. `stopboard.js` was fixed to join through this same path rather
+  than by `stop_id`; `near.js` still calls `predictionFor()` on purpose.
+- **Past the last stop the feed predicts, the deviation last seen from the
+  feed is carried forward and held flat**, rather than recomputed from the
+  bus's current anchor the way `stopboard.js` does. The two rules are not a
+  rounding of each other: across the corpus they disagree by more than a
+  minute on **76.5% of estimated stops, and by up to 15 minutes**. Carrying
+  forward keeps whatever dwell and recovery the feed's own predictions already
+  modelled as far as they go; the anchor rule discards that and assumes the
+  bus's lateness right now holds unchanged for the rest of the trip. **Neither
+  rule has been measured against ground truth** — no capture in this repo
+  records what a bus actually did after the feed stopped predicting it, so
+  this is a structural argument, not a measured one, and it should not be
+  written up as though it were. The feed/estimate divider and the `~` marker
+  exist because of this: a reader should be able to tell CapMetro's own number
+  from the board's projection at a glance, not just trust that it is right.
+- **A bus that leaves the feed keeps its last answer on screen, dimmed, with a
+  last-seen time — the list is not cleared.** The feed can drop a bus for a
+  trip genuinely ending, a vehicle going out of service, or one missed poll,
+  and those look identical from here. Taking the stop list away the moment
+  that happens erases the one thing a rider was mid-read on; showing it dimmed
+  says plainly what is known and that it is no longer current, instead of
+  either lying that it still is or leaving a blank screen.
 
 ---
 
@@ -452,6 +607,136 @@ time-axis string-line would still need scheduled times per timepoint per trip.
 
 - **"Now" is `generated_at`.** The client never uses the device clock to judge
   freshness; every age comes from `staleness.oldest_feed_age_s`.
+
+- **A transfer is a PAIR of stops within a short walk, not a shared stop id.**
+  `chain.js` finds connections geometrically because on this feed the headline
+  example cannot be found any other way: routes 800 and 4 share **zero** stop ids
+  and meet at Pleasant Valley under two ids 27 m apart. Radius 300 m, walking pace
+  1.2 m/s charged against the slack, minimum 2 minutes of slack, maximum 45 minutes
+  from alighting to the onward departure, walk included. All four numbers are read off this feed rather than off a standard, and
+  all four are exported so a test can assert against them instead of restating them.
+
+- **`chain.js` uses `watch.js` rather than copying it.** Departure matching, the
+  service-day clock and the trip-to-vehicle join are one rule each, and ISSUE-002 is
+  what two copies of one rule cost. It is loaded after `watch.js` and throws on load
+  if that is not there, rather than failing one `undefined` at a time.
+
+- **A chain is over when the last bus is BOARDED, not when it finishes its run.**
+  Nothing records where the rider gets off the final leg, so the last boarding is the
+  only honest end marker. Using the trip's final stop would leave a finished chain on
+  screen for another forty minutes on the 800. The cost is that the card cannot say
+  "she gets in at 8:40" — see `TODOS.md`.
+
+- **A leg the feed cannot supply a lateness for refuses the verdict, it does not
+  fall back to the timetable.** Refusing to read `null` as zero is only half the
+  job; the other half is where the `null` leads. The timetable always reads *on
+  time*, so substituting it is never neutral — it moves the verdict optimistically
+  on exactly the input that should make it cautious. There is one case where it is
+  still honest, and it is the only one: **no vehicle on a live feed**, where the
+  bus has not started its run and the schedule is the prior. Everything else is a
+  refusal, and `unknown` is a reachable verdict. Measured: the same chain, same
+  ten-minutes-late bus, graded `missed` fresh and `made` dead.
+
+  Two ways this was got wrong, both found by review, both because the reasoning
+  above was written where the code could not act on it:
+
+  - `suppress_adherence` is a property of the **route**, and it was read inside
+    `if (out.vehicle)`. The refusal therefore only fired when the frozen snapshot
+    happened to contain that leg's bus. On a cron that died before the bus
+    appeared, "no vehicle" and "a vehicle we have stopped hearing from" are the
+    same observation and the join cannot tell them apart. Read it from
+    `route.staleness`, before the join, always.
+  - The refusal covered `stale_data` and none of the other unknown reasons, so a
+    reporting bus with `no_trip_update` graded confidently and was called "not
+    reporting yet" with its badge on the same card. The copy needs three
+    sentences, not one: a bus in a dead feed's snapshot **is** on the road, a bus
+    missing from one cannot be described either way, and a bus on a live feed with
+    no lateness published is reporting perfectly well.
+
+- **A refused verdict must not come back as a number somewhere else.** Three did.
+  `end_at` retired the chain on `predicted_board_at`, which on an ungraded leg is
+  the timetable — so the card went to "Gone. Back tomorrow" about a bus still at
+  the kerb; an ungraded chain now stands down on the clock (`UNGRADED_HOLD_S`).
+  The headline counted down to the same time in the largest type on the card. And
+  the two times under the verdict were printed unlabeled in the slot used for real
+  predictions, where they subtract to the withheld answer in the reader's head.
+
+- **The walk is recomputed from current stop positions on every render.** Everything
+  else in a chain is re-resolved from current documents; the walk was the one frozen
+  value, so a cost-model change reached new chains and not saved ones. The stored
+  metres survive only as a fallback for a stop with no fix, and even then the
+  seconds are re-derived rather than trusted.
+
+- **A canceled leg is never graded.** `resolveLeg()` checks `trip.canceled` before
+  the vehicle join, because every check after it concludes "not reporting yet" —
+  which reads as *not yet* when it means *never*, and would then grade the transfer
+  against a timetable for a bus that is not running. Same order `watch.js` uses, and
+  for the same reason its comment records. Transfers either side of a canceled leg
+  are `void`, not graded.
+
+- **Grading stops at the first change that cannot be made.** Everything downstream
+  of a missed, broken or canceled change is `void` and says why, rather than showing
+  a slack figure computed from a bus the rider will not be on. Grading each transfer
+  independently printed "Connection holds" six lines under "Connection missed" on a
+  three-leg chain, which is the shipped path for "337 to the 7 to the 837".
+
+- **`TIGHT_S` is five minutes, and deliberately not `MIN_SLACK_S`.** The two used
+  to be the same two minutes, on the reasoning that offering a connection and
+  trusting one are the same judgment. They are not. The estimator holds the first
+  leg's *currently observed* lateness constant all the way to the alighting stop,
+  and for a bus twenty minutes upstream that number moves by minutes before it
+  arrives — so a three-minute verdict sat inside the noise of the measurement that
+  produced it and still read "Connection holds". Nothing is hidden by the higher
+  threshold: those connections still appear, still print their slack, and still say
+  which half of the sum is measured. They say "tight" instead. The comparison is
+  `<=`, which mattered acutely while the constants were equal (a strict `<` graded
+  the tightest connection the board will ever offer as comfortable) and is still
+  the honest boundary. Tests assert the verdict at `MIN_SLACK_S`, at `MIN_SLACK_S
+  + 1`, at `TIGHT_S` and at `TIGHT_S + 1`.
+
+- **A verdict requires evidence; there is no default.** `gradeDecision()` is
+  written as an exhaustive set of named cases with no fall-through, and that shape
+  is the point. It was previously an enumeration of reasons to *refuse*, which
+  means it had a default, and the default was "grade it" — so every case nobody had
+  thought of graded confidently from the timetable. Four review rounds each found
+  another one and each fixed it by adding a fifth refusal. The last one found was
+  `route === null`, which is the state **every page load starts in**, because the
+  live route map is built from payloads that have already landed and the chain
+  paints before they do: the first frame of every visit printed "Connection holds"
+  beside the board's own "No live data for route N" banner. Adding a case here
+  means adding a branch, not discovering later that an unnamed one graded.
+
+- **The walk is charged with a 1.4 circuity factor.** Great-circle distance is
+  accurate to centimetres here and still wrong for the purpose: the straight line
+  between two stops is not a path anyone walks, and Pleasant Valley is a divided
+  arterial. Kept as a separate constant from `WALK_SPEED_MS` because they are
+  different claims — one about the street, one about the rider — and a blended
+  number would leave neither checkable. This is also what lets `WALK_RADIUS_M` stay
+  at 300 m when the cited examples only cover 215: the wide pairs are offered but
+  priced, at 5.8 minutes for a 300 m hop.
+
+- **A connection's verdict is computed from predicted times, and says which halves
+  are predictions.** A bus that has not started its run contributes its scheduled
+  time and the card prints "the timetable, not a prediction". A lateness the feed
+  will not supply is treated as absent rather than as zero, and refuses the verdict
+  outright — the `adherence.view()` contract already decides when a number may be
+  shown, and this reads that rather than re-deciding it.
+
+- **The Saved view ages the payloads it holds.** `staleness` describes the feed
+  when the file was generated and cannot speak for the minutes since, so a route
+  fetched once and never refreshed kept saying `fresh` for the life of the tab and
+  was graded with full confidence against hour-old positions. `liveRouteMap()` adds
+  the time this browser has held each document to the age the server measured and
+  applies the contract's own thresholds to the sum. `Date.now()` is the right clock
+  for that and the wrong one almost anywhere else here: it subtracts two readings of
+  the same local clock and never compares one with a time in a payload.
+
+- **A cached schedule is evicted only when it is STRICTLY older than the board's
+  service day, and eviction marks the route rather than clearing its fetch guard.**
+  Both halves are a request loop otherwise. Evicting on "different" threw away
+  today's schedule whenever the board was on the embedded fixture; clearing the
+  guard let the eviction refetch inside the paint that evicted. `YYYYMMDD` compares
+  chronologically as text, which is why no parsing is involved.
 
 ---
 

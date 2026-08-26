@@ -140,7 +140,37 @@
    * rendered and looked at, which is the only way the table gets verified.
    * They never run unless ?state= names one.
    */
-  var STATE_SCENARIOS = {
+  /*
+   * A copy with no prototype. Object.assign says this in one line and is
+   * ES2015; client/*.js is ES5 only, because the board has to open from a
+   * file:// URL with no build step between the source and the phone. A for-in
+   * with the ownership check is how ES5 says it.
+   */
+  function nullProto(src) {
+    var out = Object.create(null);
+    for (var k in src) {
+      if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = src[k];
+    }
+    return out;
+  }
+
+  /*
+   * Null-prototype because `?state=` names one of these directly, and a bare
+   * object literal answers to every member of Object.prototype as well.
+   *
+   * When the lookup in app.js was a plain truthiness test, every prototype
+   * member passed it, because every one of them is truthy. `scenario.apply` then
+   * exists on all of them — it is Function.prototype.apply — so the payload was
+   * rewritten: `constructor` produced the schema refusal, and `valueOf` returned
+   * the payload untouched, so the board rendered perfectly. Both were permanent
+   * for that tab, because app.js gates the 60s refresh on `!state.scenario`.
+   *
+   * The quiet one is the worse one: a board that looks current, is not, and has
+   * no way back except a reload nobody knows to do. That lookup is guarded by
+   * hasOwnProperty now as well; this is the second lock on the same door, and it
+   * has its own test because the browser suite passes with either one alone.
+   */
+  var STATE_SCENARIOS = nullProto({
     loading: { hold: true, note: 'LOADING — payload deliberately never resolves' },
     empty: {
       note: 'EMPTY — route has no vehicles',
@@ -265,8 +295,50 @@
     'no-timepoints': {
       note: 'PARTIAL LADDER — no timepoints published',
       apply: function (d) { d.timepoints = []; return d; }
+    },
+    'trip-gone': {
+      note: 'TRIP VIEW — the followed bus has left the feed',
+      apply: function (d) { d.vehicles = []; return d; }
+    },
+    'trip-no-anchor': {
+      note: 'TRIP VIEW — the feed does not say where the bus is',
+      apply: function (d) {
+        d.vehicles.forEach(function (v) {
+          if (!v.in_service) return;
+          v.adherence = { state: 'unknown', seconds: null, glyph: 'question',
+                          against: null, reason: 'no_progress' };
+        });
+        return d;
+      }
+    },
+    'trip-canceled': {
+      note: 'TRIP VIEW — CapMetro has canceled this trip',
+      apply: function (d) {
+        d.vehicles.forEach(function (v) {
+          if (v.trip) v.trip.schedule_relationship = 'CANCELED';
+          v.predictions = [];
+        });
+        return d;
+      }
+    },
+    /*
+     * Every in-service vehicle in the bundled fixture carries a full feed
+     * prediction for every stop ahead of it, so the estimate branch — the
+     * feed/estimate divider, the `~` marker, the "estimated" tag — never
+     * renders from the fixture alone. This is a synthetic instrument, not
+     * data: it truncates each vehicle's predictions to half their length so
+     * both a feed segment and an estimated segment exist to look at.
+     */
+    'trip-estimated': {
+      note: 'TRIP VIEW — synthetic: half the feed times removed, so the estimate branch shows',
+      apply: function (d) {
+        d.vehicles.forEach(function (v) {
+          if (v.predictions) v.predictions = v.predictions.slice(0, Math.floor(v.predictions.length / 2));
+        });
+        return d;
+      }
     }
-  };
+  });
 
   global.CMB.states = {
     el: el,

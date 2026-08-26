@@ -22,7 +22,13 @@ import { expect, test } from '@playwright/test'
 /* Campbell/5th eastbound and Simond southbound, both all-day so neither falls
  * into the "later today" section on a fixture clock fixed at 10:10am. */
 const PLAN = '1;4.1.6243.all;800.1.6293.all'
-const LINK = `/fresh/index.html#plan=${PLAN}`
+/*
+ * The turnaround scenario, not /fresh/. Route 4's schedule here is the turnaround
+ * trim this view exists for; under /fresh/ it is the whole golden service day
+ * the trip view is asserted against, and neither can stand in for the other.
+ * The live payload is the ordinary fresh one either way.
+ */
+const LINK = `/turnaround/index.html#plan=${PLAN}`
 
 test.describe('opening a stops link', () => {
   test('lands on the stops view with the stops already resolved', async ({ page }) => {
@@ -51,7 +57,7 @@ test.describe('opening a stops link', () => {
      * block in the 2026-08-19 capture is confidence "low", so the sentence has
      * to read as a likelihood — contract section 4.
      */
-    await page.goto('/fresh/index.html#plan=1;837.1.2112.all')
+    await page.goto('/turnaround/index.html#plan=1;837.1.2112.all')
     const card = page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })
     await expect(card).toBeVisible()
     await expect(card).toContainText(/Bus 8021 likely brings it in on the .* SB/)
@@ -93,7 +99,7 @@ test.describe('the offer to keep them', () => {
     await expect(page.locator('.offer')).toHaveCount(0)
 
     /* The point of keeping them: the same board with no link in the address. */
-    await page.goto('/fresh/index.html')
+    await page.goto('/turnaround/index.html')
     await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
     await expect(page.locator('.offer')).toHaveCount(0)
@@ -105,7 +111,7 @@ test.describe('the offer to keep them', () => {
     await expect(page.locator('.offer')).toHaveCount(0)
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
 
-    await page.goto('/fresh/index.html')
+    await page.goto('/turnaround/index.html')
     await page.getByRole('button', { name: 'Stops' }).click()
     await expect(page.getByText('No stops on this phone yet')).toBeVisible()
   })
@@ -172,7 +178,7 @@ test.describe('the plan never reaches the server', () => {
       }
     })
 
-    await page.goto(`/fresh/index.html?plan=${encodeURIComponent(PLAN)}`)
+    await page.goto(`/turnaround/index.html?plan=${encodeURIComponent(PLAN)}`)
     await expect(page.locator('.stopcard').first()).toBeVisible()
 
     const events = await page.evaluate(() => window.__leaks)
@@ -188,7 +194,7 @@ test.describe('the plan never reaches the server', () => {
   })
 
   test('moves a plan out of the query string, so a reload stops leaking it', async ({ page }) => {
-    await page.goto(`/fresh/index.html?plan=${encodeURIComponent(PLAN)}`)
+    await page.goto(`/turnaround/index.html?plan=${encodeURIComponent(PLAN)}`)
     await expect(page.locator('.stopcard').first()).toBeVisible()
     expect(page.url()).not.toContain('?plan=')
     expect(page.url()).toContain('#plan=')
@@ -246,7 +252,7 @@ test.describe('a resolved route is fetched once, not once per frame', () => {
     /* Route 7 is served a document dated 20260818 while the route payload says
      * 20260819. The client must not trust it for the session, and must not spin
      * evicting and re-fetching it either. */
-    const seen = await countRequests(page, '/fresh/index.html#plan=1;4.1.6243.all;7.1.847.all')
+    const seen = await countRequests(page, '/turnaround/index.html#plan=1;4.1.6243.all;7.1.847.all')
     for (const [url, n] of seen) {
       expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
     }
@@ -256,7 +262,7 @@ test.describe('a resolved route is fetched once, not once per frame', () => {
 test.describe('a cancelled trip on a stops card', () => {
   /* Republic Square: route 837 turns around here, and CapMetro canceled the
    * 10:13 northbound in the 2026-08-19 capture. */
-  const CANCELED = '/fresh/index.html#plan=1;837.1.2112.all'
+  const CANCELED = '/turnaround/index.html#plan=1;837.1.2112.all'
 
   test('says the word rather than reading as a bus that has not started', async ({ page }) => {
     await page.goto(CANCELED)
@@ -341,7 +347,7 @@ test.describe('the board never claims a save it did not make', () => {
 
     /* And they really are still there, which is the half the reader would have
      * discovered tomorrow. */
-    await page.goto('/fresh/index.html')
+    await page.goto('/turnaround/index.html')
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
   })
 
@@ -369,7 +375,7 @@ test.describe('a link is untrusted input', () => {
   test('a stop id naming something on Object.prototype does not blank the board', async ({ page }) => {
     const errors = []
     page.on('pageerror', (e) => errors.push(e.message))
-    await page.goto('/fresh/index.html#plan=1;4.1.constructor.all;4.1.6243.all')
+    await page.goto('/turnaround/index.html#plan=1;4.1.constructor.all;4.1.6243.all')
     await expect(page.locator('.stopcard').first()).toBeVisible()
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
     await page.waitForTimeout(1000)
@@ -391,7 +397,7 @@ test.describe('a link is untrusted input', () => {
      */
     const errors = []
     page.on('pageerror', (e) => errors.push(e.message))
-    await page.goto('/fresh/index.html#plan=1;constructor.1.6243.all;4.1.6243.all')
+    await page.goto('/turnaround/index.html#plan=1;constructor.1.6243.all;4.1.6243.all')
     await expect(page.locator('.stopcard').first()).toBeVisible()
     await page.waitForTimeout(500)
     expect(errors, errors.join('; ')).toHaveLength(0)
@@ -424,7 +430,7 @@ test.describe('a link is untrusted input', () => {
       if (m) routes.add(m[1])
     })
     const many = Array.from({ length: 300 }, (_, i) => `r${i}.1.6243.all`).join(';')
-    await page.goto(`/fresh/index.html#plan=1;${many}`)
+    await page.goto(`/turnaround/index.html#plan=1;${many}`)
     await expect(page.locator('.stopcard').first()).toBeVisible()
     await page.waitForTimeout(1500)
     /* Plus the open route board's own schedule, which is not part of the plan. */
@@ -433,6 +439,29 @@ test.describe('a link is untrusted input', () => {
 })
 
 test.describe('the link and the screen stay in step', () => {
+  /*
+   * The path says which view is on screen; the fragment says which stops a link
+   * is proposing. Both are in the address bar and neither may erase the other.
+   *
+   * They are separate for a reason that is not tidiness: a path is sent to the
+   * server and turns up in a Referer, and what the plan describes is where a
+   * child stands and at what time. That half stays after the `#`, which browsers
+   * do not send.
+   */
+  test('the address bar names the stops view, and still carries the stops', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const url = new URL(page.url())
+    /* Not `/route/4/...`, which is what the board would say. Sharing that would
+     * send the recipient somewhere other than what the sender was looking at —
+     * the failure the URL work already fixed once for the legacy query links. */
+    expect(url.pathname, 'the path should describe the view on screen').toMatch(/\/stops$/)
+    expect(url.hash, 'and the stops should still be in the fragment').toContain('plan=')
+    /* And never in the part that reaches the server. */
+    expect(url.search).not.toContain('plan=')
+  })
+
   test('opens the stops view on a second visit, after the stops are kept', async ({ page }) => {
     await page.goto(LINK)
     await page.getByRole('button', { name: 'Keep on this phone' }).click()
@@ -553,7 +582,7 @@ test.describe('a schedule is kept for the service day it describes, and no longe
   const TODAY = '20260819' /* what the golden route payload says it is */
   const YESTERDAY = '20260818'
   const TOMORROW = '20260820'
-  const STOPS = '/fresh/index.html#plan=1;4.1.6243.all'
+  const STOPS = '/turnaround/index.html#plan=1;4.1.6243.all'
 
   /*
    * The two real fixtures, read once up front rather than through route.fetch()
@@ -756,8 +785,22 @@ test.describe('a schedule is kept for the service day it describes, and no longe
     await expect.poll(() =>
       page.evaluate(() => window.CMB.app.state.data.service_day.date)).toBe(TOMORROW)
     await tick(page)
+    /*
+     * Asked AGAIN, rather than asked exactly twice.
+     *
+     * Two mechanisms now act on the roll and both are wanted: the route
+     * payload's own handler re-checks the schedule the moment the new date
+     * lands, so the board does not read yesterday's times for a further full
+     * minute, and the timer's sweep asks again after that. This fixture keeps
+     * serving the same out-of-date document, so every turn is entitled to
+     * another attempt — which is the point, since the day it describes has
+     * ended. Pinning the count to 2 pinned it to one of the two mechanisms.
+     *
+     * The loop this could become is covered next door: a repaint may not ask,
+     * and a request already in flight may not be duplicated.
+     */
     await expect.poll(() => asked(), { message: 'yesterday was kept for the life of the tab' })
-      .toBe(2)
+      .toBeGreaterThanOrEqual(2)
   })
 
   test('does not fire a second request while one is still in flight', async ({ page }) => {
@@ -798,7 +841,7 @@ test.describe('pasting a link into a tab that is already open', () => {
 
     /* Reopen with no plan in the address bar and get onto the route board, which
      * is the state a tab is in when a link arrives in a message. */
-    await page.goto('/fresh/index.html')
+    await page.goto('/turnaround/index.html')
     await page.locator('.viewtabs__btn[data-view="board"]').click()
     await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
 
@@ -831,7 +874,7 @@ test.describe('pasting a link into a tab that is already open', () => {
   })
 
   test('leaves an unrelated fragment alone', async ({ page }) => {
-    await page.goto('/fresh/index.html')
+    await page.goto('/turnaround/index.html')
     await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
     await page.evaluate(() => { window.location.hash = 'somewhere-else' })
     await page.waitForTimeout(300)
@@ -910,8 +953,8 @@ test.describe('pasting a link into a tab that is already open', () => {
  * link again. That is the feature destroying the exact thing it exists to keep.
  */
 test.describe('keeping a second link', () => {
-  const FIRST = '/fresh/index.html#plan=1;4.1.6243.all'
-  const SECOND = '/fresh/index.html#plan=1;800.1.6293.all'
+  const FIRST = '/turnaround/index.html#plan=1;4.1.6243.all'
+  const SECOND = '/turnaround/index.html#plan=1;800.1.6293.all'
 
   test('adds to the stops already kept instead of replacing them', async ({ page }) => {
     await page.goto(FIRST)
@@ -927,7 +970,7 @@ test.describe('keeping a second link', () => {
 
     /* Both sets, on the board with no link in the address bar - which is the
      * only place the answer actually matters. */
-    await page.goto('/fresh/index.html')
+    await page.goto('/turnaround/index.html')
     await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
     await expect(page.getByText('Simond SB').first()).toBeVisible()
