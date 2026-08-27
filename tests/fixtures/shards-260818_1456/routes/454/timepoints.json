@@ -1,0 +1,153 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"15-172": "454-0-066be168"
+			},
+			"baseline_pattern_id": "454-0-066be168",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"454-0-066be168": {
+					"direction_id": 0,
+					"pattern_id": "454-0-066be168",
+					"representative_trip_id": "3015730_15906",
+					"service_ids": [
+						"15-172"
+					],
+					"stop_count": 5,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.586612,
+							"lon": -97.855468,
+							"minor_stops": [],
+							"stop_id": "5386",
+							"stop_name": "Leander Station Bay C",
+							"stop_name_full": "Leander Station Bay C",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.481087,
+							"lon": -97.787116,
+							"minor_stops": [],
+							"stop_id": "5232",
+							"stop_name": "Lakeline Station Bay E",
+							"stop_name_full": "Lakeline Station Bay E",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.439972,
+							"lon": -97.70124,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.268054,
+									"lon": -97.74679,
+									"stop_id": "2112",
+									"stop_name": "5th/Guadalupe",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "5607",
+							"stop_name": "Howard Station Bus Stop",
+							"stop_name_full": "Howard Station Bus Stop",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.26565,
+							"lon": -97.739798,
+							"minor_stops": [],
+							"stop_id": "6503",
+							"stop_name": "Brush Square NB",
+							"stop_name_full": "Brush Square NB (Trinity/4th)",
+							"stop_sequence": 5
+						}
+					]
+				}
+			},
+			"stop_count": 5,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"15-172": "454-1-b80b1758"
+			},
+			"baseline_pattern_id": "454-1-b80b1758",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"454-1-b80b1758": {
+					"direction_id": 1,
+					"pattern_id": "454-1-b80b1758",
+					"representative_trip_id": "3015750_15885",
+					"service_ids": [
+						"15-172"
+					],
+					"stop_count": 5,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.26565,
+							"lon": -97.739798,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5th",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "6503",
+							"stop_name": "Brush Square NB",
+							"stop_name_full": "Brush Square NB (Trinity/4th)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.439972,
+							"lon": -97.70124,
+							"minor_stops": [],
+							"stop_id": "5607",
+							"stop_name": "Howard Station Bus Stop",
+							"stop_name_full": "Howard Station Bus Stop",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.481087,
+							"lon": -97.787116,
+							"minor_stops": [],
+							"stop_id": "5232",
+							"stop_name": "Lakeline Station Bay E",
+							"stop_name_full": "Lakeline Station Bay E",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.586612,
+							"lon": -97.855468,
+							"minor_stops": [],
+							"stop_id": "5386",
+							"stop_name": "Leander Station Bay C",
+							"stop_name_full": "Leander Station Bay C",
+							"stop_sequence": 5
+						}
+					]
+				}
+			},
+			"stop_count": 5,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "454",
+	"schema": 1
+}

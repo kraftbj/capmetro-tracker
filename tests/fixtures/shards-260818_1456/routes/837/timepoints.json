@@ -1,0 +1,675 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "837-0-4ddb3e8e",
+				"2-172": "837-0-3f1d5f45",
+				"3-172": "837-0-3f1d5f45",
+				"4-172": "837-0-3f1d5f45",
+				"5-172": "837-0-3f1d5f45",
+				"6-172": "837-0-4ddb3e8e",
+				"7-172": "837-0-3f1d5f45",
+				"8-172": "837-0-4ddb3e8e"
+			},
+			"baseline_pattern_id": "837-0-3f1d5f45",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"837-0-3f1d5f45": {
+					"direction_id": 0,
+					"pattern_id": "837-0-3f1d5f45",
+					"representative_trip_id": "3012106_23644",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 22,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.294247,
+							"lon": -97.625006,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.297971,
+									"lon": -97.64216,
+									"stop_id": "2282",
+									"stop_name": "Colony Park SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300569,
+									"lon": -97.648626,
+									"stop_id": "5644",
+									"stop_name": "Johnny Morris SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308573,
+									"lon": -97.652374,
+									"stop_id": "1614",
+									"stop_name": "Purple Sage SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314638,
+									"lon": -97.655825,
+									"stop_id": "1616",
+									"stop_name": "LBJ High School SB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.317947,
+									"lon": -97.659681,
+									"stop_id": "1618",
+									"stop_name": "Delco Center SB",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "6551",
+							"stop_name": "Expo Center Bay D",
+							"stop_name_full": "Expo Center Bay D",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.31337,
+							"lon": -97.665007,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.3085,
+									"lon": -97.671213,
+									"stop_id": "1622",
+									"stop_name": "University Hills SB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304383,
+									"lon": -97.681613,
+									"stop_id": "1627",
+									"stop_name": "Manor at Rogge SB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298358,
+									"lon": -97.687017,
+									"stop_id": "1631",
+									"stop_name": "51st/Manor SB",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "6494",
+							"stop_name": "Springdale Center SB",
+							"stop_name_full": "Springdale Center SB (Manor/Susquehanna)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.296149,
+									"lon": -97.700385,
+									"stop_id": "6293",
+									"stop_name": "Simond SB",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290214,
+									"lon": -97.699019,
+									"stop_id": "6291",
+									"stop_name": "Mueller Tower Station SB",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286266,
+									"lon": -97.707029,
+									"stop_id": "6497",
+									"stop_name": "Manor WB",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285663,
+									"lon": -97.710921,
+									"stop_id": "1639",
+									"stop_name": "Alexander SB",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.284554,
+									"lon": -97.717984,
+									"stop_id": "1642",
+									"stop_name": "Cherrywood SB",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285506,
+									"lon": -97.733782,
+									"stop_id": "1179",
+									"stop_name": "UT Stadium SB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268964,
+									"lon": -97.739881,
+									"stop_id": "6501",
+									"stop_name": "8th Street SB",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266258,
+									"lon": -97.740904,
+									"stop_id": "6502",
+									"stop_name": "Brush Square SB",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.268054,
+							"lon": -97.74679,
+							"minor_stops": [],
+							"stop_id": "2112",
+							"stop_name": "5th/Guadalupe",
+							"stop_name_full": "5th/Guadalupe (Republic Square)",
+							"stop_sequence": 22
+						}
+					]
+				},
+				"837-0-4ddb3e8e": {
+					"direction_id": 0,
+					"pattern_id": "837-0-4ddb3e8e",
+					"representative_trip_id": "3012106_23547",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 23,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.294247,
+							"lon": -97.625006,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.297971,
+									"lon": -97.64216,
+									"stop_id": "2282",
+									"stop_name": "Colony Park SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300569,
+									"lon": -97.648626,
+									"stop_id": "5644",
+									"stop_name": "Johnny Morris SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308573,
+									"lon": -97.652374,
+									"stop_id": "1614",
+									"stop_name": "Purple Sage SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314638,
+									"lon": -97.655825,
+									"stop_id": "1616",
+									"stop_name": "LBJ High School SB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.317947,
+									"lon": -97.659681,
+									"stop_id": "1618",
+									"stop_name": "Delco Center SB",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "6551",
+							"stop_name": "Expo Center Bay D",
+							"stop_name_full": "Expo Center Bay D",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.31337,
+							"lon": -97.665007,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.3085,
+									"lon": -97.671213,
+									"stop_id": "1622",
+									"stop_name": "University Hills SB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304383,
+									"lon": -97.681613,
+									"stop_id": "1627",
+									"stop_name": "Manor at Rogge SB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298358,
+									"lon": -97.687017,
+									"stop_id": "1631",
+									"stop_name": "51st/Manor SB",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "6494",
+							"stop_name": "Springdale Center SB",
+							"stop_name_full": "Springdale Center SB (Manor/Susquehanna)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.296149,
+									"lon": -97.700385,
+									"stop_id": "6293",
+									"stop_name": "Simond SB",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290214,
+									"lon": -97.699019,
+									"stop_id": "6291",
+									"stop_name": "Mueller Tower Station SB",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286266,
+									"lon": -97.707029,
+									"stop_id": "6497",
+									"stop_name": "Manor WB",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285663,
+									"lon": -97.710921,
+									"stop_id": "1639",
+									"stop_name": "Alexander SB",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.284554,
+									"lon": -97.717984,
+									"stop_id": "1642",
+									"stop_name": "Cherrywood SB",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.288847,
+							"lon": -97.729473,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.285506,
+									"lon": -97.733782,
+									"stop_id": "1179",
+									"stop_name": "UT Stadium SB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268964,
+									"lon": -97.739881,
+									"stop_id": "6501",
+									"stop_name": "8th Street SB",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266258,
+									"lon": -97.740904,
+									"stop_id": "6502",
+									"stop_name": "Brush Square SB",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "6498",
+							"stop_name": "East Dean Keeton SB",
+							"stop_name_full": "East Dean Keeton SB (Dean Keeton/Medical Arts)",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.268054,
+							"lon": -97.74679,
+							"minor_stops": [],
+							"stop_id": "2112",
+							"stop_name": "5th/Guadalupe",
+							"stop_name_full": "5th/Guadalupe (Republic Square)",
+							"stop_sequence": 23
+						}
+					]
+				}
+			},
+			"stop_count": 22,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "837-1-836a592f",
+				"8-172": "837-1-836a592f",
+				"9-172": "837-1-836a592f"
+			},
+			"baseline_pattern_id": "837-1-836a592f",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"837-1-836a592f": {
+					"direction_id": 1,
+					"pattern_id": "837-1-836a592f",
+					"representative_trip_id": "3012203_23328",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 24,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.268054,
+							"lon": -97.74679,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.26565,
+									"lon": -97.739798,
+									"stop_id": "6503",
+									"stop_name": "Brush Square NB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269216,
+									"lon": -97.738446,
+									"stop_id": "6315",
+									"stop_name": "8th Street NB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2112",
+							"stop_name": "5th/Guadalupe",
+							"stop_name_full": "5th/Guadalupe (Republic Square)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.287924,
+							"lon": -97.728763,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.284437,
+									"lon": -97.717846,
+									"stop_id": "1578",
+									"stop_name": "Cherrywood NB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.285647,
+									"lon": -97.709889,
+									"stop_id": "1582",
+									"stop_name": "Alexander Station NB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286327,
+									"lon": -97.705715,
+									"stop_id": "5616",
+									"stop_name": "Airport Blvd NB",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.290322,
+									"lon": -97.698669,
+									"stop_id": "6091",
+									"stop_name": "Mueller Tower NB",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.296343,
+									"lon": -97.700088,
+									"stop_id": "6292",
+									"stop_name": "Simond NB",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "2006",
+							"stop_name": "East Dean Keaton NB",
+							"stop_name_full": "East Dean Keaton NB (Dean Keeton/Robert Dedman)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.302547,
+							"lon": -97.699539,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.298344,
+									"lon": -97.68687,
+									"stop_id": "6495",
+									"stop_name": "51st/Manor NB",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30476,
+									"lon": -97.68108,
+									"stop_id": "1594",
+									"stop_name": "Manor at Rogge NB",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308569,
+									"lon": -97.67035,
+									"stop_id": "1599",
+									"stop_name": "University Hills NB",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "5925",
+							"stop_name": "Barbara Jordan NB",
+							"stop_name_full": "Barbara Jordan NB (Berkman/Barbara Jordan)",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.312849,
+							"lon": -97.665031,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.317671,
+									"lon": -97.659431,
+									"stop_id": "1603",
+									"stop_name": "Delco Center NB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.314586,
+									"lon": -97.656099,
+									"stop_id": "3655",
+									"stop_name": "LBJ High School NB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308,
+									"lon": -97.652679,
+									"stop_id": "1608",
+									"stop_name": "Purple Sage NB",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.299874,
+									"lon": -97.647843,
+									"stop_id": "4614",
+									"stop_name": "Johnny Morris NB",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.297576,
+									"lon": -97.641351,
+									"stop_id": "2416",
+									"stop_name": "Colony Park NB",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.292743,
+									"lon": -97.631318,
+									"stop_id": "5982",
+									"stop_name": "Loyola/Wentworth",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "1601",
+							"stop_name": "Springdale Center NB",
+							"stop_name_full": "Springdale Center NB (Manor/Susquehanna)",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.294247,
+							"lon": -97.625006,
+							"minor_stops": [],
+							"stop_id": "6551",
+							"stop_name": "Expo Center Bay D",
+							"stop_name_full": "Expo Center Bay D",
+							"stop_sequence": 24
+						}
+					]
+				}
+			},
+			"stop_count": 24,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "837",
+	"schema": 1
+}

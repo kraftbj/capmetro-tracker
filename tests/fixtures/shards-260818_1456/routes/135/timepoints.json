@@ -1,0 +1,322 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "135-0-f6dc3242"
+			},
+			"baseline_pattern_id": "135-0-f6dc3242",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"135-0-f6dc3242": {
+					"direction_id": 0,
+					"pattern_id": "135-0-f6dc3242",
+					"representative_trip_id": "2998576_1511",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 11,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.25986,
+							"lon": -97.709481,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.26848,
+									"lon": -97.69626,
+									"stop_id": "3261",
+									"stop_name": "Airport/Goodwin",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27388,
+									"lon": -97.697907,
+									"stop_id": "3262",
+									"stop_name": "Oak Springs NB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277589,
+									"lon": -97.700657,
+									"stop_id": "5567",
+									"stop_name": "Airport/12th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.282339,
+									"lon": -97.703722,
+									"stop_id": "3266",
+									"stop_name": "Airport/Martin Luther…",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "1369",
+							"stop_name": "7th Street NB",
+							"stop_name_full": "7th Street NB (Pleasant Valley/7th)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.28546,
+							"lon": -97.705723,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.29844,
+									"lon": -97.709294,
+									"stop_id": "5918",
+									"stop_name": "Airport/Aldrich",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30041,
+									"lon": -97.71246,
+									"stop_id": "3271",
+									"stop_name": "Airport/Parkwood",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.405922,
+									"lon": -97.663623,
+									"stop_id": "4672",
+									"stop_name": "McCallen/Parmer",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.417607,
+									"lon": -97.661907,
+									"stop_id": "4671",
+									"stop_name": "McCallen/Center Ridge",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "4191",
+							"stop_name": "Airport/Manor",
+							"stop_name_full": "2201 Airport/Manor",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.41844,
+							"lon": -97.668279,
+							"minor_stops": [],
+							"stop_id": "5274",
+							"stop_name": "Tech Ridge Bay B",
+							"stop_name_full": "Tech Ridge Bay B",
+							"stop_sequence": 11
+						}
+					]
+				}
+			},
+			"stop_count": 11,
+			"timepoint_count": 3
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "135-1-15008966",
+				"2-172": "135-1-ec8762e8",
+				"3-172": "135-1-ec8762e8",
+				"4-172": "135-1-ec8762e8",
+				"5-172": "135-1-ec8762e8"
+			},
+			"baseline_pattern_id": "135-1-ec8762e8",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"135-1-15008966": {
+					"direction_id": 1,
+					"pattern_id": "135-1-15008966",
+					"representative_trip_id": "2998578_1513",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 9,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.41844,
+							"lon": -97.668279,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.417607,
+									"lon": -97.661907,
+									"stop_id": "4671",
+									"stop_name": "McCallen/Center Ridge",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.299909,
+									"lon": -97.712142,
+									"stop_id": "3291",
+									"stop_name": "Airport/Crestwood",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "5274",
+							"stop_name": "Tech Ridge Bay B",
+							"stop_name_full": "Tech Ridge Bay B",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.285561,
+							"lon": -97.706075,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.282694,
+									"lon": -97.704222,
+									"stop_id": "3296",
+									"stop_name": "Airport/Martin Luther…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.276489,
+									"lon": -97.700213,
+									"stop_id": "3298",
+									"stop_name": "Airport/12th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27252,
+									"lon": -97.69775,
+									"stop_id": "3299",
+									"stop_name": "Airport/Oak Springs",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26833,
+									"lon": -97.69643,
+									"stop_id": "3300",
+									"stop_name": "Airport/Goodwin",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "3295",
+							"stop_name": "Airport/Manor",
+							"stop_name_full": "2204 Airport/Manor",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.259748,
+							"lon": -97.709736,
+							"minor_stops": [],
+							"stop_id": "1349",
+							"stop_name": "7th Street SB",
+							"stop_name_full": "7th Street SB (Pleasant Valley/7th)",
+							"stop_sequence": 9
+						}
+					]
+				},
+				"135-1-ec8762e8": {
+					"direction_id": 1,
+					"pattern_id": "135-1-ec8762e8",
+					"representative_trip_id": "2998578_1515",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 8,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.41844,
+							"lon": -97.668279,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.417607,
+									"lon": -97.661907,
+									"stop_id": "4671",
+									"stop_name": "McCallen/Center Ridge",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.299909,
+									"lon": -97.712142,
+									"stop_id": "3291",
+									"stop_name": "Airport/Crestwood",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "5274",
+							"stop_name": "Tech Ridge Bay B",
+							"stop_name_full": "Tech Ridge Bay B",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.285561,
+							"lon": -97.706075,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.282694,
+									"lon": -97.704222,
+									"stop_id": "3296",
+									"stop_name": "Airport/Martin Luther…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27252,
+									"lon": -97.69775,
+									"stop_id": "3299",
+									"stop_name": "Airport/Oak Springs",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26833,
+									"lon": -97.69643,
+									"stop_id": "3300",
+									"stop_name": "Airport/Goodwin",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "3295",
+							"stop_name": "Airport/Manor",
+							"stop_name_full": "2204 Airport/Manor",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.259748,
+							"lon": -97.709736,
+							"minor_stops": [],
+							"stop_id": "1349",
+							"stop_name": "7th Street SB",
+							"stop_name_full": "7th Street SB (Pleasant Valley/7th)",
+							"stop_sequence": 8
+						}
+					]
+				}
+			},
+			"stop_count": 8,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "135",
+	"schema": 1
+}

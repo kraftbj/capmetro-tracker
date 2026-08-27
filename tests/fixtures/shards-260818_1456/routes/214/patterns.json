@@ -1,0 +1,380 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "214-0-c143809f"
+			},
+			"baseline_pattern_id": "214-0-c143809f",
+			"baseline_pattern_ids": [
+				"214-0-c143809f"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"214-0-c143809f": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"9-172"
+					],
+					"is_special": false,
+					"pattern_id": "214-0-c143809f",
+					"stop_count": 21,
+					"stop_ids": [
+						"5228",
+						"5223",
+						"5653",
+						"5428",
+						"5222",
+						"5698",
+						"2832",
+						"5220",
+						"2823",
+						"4600",
+						"4925",
+						"2825",
+						"2827",
+						"4927",
+						"4928",
+						"4926",
+						"2829",
+						"4924",
+						"6071",
+						"4930",
+						"2830"
+					],
+					"trip_ids": [
+						"2999966_4333",
+						"2999967_4334",
+						"2999968_4335",
+						"2999969_4336",
+						"2999970_4337",
+						"2999971_4338",
+						"2999973_4339",
+						"2999974_4340"
+					],
+					"trips_by_service": {
+						"9-172": 8
+					},
+					"trips_in_pattern": 8
+				},
+				{
+					"deltas": {
+						"214-0-c143809f": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "4600",
+									"stop_name": "1st/Bronco"
+								},
+								{
+									"stop_id": "4925",
+									"stop_name": "Bronco/Dodge Trace"
+								},
+								{
+									"stop_id": "2825",
+									"stop_name": "Bar K Ranch"
+								},
+								{
+									"stop_id": "2827",
+									"stop_name": "Crossbow/Paseo de Vaca"
+								},
+								{
+									"stop_id": "4927",
+									"stop_name": "Coyote/Camstock Cove"
+								},
+								{
+									"stop_id": "4928",
+									"stop_name": "Coyote/Camstock Cove"
+								},
+								{
+									"stop_id": "4926",
+									"stop_name": "Bar K Ranch/Coyote"
+								},
+								{
+									"stop_id": "2829",
+									"stop_name": "Bar K Ranch"
+								},
+								{
+									"stop_id": "4924",
+									"stop_name": "Bronco/1st"
+								},
+								{
+									"stop_id": "6071",
+									"stop_name": "Lohman Ford/FM 1431"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "214-0-fcf91ae7",
+					"stop_count": 11,
+					"stop_ids": [
+						"5228",
+						"5223",
+						"5653",
+						"5428",
+						"5222",
+						"5698",
+						"2832",
+						"5220",
+						"2823",
+						"4930",
+						"2830"
+					],
+					"trip_ids": [
+						"2999964_4329",
+						"2999965_4327",
+						"2999972_4332",
+						"2999975_4325",
+						"2999976_4326",
+						"2999977_4331",
+						"2999978_4330",
+						"2999979_4328"
+					],
+					"trips_by_service": {
+						"9-172": 8
+					},
+					"trips_in_pattern": 8
+				}
+			],
+			"trip_count": 16
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "214-1-8e33656c"
+			},
+			"baseline_pattern_id": "214-1-8e33656c",
+			"baseline_pattern_ids": [
+				"214-1-8e33656c"
+			],
+			"baseline_stable": true,
+			"direction_id": 1,
+			"pattern_count": 3,
+			"patterns": [
+				{
+					"deltas": {
+						"214-1-8e33656c": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"9-172"
+					],
+					"is_special": false,
+					"pattern_id": "214-1-8e33656c",
+					"stop_count": 10,
+					"stop_ids": [
+						"2830",
+						"4923",
+						"2831",
+						"2832",
+						"5220",
+						"5698",
+						"5881",
+						"5654",
+						"5805",
+						"5228"
+					],
+					"trip_ids": [
+						"2999980_4310",
+						"2999981_4311",
+						"2999984_4312",
+						"2999985_4313",
+						"2999986_4315",
+						"2999987_4316",
+						"2999988_4317",
+						"2999993_4314",
+						"2999997_4309"
+					],
+					"trips_by_service": {
+						"9-172": 9
+					},
+					"trips_in_pattern": 9
+				},
+				{
+					"deltas": {
+						"214-1-8e33656c": {
+							"adds": [
+								{
+									"stop_id": "4600",
+									"stop_name": "1st/Bronco"
+								},
+								{
+									"stop_id": "4925",
+									"stop_name": "Bronco/Dodge Trace"
+								},
+								{
+									"stop_id": "2825",
+									"stop_name": "Bar K Ranch"
+								},
+								{
+									"stop_id": "2827",
+									"stop_name": "Crossbow/Paseo de Vaca"
+								},
+								{
+									"stop_id": "4927",
+									"stop_name": "Coyote/Camstock Cove"
+								},
+								{
+									"stop_id": "4928",
+									"stop_name": "Coyote/Camstock Cove"
+								},
+								{
+									"stop_id": "4926",
+									"stop_name": "Bar K Ranch/Coyote"
+								},
+								{
+									"stop_id": "2829",
+									"stop_name": "Bar K Ranch"
+								},
+								{
+									"stop_id": "4924",
+									"stop_name": "Bronco/1st"
+								}
+							],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "214-1-5c72001f",
+					"stop_count": 19,
+					"stop_ids": [
+						"2830",
+						"4923",
+						"4600",
+						"4925",
+						"2825",
+						"2827",
+						"4927",
+						"4928",
+						"4926",
+						"2829",
+						"4924",
+						"2831",
+						"2832",
+						"5220",
+						"5698",
+						"5881",
+						"5654",
+						"5805",
+						"5228"
+					],
+					"trip_ids": [
+						"2999982_4318",
+						"2999983_4319",
+						"2999991_4320",
+						"2999992_4321",
+						"2999994_4322",
+						"2999995_4323",
+						"2999996_4324"
+					],
+					"trips_by_service": {
+						"9-172": 7
+					},
+					"trips_in_pattern": 7
+				},
+				{
+					"deltas": {
+						"214-1-8e33656c": {
+							"adds": [
+								{
+									"stop_id": "4600",
+									"stop_name": "1st/Bronco"
+								},
+								{
+									"stop_id": "4925",
+									"stop_name": "Bronco/Dodge Trace"
+								},
+								{
+									"stop_id": "2825",
+									"stop_name": "Bar K Ranch"
+								},
+								{
+									"stop_id": "2827",
+									"stop_name": "Crossbow/Paseo de Vaca"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2831",
+									"stop_name": "Park/Crestview Jonestown"
+								},
+								{
+									"stop_id": "2832",
+									"stop_name": "Bee Street/Main Street"
+								},
+								{
+									"stop_id": "5220",
+									"stop_name": "Evergreen/Pecan"
+								},
+								{
+									"stop_id": "5698",
+									"stop_name": "ACC Cypress Creek"
+								},
+								{
+									"stop_id": "5881",
+									"stop_name": "Lakeline/US 183"
+								},
+								{
+									"stop_id": "5654",
+									"stop_name": "Lakeline/US 183"
+								},
+								{
+									"stop_id": "5805",
+									"stop_name": "Lakeline/North Lake Creek"
+								},
+								{
+									"stop_id": "5228",
+									"stop_name": "Lakeline Station Bay I"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "214-1-1d52cc4c",
+					"stop_count": 6,
+					"stop_ids": [
+						"2830",
+						"4923",
+						"4600",
+						"4925",
+						"2825",
+						"2827"
+					],
+					"trip_ids": [
+						"2999989_4308",
+						"2999990_4307"
+					],
+					"trips_by_service": {
+						"9-172": 2
+					},
+					"trips_in_pattern": 2
+				}
+			],
+			"trip_count": 18
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "214",
+	"schema": 1
+}

@@ -1,0 +1,115 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"19-172": "493-0-5c33c45a"
+			},
+			"baseline_pattern_id": "493-0-5c33c45a",
+			"baseline_pattern_ids": [
+				"493-0-5c33c45a"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 1,
+			"patterns": [
+				{
+					"deltas": {
+						"493-0-5c33c45a": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"19-172"
+					],
+					"is_special": false,
+					"pattern_id": "493-0-5c33c45a",
+					"stop_count": 9,
+					"stop_ids": [
+						"5633",
+						"1957",
+						"6404",
+						"934",
+						"6366",
+						"1373",
+						"667",
+						"668",
+						"3299"
+					],
+					"trip_ids": [
+						"3006252_16534",
+						"3006253_16533",
+						"3006254_16532",
+						"3006255_16531",
+						"3006256_16536",
+						"3006257_16535"
+					],
+					"trips_by_service": {
+						"19-172": 6
+					},
+					"trips_in_pattern": 6
+				}
+			],
+			"trip_count": 6
+		},
+		{
+			"baseline_by_service": {
+				"19-172": "493-1-273c404e"
+			},
+			"baseline_pattern_id": "493-1-273c404e",
+			"baseline_pattern_ids": [
+				"493-1-273c404e"
+			],
+			"baseline_stable": true,
+			"direction_id": 1,
+			"pattern_count": 1,
+			"patterns": [
+				{
+					"deltas": {
+						"493-1-273c404e": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"19-172"
+					],
+					"is_special": false,
+					"pattern_id": "493-1-273c404e",
+					"stop_count": 9,
+					"stop_ids": [
+						"3299",
+						"1373",
+						"6366",
+						"5119",
+						"1957",
+						"6404",
+						"1850",
+						"1038",
+						"5633"
+					],
+					"trip_ids": [
+						"3006258_16530",
+						"3006259_16529",
+						"3006260_16528",
+						"3006261_16527",
+						"3006262_16526",
+						"3006263_16525"
+					],
+					"trips_by_service": {
+						"19-172": 6
+					},
+					"trips_in_pattern": 6
+				}
+			],
+			"trip_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "493",
+	"schema": 1
+}

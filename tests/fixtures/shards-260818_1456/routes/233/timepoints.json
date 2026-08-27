@@ -1,0 +1,275 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "233-0-3bd00c24",
+				"2-172": "233-0-8a97095d",
+				"3-172": "233-0-8a97095d",
+				"4-172": "233-0-8a97095d",
+				"5-172": "233-0-8a97095d",
+				"6-172": "233-0-3bd00c24",
+				"7-172": "233-0-8a97095d",
+				"8-172": "233-0-3bd00c24"
+			},
+			"baseline_pattern_id": "233-0-8a97095d",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"233-0-3bd00c24": {
+					"direction_id": 0,
+					"pattern_id": "233-0-3bd00c24",
+					"representative_trip_id": "3000316_4593",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 8,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.299247,
+							"lon": -97.645835,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.302554,
+									"lon": -97.653518,
+									"stop_id": "4613",
+									"stop_name": "Loyola/Crystalbrook",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303039,
+									"lon": -97.64631,
+									"stop_id": "6003",
+									"stop_name": "Johnny Morris/Craybrough",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308047,
+									"lon": -97.643051,
+									"stop_id": "6004",
+									"stop_name": "Johnny Morris/Point North",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314304,
+									"lon": -97.620203,
+									"stop_id": "6005",
+									"stop_name": "Daffan/Oak Crest",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.311955,
+									"lon": -97.615253,
+									"stop_id": "6006",
+									"stop_name": "Daffan/Decker",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.307142,
+									"lon": -97.622128,
+									"stop_id": "6070",
+									"stop_name": "Eagles Landing Apt/Decker",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "2288",
+							"stop_name": "LOYOLA/SANDSHOF",
+							"stop_name_full": "6714 LOYOLA/SANDSHOF",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.293761,
+							"lon": -97.624325,
+							"minor_stops": [],
+							"stop_id": "6559",
+							"stop_name": "Expo Center Bay H",
+							"stop_name_full": "Expo Center Bay H",
+							"stop_sequence": 8
+						}
+					]
+				},
+				"233-0-8a97095d": {
+					"direction_id": 0,
+					"pattern_id": "233-0-8a97095d",
+					"representative_trip_id": "3000316_4613",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 7,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.299247,
+							"lon": -97.645835,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.302554,
+									"lon": -97.653518,
+									"stop_id": "4613",
+									"stop_name": "Loyola/Crystalbrook",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308047,
+									"lon": -97.643051,
+									"stop_id": "6004",
+									"stop_name": "Johnny Morris/Point North",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314304,
+									"lon": -97.620203,
+									"stop_id": "6005",
+									"stop_name": "Daffan/Oak Crest",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.311955,
+									"lon": -97.615253,
+									"stop_id": "6006",
+									"stop_name": "Daffan/Decker",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.307142,
+									"lon": -97.622128,
+									"stop_id": "6070",
+									"stop_name": "Eagles Landing Apt/Decker",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2288",
+							"stop_name": "LOYOLA/SANDSHOF",
+							"stop_name_full": "6714 LOYOLA/SANDSHOF",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.293761,
+							"lon": -97.624325,
+							"minor_stops": [],
+							"stop_id": "6559",
+							"stop_name": "Expo Center Bay H",
+							"stop_name_full": "Expo Center Bay H",
+							"stop_sequence": 7
+						}
+					]
+				}
+			},
+			"stop_count": 7,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "233-1-0a5f21f5",
+				"8-172": "233-1-0a5f21f5",
+				"9-172": "233-1-0a5f21f5"
+			},
+			"baseline_pattern_id": "233-1-0a5f21f5",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"233-1-0a5f21f5": {
+					"direction_id": 1,
+					"pattern_id": "233-1-0a5f21f5",
+					"representative_trip_id": "3000336_4739",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 7,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.293761,
+							"lon": -97.624325,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.291672,
+									"lon": -97.628589,
+									"stop_id": "6183",
+									"stop_name": "Decker",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298856,
+									"lon": -97.641267,
+									"stop_id": "5581",
+									"stop_name": "Colony Loop/Shannon",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.300421,
+									"lon": -97.636572,
+									"stop_id": "5997",
+									"stop_name": "Overton Driveway/Overton…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.305498,
+									"lon": -97.639174,
+									"stop_id": "5583",
+									"stop_name": "Ritchie/Colony Park",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29876,
+									"lon": -97.64462,
+									"stop_id": "2287",
+									"stop_name": "Colony Park/Loyola",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "6559",
+							"stop_name": "Expo Center Bay H",
+							"stop_name_full": "Expo Center Bay H",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.299247,
+							"lon": -97.645835,
+							"minor_stops": [],
+							"stop_id": "2288",
+							"stop_name": "LOYOLA/SANDSHOF",
+							"stop_name_full": "6714 LOYOLA/SANDSHOF",
+							"stop_sequence": 7
+						}
+					]
+				}
+			},
+			"stop_count": 7,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "233",
+	"schema": 1
+}

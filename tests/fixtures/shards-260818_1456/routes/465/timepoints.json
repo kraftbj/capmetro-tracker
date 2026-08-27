@@ -1,0 +1,137 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "465-0-159e66ed"
+			},
+			"baseline_pattern_id": "465-0-159e66ed",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"465-0-159e66ed": {
+					"direction_id": 0,
+					"pattern_id": "465-0-159e66ed",
+					"representative_trip_id": "3005729_15950",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 4,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.280159,
+							"lon": -97.709219,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.279307,
+									"lon": -97.73295,
+									"stop_id": "2761",
+									"stop_name": "Martin Luther King/Red…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "5588",
+							"stop_name": "MLK Station Stop 1",
+							"stop_name_full": "MLK Station Stop 1",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.28555,
+							"lon": -97.733531,
+							"minor_stops": [],
+							"stop_id": "3491",
+							"stop_name": "UT Stadium NB",
+							"stop_name_full": "UT Stadium NB (San Jacinto/23rd)",
+							"stop_sequence": 4
+						}
+					]
+				}
+			},
+			"stop_count": 4,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "465-1-d3fd9d12"
+			},
+			"baseline_pattern_id": "465-1-d3fd9d12",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"465-1-d3fd9d12": {
+					"direction_id": 1,
+					"pattern_id": "465-1-d3fd9d12",
+					"representative_trip_id": "3005753_15941",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 5,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.28555,
+							"lon": -97.733531,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.288776,
+									"lon": -97.734397,
+									"stop_id": "1256",
+									"stop_name": "San Jacinto/Dean Keeton",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289093,
+									"lon": -97.73154,
+									"stop_id": "2005",
+									"stop_name": "Dean Keeton/San Jacinto",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283897,
+									"lon": -97.722231,
+									"stop_id": "2019",
+									"stop_name": "Lafayette/Manor",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "3491",
+							"stop_name": "UT Stadium NB",
+							"stop_name_full": "UT Stadium NB (San Jacinto/23rd)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.280159,
+							"lon": -97.709219,
+							"minor_stops": [],
+							"stop_id": "5588",
+							"stop_name": "MLK Station Stop 1",
+							"stop_name_full": "MLK Station Stop 1",
+							"stop_sequence": 5
+						}
+					]
+				}
+			},
+			"stop_count": 5,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "465",
+	"schema": 1
+}

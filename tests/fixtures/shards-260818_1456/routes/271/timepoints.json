@@ -1,0 +1,729 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "271-0-a2be12e6",
+				"2-172": "271-0-842e972d",
+				"3-172": "271-0-842e972d",
+				"4-172": "271-0-842e972d",
+				"5-172": "271-0-842e972d",
+				"6-172": "271-0-a2be12e6",
+				"7-172": "271-0-842e972d",
+				"8-172": "271-0-a2be12e6"
+			},
+			"baseline_pattern_id": "271-0-842e972d",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"271-0-842e972d": {
+					"direction_id": 0,
+					"pattern_id": "271-0-842e972d",
+					"representative_trip_id": "3000682_5446",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 19,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.177571,
+							"lon": -97.614481,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.175917,
+									"lon": -97.612199,
+									"stop_id": "5803",
+									"stop_name": "Del Valle ISD",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175517,
+									"lon": -97.616139,
+									"stop_id": "5990",
+									"stop_name": "Gilwell/Bahan",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.174468,
+									"lon": -97.613185,
+									"stop_id": "5988",
+									"stop_name": "Gilwell/Thome Valley",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.172998,
+									"lon": -97.617421,
+									"stop_id": "5987",
+									"stop_name": "Thome Valley/Alomar",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.171771,
+									"lon": -97.627919,
+									"stop_id": "5985",
+									"stop_name": "Pearce/Las Alas",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1988,
+									"lon": -97.642815,
+									"stop_id": "3324",
+									"stop_name": "Bill Price/FM 973",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "5927",
+							"stop_name": "Del Valle High",
+							"stop_name_full": "Del Valle High (Tennis Courts)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.19784,
+							"lon": -97.645546,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.205035,
+									"lon": -97.642589,
+									"stop_id": "3240",
+									"stop_name": "SH 71/Cheviot",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210895,
+									"lon": -97.654067,
+									"stop_id": "3241",
+									"stop_name": "SH 71/Golf Course",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219402,
+									"lon": -97.670379,
+									"stop_id": "6241",
+									"stop_name": "71/Thornberry",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217039,
+									"lon": -97.685245,
+									"stop_id": "5470",
+									"stop_name": "Riverside/Palma Verde",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216684,
+									"lon": -97.689637,
+									"stop_id": "5434",
+									"stop_name": "Riverside/Metro Center",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.220466,
+									"lon": -97.693726,
+									"stop_id": "4692",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.222831,
+									"lon": -97.698094,
+									"stop_id": "3248",
+									"stop_name": "Riverside/Frontier Valley",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.224038,
+									"lon": -97.700825,
+									"stop_id": "3249",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225204,
+									"lon": -97.703776,
+									"stop_id": "950",
+									"stop_name": "RIVERSIDE/MONTOPOLIS",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.226586,
+									"lon": -97.706711,
+									"stop_id": "951",
+									"stop_name": "Riverside/Clubview",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "3238",
+							"stop_name": "Travis Correctional…",
+							"stop_name_full": "Travis Correctional Facility",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.230041,
+							"lon": -97.70606,
+							"minor_stops": [],
+							"stop_id": "6569",
+							"stop_name": "Fairway/Grove",
+							"stop_name_full": "Fairway/Grove",
+							"stop_sequence": 19
+						}
+					]
+				},
+				"271-0-a2be12e6": {
+					"direction_id": 0,
+					"pattern_id": "271-0-a2be12e6",
+					"representative_trip_id": "3000682_5424",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 20,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.177571,
+							"lon": -97.614481,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.174866,
+									"lon": -97.610837,
+									"stop_id": "5622",
+									"stop_name": "Del Valle ISD",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175917,
+									"lon": -97.612199,
+									"stop_id": "5803",
+									"stop_name": "Del Valle ISD",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175517,
+									"lon": -97.616139,
+									"stop_id": "5990",
+									"stop_name": "Gilwell/Bahan",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.174468,
+									"lon": -97.613185,
+									"stop_id": "5988",
+									"stop_name": "Gilwell/Thome Valley",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.172998,
+									"lon": -97.617421,
+									"stop_id": "5987",
+									"stop_name": "Thome Valley/Alomar",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.171771,
+									"lon": -97.627919,
+									"stop_id": "5985",
+									"stop_name": "Pearce/Las Alas",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1988,
+									"lon": -97.642815,
+									"stop_id": "3324",
+									"stop_name": "Bill Price/FM 973",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5927",
+							"stop_name": "Del Valle High",
+							"stop_name_full": "Del Valle High (Tennis Courts)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.19784,
+							"lon": -97.645546,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.205035,
+									"lon": -97.642589,
+									"stop_id": "3240",
+									"stop_name": "SH 71/Cheviot",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210895,
+									"lon": -97.654067,
+									"stop_id": "3241",
+									"stop_name": "SH 71/Golf Course",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219402,
+									"lon": -97.670379,
+									"stop_id": "6241",
+									"stop_name": "71/Thornberry",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217039,
+									"lon": -97.685245,
+									"stop_id": "5470",
+									"stop_name": "Riverside/Palma Verde",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.216684,
+									"lon": -97.689637,
+									"stop_id": "5434",
+									"stop_name": "Riverside/Metro Center",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.220466,
+									"lon": -97.693726,
+									"stop_id": "4692",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.222831,
+									"lon": -97.698094,
+									"stop_id": "3248",
+									"stop_name": "Riverside/Frontier Valley",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.224038,
+									"lon": -97.700825,
+									"stop_id": "3249",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225204,
+									"lon": -97.703776,
+									"stop_id": "950",
+									"stop_name": "RIVERSIDE/MONTOPOLIS",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.226586,
+									"lon": -97.706711,
+									"stop_id": "951",
+									"stop_name": "Riverside/Clubview",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "3238",
+							"stop_name": "Travis Correctional…",
+							"stop_name_full": "Travis Correctional Facility",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.230041,
+							"lon": -97.70606,
+							"minor_stops": [],
+							"stop_id": "6569",
+							"stop_name": "Fairway/Grove",
+							"stop_name_full": "Fairway/Grove",
+							"stop_sequence": 20
+						}
+					]
+				}
+			},
+			"stop_count": 19,
+			"timepoint_count": 3
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "271-1-ad27c6ac",
+				"2-172": "271-1-ac5cbeb1",
+				"3-172": "271-1-ac5cbeb1",
+				"4-172": "271-1-ac5cbeb1",
+				"5-172": "271-1-ac5cbeb1",
+				"6-172": "271-1-ad27c6ac",
+				"7-172": "271-1-ac5cbeb1",
+				"8-172": "271-1-ad27c6ac"
+			},
+			"baseline_pattern_id": "271-1-ac5cbeb1",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"271-1-ac5cbeb1": {
+					"direction_id": 1,
+					"pattern_id": "271-1-ac5cbeb1",
+					"representative_trip_id": "3000704_5193",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 17,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.230041,
+							"lon": -97.70606,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.22735,
+									"lon": -97.702007,
+									"stop_id": "5191",
+									"stop_name": "Montopolis/Caddie",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225821,
+									"lon": -97.702985,
+									"stop_id": "3311",
+									"stop_name": "Montopolis/Kasper",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223718,
+									"lon": -97.700756,
+									"stop_id": "3315",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.22227,
+									"lon": -97.697493,
+									"stop_id": "3316",
+									"stop_name": "Riverside/Maxwell",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219999,
+									"lon": -97.693331,
+									"stop_id": "3318",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.215795,
+									"lon": -97.688718,
+									"stop_id": "5592",
+									"stop_name": "Riverside/Hoeke",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219121,
+									"lon": -97.68783,
+									"stop_id": "5593",
+									"stop_name": "Palma Verde/Ben White",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212705,
+									"lon": -97.65909,
+									"stop_id": "5045",
+									"stop_name": "SH 71/Presidential",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203347,
+									"lon": -97.641677,
+									"stop_id": "5797",
+									"stop_name": "SH 71/Cheviot",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.200884,
+									"lon": -97.640493,
+									"stop_id": "3323",
+									"stop_name": "FM 973/SH 71",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.1988,
+									"lon": -97.642815,
+									"stop_id": "3324",
+									"stop_name": "Bill Price/FM 973",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "6569",
+							"stop_name": "Fairway/Grove",
+							"stop_name_full": "Fairway/Grove",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.19784,
+							"lon": -97.645546,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.172853,
+									"lon": -97.617366,
+									"stop_id": "5986",
+									"stop_name": "Thome Valley/Alomar",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.174761,
+									"lon": -97.61346,
+									"stop_id": "5989",
+									"stop_name": "Gilwell/Justice",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.175667,
+									"lon": -97.616277,
+									"stop_id": "5991",
+									"stop_name": "Gilwell/Mathra",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "3238",
+							"stop_name": "Travis Correctional…",
+							"stop_name_full": "Travis Correctional Facility",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.177571,
+							"lon": -97.614481,
+							"minor_stops": [],
+							"stop_id": "5927",
+							"stop_name": "Del Valle High",
+							"stop_name_full": "Del Valle High (Tennis Courts)",
+							"stop_sequence": 17
+						}
+					]
+				},
+				"271-1-ad27c6ac": {
+					"direction_id": 1,
+					"pattern_id": "271-1-ad27c6ac",
+					"representative_trip_id": "3000704_5172",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 18,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.230041,
+							"lon": -97.70606,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.22735,
+									"lon": -97.702007,
+									"stop_id": "5191",
+									"stop_name": "Montopolis/Caddie",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225821,
+									"lon": -97.702985,
+									"stop_id": "3311",
+									"stop_name": "Montopolis/Kasper",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223718,
+									"lon": -97.700756,
+									"stop_id": "3315",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.22227,
+									"lon": -97.697493,
+									"stop_id": "3316",
+									"stop_name": "Riverside/Maxwell",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219999,
+									"lon": -97.693331,
+									"stop_id": "3318",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.215795,
+									"lon": -97.688718,
+									"stop_id": "5592",
+									"stop_name": "Riverside/Hoeke",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219121,
+									"lon": -97.68783,
+									"stop_id": "5593",
+									"stop_name": "Palma Verde/Ben White",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212705,
+									"lon": -97.65909,
+									"stop_id": "5045",
+									"stop_name": "SH 71/Presidential",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203347,
+									"lon": -97.641677,
+									"stop_id": "5797",
+									"stop_name": "SH 71/Cheviot",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.200884,
+									"lon": -97.640493,
+									"stop_id": "3323",
+									"stop_name": "FM 973/SH 71",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.1988,
+									"lon": -97.642815,
+									"stop_id": "3324",
+									"stop_name": "Bill Price/FM 973",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "6569",
+							"stop_name": "Fairway/Grove",
+							"stop_name_full": "Fairway/Grove",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.19784,
+							"lon": -97.645546,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.171314,
+									"lon": -97.627242,
+									"stop_id": "5980",
+									"stop_name": "Pearce/Las Alas",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.172853,
+									"lon": -97.617366,
+									"stop_id": "5986",
+									"stop_name": "Thome Valley/Alomar",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.174761,
+									"lon": -97.61346,
+									"stop_id": "5989",
+									"stop_name": "Gilwell/Justice",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.175667,
+									"lon": -97.616277,
+									"stop_id": "5991",
+									"stop_name": "Gilwell/Mathra",
+									"stop_sequence": 17
+								}
+							],
+							"stop_id": "3238",
+							"stop_name": "Travis Correctional…",
+							"stop_name_full": "Travis Correctional Facility",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.177571,
+							"lon": -97.614481,
+							"minor_stops": [],
+							"stop_id": "5927",
+							"stop_name": "Del Valle High",
+							"stop_name_full": "Del Valle High (Tennis Courts)",
+							"stop_sequence": 18
+						}
+					]
+				}
+			},
+			"stop_count": 17,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "271",
+	"schema": 1
+}

@@ -28,7 +28,14 @@ use PHPUnit\Framework\TestCase;
 final class BlockRouteContinuationTest extends TestCase
 {
     private const FILES = ['runtime/lib/shards.php', 'runtime/lib/join.php'];
-    private const SHARD_DIR = 'data';
+    /*
+     * The shards the generated output under test was produced FROM. These assertions
+     * cross-check a published next_trip against the shard it came out of, so the two must be
+     * the same publication; read against data/ after a rebuild, the successor trip id is
+     * simply absent and the test reports a continuation bug that does not exist.
+     * runtime/config.fixture.php names the same directory.
+     */
+    private const SHARD_DIR = 'tests/fixtures/shards-260818_1456';
 
     protected function setUp(): void
     {

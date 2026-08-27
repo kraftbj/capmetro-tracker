@@ -1,0 +1,1102 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "5-0-02c7210b",
+				"2-172": "5-0-02c7210b",
+				"3-172": "5-0-02c7210b",
+				"4-172": "5-0-02c7210b",
+				"5-172": "5-0-02c7210b",
+				"6-172": "5-0-02c7210b",
+				"7-172": "5-0-02c7210b",
+				"8-172": "5-0-02c7210b"
+			},
+			"baseline_pattern_id": "5-0-02c7210b",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"5-0-02c7210b": {
+					"direction_id": 0,
+					"pattern_id": "5-0-02c7210b",
+					"representative_trip_id": "3006427_16537",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"stop_count": 62,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.357183,
+							"lon": -97.733456,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.354472,
+									"lon": -97.727616,
+									"stop_id": "954",
+									"stop_name": "Anderson/Burnet",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.35245,
+									"lon": -97.7234,
+									"stop_id": "956",
+									"stop_name": "Woodrow/Anderson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.349882,
+									"lon": -97.723185,
+									"stop_id": "958",
+									"stop_name": "Woodrow/Princeton",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.348038,
+									"lon": -97.723558,
+									"stop_id": "4523",
+									"stop_name": "Woodrow/Dartmouth",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.346068,
+									"lon": -97.724799,
+									"stop_id": "960",
+									"stop_name": "Woodrow/Richcreek",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.342981,
+									"lon": -97.725124,
+									"stop_id": "962",
+									"stop_name": "Woodrow/Piedmont",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.341522,
+									"lon": -97.725904,
+									"stop_id": "963",
+									"stop_name": "Woodrow/Cullen",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.339208,
+									"lon": -97.727376,
+									"stop_id": "964",
+									"stop_name": "Woodrow/Choquette",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.337479,
+									"lon": -97.728461,
+									"stop_id": "965",
+									"stop_name": "Woodrow/Brentwood",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.335923,
+									"lon": -97.729446,
+									"stop_id": "966",
+									"stop_name": "Woodrow/Payne",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.333637,
+									"lon": -97.730682,
+									"stop_id": "967",
+									"stop_name": "Woodrow/Romeria",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "5854",
+							"stop_name": "Anderson/Northcross",
+							"stop_name_full": "2535 Anderson/Northcross",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.331024,
+							"lon": -97.7316,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.328866,
+									"lon": -97.732957,
+									"stop_id": "969",
+									"stop_name": "Woodrow/Theckla",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.326461,
+									"lon": -97.734505,
+									"stop_id": "970",
+									"stop_name": "Woodrow/Houston",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.324296,
+									"lon": -97.735849,
+									"stop_id": "971",
+									"stop_name": "Woodrow/North Loop",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.322571,
+									"lon": -97.736955,
+									"stop_id": "972",
+									"stop_name": "Woodrow/North",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.320538,
+									"lon": -97.735873,
+									"stop_id": "973",
+									"stop_name": "51st/Grover",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.318547,
+									"lon": -97.736463,
+									"stop_id": "974",
+									"stop_name": "49th/Grover",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.317273,
+									"lon": -97.735369,
+									"stop_id": "4521",
+									"stop_name": "Sunshine",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "968",
+							"stop_name": "Woodrow/Koenig",
+							"stop_name_full": "5900 Woodrow/Koenig",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.315713,
+							"lon": -97.736377,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.311348,
+									"lon": -97.73919,
+									"stop_id": "4528",
+									"stop_name": "Lamar/43rd",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308074,
+									"lon": -97.74137,
+									"stop_id": "4831",
+									"stop_name": "Rosedale Station",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304705,
+									"lon": -97.743531,
+									"stop_id": "5978",
+									"stop_name": "Lamar/38th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30282,
+									"lon": -97.744768,
+									"stop_id": "2913",
+									"stop_name": "Lamar/34th",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300389,
+									"lon": -97.746294,
+									"stop_id": "4125",
+									"stop_name": "Lamar/31st",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.288718,
+									"lon": -97.752825,
+									"stop_id": "4153",
+									"stop_name": "Lamar/24th",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283674,
+									"lon": -97.752333,
+									"stop_id": "4155",
+									"stop_name": "Lamar/Martin Luther King",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276963,
+									"lon": -97.751452,
+									"stop_id": "4090",
+									"stop_name": "Lamar/12th",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275103,
+									"lon": -97.752332,
+									"stop_id": "4088",
+									"stop_name": "Lamar/10th",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272037,
+									"lon": -97.753855,
+									"stop_id": "4084",
+									"stop_name": "Lamar/6th",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26926,
+									"lon": -97.75113,
+									"stop_id": "2108",
+									"stop_name": "5th/West",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268672,
+									"lon": -97.748979,
+									"stop_id": "2110",
+									"stop_name": "5th/Nueces",
+									"stop_sequence": 34
+								}
+							],
+							"stop_id": "5877",
+							"stop_name": "Sunshine Station",
+							"stop_name_full": "Sunshine Station (SB)",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.268054,
+							"lon": -97.74679,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7th/Colorado",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269216,
+									"lon": -97.738446,
+									"stop_id": "6315",
+									"stop_name": "8th Street NB",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271886,
+									"lon": -97.731306,
+									"stop_id": "1113",
+									"stop_name": "12th/Branch",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272434,
+									"lon": -97.727844,
+									"stop_id": "1114",
+									"stop_name": "12th/Navasota",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272878,
+									"lon": -97.725052,
+									"stop_id": "4173",
+									"stop_name": "12th/Angelina",
+									"stop_sequence": 42
+								}
+							],
+							"stop_id": "2112",
+							"stop_name": "5th/Guadalupe",
+							"stop_name_full": "5th/Guadalupe (Republic Square)",
+							"stop_sequence": 35
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.273472,
+							"lon": -97.721367,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.273695,
+									"lon": -97.720001,
+									"stop_id": "1118",
+									"stop_name": "12th/Chicon",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274488,
+									"lon": -97.714983,
+									"stop_id": "5747",
+									"stop_name": "12th/Pleasant Valley",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274815,
+									"lon": -97.712846,
+									"stop_id": "1121",
+									"stop_name": "12th/Cedar",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275533,
+									"lon": -97.708349,
+									"stop_id": "1123",
+									"stop_name": "12th/Alexander",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276207,
+									"lon": -97.70414,
+									"stop_id": "4200",
+									"stop_name": "12th/Oak Grove",
+									"stop_sequence": 48
+								}
+							],
+							"stop_id": "2856",
+							"stop_name": "12th/Leona",
+							"stop_name_full": "1703 12th/Leona",
+							"stop_sequence": 43
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.276731,
+							"lon": -97.700547,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.277301,
+									"lon": -97.697085,
+									"stop_id": "1127",
+									"stop_name": "12th/Greenwood",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277722,
+									"lon": -97.694402,
+									"stop_id": "1128",
+									"stop_name": "12th/E M Franklin",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27828,
+									"lon": -97.69077,
+									"stop_id": "4668",
+									"stop_name": "12th/Luna",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278604,
+									"lon": -97.686295,
+									"stop_id": "4667",
+									"stop_name": "12th/Springdale",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278282,
+									"lon": -97.684544,
+									"stop_id": "1130",
+									"stop_name": "Webberville/12th",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279744,
+									"lon": -97.680966,
+									"stop_id": "1132",
+									"stop_name": "Webberville/Fort Branch",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278343,
+									"lon": -97.680174,
+									"stop_id": "5461",
+									"stop_name": "Fort Branch/Delano",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276475,
+									"lon": -97.678406,
+									"stop_id": "5911",
+									"stop_name": "Jackie Robinson/Delano",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279192,
+									"lon": -97.673977,
+									"stop_id": "1138",
+									"stop_name": "Tannehill/Samuel Huston",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.281393,
+									"lon": -97.672539,
+									"stop_id": "6386",
+									"stop_name": "Tannehill/Webberville",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283973,
+									"lon": -97.671344,
+									"stop_id": "5007",
+									"stop_name": "Tannehill/Webberville",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286011,
+									"lon": -97.669518,
+									"stop_id": "5643",
+									"stop_name": "Tannehill/Martin Luther…",
+									"stop_sequence": 61
+								}
+							],
+							"stop_id": "1126",
+							"stop_name": "12th/Airport",
+							"stop_name_full": "3245 12th/Airport",
+							"stop_sequence": 49
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.2766,
+							"lon": -97.66973,
+							"minor_stops": [],
+							"stop_id": "5017",
+							"stop_name": "Technicenter/Ed Bluestein",
+							"stop_name_full": "Technicenter/Ed Bluestein",
+							"stop_sequence": 62
+						}
+					]
+				}
+			},
+			"stop_count": 62,
+			"timepoint_count": 7
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "5-1-df4d843e",
+				"2-172": "5-1-df4d843e",
+				"3-172": "5-1-df4d843e",
+				"4-172": "5-1-df4d843e",
+				"5-172": "5-1-df4d843e",
+				"6-172": "5-1-df4d843e",
+				"7-172": "5-1-df4d843e",
+				"8-172": "5-1-df4d843e"
+			},
+			"baseline_pattern_id": "5-1-df4d843e",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"5-1-df4d843e": {
+					"direction_id": 1,
+					"pattern_id": "5-1-df4d843e",
+					"representative_trip_id": "3006464_16822",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"stop_count": 60,
+					"timepoint_count": 8,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.2766,
+							"lon": -97.66973,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.279199,
+									"lon": -97.674156,
+									"stop_id": "5912",
+									"stop_name": "Tannehill/Samuel Huston",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.276588,
+									"lon": -97.67835,
+									"stop_id": "1085",
+									"stop_name": "Jackie Robinson/Delano",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278736,
+									"lon": -97.680321,
+									"stop_id": "6369",
+									"stop_name": "Fort Branch/Meander",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27989,
+									"lon": -97.681063,
+									"stop_id": "1089",
+									"stop_name": "Webberville/Fort Branch",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278254,
+									"lon": -97.684918,
+									"stop_id": "1091",
+									"stop_name": "12TH/WEBBERVILLE",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278941,
+									"lon": -97.686682,
+									"stop_id": "1092",
+									"stop_name": "12th/Springdale",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278639,
+									"lon": -97.689538,
+									"stop_id": "1093",
+									"stop_name": "12th/Cometa",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277864,
+									"lon": -97.694461,
+									"stop_id": "1094",
+									"stop_name": "12th/E M Franklin",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277482,
+									"lon": -97.696869,
+									"stop_id": "4670",
+									"stop_name": "12th/Greenwood",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "5017",
+							"stop_name": "Technicenter/Ed Bluestein",
+							"stop_name_full": "Technicenter/Ed Bluestein",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.276978,
+							"lon": -97.700178,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.276346,
+									"lon": -97.70424,
+									"stop_id": "1098",
+									"stop_name": "12th/Harvey",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275723,
+									"lon": -97.708093,
+									"stop_id": "1099",
+									"stop_name": "12th/Alexander",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.274879,
+									"lon": -97.713399,
+									"stop_id": "1101",
+									"stop_name": "12th/Cedar",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27439,
+									"lon": -97.716486,
+									"stop_id": "1102",
+									"stop_name": "12th/Chestnut",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273963,
+									"lon": -97.719142,
+									"stop_id": "1103",
+									"stop_name": "12th/Chicon",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "1096",
+							"stop_name": "12th/Airport",
+							"stop_name_full": "3250 12th/Airport",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.273521,
+							"lon": -97.72187,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.273059,
+									"lon": -97.7249,
+									"stop_id": "1106",
+									"stop_name": "12th/Angelina",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.272727,
+									"lon": -97.726844,
+									"stop_id": "1107",
+									"stop_name": "12th/San Bernard",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.272088,
+									"lon": -97.730842,
+									"stop_id": "1109",
+									"stop_name": "12th/IH-35",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "1105",
+							"stop_name": "12th/Leona",
+							"stop_name_full": "1700 12th/Leona",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.270613,
+							"lon": -97.744215,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270316,
+									"lon": -97.75049,
+									"stop_id": "5499",
+									"stop_name": "6th/West",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270962,
+									"lon": -97.752215,
+									"stop_id": "1970",
+									"stop_name": "6th/Wood",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27219,
+									"lon": -97.753539,
+									"stop_id": "5424",
+									"stop_name": "Lamar/6th",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "5938",
+							"stop_name": "8th/Lavaca",
+							"stop_name_full": "216 8Th/Lavaca",
+							"stop_sequence": 23
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.275304,
+							"lon": -97.752067,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.276741,
+									"lon": -97.751339,
+									"stop_id": "4089",
+									"stop_name": "Lamar/12th",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283337,
+									"lon": -97.751717,
+									"stop_id": "4156",
+									"stop_name": "Lamar/Martin Luther King",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.288405,
+									"lon": -97.752709,
+									"stop_id": "4154",
+									"stop_name": "Lamar/24th",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298016,
+									"lon": -97.748412,
+									"stop_id": "4829",
+									"stop_name": "Lamar/29th",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30053,
+									"lon": -97.745954,
+									"stop_id": "806",
+									"stop_name": "Lamar/31st",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302553,
+									"lon": -97.744683,
+									"stop_id": "807",
+									"stop_name": "Lamar/34th",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303981,
+									"lon": -97.743764,
+									"stop_id": "4646",
+									"stop_name": "Lamar/37th",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308217,
+									"lon": -97.741034,
+									"stop_id": "4830",
+									"stop_name": "Rosedale Station",
+									"stop_sequence": 36
+								}
+							],
+							"stop_id": "5995",
+							"stop_name": "Lamar/10th",
+							"stop_name_full": "1005 Lamar/10th",
+							"stop_sequence": 28
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.316419,
+							"lon": -97.735728,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.317373,
+									"lon": -97.735125,
+									"stop_id": "1059",
+									"stop_name": "Sunshine",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.318789,
+									"lon": -97.736638,
+									"stop_id": "1060",
+									"stop_name": "49th/Grover",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.320707,
+									"lon": -97.735989,
+									"stop_id": "1061",
+									"stop_name": "51st/Grover",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.322371,
+									"lon": -97.736892,
+									"stop_id": "1062",
+									"stop_name": "Woodrow/North",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324061,
+									"lon": -97.735824,
+									"stop_id": "1063",
+									"stop_name": "Woodrow/North Loop",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.326186,
+									"lon": -97.734482,
+									"stop_id": "1064",
+									"stop_name": "Woodrow/Houston",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.327565,
+									"lon": -97.733603,
+									"stop_id": "1065",
+									"stop_name": "Woodrow/Houston",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.329034,
+									"lon": -97.732673,
+									"stop_id": "1066",
+									"stop_name": "Woodrow/Theckla",
+									"stop_sequence": 45
+								}
+							],
+							"stop_id": "1058",
+							"stop_name": "Sunshine Station",
+							"stop_name_full": "Sunshine Station (NB)",
+							"stop_sequence": 37
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.330737,
+							"lon": -97.73158,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.332811,
+									"lon": -97.730682,
+									"stop_id": "1068",
+									"stop_name": "Woodrow/Alguno",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.334573,
+									"lon": -97.730128,
+									"stop_id": "1069",
+									"stop_name": "Woodrow/Alegria",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.337279,
+									"lon": -97.72842,
+									"stop_id": "1070",
+									"stop_name": "Woodrow/Brentwood",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.340171,
+									"lon": -97.726594,
+									"stop_id": "1072",
+									"stop_name": "Woodrow/Dwyce",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.342849,
+									"lon": -97.724984,
+									"stop_id": "1074",
+									"stop_name": "Woodrow/Piedmont",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.344977,
+									"lon": -97.72521,
+									"stop_id": "1075",
+									"stop_name": "Woodrow/Pasadena",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.34743,
+									"lon": -97.723761,
+									"stop_id": "1076",
+									"stop_name": "Woodrow/Morrow",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.34989,
+									"lon": -97.72302,
+									"stop_id": "1077",
+									"stop_name": "Woodrow/Princeton",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.35279,
+									"lon": -97.72362,
+									"stop_id": "1078",
+									"stop_name": "Anderson/Wooten Park",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.35401,
+									"lon": -97.72622,
+									"stop_id": "1080",
+									"stop_name": "Anderson/Mullen",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354997,
+									"lon": -97.728269,
+									"stop_id": "3281",
+									"stop_name": "Anderson/Hardy",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354217,
+									"lon": -97.732117,
+									"stop_id": "5849",
+									"stop_name": "Northcross Station",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.354986,
+									"lon": -97.73617,
+									"stop_id": "5851",
+									"stop_name": "Northcross/Foster",
+									"stop_sequence": 59
+								}
+							],
+							"stop_id": "1067",
+							"stop_name": "Woodrow/Koenig",
+							"stop_name_full": "5819 Woodrow/Koenig",
+							"stop_sequence": 46
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.357183,
+							"lon": -97.733456,
+							"minor_stops": [],
+							"stop_id": "5854",
+							"stop_name": "Anderson/Northcross",
+							"stop_name_full": "2535 Anderson/Northcross",
+							"stop_sequence": 60
+						}
+					]
+				}
+			},
+			"stop_count": 60,
+			"timepoint_count": 8
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "5",
+	"schema": 1
+}

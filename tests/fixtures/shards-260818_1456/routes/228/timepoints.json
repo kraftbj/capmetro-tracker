@@ -1,0 +1,339 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "228-0-61b16cac",
+				"9-172": "228-0-61b16cac"
+			},
+			"baseline_pattern_id": "228-0-61b16cac",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"228-0-61b16cac": {
+					"direction_id": 0,
+					"pattern_id": "228-0-61b16cac",
+					"representative_trip_id": "3000222_4499",
+					"service_ids": [
+						"10-172",
+						"9-172"
+					],
+					"stop_count": 15,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.239624,
+							"lon": -97.721486,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.23524,
+									"lon": -97.721977,
+									"stop_id": "4288",
+									"stop_name": "Riverside SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233458,
+									"lon": -97.724063,
+									"stop_id": "6428",
+									"stop_name": "Pleasant Valley/Riverside",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230883,
+									"lon": -97.725761,
+									"stop_id": "4298",
+									"stop_name": "Sheringham SB",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.226619,
+									"lon": -97.72626,
+									"stop_id": "1008",
+									"stop_name": "Oltorf/Huntwick",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225638,
+									"lon": -97.724566,
+									"stop_id": "2273",
+									"stop_name": "Oltorf/Wickersham",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.223249,
+									"lon": -97.72253,
+									"stop_id": "2274",
+									"stop_name": "Oltorf/Sunridge",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.21916,
+									"lon": -97.718973,
+									"stop_id": "2275",
+									"stop_name": "Oltorf/Alvin Devane",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "1363",
+							"stop_name": "Elmont/Pleasant Valley/1",
+							"stop_name_full": "Elmont/Pleasant Valley/1",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.216272,
+							"lon": -97.71299,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.21541,
+									"lon": -97.711223,
+									"stop_id": "6483",
+									"stop_name": "Oltorf/Montopolis/EB",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210671,
+									"lon": -97.713467,
+									"stop_id": "5836",
+									"stop_name": "Montopolis/Ben White",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.204222,
+									"lon": -97.714111,
+									"stop_id": "5882",
+									"stop_name": "Burleson",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.203554,
+									"lon": -97.707045,
+									"stop_id": "6434",
+									"stop_name": "Metropolis/Smith School",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.206856,
+									"lon": -97.695054,
+									"stop_id": "6085",
+									"stop_name": "Metropolis/Metlink",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "2277",
+							"stop_name": "Oltorf/Alvin Devane",
+							"stop_name_full": "6101 Oltorf/Alvin Devane",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.207627,
+							"lon": -97.690495,
+							"minor_stops": [],
+							"stop_id": "5844",
+							"stop_name": "Metropolis/Veterans…",
+							"stop_name_full": "Metropolis/Veterans Clinic",
+							"stop_sequence": 15
+						}
+					]
+				}
+			},
+			"stop_count": 15,
+			"timepoint_count": 3
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "228-1-be072477",
+				"9-172": "228-1-be072477"
+			},
+			"baseline_pattern_id": "228-1-be072477",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"228-1-be072477": {
+					"direction_id": 1,
+					"pattern_id": "228-1-be072477",
+					"representative_trip_id": "3000245_4546",
+					"service_ids": [
+						"10-172",
+						"9-172"
+					],
+					"stop_count": 18,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.207627,
+							"lon": -97.690495,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.19557,
+									"lon": -97.693747,
+									"stop_id": "3974",
+									"stop_name": "Travis County Precinct 4",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.192301,
+									"lon": -97.698227,
+									"stop_id": "5722",
+									"stop_name": "Mc Kinney Falls/Burleson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197813,
+									"lon": -97.705025,
+									"stop_id": "5170",
+									"stop_name": "Burleson/Felter NW",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.201668,
+									"lon": -97.709615,
+									"stop_id": "5739",
+									"stop_name": "Burleson/Smith School",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.210443,
+									"lon": -97.71331,
+									"stop_id": "5835",
+									"stop_name": "Montopolis/Ben White",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.21515,
+									"lon": -97.71042,
+									"stop_id": "2231",
+									"stop_name": "Montopolis/Oltorf",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "5844",
+							"stop_name": "Metropolis/Veterans…",
+							"stop_name_full": "Metropolis/Veterans Clinic",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.216576,
+							"lon": -97.713186,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.219068,
+									"lon": -97.718317,
+									"stop_id": "2233",
+									"stop_name": "Oltorf",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223369,
+									"lon": -97.722336,
+									"stop_id": "2235",
+									"stop_name": "Oltorf/Sunridge",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225462,
+									"lon": -97.724035,
+									"stop_id": "5789",
+									"stop_name": "Oltorf/Wickersham",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.226807,
+									"lon": -97.726139,
+									"stop_id": "5788",
+									"stop_name": "Oltorf/Huntwick",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228002,
+									"lon": -97.727295,
+									"stop_id": "1027",
+									"stop_name": "Oltorf East NB",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.231158,
+									"lon": -97.725309,
+									"stop_id": "1028",
+									"stop_name": "Sheringham NB",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.234531,
+									"lon": -97.723244,
+									"stop_id": "6442",
+									"stop_name": "Riverside /Pleasant…",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238065,
+									"lon": -97.725635,
+									"stop_id": "1030",
+									"stop_name": "Riverside/Willow Creek",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240939,
+									"lon": -97.724233,
+									"stop_id": "6082",
+									"stop_name": "Elmont/Town Lake",
+									"stop_sequence": 17
+								}
+							],
+							"stop_id": "2232",
+							"stop_name": "Oltorf/Montopolis",
+							"stop_name_full": "6100 Oltorf/Montopolis",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.239624,
+							"lon": -97.721486,
+							"minor_stops": [],
+							"stop_id": "1363",
+							"stop_name": "Elmont/Pleasant Valley/1",
+							"stop_name_full": "Elmont/Pleasant Valley/1",
+							"stop_sequence": 18
+						}
+					]
+				}
+			},
+			"stop_count": 18,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "228",
+	"schema": 1
+}

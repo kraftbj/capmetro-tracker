@@ -1,0 +1,1116 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "20-0-2b313699",
+				"11-172": "20-0-2b313699",
+				"12-172": "20-0-2b313699",
+				"2-172": "20-0-9fb56f86",
+				"3-172": "20-0-9fb56f86",
+				"4-172": "20-0-9fb56f86",
+				"5-172": "20-0-9fb56f86",
+				"6-172": "20-0-2b313699",
+				"7-172": "20-0-9fb56f86"
+			},
+			"baseline_pattern_id": "20-0-9fb56f86",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"20-0-2b313699": {
+					"direction_id": 0,
+					"pattern_id": "20-0-2b313699",
+					"representative_trip_id": "2999339_2976",
+					"service_ids": [
+						"1-172",
+						"11-172",
+						"12-172",
+						"6-172"
+					],
+					"stop_count": 29,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.202744,
+							"lon": -97.665653,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.212636,
+									"lon": -97.66384,
+									"stop_id": "5099",
+									"stop_name": "New Airport/Employee",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219402,
+									"lon": -97.670379,
+									"stop_id": "6241",
+									"stop_name": "71/Thornberry",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.220466,
+									"lon": -97.693726,
+									"stop_id": "4692",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.222831,
+									"lon": -97.698094,
+									"stop_id": "3248",
+									"stop_name": "Riverside/Frontier Valley",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.224038,
+									"lon": -97.700825,
+									"stop_id": "3249",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225204,
+									"lon": -97.703776,
+									"stop_id": "950",
+									"stop_name": "RIVERSIDE/MONTOPOLIS",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "4326",
+							"stop_name": "ABIA Lower Level",
+							"stop_name_full": "ABIA Lower Level",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.226586,
+							"lon": -97.706711,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.2273,
+									"lon": -97.708137,
+									"stop_id": "5728",
+									"stop_name": "Riverside/Grove",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229833,
+									"lon": -97.712898,
+									"stop_id": "1018",
+									"stop_name": "Riverside/Faro",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231928,
+									"lon": -97.717861,
+									"stop_id": "1021",
+									"stop_name": "Riverside/Crossing Place",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232684,
+									"lon": -97.720706,
+									"stop_id": "6367",
+									"stop_name": "Riverside/Wickersham",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.234531,
+									"lon": -97.723244,
+									"stop_id": "6442",
+									"stop_name": "Riverside /Pleasant…",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.238065,
+									"lon": -97.725635,
+									"stop_id": "1030",
+									"stop_name": "Riverside/Willow Creek",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.24114,
+									"lon": -97.727591,
+									"stop_id": "1032",
+									"stop_name": "Riverside/Town Creek",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.243702,
+									"lon": -97.729475,
+									"stop_id": "6443",
+									"stop_name": "Riverside/Shore District",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246505,
+									"lon": -97.731969,
+									"stop_id": "1034",
+									"stop_name": "Riverside/Summit",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.249906,
+									"lon": -97.738594,
+									"stop_id": "1246",
+									"stop_name": "East Riverside/Travis…",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.253005,
+									"lon": -97.742945,
+									"stop_id": "4024",
+									"stop_name": "Riverside/Newning",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "951",
+							"stop_name": "Riverside/Clubview",
+							"stop_name_full": "6000 Riverside/Clubview",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.255868,
+							"lon": -97.74546,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.259459,
+									"lon": -97.748994,
+									"stop_id": "2767",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270952,
+									"lon": -97.744272,
+									"stop_id": "5965",
+									"stop_name": "Lavaca/8th",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275587,
+									"lon": -97.742558,
+									"stop_id": "591",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289534,
+									"lon": -97.739302,
+									"stop_id": "3512",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 28
+								}
+							],
+							"stop_id": "1249",
+							"stop_name": "Riverside/Congress",
+							"stop_name_full": "150 Riverside/Congress",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 29
+						}
+					]
+				},
+				"20-0-9fb56f86": {
+					"direction_id": 0,
+					"pattern_id": "20-0-9fb56f86",
+					"representative_trip_id": "2999339_3047",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 27,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.202744,
+							"lon": -97.665653,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.212636,
+									"lon": -97.66384,
+									"stop_id": "5099",
+									"stop_name": "New Airport/Employee",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219402,
+									"lon": -97.670379,
+									"stop_id": "6241",
+									"stop_name": "71/Thornberry",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.220466,
+									"lon": -97.693726,
+									"stop_id": "4692",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.222831,
+									"lon": -97.698094,
+									"stop_id": "3248",
+									"stop_name": "Riverside/Frontier Valley",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.224038,
+									"lon": -97.700825,
+									"stop_id": "3249",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225204,
+									"lon": -97.703776,
+									"stop_id": "950",
+									"stop_name": "RIVERSIDE/MONTOPOLIS",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "4326",
+							"stop_name": "ABIA Lower Level",
+							"stop_name_full": "ABIA Lower Level",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.226586,
+							"lon": -97.706711,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.2273,
+									"lon": -97.708137,
+									"stop_id": "5728",
+									"stop_name": "Riverside/Grove",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229833,
+									"lon": -97.712898,
+									"stop_id": "1018",
+									"stop_name": "Riverside/Faro",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231928,
+									"lon": -97.717861,
+									"stop_id": "1021",
+									"stop_name": "Riverside/Crossing Place",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232684,
+									"lon": -97.720706,
+									"stop_id": "6367",
+									"stop_name": "Riverside/Wickersham",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.234531,
+									"lon": -97.723244,
+									"stop_id": "6442",
+									"stop_name": "Riverside /Pleasant…",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.238065,
+									"lon": -97.725635,
+									"stop_id": "1030",
+									"stop_name": "Riverside/Willow Creek",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.24114,
+									"lon": -97.727591,
+									"stop_id": "1032",
+									"stop_name": "Riverside/Town Creek",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.243702,
+									"lon": -97.729475,
+									"stop_id": "6443",
+									"stop_name": "Riverside/Shore District",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.249906,
+									"lon": -97.738594,
+									"stop_id": "1246",
+									"stop_name": "East Riverside/Travis…",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.253005,
+									"lon": -97.742945,
+									"stop_id": "4024",
+									"stop_name": "Riverside/Newning",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "951",
+							"stop_name": "Riverside/Clubview",
+							"stop_name_full": "6000 Riverside/Clubview",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.255868,
+							"lon": -97.74546,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.259459,
+									"lon": -97.748994,
+									"stop_id": "2767",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270952,
+									"lon": -97.744272,
+									"stop_id": "5965",
+									"stop_name": "Lavaca/8th",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275587,
+									"lon": -97.742558,
+									"stop_id": "591",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289534,
+									"lon": -97.739302,
+									"stop_id": "3512",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "1249",
+							"stop_name": "Riverside/Congress",
+							"stop_name_full": "150 Riverside/Congress",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 27
+						}
+					]
+				}
+			},
+			"stop_count": 27,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "20-1-66506782",
+				"11-172": "20-1-66506782",
+				"12-172": "20-1-66506782",
+				"2-172": "20-1-a3c05ca3",
+				"3-172": "20-1-a3c05ca3",
+				"4-172": "20-1-a3c05ca3",
+				"5-172": "20-1-a3c05ca3",
+				"6-172": "20-1-66506782",
+				"7-172": "20-1-a3c05ca3"
+			},
+			"baseline_pattern_id": "20-1-a3c05ca3",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"20-1-66506782": {
+					"direction_id": 1,
+					"pattern_id": "20-1-66506782",
+					"representative_trip_id": "2999410_3555",
+					"service_ids": [
+						"1-172",
+						"11-172",
+						"12-172",
+						"6-172"
+					],
+					"stop_count": 33,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.29121,
+									"lon": -97.736689,
+									"stop_id": "5543",
+									"stop_name": "Speedway/27th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289536,
+									"lon": -97.737134,
+									"stop_id": "2079",
+									"stop_name": "Dean Keeton/Speedway NE…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289717,
+									"lon": -97.738797,
+									"stop_id": "5024",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286231,
+									"lon": -97.741771,
+									"stop_id": "497",
+									"stop_name": "UT West Mall Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283384,
+									"lon": -97.742081,
+									"stop_id": "498",
+									"stop_name": "Guadalupe/W. 21st Street",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.275022,
+							"lon": -97.744169,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.271503,
+									"lon": -97.745478,
+									"stop_id": "5950",
+									"stop_name": "Guadalupe/8th",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.258767,
+									"lon": -97.7487,
+									"stop_id": "2763",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "2738",
+							"stop_name": "Capitol Station",
+							"stop_name_full": "Capitol Station (SB)",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.256196,
+							"lon": -97.746021,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.254846,
+									"lon": -97.744793,
+									"stop_id": "3847",
+									"stop_name": "Riverside/Congress",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25359,
+									"lon": -97.743972,
+									"stop_id": "5023",
+									"stop_name": "Riverside/Newning",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.250734,
+									"lon": -97.74061,
+									"stop_id": "1186",
+									"stop_name": "Riverside/Alameda",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.249589,
+									"lon": -97.738348,
+									"stop_id": "1187",
+									"stop_name": "East Riverside/Travis…",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248592,
+									"lon": -97.736886,
+									"stop_id": "1188",
+									"stop_name": "Riverside/Kenwood",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.245976,
+									"lon": -97.731836,
+									"stop_id": "999",
+									"stop_name": "Riverside/Summit",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.242658,
+									"lon": -97.729061,
+									"stop_id": "5554",
+									"stop_name": "Riverside/Parker",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240341,
+									"lon": -97.727308,
+									"stop_id": "1002",
+									"stop_name": "Riverside/Burton",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238275,
+									"lon": -97.726015,
+									"stop_id": "1003",
+									"stop_name": "Riverside/Willow Creek",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23575,
+									"lon": -97.724953,
+									"stop_id": "5194",
+									"stop_name": "Riverside Dr/Willow Creek",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.233867,
+									"lon": -97.72376,
+									"stop_id": "1005",
+									"stop_name": "Riverside/Pleasant Valley",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232094,
+									"lon": -97.719875,
+									"stop_id": "5774",
+									"stop_name": "Riverside/Wickersham",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.231316,
+									"lon": -97.717041,
+									"stop_id": "1013",
+									"stop_name": "Riverside/Kirksey",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229169,
+									"lon": -97.712324,
+									"stop_id": "1015",
+									"stop_name": "Riverside/Faro",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "3846",
+							"stop_name": "Riverside/Congress FS",
+							"stop_name_full": "Riverside/Congress FS",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.226741,
+							"lon": -97.70763,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.224947,
+									"lon": -97.703802,
+									"stop_id": "3314",
+									"stop_name": "Riverside/Montopolis",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223718,
+									"lon": -97.700756,
+									"stop_id": "3315",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.22227,
+									"lon": -97.697493,
+									"stop_id": "3316",
+									"stop_name": "Riverside/Maxwell",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219999,
+									"lon": -97.693331,
+									"stop_id": "3318",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212481,
+									"lon": -97.663827,
+									"stop_id": "5098",
+									"stop_name": "New Airport/Spirit of…",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "6368",
+							"stop_name": "Riverside/Grove",
+							"stop_name_full": "5925 Riverside/Grove",
+							"stop_sequence": 27
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.202744,
+							"lon": -97.665653,
+							"minor_stops": [],
+							"stop_id": "4326",
+							"stop_name": "ABIA Lower Level",
+							"stop_name_full": "ABIA Lower Level",
+							"stop_sequence": 33
+						}
+					]
+				},
+				"20-1-a3c05ca3": {
+					"direction_id": 1,
+					"pattern_id": "20-1-a3c05ca3",
+					"representative_trip_id": "2999410_3629",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 31,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.29121,
+									"lon": -97.736689,
+									"stop_id": "5543",
+									"stop_name": "Speedway/27th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289536,
+									"lon": -97.737134,
+									"stop_id": "2079",
+									"stop_name": "Dean Keeton/Speedway NE…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289717,
+									"lon": -97.738797,
+									"stop_id": "5024",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286231,
+									"lon": -97.741771,
+									"stop_id": "497",
+									"stop_name": "UT West Mall Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283384,
+									"lon": -97.742081,
+									"stop_id": "498",
+									"stop_name": "Guadalupe/W. 21st Street",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.275022,
+							"lon": -97.744169,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.271503,
+									"lon": -97.745478,
+									"stop_id": "5950",
+									"stop_name": "Guadalupe/8th",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.258767,
+									"lon": -97.7487,
+									"stop_id": "2763",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "2738",
+							"stop_name": "Capitol Station",
+							"stop_name_full": "Capitol Station (SB)",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.256196,
+							"lon": -97.746021,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.254846,
+									"lon": -97.744793,
+									"stop_id": "3847",
+									"stop_name": "Riverside/Congress",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25359,
+									"lon": -97.743972,
+									"stop_id": "5023",
+									"stop_name": "Riverside/Newning",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.250734,
+									"lon": -97.74061,
+									"stop_id": "1186",
+									"stop_name": "Riverside/Alameda",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.249589,
+									"lon": -97.738348,
+									"stop_id": "1187",
+									"stop_name": "East Riverside/Travis…",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.245976,
+									"lon": -97.731836,
+									"stop_id": "999",
+									"stop_name": "Riverside/Summit",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.242658,
+									"lon": -97.729061,
+									"stop_id": "5554",
+									"stop_name": "Riverside/Parker",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.240341,
+									"lon": -97.727308,
+									"stop_id": "1002",
+									"stop_name": "Riverside/Burton",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238275,
+									"lon": -97.726015,
+									"stop_id": "1003",
+									"stop_name": "Riverside/Willow Creek",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.23575,
+									"lon": -97.724953,
+									"stop_id": "5194",
+									"stop_name": "Riverside Dr/Willow Creek",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.233867,
+									"lon": -97.72376,
+									"stop_id": "1005",
+									"stop_name": "Riverside/Pleasant Valley",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232094,
+									"lon": -97.719875,
+									"stop_id": "5774",
+									"stop_name": "Riverside/Wickersham",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.231316,
+									"lon": -97.717041,
+									"stop_id": "1013",
+									"stop_name": "Riverside/Kirksey",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229169,
+									"lon": -97.712324,
+									"stop_id": "1015",
+									"stop_name": "Riverside/Faro",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.224947,
+									"lon": -97.703802,
+									"stop_id": "3314",
+									"stop_name": "Riverside/Montopolis",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223718,
+									"lon": -97.700756,
+									"stop_id": "3315",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.22227,
+									"lon": -97.697493,
+									"stop_id": "3316",
+									"stop_name": "Riverside/Maxwell",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219999,
+									"lon": -97.693331,
+									"stop_id": "3318",
+									"stop_name": "Riverside/Coriander",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.212481,
+									"lon": -97.663827,
+									"stop_id": "5098",
+									"stop_name": "New Airport/Spirit of…",
+									"stop_sequence": 30
+								}
+							],
+							"stop_id": "3846",
+							"stop_name": "Riverside/Congress FS",
+							"stop_name_full": "Riverside/Congress FS",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.202744,
+							"lon": -97.665653,
+							"minor_stops": [],
+							"stop_id": "4326",
+							"stop_name": "ABIA Lower Level",
+							"stop_name_full": "ABIA Lower Level",
+							"stop_sequence": 31
+						}
+					]
+				}
+			},
+			"stop_count": 31,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "20",
+	"schema": 1
+}

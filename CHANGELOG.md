@@ -173,6 +173,30 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   41 hours from CapMetro publishing to this board serving it. The job now runs four
   times a day and the box pulls an hour after each, putting the worst case under six.
 
+- **A schedule rebuild turned nine passing tests red without touching a line of source.**
+  Tests that pin real trip ids read them out of `data/`, so they were really asserting "the
+  committed shards have not been rebuilt yet" — and went red the moment production was fixed.
+  Worse, `260826_0956` starts on service date 2026-08-26 while the fixture capture is from
+  2026-08-19, a date absent from the new calendar entirely: the offline webroot came out with
+  71 departure boards carrying zero departures each, so every acceptance criterion bound to
+  generated output silently *skipped* rather than failed, on a corpus that was present and
+  empty.
+
+  The join tests now read `tests/fixtures/shards-260818_1456/`, the complete shard tree the
+  capture was taken against, frozen. `runtime/config.fixture.php` generates from the same
+  place, so the offline webroot is a matched pair again and the full 71-route sweep is back.
+  Whether the committed shards are current is no longer inferred from a fixture at all — it is
+  asked of upstream directly, above.
+
+  The corpus block-continuation check was also counting the wrong thing: its budget was written
+  in trips ("four trips in this feed genuinely chain differently") while the code counted
+  (trip, date) pairs, and the sample cap of five doubled as the count, so the number could
+  never exceed five however bad it got. On `260826_0956` the build's own `invariant_breaks`
+  fell from 4 trips to 1 — an improvement — while the pair count rose to 90, because that one
+  trip's service set spans 90 dates. Same fact, opposite verdict. It now counts distinct trips
+  and cross-checks the total against the build's own declared count, so the budget cannot
+  quietly absorb a real defect.
+
 - **A shard rebuild was blocked by a gate that had been wrong all along.** The
   §7 shortener breaks a stop name on a space **or** a slash, because Austin names
   are `Street/CrossStreet` with no space around the slash. `build/verify.mjs` kept

@@ -1,0 +1,138 @@
+{
+	"date_count": 21,
+	"dates": {
+		"20260822": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260829": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260905": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260912": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260919": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260926": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261003": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261010": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261017": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261024": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261031": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261107": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261114": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261121": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261128": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261205": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261212": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261219": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261226": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20270102": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20270109": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		}
+	},
+	"exception_dates": [],
+	"feed_version": "260818_1456",
+	"route_id": "491",
+	"schema": 1,
+	"service_ids": [
+		"10-172"
+	]
+}

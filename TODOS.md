@@ -117,6 +117,44 @@ continues past the edge. The second is better and needs a test either way.
 
 ## Infrastructure
 
+### Re-capture the feed fixtures against a current publication
+
+**What:** `tests/fixtures/feeds-20260819/` is a live capture from 2026-08-19, paired with
+`tests/fixtures/shards-260818_1456/`. The pair is internally consistent and the suite is green
+against it, but it is now two publications behind: `260826_0956` starts on service date
+2026-08-26, so the captured service day does not exist in the current feed at all.
+
+**Why:** Nothing is broken today — the acceptance criteria bind to the frozen pair and cover
+all 71 routes. What the age costs is realism: the fixtures cannot exercise anything CapMetro
+has changed since, and every new capture drifts further from what the board actually serves.
+
+**Context:** A capture wants a date carrying a one-off service, for the reason
+`tests/fixtures/README.md` gives — an ordinary weekday hides trip-id instability, which is
+exactly what saved watches have to survive. In `260826_0956` the remaining such dates are
+**2026-08-27, 08-28, 08-29 and 08-30, then nothing until 2026-10-31.** Re-capture both halves
+together: `ShardFreshnessTest` asserts they agree, so half a re-pin fails loudly.
+
+**Effort:** M
+**Priority:** P2
+
+### `update.sh` cannot deploy a systemd unit change
+
+**What:** `deploy/update.sh` deliberately never touches `/etc/systemd/system`; only
+`install.sh` copies the timer and service files. So a change to `capmetro-generate.timer` or
+`capmetro-update.timer` lands in the repo, passes review, deploys — and never takes effect.
+
+**Why:** Found on 2026-08-27 fixing the update timer's firing hour. The repo said one schedule
+and the box ran another, with nothing reporting the difference. The same trap applies to any
+future unit edit.
+
+**Context:** Either have `update.sh` diff the committed units against the installed ones and
+re-copy plus `daemon-reload` when they differ, or have it fail loudly when they diverge so the
+operator knows to run `install.sh`. Failing loudly is probably right: silently restarting
+timers during an unattended pull is its own hazard.
+
+**Effort:** S
+**Priority:** P2
+
 ### Deploy it somewhere you can actually open on a phone
 
 **What:** The board runs locally and nowhere else. Get the static client onto GitHub

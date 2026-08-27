@@ -1,0 +1,203 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "217-0-cb059150",
+				"8-172": "217-0-cb059150",
+				"9-172": "217-0-cb059150"
+			},
+			"baseline_pattern_id": "217-0-cb059150",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"217-0-cb059150": {
+					"direction_id": 0,
+					"pattern_id": "217-0-cb059150",
+					"representative_trip_id": "3013742_4342",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 9,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.230041,
+							"lon": -97.70606,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.22735,
+									"lon": -97.702007,
+									"stop_id": "5191",
+									"stop_name": "Montopolis/Caddie",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225821,
+									"lon": -97.702985,
+									"stop_id": "3311",
+									"stop_name": "Montopolis/Kasper",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.22448,
+									"lon": -97.700685,
+									"stop_id": "836",
+									"stop_name": "Vargas/Riverside",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227863,
+									"lon": -97.698189,
+									"stop_id": "837",
+									"stop_name": "Vargas/Cruz",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.23165,
+									"lon": -97.695375,
+									"stop_id": "839",
+									"stop_name": "Vargas/Montana",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236346,
+									"lon": -97.6919,
+									"stop_id": "841",
+									"stop_name": "Vargas/Ponca",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232832,
+									"lon": -97.684391,
+									"stop_id": "6432",
+									"stop_name": "183/Patton",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6569",
+							"stop_name": "Fairway/Grove",
+							"stop_name_full": "Fairway/Grove",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.251799,
+							"lon": -97.697828,
+							"minor_stops": [],
+							"stop_id": "6449",
+							"stop_name": "Eastside Bus Plaza Bay I",
+							"stop_name_full": "5129 Eastside Bus Plaza Bay I",
+							"stop_sequence": 9
+						}
+					]
+				}
+			},
+			"stop_count": 9,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "217-1-5bda4d61",
+				"8-172": "217-1-5bda4d61",
+				"9-172": "217-1-5bda4d61"
+			},
+			"baseline_pattern_id": "217-1-5bda4d61",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"217-1-5bda4d61": {
+					"direction_id": 1,
+					"pattern_id": "217-1-5bda4d61",
+					"representative_trip_id": "3013741_4421",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 7,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.251799,
+							"lon": -97.697828,
+							"minor_stops": [],
+							"stop_id": "6449",
+							"stop_name": "Eastside Bus Plaza Bay I",
+							"stop_name_full": "5129 Eastside Bus Plaza Bay I",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.235736,
+							"lon": -97.692557,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.231418,
+									"lon": -97.695724,
+									"stop_id": "946",
+									"stop_name": "VARGAS/MONTANA",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.227645,
+									"lon": -97.698538,
+									"stop_id": "948",
+									"stop_name": "VARGAS/SANTOS",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225204,
+									"lon": -97.703776,
+									"stop_id": "950",
+									"stop_name": "RIVERSIDE/MONTOPOLIS",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.226586,
+									"lon": -97.706711,
+									"stop_id": "951",
+									"stop_name": "Riverside/Clubview",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "944",
+							"stop_name": "Vargas/Ponca",
+							"stop_name_full": "618 Vargas/Ponca",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.230041,
+							"lon": -97.70606,
+							"minor_stops": [],
+							"stop_id": "6569",
+							"stop_name": "Fairway/Grove",
+							"stop_name_full": "Fairway/Grove",
+							"stop_sequence": 7
+						}
+					]
+				}
+			},
+			"stop_count": 7,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "217",
+	"schema": 1
+}

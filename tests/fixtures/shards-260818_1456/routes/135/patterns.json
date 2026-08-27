@@ -1,0 +1,178 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "135-0-f6dc3242"
+			},
+			"baseline_pattern_id": "135-0-f6dc3242",
+			"baseline_pattern_ids": [
+				"135-0-f6dc3242"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 1,
+			"patterns": [
+				{
+					"deltas": {
+						"135-0-f6dc3242": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"9-172"
+					],
+					"is_special": false,
+					"pattern_id": "135-0-f6dc3242",
+					"stop_count": 11,
+					"stop_ids": [
+						"1369",
+						"3261",
+						"3262",
+						"5567",
+						"3266",
+						"4191",
+						"5918",
+						"3271",
+						"4672",
+						"4671",
+						"5274"
+					],
+					"trip_ids": [
+						"2998576_1511",
+						"2998577_1512"
+					],
+					"trips_by_service": {
+						"9-172": 2
+					},
+					"trips_in_pattern": 2
+				}
+			],
+			"trip_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "135-1-15008966",
+				"2-172": "135-1-ec8762e8",
+				"3-172": "135-1-ec8762e8",
+				"4-172": "135-1-ec8762e8",
+				"5-172": "135-1-ec8762e8"
+			},
+			"baseline_pattern_id": "135-1-ec8762e8",
+			"baseline_pattern_ids": [
+				"135-1-15008966",
+				"135-1-ec8762e8"
+			],
+			"baseline_stable": false,
+			"direction_id": 1,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"135-1-15008966": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "3298",
+									"stop_name": "Airport/12th"
+								}
+							]
+						},
+						"135-1-ec8762e8": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"is_special": false,
+					"pattern_id": "135-1-ec8762e8",
+					"stop_count": 8,
+					"stop_ids": [
+						"5274",
+						"4671",
+						"3291",
+						"3295",
+						"3296",
+						"3299",
+						"3300",
+						"1349"
+					],
+					"trip_ids": [
+						"2998578_1515",
+						"2998578_1517",
+						"2998578_1519",
+						"2998578_1521",
+						"2998579_1516",
+						"2998579_1518",
+						"2998579_1520",
+						"2998579_1522"
+					],
+					"trips_by_service": {
+						"2-172": 2,
+						"3-172": 2,
+						"4-172": 2,
+						"5-172": 2
+					},
+					"trips_in_pattern": 8
+				},
+				{
+					"deltas": {
+						"135-1-15008966": {
+							"adds": [],
+							"skips": []
+						},
+						"135-1-ec8762e8": {
+							"adds": [
+								{
+									"stop_id": "3298",
+									"stop_name": "Airport/12th"
+								}
+							],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"1-172"
+					],
+					"is_special": true,
+					"pattern_id": "135-1-15008966",
+					"stop_count": 9,
+					"stop_ids": [
+						"5274",
+						"4671",
+						"3291",
+						"3295",
+						"3296",
+						"3298",
+						"3299",
+						"3300",
+						"1349"
+					],
+					"trip_ids": [
+						"2998578_1513",
+						"2998579_1514"
+					],
+					"trips_by_service": {
+						"1-172": 2
+					},
+					"trips_in_pattern": 2
+				}
+			],
+			"trip_count": 10
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "135",
+	"schema": 1
+}

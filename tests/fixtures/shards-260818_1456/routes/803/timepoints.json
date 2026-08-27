@@ -1,0 +1,560 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "803-0-b97e56ba",
+				"8-172": "803-0-b97e56ba",
+				"9-172": "803-0-b97e56ba"
+			},
+			"baseline_pattern_id": "803-0-b97e56ba",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"803-0-b97e56ba": {
+					"direction_id": 0,
+					"pattern_id": "803-0-b97e56ba",
+					"representative_trip_id": "3011651_22946",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 28,
+					"timepoint_count": 9,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.230908,
+							"lon": -97.790295,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.23595,
+									"lon": -97.792633,
+									"stop_id": "2370",
+									"stop_name": "Brodie Oaks Station",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240739,
+									"lon": -97.78607,
+									"stop_id": "6357",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.246384,
+									"lon": -97.778167,
+									"stop_id": "5875",
+									"stop_name": "Bluebonnet Station",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.248024,
+									"lon": -97.771014,
+									"stop_id": "2260",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.254034,
+									"lon": -97.762592,
+									"stop_id": "777",
+									"stop_name": "Lamar Square Station",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "6373",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - A",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.261634,
+							"lon": -97.758053,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.265454,
+									"lon": -97.752098,
+									"stop_id": "5498",
+									"stop_name": "Seaholm Station",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "781",
+							"stop_name": "Barton Springs Station",
+							"stop_name_full": "Barton Springs Station (NB)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.266218,
+							"lon": -97.746056,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.27042,
+									"lon": -97.74444,
+									"stop_id": "2606",
+									"stop_name": "Austin History Center…",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275587,
+									"lon": -97.742558,
+									"stop_id": "591",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2793,
+									"lon": -97.74119,
+									"stop_id": "4657",
+									"stop_name": "Museum Station",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "5868",
+							"stop_name": "Republic Square Station",
+							"stop_name_full": "Republic Square Station (NB)",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.286216,
+							"lon": -97.741573,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.297767,
+									"lon": -97.741167,
+									"stop_id": "603",
+									"stop_name": "31st Street Rapid Station",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5865",
+							"stop_name": "UT West Mall Station",
+							"stop_name_full": "UT West Mall Station (NB)",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.304699,
+							"lon": -97.741778,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.308217,
+									"lon": -97.741034,
+									"stop_id": "4830",
+									"stop_name": "Rosedale Station",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.316419,
+									"lon": -97.735728,
+									"stop_id": "1058",
+									"stop_name": "Sunshine Station",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "5351",
+							"stop_name": "West 38th Station",
+							"stop_name_full": "West 38th Station (NB)",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.326284,
+							"lon": -97.739566,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.3342,
+									"lon": -97.7398,
+									"stop_id": "822",
+									"stop_name": "Allandale Station",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.345183,
+									"lon": -97.73755,
+									"stop_id": "826",
+									"stop_name": "Justin Station",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "817",
+							"stop_name": "North Loop Station",
+							"stop_name_full": "North Loop Station (NB)",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.353858,
+							"lon": -97.732081,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.363467,
+									"lon": -97.728784,
+									"stop_id": "4570",
+									"stop_name": "Ohlen Station",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.370976,
+									"lon": -97.726817,
+									"stop_id": "4572",
+									"stop_name": "Crossroads Station",
+									"stop_sequence": 24
+								}
+							],
+							"stop_id": "829",
+							"stop_name": "Northcross Station",
+							"stop_name_full": "Northcross Station (NB)",
+							"stop_sequence": 22
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.379497,
+							"lon": -97.724857,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.388232,
+									"lon": -97.727049,
+									"stop_id": "5724",
+									"stop_name": "UT Research Campus…",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.391796,
+									"lon": -97.721477,
+									"stop_id": "4761",
+									"stop_name": "Burnet/Braker Stadium…",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "4757",
+							"stop_name": "Rutland Rapid Station",
+							"stop_name_full": "Rutland Rapid Station (NB)",
+							"stop_sequence": 25
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.39985,
+							"lon": -97.72045,
+							"minor_stops": [],
+							"stop_id": "5919",
+							"stop_name": "Domain Station",
+							"stop_name_full": "Domain Station",
+							"stop_sequence": 28
+						}
+					]
+				}
+			},
+			"stop_count": 28,
+			"timepoint_count": 9
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "803-1-8a643faf",
+				"8-172": "803-1-8a643faf",
+				"9-172": "803-1-8a643faf"
+			},
+			"baseline_pattern_id": "803-1-8a643faf",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"803-1-8a643faf": {
+					"direction_id": 1,
+					"pattern_id": "803-1-8a643faf",
+					"representative_trip_id": "3011744_23191",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 28,
+					"timepoint_count": 8,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.39985,
+							"lon": -97.72045,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.391483,
+									"lon": -97.722548,
+									"stop_id": "4682",
+									"stop_name": "Braker/Burnet Stadium…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.388251,
+									"lon": -97.727233,
+									"stop_id": "5876",
+									"stop_name": "UT Research Campus…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.3836,
+									"lon": -97.72419,
+									"stop_id": "4756",
+									"stop_name": "Rutland Rapid Station",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.371234,
+									"lon": -97.727017,
+									"stop_id": "4573",
+									"stop_name": "Crossroads Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.363467,
+									"lon": -97.72905,
+									"stop_id": "4574",
+									"stop_name": "Ohlen Station",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "5919",
+							"stop_name": "Domain Station",
+							"stop_name_full": "Domain Station",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.354217,
+							"lon": -97.732117,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.345717,
+									"lon": -97.737518,
+									"stop_id": "5744",
+									"stop_name": "Justin Station",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.333766,
+									"lon": -97.740096,
+									"stop_id": "4204",
+									"stop_name": "Allandale Station",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5849",
+							"stop_name": "Northcross Station",
+							"stop_name_full": "Northcross Station (SB)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.324999,
+							"lon": -97.739681,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.315713,
+									"lon": -97.736377,
+									"stop_id": "5877",
+									"stop_name": "Sunshine Station",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308074,
+									"lon": -97.74137,
+									"stop_id": "4831",
+									"stop_name": "Rosedale Station",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "684",
+							"stop_name": "North Loop Station",
+							"stop_name_full": "North Loop Station (SB)",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.304405,
+							"lon": -97.741594,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.298051,
+									"lon": -97.741261,
+									"stop_id": "5357",
+									"stop_name": "31st Street Station",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.291085,
+									"lon": -97.741379,
+									"stop_id": "5863",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5349",
+							"stop_name": "West 38th Station",
+							"stop_name_full": "West 38th Station (SB)",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.286231,
+							"lon": -97.741771,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.279366,
+									"lon": -97.742545,
+									"stop_id": "5866",
+									"stop_name": "Museum Station",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271057,
+									"lon": -97.745655,
+									"stop_id": "2611",
+									"stop_name": "Austin History Center…",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "497",
+							"stop_name": "UT West Mall Station",
+							"stop_name_full": "UT West Mall Station (SB)",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.267751,
+							"lon": -97.746857,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "5867",
+							"stop_name": "Republic Square Station",
+							"stop_name_full": "Republic Square Station (SB)",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.26007,
+							"lon": -97.758952,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.254493,
+									"lon": -97.762566,
+									"stop_id": "2324",
+									"stop_name": "Lamar Square Station",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248028,
+									"lon": -97.771756,
+									"stop_id": "2328",
+									"stop_name": "Oltorf West Station",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.246766,
+									"lon": -97.777874,
+									"stop_id": "5879",
+									"stop_name": "Bluebonnet Station",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.241007,
+									"lon": -97.786179,
+									"stop_id": "6358",
+									"stop_name": "Broken Spoke Station",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.236571,
+									"lon": -97.792508,
+									"stop_id": "2334",
+									"stop_name": "Brodie Oaks Station",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "4070",
+							"stop_name": "Barton Springs Station",
+							"stop_name_full": "Barton Springs Station (SB)",
+							"stop_sequence": 22
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.230908,
+							"lon": -97.790295,
+							"minor_stops": [],
+							"stop_id": "6373",
+							"stop_name": "Westgate Transit Center…",
+							"stop_name_full": "Westgate Transit Center - A",
+							"stop_sequence": 28
+						}
+					]
+				}
+			},
+			"stop_count": 28,
+			"timepoint_count": 8
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "803",
+	"schema": 1
+}

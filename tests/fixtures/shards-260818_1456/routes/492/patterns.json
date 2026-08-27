@@ -1,0 +1,232 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"18-172": "492-0-f7a8beff"
+			},
+			"baseline_pattern_id": "492-0-f7a8beff",
+			"baseline_pattern_ids": [
+				"492-0-f7a8beff"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 3,
+			"patterns": [
+				{
+					"deltas": {
+						"492-0-f7a8beff": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"18-172"
+					],
+					"is_special": false,
+					"pattern_id": "492-0-f7a8beff",
+					"stop_count": 9,
+					"stop_ids": [
+						"5283",
+						"5316",
+						"5284",
+						"5970",
+						"5286",
+						"5287",
+						"4708",
+						"5317",
+						"3931"
+					],
+					"trip_ids": [
+						"3006184_16517",
+						"3006185_16516",
+						"3006186_16515",
+						"3006187_16514",
+						"3006188_16513"
+					],
+					"trips_by_service": {
+						"18-172": 5
+					},
+					"trips_in_pattern": 5
+				},
+				{
+					"deltas": {
+						"492-0-f7a8beff": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "5283",
+									"stop_name": "Hancock Center"
+								},
+								{
+									"stop_id": "5316",
+									"stop_name": "Fiesta"
+								},
+								{
+									"stop_id": "5284",
+									"stop_name": "Capital Plaza"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "492-0-eb7451b3",
+					"stop_count": 6,
+					"stop_ids": [
+						"5970",
+						"5286",
+						"5287",
+						"4708",
+						"5317",
+						"3931"
+					],
+					"trip_ids": [
+						"3006182_16511",
+						"3006189_16512"
+					],
+					"trips_by_service": {
+						"18-172": 2
+					},
+					"trips_in_pattern": 2
+				},
+				{
+					"deltas": {
+						"492-0-f7a8beff": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "4708",
+									"stop_name": "Cameron/Coronado Hills"
+								},
+								{
+									"stop_id": "5317",
+									"stop_name": "Anderson/Cameron"
+								},
+								{
+									"stop_id": "3931",
+									"stop_name": "Walmart Norwood"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "492-0-693ebdb3",
+					"stop_count": 6,
+					"stop_ids": [
+						"5283",
+						"5316",
+						"5284",
+						"5970",
+						"5286",
+						"5287"
+					],
+					"trip_ids": [
+						"3006183_16510"
+					],
+					"trips_by_service": {
+						"18-172": 1
+					},
+					"trips_in_pattern": 1
+				}
+			],
+			"trip_count": 8
+		},
+		{
+			"baseline_by_service": {
+				"18-172": "492-1-f00d724a"
+			},
+			"baseline_pattern_id": "492-1-f00d724a",
+			"baseline_pattern_ids": [
+				"492-1-f00d724a"
+			],
+			"baseline_stable": true,
+			"direction_id": 1,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"492-1-f00d724a": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"18-172"
+					],
+					"is_special": false,
+					"pattern_id": "492-1-f00d724a",
+					"stop_count": 6,
+					"stop_ids": [
+						"3931",
+						"5287",
+						"5286",
+						"5970",
+						"5284",
+						"5283"
+					],
+					"trip_ids": [
+						"3006190_16523",
+						"3006191_16522",
+						"3006192_16521",
+						"3006193_16520",
+						"3006194_16519",
+						"3006196_16524"
+					],
+					"trips_by_service": {
+						"18-172": 6
+					},
+					"trips_in_pattern": 6
+				},
+				{
+					"deltas": {
+						"492-1-f00d724a": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "5284",
+									"stop_name": "Capital Plaza"
+								},
+								{
+									"stop_id": "5283",
+									"stop_name": "Hancock Center"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "492-1-f1c32302",
+					"stop_count": 4,
+					"stop_ids": [
+						"3931",
+						"5287",
+						"5286",
+						"5970"
+					],
+					"trip_ids": [
+						"3006195_16518"
+					],
+					"trips_by_service": {
+						"18-172": 1
+					},
+					"trips_in_pattern": 1
+				}
+			],
+			"trip_count": 7
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "492",
+	"schema": 1
+}

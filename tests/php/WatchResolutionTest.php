@@ -27,7 +27,14 @@ final class WatchResolutionTest extends TestCase
      * run and said so in a message nobody read as a failure. A skip that reads as a
      * pass is worse than a failure.
      */
-    private const SHARD_DIR = 'data';
+    /*
+     * The frozen 260818_1456 shards, not data/. These tests pin real trip ids from the
+     * 2026-08-19 capture, so they must be measured against the shards that capture was taken
+     * against. Pointed at data/ they were really asserting "the committed shards have not been
+     * rebuilt yet", and went red on 2026-08-27 when the rebuild that fixed production landed.
+     * See tests/fixtures/shards-260818_1456/README.md.
+     */
+    private const SHARD_DIR = 'tests/fixtures/shards-260818_1456';
 
     private const TUPLE = [
         'route_id' => '800',

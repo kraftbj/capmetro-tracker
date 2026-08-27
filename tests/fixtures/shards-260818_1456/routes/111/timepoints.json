@@ -1,0 +1,442 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "111-0-90edafe3",
+				"2-172": "111-0-90edafe3",
+				"3-172": "111-0-90edafe3",
+				"4-172": "111-0-90edafe3",
+				"5-172": "111-0-90edafe3"
+			},
+			"baseline_pattern_id": "111-0-90edafe3",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"111-0-90edafe3": {
+					"direction_id": 0,
+					"pattern_id": "111-0-90edafe3",
+					"representative_trip_id": "2998506_1492",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.185521,
+							"lon": -97.894708,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.193652,
+									"lon": -97.885356,
+									"stop_id": "5908",
+									"stop_name": "Escarpment/La Crosse",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.200218,
+									"lon": -97.876027,
+									"stop_id": "5889",
+									"stop_name": "Slaughter/Escarpment",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.204241,
+									"lon": -97.870686,
+									"stop_id": "5891",
+									"stop_name": "Beckett/La Cresada",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208187,
+									"lon": -97.869105,
+									"stop_id": "5893",
+									"stop_name": "Beckett/Davis",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "5909",
+							"stop_name": "Escarpment/South Bay",
+							"stop_name_full": "11241 Escarpment/South Bay",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.213884,
+							"lon": -97.863891,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.219823,
+									"lon": -97.858161,
+									"stop_id": "5898",
+									"stop_name": "Beckett/Ponoma",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.218895,
+									"lon": -97.854694,
+									"stop_id": "4446",
+									"stop_name": "Convict Hill/Woodcreek",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217966,
+									"lon": -97.852755,
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.219895,
+									"lon": -97.843893,
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "5896",
+							"stop_name": "Beckett at Dick Nichols…",
+							"stop_name_full": "8101 Beckett at Dick Nichols Park",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.222951,
+							"lon": -97.841813,
+							"minor_stops": [],
+							"stop_id": "5902",
+							"stop_name": "Brush Country/William…",
+							"stop_name_full": "6703 Brush Country/William Cannon",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.265454,
+							"lon": -97.752098,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.265792,
+									"lon": -97.746213,
+									"stop_id": "5944",
+									"stop_name": "Lavaca/3rd",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7th/Colorado",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269216,
+									"lon": -97.738446,
+									"stop_id": "6315",
+									"stop_name": "8th Street NB",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "5498",
+							"stop_name": "Seaholm Station",
+							"stop_name_full": "Seaholm Station (NB)",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.288776,
+							"lon": -97.734397,
+							"minor_stops": [],
+							"stop_id": "1256",
+							"stop_name": "San Jacinto/Dean Keeton",
+							"stop_name_full": "2525 San Jacinto/Dean Keeton",
+							"stop_sequence": 21
+						}
+					]
+				}
+			},
+			"stop_count": 21,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "111-1-813e369a",
+				"2-172": "111-1-813e369a",
+				"3-172": "111-1-813e369a",
+				"4-172": "111-1-813e369a",
+				"5-172": "111-1-813e369a"
+			},
+			"baseline_pattern_id": "111-1-813e369a",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"111-1-813e369a": {
+					"direction_id": 1,
+					"pattern_id": "111-1-813e369a",
+					"representative_trip_id": "2998508_1502",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 22,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.285506,
+							"lon": -97.733782,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "1179",
+							"stop_name": "UT Stadium SB",
+							"stop_name_full": "UT Stadium SB (San Jacinto/23rd)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.271368,
+							"lon": -97.739026,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "6499",
+							"stop_name": "Capitol/Waterloo SB",
+							"stop_name_full": "Capitol/Waterloo SB (San Jacinto/10th)",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.222867,
+							"lon": -97.842115,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.219297,
+									"lon": -97.844402,
+									"stop_id": "5901",
+									"stop_name": "Brush Country/One Oak",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.217449,
+									"lon": -97.846951,
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.217489,
+									"lon": -97.849946,
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.217987,
+									"lon": -97.852494,
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219087,
+									"lon": -97.854773,
+									"stop_id": "4447",
+									"stop_name": "Convict Hill/Woodcreek",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.219825,
+									"lon": -97.858349,
+									"stop_id": "5899",
+									"stop_name": "Beckett/Ponoma",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "5903",
+							"stop_name": "Brush Country/William…",
+							"stop_name_full": "6704 Brush Country/William Cannon",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.213994,
+							"lon": -97.864006,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.208176,
+									"lon": -97.869316,
+									"stop_id": "5905",
+									"stop_name": "Beckett/Davis",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204359,
+									"lon": -97.870832,
+									"stop_id": "5906",
+									"stop_name": "Beckett/La Cresada",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.200512,
+									"lon": -97.876375,
+									"stop_id": "5890",
+									"stop_name": "Slaughter/Escarpment",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193886,
+									"lon": -97.885556,
+									"stop_id": "5907",
+									"stop_name": "Escarpment/La Crosse",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "5897",
+							"stop_name": "Beckett at Dick Nichols…",
+							"stop_name_full": "8100 Beckett at Dick Nichols Park",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.185994,
+							"lon": -97.89469,
+							"minor_stops": [],
+							"stop_id": "5910",
+							"stop_name": "Escarpment/South Bay",
+							"stop_name_full": "11148 Escarpment/South Bay",
+							"stop_sequence": 22
+						}
+					]
+				}
+			},
+			"stop_count": 22,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "111",
+	"schema": 1
+}
