@@ -2,31 +2,31 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "271-0-a2be12e6",
-				"2-172": "271-0-842e972d",
-				"3-172": "271-0-842e972d",
-				"4-172": "271-0-842e972d",
-				"5-172": "271-0-842e972d",
-				"6-172": "271-0-a2be12e6",
-				"7-172": "271-0-842e972d",
-				"8-172": "271-0-a2be12e6"
+				"1-172": "271-0-916490dd",
+				"2-172": "271-0-a2be12e6",
+				"3-172": "271-0-916490dd",
+				"4-172": "271-0-916490dd",
+				"5-172": "271-0-a2be12e6",
+				"6-172": "271-0-916490dd",
+				"7-172": "271-0-a2be12e6",
+				"8-172": "271-0-916490dd"
 			},
-			"baseline_pattern_id": "271-0-842e972d",
+			"baseline_pattern_id": "271-0-916490dd",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"271-0-842e972d": {
+				"271-0-916490dd": {
 					"direction_id": 0,
-					"pattern_id": "271-0-842e972d",
-					"representative_trip_id": "3000682_5446",
+					"pattern_id": "271-0-916490dd",
+					"representative_trip_id": "3000682_5323",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
-					"stop_count": 19,
+					"stop_count": 18,
 					"timepoint_count": 3,
 					"timepoints": [
 						{
@@ -151,19 +151,11 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.224038,
-									"lon": -97.700825,
-									"stop_id": "3249",
-									"stop_name": "Riverside/Vargas",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 0,
 									"lat": 30.225204,
 									"lon": -97.703776,
 									"stop_id": "950",
 									"stop_name": "RIVERSIDE/MONTOPOLIS",
-									"stop_sequence": 17
+									"stop_sequence": 16
 								},
 								{
 									"direction_id": 0,
@@ -171,7 +163,7 @@
 									"lon": -97.706711,
 									"stop_id": "951",
 									"stop_name": "Riverside/Clubview",
-									"stop_sequence": 18
+									"stop_sequence": 17
 								}
 							],
 							"stop_id": "3238",
@@ -187,18 +179,18 @@
 							"stop_id": "6569",
 							"stop_name": "Fairway/Grove",
 							"stop_name_full": "Fairway/Grove",
-							"stop_sequence": 19
+							"stop_sequence": 18
 						}
 					]
 				},
 				"271-0-a2be12e6": {
 					"direction_id": 0,
 					"pattern_id": "271-0-a2be12e6",
-					"representative_trip_id": "3000682_5424",
+					"representative_trip_id": "3000682_5321",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 20,
 					"timepoint_count": 3,
@@ -374,19 +366,19 @@
 					]
 				}
 			},
-			"stop_count": 19,
+			"stop_count": 18,
 			"timepoint_count": 3
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "271-1-ad27c6ac",
-				"2-172": "271-1-ac5cbeb1",
+				"1-172": "271-1-ac5cbeb1",
+				"2-172": "271-1-ad27c6ac",
 				"3-172": "271-1-ac5cbeb1",
 				"4-172": "271-1-ac5cbeb1",
-				"5-172": "271-1-ac5cbeb1",
-				"6-172": "271-1-ad27c6ac",
-				"7-172": "271-1-ac5cbeb1",
-				"8-172": "271-1-ad27c6ac"
+				"5-172": "271-1-ad27c6ac",
+				"6-172": "271-1-ac5cbeb1",
+				"7-172": "271-1-ad27c6ac",
+				"8-172": "271-1-ac5cbeb1"
 			},
 			"baseline_pattern_id": "271-1-ac5cbeb1",
 			"baseline_stable": false,
@@ -395,13 +387,13 @@
 				"271-1-ac5cbeb1": {
 					"direction_id": 1,
 					"pattern_id": "271-1-ac5cbeb1",
-					"representative_trip_id": "3000704_5193",
+					"representative_trip_id": "3000704_5051",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
 					"stop_count": 17,
 					"timepoint_count": 3,
@@ -555,11 +547,11 @@
 				"271-1-ad27c6ac": {
 					"direction_id": 1,
 					"pattern_id": "271-1-ad27c6ac",
-					"representative_trip_id": "3000704_5172",
+					"representative_trip_id": "3000704_5049",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 18,
 					"timepoint_count": 3,
@@ -723,7 +715,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "271",
 	"schema": 1
 }

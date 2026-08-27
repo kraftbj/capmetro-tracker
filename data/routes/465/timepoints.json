@@ -11,7 +11,7 @@
 				"465-0-159e66ed": {
 					"direction_id": 0,
 					"pattern_id": "465-0-159e66ed",
-					"representative_trip_id": "3005729_15950",
+					"representative_trip_id": "3005729_15829",
 					"service_ids": [
 						"9-172"
 					],
@@ -72,7 +72,7 @@
 				"465-1-d3fd9d12": {
 					"direction_id": 1,
 					"pattern_id": "465-1-d3fd9d12",
-					"representative_trip_id": "3005753_15941",
+					"representative_trip_id": "3005753_15806",
 					"service_ids": [
 						"9-172"
 					],
@@ -131,7 +131,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "465",
 	"schema": 1
 }

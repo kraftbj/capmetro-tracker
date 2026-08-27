@@ -11,7 +11,7 @@
 				"214-0-c143809f": {
 					"direction_id": 0,
 					"pattern_id": "214-0-c143809f",
-					"representative_trip_id": "2999966_4333",
+					"representative_trip_id": "2999966_4359",
 					"service_ids": [
 						"9-172"
 					],
@@ -217,7 +217,7 @@
 				"214-1-8e33656c": {
 					"direction_id": 1,
 					"pattern_id": "214-1-8e33656c",
-					"representative_trip_id": "2999980_4310",
+					"representative_trip_id": "2999980_4335",
 					"service_ids": [
 						"9-172"
 					],
@@ -322,7 +322,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "214",
 	"schema": 1
 }

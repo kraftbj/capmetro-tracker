@@ -2,22 +2,114 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "201-0-7ff107df",
-				"8-172": "201-0-7ff107df",
-				"9-172": "201-0-7ff107df"
+				"1-172": "201-0-3418dcc8",
+				"2-172": "201-0-7ff107df",
+				"3-172": "201-0-3418dcc8",
+				"4-172": "201-0-3418dcc8",
+				"5-172": "201-0-7ff107df",
+				"6-172": "201-0-3418dcc8",
+				"7-172": "201-0-7ff107df",
+				"8-172": "201-0-3418dcc8"
 			},
-			"baseline_pattern_id": "201-0-7ff107df",
-			"baseline_stable": true,
+			"baseline_pattern_id": "201-0-3418dcc8",
+			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
+				"201-0-3418dcc8": {
+					"direction_id": 0,
+					"pattern_id": "201-0-3418dcc8",
+					"representative_trip_id": "2999808_4115",
+					"service_ids": [
+						"1-172",
+						"3-172",
+						"4-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 8,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.189947,
+							"lon": -97.767587,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.191773,
+									"lon": -97.774139,
+									"stop_id": "555",
+									"stop_name": "William Cannon/North…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1924,
+									"lon": -97.779234,
+									"stop_id": "5872",
+									"stop_name": "Pleasant Hill Station",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.185789,
+									"lon": -97.781306,
+									"stop_id": "5315",
+									"stop_name": "Congress/Dittmar",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175257,
+									"lon": -97.784715,
+									"stop_id": "5311",
+									"stop_name": "Congress/Foremost",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.169621,
+									"lon": -97.787869,
+									"stop_id": "6361",
+									"stop_name": "Slaughter Station",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "5377",
+							"stop_name": "Bluff Springs/William…",
+							"stop_name_full": "6502 Bluff Springs/William Cannon",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.163367,
+							"lon": -97.791351,
+							"minor_stops": [],
+							"stop_id": "5263",
+							"stop_name": "Turk/Cullen",
+							"stop_name_full": "200 Turk/Cullen",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.147252,
+							"lon": -97.803199,
+							"minor_stops": [],
+							"stop_id": "5778",
+							"stop_name": "1st/FM 1626",
+							"stop_name_full": "1st/FM 1626 (Akins)",
+							"stop_sequence": 8
+						}
+					]
+				},
 				"201-0-7ff107df": {
 					"direction_id": 0,
 					"pattern_id": "201-0-7ff107df",
-					"representative_trip_id": "2999808_4229",
+					"representative_trip_id": "2999808_4117",
 					"service_ids": [
-						"10-172",
-						"8-172",
-						"9-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 9,
 					"timepoint_count": 3,
@@ -105,13 +197,13 @@
 					]
 				}
 			},
-			"stop_count": 9,
+			"stop_count": 8,
 			"timepoint_count": 3
 		},
 		{
 			"baseline_by_service": {
 				"10-172": "201-1-08681e6f",
-				"8-172": "201-1-08681e6f",
+				"11-172": "201-1-08681e6f",
 				"9-172": "201-1-08681e6f"
 			},
 			"baseline_pattern_id": "201-1-08681e6f",
@@ -121,10 +213,10 @@
 				"201-1-08681e6f": {
 					"direction_id": 1,
 					"pattern_id": "201-1-08681e6f",
-					"representative_trip_id": "2999839_4151",
+					"representative_trip_id": "2999839_4037",
 					"service_ids": [
 						"10-172",
-						"8-172",
+						"11-172",
 						"9-172"
 					],
 					"stop_count": 14,
@@ -254,7 +346,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "201",
 	"schema": 1
 }

@@ -3,12 +3,12 @@
 		{
 			"baseline_by_service": {
 				"10-172": "550-0-f379bd39",
-				"14-172": "550-0-04519cb6",
-				"18-172": "550-0-f379bd39",
+				"16-172": "550-0-04519cb6",
 				"20-172": "550-0-f379bd39",
-				"21-172": "550-0-f379bd39",
 				"22-172": "550-0-f379bd39",
-				"23-172": "550-0-f379bd39"
+				"23-172": "550-0-f379bd39",
+				"24-172": "550-0-f379bd39",
+				"25-172": "550-0-f379bd39"
 			},
 			"baseline_pattern_id": "550-0-f379bd39",
 			"baseline_stable": false,
@@ -17,9 +17,9 @@
 				"550-0-04519cb6": {
 					"direction_id": 0,
 					"pattern_id": "550-0-04519cb6",
-					"representative_trip_id": "3006739_17315",
+					"representative_trip_id": "3006739_17117",
 					"service_ids": [
-						"14-172"
+						"16-172"
 					],
 					"stop_count": 6,
 					"timepoint_count": 6,
@@ -89,14 +89,14 @@
 				"550-0-f379bd39": {
 					"direction_id": 0,
 					"pattern_id": "550-0-f379bd39",
-					"representative_trip_id": "3006676_17262",
+					"representative_trip_id": "3006676_17109",
 					"service_ids": [
 						"10-172",
-						"18-172",
 						"20-172",
-						"21-172",
 						"22-172",
-						"23-172"
+						"23-172",
+						"24-172",
+						"25-172"
 					],
 					"stop_count": 10,
 					"timepoint_count": 10,
@@ -210,12 +210,12 @@
 		{
 			"baseline_by_service": {
 				"10-172": "550-1-8f493b0a",
-				"14-172": "550-1-9141542d",
-				"18-172": "550-1-8f493b0a",
+				"16-172": "550-1-9141542d",
 				"20-172": "550-1-8f493b0a",
-				"21-172": "550-1-8f493b0a",
 				"22-172": "550-1-8f493b0a",
-				"23-172": "550-1-8f493b0a"
+				"23-172": "550-1-8f493b0a",
+				"24-172": "550-1-8f493b0a",
+				"25-172": "550-1-8f493b0a"
 			},
 			"baseline_pattern_id": "550-1-8f493b0a",
 			"baseline_stable": false,
@@ -224,14 +224,14 @@
 				"550-1-8f493b0a": {
 					"direction_id": 1,
 					"pattern_id": "550-1-8f493b0a",
-					"representative_trip_id": "3006745_17139",
+					"representative_trip_id": "3006745_16992",
 					"service_ids": [
 						"10-172",
-						"18-172",
 						"20-172",
-						"21-172",
 						"22-172",
-						"23-172"
+						"23-172",
+						"24-172",
+						"25-172"
 					],
 					"stop_count": 10,
 					"timepoint_count": 10,
@@ -341,9 +341,9 @@
 				"550-1-9141542d": {
 					"direction_id": 1,
 					"pattern_id": "550-1-9141542d",
-					"representative_trip_id": "3006817_17195",
+					"representative_trip_id": "3006817_16997",
 					"service_ids": [
-						"14-172"
+						"16-172"
 					],
 					"stop_count": 5,
 					"timepoint_count": 5,
@@ -405,7 +405,7 @@
 			"timepoint_count": 10
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "550",
 	"schema": 1
 }

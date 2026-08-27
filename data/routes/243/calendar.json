@@ -1,54 +1,6 @@
 {
-	"date_count": 145,
+	"date_count": 137,
 	"dates": {
-		"20260818": {
-			"is_exception_day": false,
-			"service_ids": [
-				"9-172"
-			]
-		},
-		"20260819": {
-			"is_exception_day": false,
-			"service_ids": [
-				"9-172"
-			]
-		},
-		"20260820": {
-			"is_exception_day": false,
-			"service_ids": [
-				"9-172"
-			]
-		},
-		"20260821": {
-			"is_exception_day": false,
-			"service_ids": [
-				"9-172"
-			]
-		},
-		"20260822": {
-			"is_exception_day": false,
-			"service_ids": [
-				"10-172"
-			]
-		},
-		"20260823": {
-			"is_exception_day": false,
-			"service_ids": [
-				"8-172"
-			]
-		},
-		"20260824": {
-			"is_exception_day": false,
-			"service_ids": [
-				"9-172"
-			]
-		},
-		"20260825": {
-			"is_exception_day": false,
-			"service_ids": [
-				"9-172"
-			]
-		},
 		"20260826": {
 			"is_exception_day": false,
 			"service_ids": [
@@ -76,7 +28,7 @@
 		"20260830": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20260831": {
@@ -118,13 +70,13 @@
 		"20260906": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20260907": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20260908": {
@@ -160,7 +112,7 @@
 		"20260913": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20260914": {
@@ -202,7 +154,7 @@
 		"20260920": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20260921": {
@@ -244,7 +196,7 @@
 		"20260927": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20260928": {
@@ -286,7 +238,7 @@
 		"20261004": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261005": {
@@ -328,7 +280,7 @@
 		"20261011": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261012": {
@@ -370,7 +322,7 @@
 		"20261018": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261019": {
@@ -412,7 +364,7 @@
 		"20261025": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261026": {
@@ -454,7 +406,7 @@
 		"20261101": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261102": {
@@ -496,7 +448,7 @@
 		"20261108": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261109": {
@@ -538,7 +490,7 @@
 		"20261115": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261116": {
@@ -580,7 +532,7 @@
 		"20261122": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261123": {
@@ -604,13 +556,13 @@
 		"20261126": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261127": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261128": {
@@ -622,7 +574,7 @@
 		"20261129": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261130": {
@@ -664,7 +616,7 @@
 		"20261206": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261207": {
@@ -706,7 +658,7 @@
 		"20261213": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261214": {
@@ -748,7 +700,7 @@
 		"20261220": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261221": {
@@ -778,7 +730,7 @@
 		"20261225": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261226": {
@@ -790,7 +742,7 @@
 		"20261227": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20261228": {
@@ -820,7 +772,7 @@
 		"20270101": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20270102": {
@@ -832,7 +784,7 @@
 		"20270103": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"11-172"
 			]
 		},
 		"20270104": {
@@ -873,12 +825,12 @@
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "243",
 	"schema": 1,
 	"service_ids": [
 		"10-172",
-		"8-172",
+		"11-172",
 		"9-172"
 	]
 }

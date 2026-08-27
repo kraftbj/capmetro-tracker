@@ -3,7 +3,7 @@
 		{
 			"baseline_by_service": {
 				"10-172": "243-0-80cce8e4",
-				"8-172": "243-0-80cce8e4",
+				"11-172": "243-0-80cce8e4",
 				"9-172": "243-0-80cce8e4"
 			},
 			"baseline_pattern_id": "243-0-80cce8e4",
@@ -13,10 +13,10 @@
 				"243-0-80cce8e4": {
 					"direction_id": 0,
 					"pattern_id": "243-0-80cce8e4",
-					"representative_trip_id": "3000416_4887",
+					"representative_trip_id": "3000416_4817",
 					"service_ids": [
 						"10-172",
-						"8-172",
+						"11-172",
 						"9-172"
 					],
 					"stop_count": 13,
@@ -140,7 +140,7 @@
 		{
 			"baseline_by_service": {
 				"10-172": "243-1-2b18e5c5",
-				"8-172": "243-1-2b18e5c5",
+				"11-172": "243-1-2b18e5c5",
 				"9-172": "243-1-2b18e5c5"
 			},
 			"baseline_pattern_id": "243-1-2b18e5c5",
@@ -150,10 +150,10 @@
 				"243-1-2b18e5c5": {
 					"direction_id": 1,
 					"pattern_id": "243-1-2b18e5c5",
-					"representative_trip_id": "3000447_4789",
+					"representative_trip_id": "3000447_4719",
 					"service_ids": [
 						"10-172",
-						"8-172",
+						"11-172",
 						"9-172"
 					],
 					"stop_count": 14,
@@ -283,7 +283,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "243",
 	"schema": 1
 }

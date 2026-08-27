@@ -18,7 +18,7 @@
 				"337-0-1d94e3dd": {
 					"direction_id": 0,
 					"pattern_id": "337-0-1d94e3dd",
-					"representative_trip_id": "3004045_13081",
+					"representative_trip_id": "3004045_12836",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -401,32 +401,436 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "337-1-d5b9d15e",
+				"1-172": "337-1-4fc43e66",
 				"2-172": "337-1-d5b9d15e",
-				"3-172": "337-1-d5b9d15e",
-				"4-172": "337-1-d5b9d15e",
+				"3-172": "337-1-4fc43e66",
+				"4-172": "337-1-4fc43e66",
 				"5-172": "337-1-d5b9d15e",
-				"6-172": "337-1-d5b9d15e",
+				"6-172": "337-1-4fc43e66",
 				"7-172": "337-1-d5b9d15e",
-				"8-172": "337-1-d5b9d15e"
+				"8-172": "337-1-4fc43e66"
 			},
-			"baseline_pattern_id": "337-1-d5b9d15e",
-			"baseline_stable": true,
+			"baseline_pattern_id": "337-1-4fc43e66",
+			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
+				"337-1-4fc43e66": {
+					"direction_id": 1,
+					"pattern_id": "337-1-4fc43e66",
+					"representative_trip_id": "3004110_12466",
+					"service_ids": [
+						"1-172",
+						"3-172",
+						"4-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 47,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.340402,
+							"lon": -97.755087,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.334546,
+									"lon": -97.751832,
+									"stop_id": "2419",
+									"stop_name": "Northland/Marilyn",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33533,
+									"lon": -97.747,
+									"stop_id": "4588",
+									"stop_name": "Allandale/Cary",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33515,
+									"lon": -97.7431,
+									"stop_id": "2421",
+									"stop_name": "Allandale/Shoalwood",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33454,
+									"lon": -97.739488,
+									"stop_id": "2422",
+									"stop_name": "Allandale/Burnet",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.332402,
+									"lon": -97.734922,
+									"stop_id": "2423",
+									"stop_name": "Koenig/Arroyo Seco",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33063,
+									"lon": -97.731225,
+									"stop_id": "2424",
+									"stop_name": "Koenig/Woodrow",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.329871,
+									"lon": -97.729641,
+									"stop_id": "2425",
+									"stop_name": "Koenig/Grover",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6408",
+							"stop_name": "Balcones/Northland",
+							"stop_name_full": "5843 Balcones/Northland",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.326319,
+							"lon": -97.726971,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.323488,
+									"lon": -97.724021,
+									"stop_id": "2427",
+									"stop_name": "Koenig/Guadalupe SW…",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.322416,
+									"lon": -97.720047,
+									"stop_id": "2428",
+									"stop_name": "Koenig/Link",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32197,
+									"lon": -97.714031,
+									"stop_id": "1797",
+									"stop_name": "AIRPORT/KOENIG",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324196,
+									"lon": -97.715657,
+									"stop_id": "6527",
+									"stop_name": "Airport at Clayton NB",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "5393",
+							"stop_name": "Koenig/Lamar",
+							"stop_name_full": "815 Koenig/Lamar",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.328491,
+							"lon": -97.713603,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.330724,
+									"lon": -97.710636,
+									"stop_id": "5049",
+									"stop_name": "Huntland/Brenda",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33097,
+									"lon": -97.706741,
+									"stop_id": "5057",
+									"stop_name": "Roland Johnson/Huntland",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.333233,
+									"lon": -97.705842,
+									"stop_id": "5053",
+									"stop_name": "Roland Johnson/St Johns",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.332158,
+									"lon": -97.702924,
+									"stop_id": "5104",
+									"stop_name": "St Johns/IH 35",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33112,
+									"lon": -97.7006,
+									"stop_id": "4713",
+									"stop_name": "St Johns/Bennett",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32551,
+									"lon": -97.70152,
+									"stop_id": "3496",
+									"stop_name": "Camino La Costa/La Posada",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324081,
+									"lon": -97.698549,
+									"stop_id": "2432",
+									"stop_name": "Camino La Costa/La Posada",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324264,
+									"lon": -97.695355,
+									"stop_id": "2433",
+									"stop_name": "Camino La Costa/Atkinson",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.323777,
+									"lon": -97.693885,
+									"stop_id": "6431",
+									"stop_name": "Cameron/Camino La Costa",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.319537,
+									"lon": -97.697311,
+									"stop_id": "5782",
+									"stop_name": "Cameron/Glencrest",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.316544,
+									"lon": -97.697807,
+									"stop_id": "2393",
+									"stop_name": "Briarcliff/Nassau",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.314906,
+									"lon": -97.694362,
+									"stop_id": "2394",
+									"stop_name": "Briarcliff/Belfast",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.313904,
+									"lon": -97.692283,
+									"stop_id": "5707",
+									"stop_name": "Briarcliff/Berkman",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "1160",
+							"stop_name": "Highland Mall/Jonathan",
+							"stop_name_full": "105 Highland Mall/Jonathan",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.312416,
+							"lon": -97.688646,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.312836,
+									"lon": -97.683749,
+									"stop_id": "2397",
+									"stop_name": "North Hampton/Haney",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.317657,
+									"lon": -97.680661,
+									"stop_id": "2399",
+									"stop_name": "Northeast/Lehigh",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.318399,
+									"lon": -97.679735,
+									"stop_id": "2400",
+									"stop_name": "Loyola/Northeast",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.315605,
+									"lon": -97.674703,
+									"stop_id": "2402",
+									"stop_name": "Loyola/Willamette",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.314189,
+									"lon": -97.673348,
+									"stop_id": "2403",
+									"stop_name": "Loyola/Tulsa",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.312047,
+									"lon": -97.670377,
+									"stop_id": "2404",
+									"stop_name": "Loyola/Tampa Cove",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.309468,
+									"lon": -97.666739,
+									"stop_id": "4611",
+									"stop_name": "Loyola/Manor",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306534,
+									"lon": -97.665444,
+									"stop_id": "2406",
+									"stop_name": "Loyola/Greensboro",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.304699,
+									"lon": -97.664109,
+									"stop_id": "2407",
+									"stop_name": "Loyola/Bridgewater",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302822,
+									"lon": -97.657453,
+									"stop_id": "4612",
+									"stop_name": "Loyola/Millrace",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302554,
+									"lon": -97.653518,
+									"stop_id": "4613",
+									"stop_name": "Loyola/Crystalbrook",
+									"stop_sequence": 39
+								}
+							],
+							"stop_id": "2396",
+							"stop_name": "Gaston Place/Wellington",
+							"stop_name_full": "1941 Gaston Place/Wellington",
+							"stop_sequence": 28
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.299874,
+							"lon": -97.647843,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.298647,
+									"lon": -97.645181,
+									"stop_id": "2410",
+									"stop_name": "Loyola/Sandshof",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.297576,
+									"lon": -97.641351,
+									"stop_id": "2416",
+									"stop_name": "Colony Park NB",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.293253,
+									"lon": -97.631316,
+									"stop_id": "2281",
+									"stop_name": "Wentworth/Loyola",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.294894,
+									"lon": -97.630057,
+									"stop_id": "4617",
+									"stop_name": "Wentworth/Riverstone",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.295796,
+									"lon": -97.628031,
+									"stop_id": "3647",
+									"stop_name": "Wentworth/Colony Loop",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.294341,
+									"lon": -97.62633,
+									"stop_id": "4619",
+									"stop_name": "Colony Loop/Decker",
+									"stop_sequence": 46
+								}
+							],
+							"stop_id": "4614",
+							"stop_name": "Johnny Morris NB",
+							"stop_name_full": "Johnny Morris NB (Loyola/Johnny Morris)",
+							"stop_sequence": 40
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.293974,
+							"lon": -97.624861,
+							"minor_stops": [],
+							"stop_id": "6553",
+							"stop_name": "Expo Center Bay F",
+							"stop_name_full": "Expo Center Bay F",
+							"stop_sequence": 47
+						}
+					]
+				},
 				"337-1-d5b9d15e": {
 					"direction_id": 1,
 					"pattern_id": "337-1-d5b9d15e",
-					"representative_trip_id": "3004110_12682",
+					"representative_trip_id": "3004110_12475",
 					"service_ids": [
-						"1-172",
 						"2-172",
-						"3-172",
-						"4-172",
 						"5-172",
-						"6-172",
-						"7-172",
-						"8-172"
+						"7-172"
 					],
 					"stop_count": 48,
 					"timepoint_count": 6,
@@ -835,11 +1239,11 @@
 					]
 				}
 			},
-			"stop_count": 48,
+			"stop_count": 47,
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "337",
 	"schema": 1
 }

@@ -3,7 +3,7 @@
 		{
 			"baseline_by_service": {
 				"10-172": "320-0-b1f885ea",
-				"8-172": "320-0-b1f885ea",
+				"11-172": "320-0-b1f885ea",
 				"9-172": "320-0-b1f885ea"
 			},
 			"baseline_pattern_id": "320-0-b1f885ea",
@@ -13,10 +13,10 @@
 				"320-0-b1f885ea": {
 					"direction_id": 0,
 					"pattern_id": "320-0-b1f885ea",
-					"representative_trip_id": "3002621_9871",
+					"representative_trip_id": "3002621_9727",
 					"service_ids": [
 						"10-172",
-						"8-172",
+						"11-172",
 						"9-172"
 					],
 					"stop_count": 27,
@@ -254,29 +254,232 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "320-1-e490d6ef",
-				"2-172": "320-1-c130eaa0",
-				"3-172": "320-1-c130eaa0",
+				"1-172": "320-1-80b55ed2",
+				"2-172": "320-1-e490d6ef",
+				"3-172": "320-1-80b55ed2",
 				"4-172": "320-1-c130eaa0",
-				"5-172": "320-1-c130eaa0",
-				"6-172": "320-1-e490d6ef",
-				"7-172": "320-1-c130eaa0",
-				"8-172": "320-1-e490d6ef"
+				"5-172": "320-1-e490d6ef",
+				"6-172": "320-1-c130eaa0",
+				"7-172": "320-1-e490d6ef",
+				"8-172": "320-1-c130eaa0"
 			},
 			"baseline_pattern_id": "320-1-c130eaa0",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
+				"320-1-80b55ed2": {
+					"direction_id": 1,
+					"pattern_id": "320-1-80b55ed2",
+					"representative_trip_id": "3002658_9837",
+					"service_ids": [
+						"1-172",
+						"3-172"
+					],
+					"stop_count": 23,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.313865,
+							"lon": -97.664697,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.310003,
+									"lon": -97.667482,
+									"stop_id": "1621",
+									"stop_name": "Manor/Loyola",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.3085,
+									"lon": -97.671213,
+									"stop_id": "1622",
+									"stop_name": "University Hills SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.307941,
+									"lon": -97.678194,
+									"stop_id": "1625",
+									"stop_name": "Manor/Wheless",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30659,
+									"lon": -97.680101,
+									"stop_id": "1626",
+									"stop_name": "Manor/Sweeney",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.304383,
+									"lon": -97.681613,
+									"stop_id": "1627",
+									"stop_name": "Manor at Rogge SB",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30115,
+									"lon": -97.685058,
+									"stop_id": "1629",
+									"stop_name": "Manor/Wellington",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298358,
+									"lon": -97.687017,
+									"stop_id": "1631",
+									"stop_name": "51st/Manor SB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29216,
+									"lon": -97.689382,
+									"stop_id": "1633",
+									"stop_name": "Manor/Lovell",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.290265,
+									"lon": -97.695112,
+									"stop_id": "1634",
+									"stop_name": "Manor/Tilley",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28934,
+									"lon": -97.698275,
+									"stop_id": "1635",
+									"stop_name": "Manor/Pershing",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.287728,
+									"lon": -97.701113,
+									"stop_id": "1636",
+									"stop_name": "Manor/Anchor",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286885,
+									"lon": -97.703204,
+									"stop_id": "4193",
+									"stop_name": "Manor/Tillery",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.286266,
+									"lon": -97.707029,
+									"stop_id": "6497",
+									"stop_name": "Manor WB",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "1619",
+							"stop_name": "Manor/Susquehanna",
+							"stop_name_full": "7000 Manor/Susquehanna",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.285663,
+							"lon": -97.710921,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.285124,
+									"lon": -97.714409,
+									"stop_id": "1640",
+									"stop_name": "Manor/Walnut",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284554,
+									"lon": -97.717984,
+									"stop_id": "1642",
+									"stop_name": "Cherrywood SB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284787,
+									"lon": -97.721969,
+									"stop_id": "1644",
+									"stop_name": "Dean Keeton/Dancy NE…",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.287579,
+									"lon": -97.727345,
+									"stop_id": "2077",
+									"stop_name": "Dean Keeton/Red River",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289536,
+									"lon": -97.737134,
+									"stop_id": "2079",
+									"stop_name": "Dean Keeton/Speedway NE…",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289717,
+									"lon": -97.738797,
+									"stop_id": "5024",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.292003,
+									"lon": -97.740219,
+									"stop_id": "4096",
+									"stop_name": "27th/Whitis",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "1639",
+							"stop_name": "Alexander SB",
+							"stop_name_full": "Alexander SB (Manor/Alexander)",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.289534,
+							"lon": -97.739302,
+							"minor_stops": [],
+							"stop_id": "3512",
+							"stop_name": "Dean Keeton/University",
+							"stop_name_full": "201 Dean Keeton/University",
+							"stop_sequence": 23
+						}
+					]
+				},
 				"320-1-c130eaa0": {
 					"direction_id": 1,
 					"pattern_id": "320-1-c130eaa0",
-					"representative_trip_id": "3002658_10015",
+					"representative_trip_id": "3002658_9843",
 					"service_ids": [
-						"2-172",
-						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
 					"stop_count": 24,
 					"timepoint_count": 3,
@@ -486,11 +689,11 @@
 				"320-1-e490d6ef": {
 					"direction_id": 1,
 					"pattern_id": "320-1-e490d6ef",
-					"representative_trip_id": "3002658_9978",
+					"representative_trip_id": "3002658_9834",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 25,
 					"timepoint_count": 3,
@@ -710,7 +913,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "320",
 	"schema": 1
 }

@@ -3,7 +3,7 @@
 		{
 			"baseline_by_service": {
 				"10-172": "1-0-44e0e4b1",
-				"8-172": "1-0-44e0e4b1",
+				"11-172": "1-0-44e0e4b1",
 				"9-172": "1-0-44e0e4b1"
 			},
 			"baseline_pattern_id": "1-0-44e0e4b1",
@@ -13,10 +13,10 @@
 				"1-0-44e0e4b1": {
 					"direction_id": 0,
 					"pattern_id": "1-0-44e0e4b1",
-					"representative_trip_id": "2997830_0304",
+					"representative_trip_id": "2997830_0299",
 					"service_ids": [
 						"10-172",
-						"8-172",
+						"11-172",
 						"9-172"
 					],
 					"stop_count": 78,
@@ -686,14 +686,14 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "1-1-e2dd4a87",
-				"2-172": "1-1-33a27787",
+				"1-172": "1-1-33a27787",
+				"2-172": "1-1-e2dd4a87",
 				"3-172": "1-1-33a27787",
 				"4-172": "1-1-33a27787",
-				"5-172": "1-1-33a27787",
-				"6-172": "1-1-e2dd4a87",
-				"7-172": "1-1-33a27787",
-				"8-172": "1-1-e2dd4a87"
+				"5-172": "1-1-e2dd4a87",
+				"6-172": "1-1-33a27787",
+				"7-172": "1-1-e2dd4a87",
+				"8-172": "1-1-33a27787"
 			},
 			"baseline_pattern_id": "1-1-33a27787",
 			"baseline_stable": false,
@@ -702,13 +702,13 @@
 				"1-1-33a27787": {
 					"direction_id": 1,
 					"pattern_id": "1-1-33a27787",
-					"representative_trip_id": "2997868_0048",
+					"representative_trip_id": "2997868_0006",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
 					"stop_count": 75,
 					"timepoint_count": 11,
@@ -1350,11 +1350,11 @@
 				"1-1-e2dd4a87": {
 					"direction_id": 1,
 					"pattern_id": "1-1-e2dd4a87",
-					"representative_trip_id": "2997868_0010",
+					"representative_trip_id": "2997868_0019",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 76,
 					"timepoint_count": 11,
@@ -2006,7 +2006,7 @@
 			"timepoint_count": 11
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "1",
 	"schema": 1
 }

@@ -18,7 +18,7 @@
 				"18-0-f6d404e0": {
 					"direction_id": 0,
 					"pattern_id": "18-0-f6d404e0",
-					"representative_trip_id": "2998856_1597",
+					"representative_trip_id": "2998856_1565",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -369,32 +369,32 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "18-1-e226978a",
-				"2-172": "18-1-79ab8827",
-				"3-172": "18-1-79ab8827",
-				"4-172": "18-1-79ab8827",
-				"5-172": "18-1-79ab8827",
-				"6-172": "18-1-e226978a",
-				"7-172": "18-1-79ab8827",
-				"8-172": "18-1-e226978a"
+				"1-172": "18-1-aa2c54dd",
+				"2-172": "18-1-e226978a",
+				"3-172": "18-1-aa2c54dd",
+				"4-172": "18-1-aa2c54dd",
+				"5-172": "18-1-e226978a",
+				"6-172": "18-1-aa2c54dd",
+				"7-172": "18-1-e226978a",
+				"8-172": "18-1-aa2c54dd"
 			},
-			"baseline_pattern_id": "18-1-79ab8827",
+			"baseline_pattern_id": "18-1-aa2c54dd",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
-				"18-1-79ab8827": {
+				"18-1-aa2c54dd": {
 					"direction_id": 1,
-					"pattern_id": "18-1-79ab8827",
-					"representative_trip_id": "2998893_1922",
+					"pattern_id": "18-1-aa2c54dd",
+					"representative_trip_id": "2998893_1849",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
-					"stop_count": 39,
-					"timepoint_count": 5,
+					"stop_count": 40,
+					"timepoint_count": 6,
 					"timepoints": [
 						{
 							"direction_id": 1,
@@ -491,14 +491,25 @@
 									"stop_id": "4602",
 									"stop_name": "Martin Luther King/…",
 									"stop_sequence": 12
-								},
+								}
+							],
+							"stop_id": "2288",
+							"stop_name": "LOYOLA/SANDSHOF",
+							"stop_name_full": "6714 LOYOLA/SANDSHOF",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.285871,
+							"lon": -97.683018,
+							"minor_stops": [
 								{
 									"direction_id": 1,
 									"lat": 30.284342,
 									"lon": -97.692951,
 									"stop_id": "902",
 									"stop_name": "Martin Luther King/Perez",
-									"stop_sequence": 13
+									"stop_sequence": 14
 								},
 								{
 									"direction_id": 1,
@@ -506,7 +517,7 @@
 									"lon": -97.696791,
 									"stop_id": "5571",
 									"stop_name": "Martin Luther King/EM…",
-									"stop_sequence": 14
+									"stop_sequence": 15
 								},
 								{
 									"direction_id": 1,
@@ -514,13 +525,13 @@
 									"lon": -97.701544,
 									"stop_id": "905",
 									"stop_name": "Martin Luther King/…",
-									"stop_sequence": 15
+									"stop_sequence": 16
 								}
 							],
-							"stop_id": "2288",
-							"stop_name": "LOYOLA/SANDSHOF",
-							"stop_name_full": "6714 LOYOLA/SANDSHOF",
-							"stop_sequence": 6
+							"stop_id": "898",
+							"stop_name": "Martin Luther King/…",
+							"stop_name_full": "4600 Martin Luther King/Springdale",
+							"stop_sequence": 13
 						},
 						{
 							"direction_id": 1,
@@ -533,7 +544,7 @@
 									"lon": -97.70768,
 									"stop_id": "5786",
 									"stop_name": "Martin Luther King Jr/…",
-									"stop_sequence": 17
+									"stop_sequence": 18
 								},
 								{
 									"direction_id": 1,
@@ -541,7 +552,7 @@
 									"lon": -97.709892,
 									"stop_id": "5801",
 									"stop_name": "Martin Luther King Jr/…",
-									"stop_sequence": 18
+									"stop_sequence": 19
 								},
 								{
 									"direction_id": 1,
@@ -549,7 +560,7 @@
 									"lon": -97.713317,
 									"stop_id": "909",
 									"stop_name": "Martin Luther King/Walnut",
-									"stop_sequence": 19
+									"stop_sequence": 20
 								},
 								{
 									"direction_id": 1,
@@ -557,7 +568,7 @@
 									"lon": -97.717136,
 									"stop_id": "910",
 									"stop_name": "Martin Luther King/…",
-									"stop_sequence": 20
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 1,
@@ -565,7 +576,7 @@
 									"lon": -97.718217,
 									"stop_id": "5492",
 									"stop_name": "Martin Luther King/Coleto",
-									"stop_sequence": 21
+									"stop_sequence": 22
 								},
 								{
 									"direction_id": 1,
@@ -573,7 +584,7 @@
 									"lon": -97.721101,
 									"stop_id": "911",
 									"stop_name": "Martin Luther King/Chicon",
-									"stop_sequence": 22
+									"stop_sequence": 23
 								},
 								{
 									"direction_id": 1,
@@ -581,7 +592,7 @@
 									"lon": -97.725602,
 									"stop_id": "913",
 									"stop_name": "Martin Luther King/Comal",
-									"stop_sequence": 23
+									"stop_sequence": 24
 								},
 								{
 									"direction_id": 1,
@@ -589,7 +600,7 @@
 									"lon": -97.73295,
 									"stop_id": "2761",
 									"stop_name": "Martin Luther King/Red…",
-									"stop_sequence": 24
+									"stop_sequence": 25
 								},
 								{
 									"direction_id": 1,
@@ -597,7 +608,7 @@
 									"lon": -97.734311,
 									"stop_id": "4586",
 									"stop_name": "Martin Luther King/…",
-									"stop_sequence": 25
+									"stop_sequence": 26
 								},
 								{
 									"direction_id": 1,
@@ -605,7 +616,7 @@
 									"lon": -97.737318,
 									"stop_id": "5992",
 									"stop_name": "Martin Luther King Jr/…",
-									"stop_sequence": 26
+									"stop_sequence": 27
 								},
 								{
 									"direction_id": 1,
@@ -613,13 +624,13 @@
 									"lon": -97.742708,
 									"stop_id": "501",
 									"stop_name": "Guadalupe/16th Street",
-									"stop_sequence": 27
+									"stop_sequence": 28
 								}
 							],
 							"stop_id": "4196",
 							"stop_name": "Martin Luther King/…",
 							"stop_name_full": "3014 Martin Luther King/Airport",
-							"stop_sequence": 16
+							"stop_sequence": 17
 						},
 						{
 							"direction_id": 1,
@@ -632,7 +643,7 @@
 									"lon": -97.758934,
 									"stop_id": "1511",
 									"stop_name": "Enfield/Pease",
-									"stop_sequence": 29
+									"stop_sequence": 30
 								},
 								{
 									"direction_id": 1,
@@ -640,7 +651,7 @@
 									"lon": -97.761717,
 									"stop_id": "1513",
 									"stop_name": "Enfield/Hartford",
-									"stop_sequence": 30
+									"stop_sequence": 31
 								},
 								{
 									"direction_id": 1,
@@ -648,7 +659,7 @@
 									"lon": -97.766813,
 									"stop_id": "4157",
 									"stop_name": "Enfield/Meriden",
-									"stop_sequence": 31
+									"stop_sequence": 32
 								},
 								{
 									"direction_id": 1,
@@ -656,7 +667,7 @@
 									"lon": -97.772388,
 									"stop_id": "1517",
 									"stop_name": "Enfield/Norwalk",
-									"stop_sequence": 32
+									"stop_sequence": 33
 								},
 								{
 									"direction_id": 1,
@@ -664,7 +675,7 @@
 									"lon": -97.775684,
 									"stop_id": "1519",
 									"stop_name": "Enfield/Hopi",
-									"stop_sequence": 33
+									"stop_sequence": 34
 								},
 								{
 									"direction_id": 1,
@@ -672,7 +683,7 @@
 									"lon": -97.779805,
 									"stop_id": "5754",
 									"stop_name": "Enfield/Robinhood",
-									"stop_sequence": 34
+									"stop_sequence": 35
 								},
 								{
 									"direction_id": 1,
@@ -680,7 +691,7 @@
 									"lon": -97.783853,
 									"stop_id": "5740",
 									"stop_name": "Lake Austin/Enfield",
-									"stop_sequence": 35
+									"stop_sequence": 36
 								},
 								{
 									"direction_id": 1,
@@ -688,7 +699,7 @@
 									"lon": -97.780899,
 									"stop_id": "5723",
 									"stop_name": "Lake Austin/Lufkin",
-									"stop_sequence": 36
+									"stop_sequence": 37
 								},
 								{
 									"direction_id": 1,
@@ -696,7 +707,7 @@
 									"lon": -97.777864,
 									"stop_id": "4986",
 									"stop_name": "Lake Austin/Jasper",
-									"stop_sequence": 37
+									"stop_sequence": 38
 								},
 								{
 									"direction_id": 1,
@@ -704,13 +715,13 @@
 									"lon": -97.776052,
 									"stop_id": "4161",
 									"stop_name": "Exposition/8th",
-									"stop_sequence": 38
+									"stop_sequence": 39
 								}
 							],
 							"stop_id": "243",
 							"stop_name": "Rio Grande/15th",
 							"stop_name_full": "Rio Grande/15th",
-							"stop_sequence": 28
+							"stop_sequence": 29
 						},
 						{
 							"direction_id": 1,
@@ -720,18 +731,18 @@
 							"stop_id": "1983",
 							"stop_name": "Exposition/10th",
 							"stop_name_full": "Exposition/10th",
-							"stop_sequence": 39
+							"stop_sequence": 40
 						}
 					]
 				},
 				"18-1-e226978a": {
 					"direction_id": 1,
 					"pattern_id": "18-1-e226978a",
-					"representative_trip_id": "2998893_1885",
+					"representative_trip_id": "2998893_1854",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 41,
 					"timepoint_count": 6,
@@ -1084,11 +1095,11 @@
 					]
 				}
 			},
-			"stop_count": 39,
-			"timepoint_count": 5
+			"stop_count": 40,
+			"timepoint_count": 6
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "18",
 	"schema": 1
 }

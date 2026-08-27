@@ -3,7 +3,7 @@
 		{
 			"baseline_by_service": {
 				"10-172": "324-0-901dd74f",
-				"8-172": "324-0-901dd74f",
+				"11-172": "324-0-901dd74f",
 				"9-172": "324-0-901dd74f"
 			},
 			"baseline_pattern_id": "324-0-901dd74f",
@@ -13,10 +13,10 @@
 				"324-0-901dd74f": {
 					"direction_id": 0,
 					"pattern_id": "324-0-901dd74f",
-					"representative_trip_id": "3003095_10765",
+					"representative_trip_id": "3003095_10622",
 					"service_ids": [
 						"10-172",
-						"8-172",
+						"11-172",
 						"9-172"
 					],
 					"stop_count": 33,
@@ -305,14 +305,14 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "324-1-a63e2eea",
-				"2-172": "324-1-45d98dde",
+				"1-172": "324-1-45d98dde",
+				"2-172": "324-1-a63e2eea",
 				"3-172": "324-1-45d98dde",
 				"4-172": "324-1-45d98dde",
-				"5-172": "324-1-45d98dde",
-				"6-172": "324-1-a63e2eea",
-				"7-172": "324-1-45d98dde",
-				"8-172": "324-1-a63e2eea"
+				"5-172": "324-1-a63e2eea",
+				"6-172": "324-1-45d98dde",
+				"7-172": "324-1-a63e2eea",
+				"8-172": "324-1-45d98dde"
 			},
 			"baseline_pattern_id": "324-1-45d98dde",
 			"baseline_stable": false,
@@ -321,13 +321,13 @@
 				"324-1-45d98dde": {
 					"direction_id": 1,
 					"pattern_id": "324-1-45d98dde",
-					"representative_trip_id": "3003130_10900",
+					"representative_trip_id": "3003130_10725",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
 					"stop_count": 32,
 					"timepoint_count": 4,
@@ -604,11 +604,11 @@
 				"324-1-a63e2eea": {
 					"direction_id": 1,
 					"pattern_id": "324-1-a63e2eea",
-					"representative_trip_id": "3003130_10864",
+					"representative_trip_id": "3003130_10721",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 33,
 					"timepoint_count": 4,
@@ -895,7 +895,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "324",
 	"schema": 1
 }
