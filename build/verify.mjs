@@ -13,6 +13,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { OUT_DIR, STOP_NAME_MAX } from './config.mjs';
+import { stopNameStem } from './lib/stop-names.mjs';
 
 /*
  * Facts measured against this exact feed. When CapMetro republishes (roughly three times a
@@ -206,27 +207,30 @@ const tooLong = entries.filter( ( [ , s ] ) => [ ...s.stop_name ].length > STOP_
 check( `no stop_name over ${ STOP_NAME_MAX } characters`, tooLong.length, 0 );
 
 /*
- * A truncated name must have been cut at a space, never inside a word — except for a name
- * that is one token with no space to cut at, where §7's two requirements conflict and the
+ * A truncated name must have been cut at a boundary, never inside a word — except for a name
+ * that is one token with no boundary to cut at, where §7's two requirements conflict and the
  * 25-character schema cap wins. build/lib/stop-names.mjs and runtime/lib/stopnames.php agree
  * on that fallback; see build/NOTES.md.
+ *
+ * §7 boundaries are a space OR a slash, and the two leave different evidence behind. Cutting
+ * at a space DROPS it, so the character after the kept stem is the space. Cutting at a slash
+ * KEEPS it, so the stem itself ends "Street/" and the cross street follows immediately. This
+ * check knew only about spaces and so failed all 23 slash cuts — "Martin Luther King/…" and
+ * friends — on data the shortener had produced exactly as §7 specifies. It also carried its
+ * own copy of steps 1-3b to rebuild the pre-truncation name, which is how it fell behind in
+ * the first place; it now imports stopNameStem so there is one implementation to keep right.
  */
 const singleToken = [];
 const midWord = entries.filter( ( [ id, s ] ) => {
 	if ( ! s.stop_name.endsWith( '…' ) ) {
 		return false;
 	}
-	const stage = s.stop_name_full
-		.replace( /\s*\([^()]*\)\s*$/, '' )
-		.trim()
-		.replace( /^\d+\s+/, '' )
-		.trim()
-		.replace( /\bNorthbound\b/gi, 'NB' )
-		.replace( /\bSouthbound\b/gi, 'SB' )
-		.replace( /\bEastbound\b/gi, 'EB' )
-		.replace( /\bWestbound\b/gi, 'WB' );
+	const stage = stopNameStem( s.stop_name_full );
 	const kept = s.stop_name.slice( 0, -1 );
-	if ( ! stage.includes( ' ' ) ) {
+	if ( kept.endsWith( '/' ) ) {
+		return ! stage.startsWith( kept );
+	}
+	if ( ! /[ /]/.test( stage ) ) {
 		singleToken.push( `${ id } "${ s.stop_name }"` );
 		return false;
 	}
