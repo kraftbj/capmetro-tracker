@@ -15,11 +15,12 @@
  * EVERYTHING HERE EXECUTES THE REAL SHELL. An earlier version of this file asserted that the
  * string "check_units" appeared inside a slice of update.sh's source, which cannot tell a live
  * call from a commented-out one -- the precise failure mode the feature exists to prevent.
- * update.sh now stops early when sourced with CM_UPDATE_SH_LIB_ONLY=1, so its functions can be
- * called directly without running a deploy or needing root.
+ * update.sh does nothing but define its functions when sourced, so they can be called
+ * directly; and the deploy itself is driven end to end against a real git repo with stubbed
+ * id/chown/runuser/php, which is the only way to prove the check is actually WIRED IN.
  */
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -68,7 +69,6 @@ function sh(snippet, opts = {}) {
 function checkUnits(env = {}) {
 	const script = `
 set -euo pipefail
-export CM_UPDATE_SH_LIB_ONLY=1
 export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf"
 export SYSTEMD_MARKER="${ env.SYSTEMD_MARKER ?? `${ work }/src` }"
 export SYSTEMCTL_BIN="${ env.SYSTEMCTL_BIN ?? 'true' }"
@@ -203,6 +203,17 @@ describe('not knowing is its own answer, never mistaken for agreement', () => {
 		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(2)
 	})
 
+	/*
+	 * The well-formed-line count alone would accept this: the junk line does not match the
+	 * pattern, so it is not counted, and the four real entries satisfy the tally. Only
+	 * checking the TOTAL line count as well catches it.
+	 */
+	it('rejects a stamp with the right entries plus unparseable junk', () => {
+		const good = sh('cm_unit_fingerprint src/deploy').stdout
+		writeFileSync(path.join(work, 'conf/installed-units.sha256'), good + 'not a fingerprint line\n')
+		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(2)
+	})
+
 	it('tells the operator a corrupt record is unreadable rather than blaming the units', () => {
 		writeFileSync(path.join(work, 'conf/installed-units.sha256'), 'garbage\n')
 		const r = checkUnits()
@@ -211,11 +222,20 @@ describe('not knowing is its own answer, never mistaken for agreement', () => {
 		expect(r.stdout).not.toMatch(/have changed since/)
 	})
 
+	/*
+	 * Both branches forced, and asserted unconditionally. An earlier version wrapped the
+	 * comparison in `if (forced.code === 0 && ...)`, so on a host missing one of the two tools
+	 * the test passed having asserted nothing -- a skip that reads as a pass, in the very file
+	 * whose subject is a skip that reads as a pass.
+	 */
 	it('both hashing backends produce the same fingerprint', () => {
-		const real = sh('cm_unit_fingerprint src/deploy').stdout
-		// Force the shasum branch by hiding sha256sum from `command -v`.
-		const forced = sh('command() { if [ "$2" = sha256sum ]; then return 1; fi; builtin command "$@"; }\ncm_unit_fingerprint src/deploy')
-		if (forced.code === 0 && forced.stdout.trim()) expect(forced.stdout).toBe(real)
+		const viaSha256sum = sh('cm_sha256() { sha256sum "$1" | awk \'{print $1}\'; }\ncm_unit_fingerprint src/deploy')
+		const viaShasum = sh('cm_sha256() { shasum -a 256 "$1" | awk \'{print $1}\'; }\ncm_unit_fingerprint src/deploy')
+
+		expect(viaSha256sum.code).toBe(0)
+		expect(viaShasum.code).toBe(0)
+		expect(viaSha256sum.stdout).toBe(viaShasum.stdout)
+		expect(viaSha256sum.stdout.trim()).not.toBe('')
 	})
 })
 
@@ -304,7 +324,6 @@ describe('check_units, executed for real out of update.sh', () => {
 	it('leaves the caller\'s errexit setting alone', () => {
 		writeStamp()
 		const script = `
-export CM_UPDATE_SH_LIB_ONLY=1
 export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf" SYSTEMD_MARKER="${ work }/src"
 . "${ UPDATE }"
 set +e
@@ -341,9 +360,24 @@ describe('the two scripts agree about what is deployed', () => {
 	})
 
 	/* A cron-only box owns no units, so update.sh must ask the same question install.sh did. */
-	it('uses the same systemd probe on both sides', () => {
-		expect(install).toMatch(/\[ -d \/run\/systemd\/system \] && command -v systemctl/)
-		expect(update).toMatch(/command -v "\$\{SYSTEMCTL_BIN:-systemctl\}"/)
+	/*
+	 * Asserted by behavior, not by matching the probe's text in two files. It used to be
+	 * written out twice and the two copies had already diverged once -- install.sh asked for
+	 * the directory AND systemctl, update.sh only the directory -- which is the same
+	 * two-places-disagreeing failure units.sh exists to prevent, one level down.
+	 */
+	it('uses one shared systemd probe, and it answers', () => {
+		const probe = (marker, bin) => sh('cm_systemd_live && echo live || echo dead', {
+			env: { ...process.env, SYSTEMD_MARKER: marker, SYSTEMCTL_BIN: bin },
+		}).stdout.trim()
+
+		expect(probe(work, 'true')).toBe('live')
+		expect(probe(path.join(work, 'nope'), 'true')).toBe('dead')
+		expect(probe(work, 'definitely-not-a-real-binary')).toBe('dead')
+
+		// And both callers go through it rather than keeping a copy.
+		expect(update).toMatch(/cm_systemd_live \|\| return 0/)
+		expect(install).toMatch(/cm_systemd_live; then/)
 	})
 
 	/*
@@ -377,5 +411,182 @@ describe('the two scripts agree about what is deployed', () => {
 
 	it('guards the source so a dry-run install without a checkout cannot abort', () => {
 		expect(install).toMatch(/if \[ -f "\$SRC_DIR\/deploy\/lib\/units\.sh" \]; then/)
+	})
+})
+
+/**
+ * The deploy itself, run end to end.
+ *
+ * Round 1 replaced this file's regex-over-source assertions with real execution of
+ * `check_units` -- and in doing so deleted the only thing pinning the three CALL SITES.
+ * The function was proven correct while being unreachable: all three calls could have been
+ * deleted and every test still passed. That is the same bug as the one the feature exists to
+ * catch, reintroduced one level up, so it is worth the harness.
+ *
+ * update.sh is run for real against a real git repo. Only the things a test genuinely cannot
+ * do are stubbed on PATH: `id` (the script refuses to run as non-root), `chown` (needs root),
+ * `runuser` (needs root), and `php` (the generator, whose success or failure selects the
+ * branch under test). git, rsync and the whole of update.sh's own logic are the real thing.
+ */
+describe('the drift check is actually wired into the deploy', () => {
+	const git = (cwd, ...args) => execFileSync('git', [
+		'-c', 'user.email=t@example.com', '-c', 'user.name=t',
+		'-c', 'commit.gpgsign=false', '-c', 'init.defaultBranch=trunk',
+		...args,
+	], { cwd, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ] })
+
+	/** Builds <work>/origin (a repo) and <work>/src (a clone of it), plus PATH stubs. */
+	function buildDeployFixture() {
+		const origin = path.join(work, 'origin')
+		const src = path.join(work, 'src')
+		const bin = path.join(work, 'bin')
+		rmSync(src, { recursive: true, force: true })
+		mkdirSync(path.join(origin, 'deploy/lib'), { recursive: true })
+		mkdirSync(path.join(origin, 'runtime'), { recursive: true })
+		mkdirSync(path.join(origin, 'client'), { recursive: true })
+		mkdirSync(bin, { recursive: true })
+		mkdirSync(path.join(work, 'webroot'), { recursive: true })
+
+		for (const u of UNITS) writeFileSync(path.join(origin, 'deploy', u), `[Unit]\nDescription=${ u }\n`)
+		writeFileSync(path.join(origin, 'deploy/lib/units.sh'), readFileSync(LIB))
+		writeFileSync(path.join(origin, 'runtime/generate-api.php'), '<?php\n')
+		writeFileSync(path.join(origin, 'client/index.html'), '<!doctype html>\n')
+
+		git(origin, 'init', '-q')
+		git(origin, 'add', '-A')
+		git(origin, 'commit', '-qm', 'base')
+		git(work, 'clone', '-q', origin, src)
+
+		// `php <script> ...` fails when the checkout carries the BOOM marker, which is how a
+		// test selects the rollback branch: the new commit adds it, the old commit has not got it.
+		const stub = (name, body) => {
+			const p = path.join(bin, name)
+			writeFileSync(p, `#!/bin/sh\n${ body }\n`, { mode: 0o755 })
+		}
+		stub('id', 'echo 0')
+		stub('chown', 'exit 0')
+		stub('runuser', 'shift 2; [ "$1" = "--" ] && shift; exec "$@"')
+		stub('php', 'd=$(dirname "$1"); [ -f "$d/BOOM" ] && exit 1; exit 0')
+		return { origin, src, bin }
+	}
+
+	/** Adds a commit to origin so update.sh has something to fast-forward to. */
+	function commitUpstream(origin, { poison = false } = {}) {
+		writeFileSync(path.join(origin, 'client/index.html'), '<!doctype html><p>new\n')
+		if (poison) writeFileSync(path.join(origin, 'runtime/BOOM'), 'x\n')
+		git(origin, 'add', '-A')
+		git(origin, 'commit', '-qm', 'upstream change')
+	}
+
+	/** Runs update.sh the way the timer does. Returns { code, out }. */
+	function runUpdate({ bin, src }) {
+		const script = `
+export PATH="${ bin }:$PATH"
+export SRC_DIR="${ src }" WEBROOT="${ work }/webroot" CONF_DIR="${ work }/conf"
+export SYSTEMD_MARKER="${ src }" SYSTEMCTL_BIN=true RUN_USER="$(whoami)" BRANCH=trunk
+exec bash "${ UPDATE }"
+`
+		try {
+			const out = execFileSync('bash', ['-c', script], {
+				cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ],
+			})
+			return { code: 0, out }
+		} catch (e) {
+			return { code: e.status, out: (e.stdout || '') + (e.stderr || '') }
+		}
+	}
+
+	const stampFrom = (src) =>
+		sh(`cm_unit_fingerprint "${ src }/deploy" > conf/installed-units.sha256`)
+
+	it('deploys cleanly and exits 0 when the units match', () => {
+		const fx = buildDeployFixture()
+		commitUpstream(fx.origin)
+		stampFrom(fx.src)
+		const r = runUpdate(fx)
+		expect(r.code).toBe(0)
+		expect(r.out).toMatch(/generator clean/)
+	})
+
+	/* Call site 1: the path taken on the vast majority of runs, where nothing was pulled. */
+	it('reports drift on the nothing-to-do path', () => {
+		const fx = buildDeployFixture()
+		stampFrom(fx.src)
+		writeFileSync(path.join(fx.src, 'deploy/capmetro-update.timer'), 'changed\n')
+		const r = runUpdate(fx)
+		expect(r.out).toMatch(/already at .*nothing to do/)
+		expect(r.code).toBe(3)
+		expect(r.out).toContain('capmetro-update.timer')
+	})
+
+	/* Call site 2: after a real pull whose generator run succeeded. */
+	it('reports drift after a successful deploy, without undoing the deploy', () => {
+		const fx = buildDeployFixture()
+		commitUpstream(fx.origin)
+		stampFrom(fx.src)
+		writeFileSync(path.join(fx.src, 'deploy/capmetro-generate.timer'), 'changed\n')
+		const r = runUpdate(fx)
+		expect(r.code).toBe(3)
+		expect(r.out).toMatch(/generator clean/)
+		expect(r.out).toContain('capmetro-generate.timer')
+		// The deploy really happened: the client was republished before the check ran.
+		expect(readFileSync(path.join(work, 'webroot/index.html'), 'utf8')).toContain('new')
+	})
+
+	/*
+	 * Call site 3: a stale unit must never be mistaken for the reason a rollback happened.
+	 *
+	 * The drift is put in the STAMP rather than in the working tree, because `git reset --hard`
+	 * on this path discards working-tree edits -- so a unit edited in the checkout genuinely
+	 * stops being drift once the rollback lands. What survives a rollback is a stamp that does
+	 * not describe the commit the box is now back on, which is the real shape of this case.
+	 */
+	it('keeps exit 1 on the rollback path even when the units have also drifted', () => {
+		const fx = buildDeployFixture()
+		commitUpstream(fx.origin, { poison: true })
+		stampFrom(fx.src)
+		const stampPath = path.join(work, 'conf/installed-units.sha256')
+		writeFileSync(stampPath, readFileSync(stampPath, 'utf8').replace(
+			/^\S+(  capmetro-update\.service)$/m,
+			'0'.repeat(64) + '$1',
+		))
+		const r = runUpdate(fx)
+		expect(r.code).toBe(1)
+		expect(r.out).toMatch(/rolled back/)
+		// Reported, but not credited with the failure, and not claiming the code is current.
+		expect(r.out).toContain('capmetro-update.service')
+		expect(r.out).not.toMatch(/code and the schedule data/)
+	})
+
+	/*
+	 * The last path: neither the new commit nor the rolled-back one can generate. The board is
+	 * already in trouble, so the drift line is a footnote -- but it must not be the headline,
+	 * and it must not change the exit code.
+	 */
+	it('still reports drift, without changing the verdict, when both commits fail to generate', () => {
+		const fx = buildDeployFixture()
+		writeFileSync(path.join(fx.origin, 'runtime/BOOM'), 'x\n')
+		git(fx.origin, 'add', '-A')
+		git(fx.origin, 'commit', '-qm', 'poison the base too')
+		execFileSync('git', [ '-C', fx.src, 'pull', '-q' ], { encoding: 'utf8' })
+		commitUpstream(fx.origin)
+		stampFrom(fx.src)
+		const stampPath = path.join(work, 'conf/installed-units.sha256')
+		writeFileSync(stampPath, readFileSync(stampPath, 'utf8').replace(
+			/^\S+(  capmetro-update\.timer)$/m, '0'.repeat(64) + '$1',
+		))
+		const r = runUpdate(fx)
+
+		expect(r.code).toBe(1)
+		expect(r.out).toMatch(/ALSO fails to generate/)
+		expect(r.out).toContain('capmetro-update.timer')
+	})
+
+	it('exits 0 with no drift complaint when everything agrees', () => {
+		const fx = buildDeployFixture()
+		stampFrom(fx.src)
+		const r = runUpdate(fx)
+		expect(r.code).toBe(0)
+		expect(r.out).not.toMatch(/have changed since/)
 	})
 })

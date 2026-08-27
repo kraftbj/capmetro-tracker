@@ -58,7 +58,9 @@ die() { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 # from 1 on purpose: 1 already means the deploy itself failed and rolled back, and collapsing
 # the two teaches whoever eventually wires up alerting (issue 11) that a red capmetro-update
 # is ambiguous and therefore ignorable.
-readonly EXIT_UNIT_DRIFT=3
+# Not a bare `readonly`: re-sourcing this file in one shell would make the second assignment
+# a fatal, untrappable error.
+[ -n "${EXIT_UNIT_DRIFT:-}" ] || readonly EXIT_UNIT_DRIFT=3
 
 # Reports whether the unit files in the checkout still match the ones install.sh rendered
 # from. Returns 0 when they agree, when the question does not apply, or when it cannot be
@@ -78,41 +80,40 @@ readonly EXIT_UNIT_DRIFT=3
 # (they did not). It only decides which sentences are true enough to print.
 check_units() {
   local context="${1:-deployed}"
-  # A box with no systemd running got a cron entry instead and owns none of these units, so
-  # there is nothing here for it to be behind on. Its /etc/cron.d/capmetro has the same
-  # shape of problem -- install.sh writes it, update.sh does not refresh it -- but that file
-  # is generated inline rather than committed, so it has no source to fingerprint and is not
-  # covered here. The systemd path is the one this deployment actually runs.
-  # The SAME two-part probe install.sh uses (it checks the directory AND systemctl before it
-  # installs units or writes a stamp). Checking only the directory made the two asymmetric: a
-  # box with /run/systemd/system but no systemctl binary gets the cron install and no stamp,
-  # yet would still have been asked about units it does not own.
-  # Both halves are overridable so this function can be exercised off a systemd box. The
-  # defaults are the real thing; nothing in production sets either variable.
-  { [ -d "${SYSTEMD_MARKER:-/run/systemd/system}" ] \
-    && command -v "${SYSTEMCTL_BIN:-systemctl}" >/dev/null 2>&1; } || return 0
-
   local lib="$SRC_DIR/deploy/lib/units.sh"
   if [ ! -f "$lib" ]; then
     return 0   # a checkout older than this feature; nothing to compare against
   fi
+  # Existing is not the same as parsing. A syntax error in the pulled lib makes `.` fail,
+  # and under `set -euo pipefail` that would abort the whole script -- on the paths where
+  # the deploy has ALREADY succeeded, reporting a live board as a hard failure. A lib we
+  # cannot load is one more way of not knowing, which is never fatal here.
   # shellcheck source=deploy/lib/units.sh
-  . "$lib"
+  if ! . "$lib"; then
+    loud "cannot load $lib, so the systemd units were not checked. Nothing else is wrong."
+    return 0
+  fi
+
+  # A box with no systemd running got a cron entry instead and owns none of these units, so
+  # there is nothing here for it to be behind on. The same probe install.sh uses, out of the
+  # same file, so the two cannot disagree about which kind of box this is.
+  cm_systemd_live || return 0
 
   # CONF_DIR, not the state dir: install.sh chowns the state dir to the nologin job account,
   # and a stamp that account can rewrite is a check it can switch off.
   local stamp drift rc=0
   stamp="$(cm_unit_stamp_path "$CONF_DIR")"
-  # `|| rc=$?` rather than toggling errexit off and back on. The earlier version ended with a
-  # bare `set -e`, which does not restore the caller's setting -- it forces errexit ON. Under
-  # this script that was invisible because errexit is always on, but it made the function
-  # unusable from anywhere that had deliberately turned it off, including its own test.
-  # A failing left-hand side of `||` is exempt from errexit, so nothing needs toggling.
+  # `|| rc=$?`, never `set +e` ... `set -e`. That pair does not restore the caller's setting,
+  # it forces errexit ON, which is invisible in a script that always has it on and fatal to
+  # any caller that had turned it off. A failing left-hand side of `||` is exempt from
+  # errexit, so nothing needs toggling.
   drift=$(cm_unit_drift "$SRC_DIR/deploy" "$stamp") || rc=$?
 
+  # The arms are cm_unit_drift's contract, named in deploy/lib/units.sh. Anything that is not
+  # one of these three is CM_DRIFT_FOUND, handled below.
   case "$rc" in
-    0) return 0 ;;
-    2)
+    "$CM_DRIFT_SAME") return 0 ;;
+    "$CM_DRIFT_NO_STAMP")
       if [ -f "$stamp" ]; then
         loud "the record of which systemd units are installed is unreadable: $stamp"
         loud "it does not parse, so it cannot be compared. Rewrite it with:"
@@ -124,9 +125,20 @@ check_units() {
       loud "until then a unit change would deploy silently, but nothing else is wrong."
       return 0
       ;;
-    3)
-      loud "cannot fingerprint the systemd units: no sha256sum or shasum on this box"
-      loud "drift detection is off until one is installed. Nothing else is wrong."
+    "$CM_DRIFT_NO_TOOL")
+      # Deliberately not "no sha256sum on this box": the same status also covers a unit file
+      # that exists and could not be read, and asserting the wrong cause sends someone to
+      # install a package they already have.
+      loud "cannot fingerprint the systemd units, so they were not checked"
+      loud "no sha256sum or shasum, or a unit file could not be read. Nothing else is wrong."
+      return 0
+      ;;
+    "$CM_DRIFT_FOUND") ;;
+    *)
+      # Anything else is a contract this function does not know about. Falling through to the
+      # drift branch would print "the units have changed:" with nothing after it, which is the
+      # empty-accusation failure the single-comparison rule exists to prevent.
+      loud "the unit check returned an unexpected status ($rc); the units were not checked."
       return 0
       ;;
   esac
@@ -139,10 +151,9 @@ check_units() {
     [ -n "$u" ] && loud "    $u"
   done <<< "$drift"
   loud "the box is still running the OLD ones."
-  # Only on the paths where it is true. Called from the rollback branch this used to print
-  # "the code and the schedule data above are up to date" immediately after `git reset --hard`
-  # had put the previous commit back -- a reassurance that was precisely false at the one
-  # moment someone would be reading it closely.
+  # Only on the paths where it is true: said from the rollback branch, seven lines after
+  # `git reset --hard` put the previous commit back, it would be precisely false at the one
+  # moment someone is reading closely.
   if [ "$context" = deployed ]; then
     loud "the code and the schedule data above are up to date; only the units are behind."
   fi
@@ -152,13 +163,17 @@ check_units() {
 }
 
 # ---------------------------------------------------------------------------
-# Everything above is definitions; everything below deploys. Sourcing this file with
-# CM_UPDATE_SH_LIB_ONLY=1 stops here, which is how tests/node/deploy-unit-drift.test.mjs
-# exercises check_units for real instead of grepping this file for the string "check_units".
-# A regex cannot tell a live call from a commented-out one, and the bug this whole feature
-# exists to prevent is a check that looks present and does nothing.
+# Everything above is definitions; everything below deploys. Sourcing this file gets the
+# definitions and nothing else, which is what lets the tests call check_units for real
+# rather than grepping this file for the string "check_units" -- a regex cannot tell a live
+# call from a commented-out one, and a check that looks present and does nothing is the
+# entire bug this feature exists to prevent.
+#
+# The condition is "am I being sourced", asked directly, rather than an env var the caller
+# sets: a switch in a root script that turns a deploy into a silent success having deployed
+# nothing is worth not having. Running the file runs the deploy; sourcing it does not.
 # ---------------------------------------------------------------------------
-if [ "${CM_UPDATE_SH_LIB_ONLY:-0}" = 1 ]; then
+if [ "${BASH_SOURCE[0]:-$0}" != "$0" ]; then
   return 0
 fi
 
@@ -232,4 +247,7 @@ fi
 # still being served and ageing visibly, which is the designed behaviour.
 loud "rollback to $BEFORE ALSO fails to generate; this is not a code problem"
 loud "the last good JSON is still in $WEBROOT and its staleness is climbing"
+# Cheap, and occasionally the answer: a generator that cannot start on either commit may be
+# looking for a config path a newer unit moved. Reported, never allowed to change the verdict.
+check_units rolled-back || true
 exit 1

@@ -58,10 +58,15 @@ Expectations:
 - Deploy trigger: `ssh <host> 'sudo /srv/capmetro/src/deploy/update.sh'`
 - Deploy status: `curl -sf https://bus.dillo.dev/api/health.json | grep -q '"ok":true'`
 - Health check: `https://bus.dillo.dev/api/health.json`
-- `update.sh` exit codes: **0** clean; **1** the deploy failed and was rolled back;
-  **3** the deploy succeeded but the committed systemd units are not the ones
-  installed — run `sudo deploy/install.sh`. Anything treating a non-zero exit as a
-  failed deploy must special-case 3, or it will report a healthy board as broken.
+- `update.sh` exit codes: **0** clean; **1** anything that stopped the deploy (a
+  precondition refusal — not root, no checkout, not a fast-forward — or the generator
+  failed and the commit was rolled back); **3** the deploy succeeded but the committed
+  systemd units are not the ones installed, so run `sudo deploy/install.sh`.
+  Anything treating a non-zero exit as a failed deploy must special-case 3, or it
+  will report a healthy board as broken. Note that systemd itself does not: the unit
+  carries no `SuccessExitStatus=3`, so a drift run shows as failed in
+  `systemctl status`, deliberately, since that is the loudest signal available until
+  something alerts. Read `ExecMainStatus` to tell 3 from 1.
 
 ### Notes
 - Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd

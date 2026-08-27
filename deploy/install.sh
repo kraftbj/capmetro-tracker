@@ -128,6 +128,12 @@ done
 # runs a minute later. Owning src as root also means git never needs credentials
 # for a nologin system account.
 run chown -R "$RUN_USER:$RUN_USER" "$WEBROOT" "$STATE_DIR"
+# CONF_DIR is deliberately NOT in that list, and the unit fingerprint written into it later
+# depends on that staying true: the job account is a nologin sandbox because the generator is
+# the likeliest thing to be compromised, and a stamp it could rewrite is a check it could
+# switch off. Asserted rather than inherited from whatever umask created the directory.
+run chown root:root "$CONF_DIR"
+run chmod 0755 "$CONF_DIR"
 
 # ---- source ----------------------------------------------------------------
 if [ -n "$SRC_FROM" ]; then
@@ -192,23 +198,6 @@ run chown -R "$RUN_USER:$RUN_USER" "$WEBROOT"
 PHP_BIN=$(command -v php)
 GEN="$PHP_BIN $SRC_DIR/runtime/generate-api.php --config=$CONF_DIR/config.php --quiet"
 
-# systemctl can exist where systemd is not actually running as pid 1 - a
-# container, a chroot, WSL. Probing for the binary alone and then letting `set
-# -e` kill the script on a failed daemon-reload leaves a half-finished install,
-# so ask whether systemd is really running and fall back rather than abort.
-# The test is /run/systemd/system, not `systemctl is-system-running` and not the
-# presence of the binary. That directory is exactly what sd_booted(3) checks and
-# what Debian's own maintainer scripts use, and it is the only one of the three
-# that was right in every case I tried: systemctl is absent from a base ubuntu
-# image but gets pulled in as a dependency of cron, and is-system-running
-# answered in a way that sent the installer down the systemd path on a box with
-# no systemd running, which then died at daemon-reload with the user, the
-# directories and the config already created.
-SYSTEMD_LIVE=0
-if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
-  SYSTEMD_LIVE=1
-fi
-
 # The unit list and the fingerprint helper, shared with update.sh so the two cannot drift
 # apart about what "installed" means. Sourced after the clone, because it lives in it --
 # guarded, because under --dry-run the clone above only printed what it would do, so on a
@@ -216,6 +205,17 @@ fi
 if [ -f "$SRC_DIR/deploy/lib/units.sh" ]; then
   # shellcheck source=deploy/lib/units.sh
   . "$SRC_DIR/deploy/lib/units.sh"
+fi
+
+# Whether systemd is really running here. Asked through deploy/lib/units.sh so update.sh
+# asks exactly the same question; see the note there. Falls back to the literal test when
+# the helper is absent, which happens only under --dry-run on a box with no checkout yet.
+if command -v cm_systemd_live >/dev/null 2>&1 && cm_systemd_live; then
+  SYSTEMD_LIVE=1
+elif [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
+  SYSTEMD_LIVE=1
+else
+  SYSTEMD_LIVE=0
 fi
 
 if [ "$SYSTEMD_LIVE" = 1 ]; then
@@ -274,15 +274,26 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
     # leave a zero-byte stamp behind and then abort the install with the timers already
     # enabled. A zero-byte stamp matches nothing, so update.sh would report all four units
     # as drifted, forever, on a box where nothing had drifted at all.
+    if ! command -v cm_unit_fingerprint >/dev/null 2>&1; then
+      # The source above is guarded, so this is reachable: a source tree without
+      # deploy/lib/units.sh (an older --src-from rsync, say). Calling the helper anyway
+      # aborts with "command not found" AFTER both timers are enabled, which is a worse
+      # outcome than simply having no drift record.
+      warn "no $SRC_DIR/deploy/lib/units.sh here; units installed, but no drift record written"
+    else
     _stamp="$(cm_unit_stamp_path "$CONF_DIR")"
     _stamp_tmp="$(mktemp "${_stamp}.XXXXXX")"
     if cm_unit_fingerprint "$SRC_DIR/deploy" > "$_stamp_tmp"; then
+      # Mode set on the temp file, where mktemp's O_EXCL still guarantees we are the only
+      # writer, and carried into place by the rename. chmod AFTER the mv follows whatever
+      # is at the destination -- including a symlink planted there between the two.
+      chmod 0644 "$_stamp_tmp"
       mv "$_stamp_tmp" "$_stamp"
-      chmod 0644 "$_stamp"
     else
       rm -f "$_stamp_tmp"
       die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units are
      installed, but update.sh will have no record to check them against."
+    fi
     fi
   fi
   SCHEDULER="systemd timers capmetro-generate.timer (60s) + capmetro-update.timer (daily)"
@@ -294,7 +305,7 @@ else
   # runs once a minute. Say so rather than pretending the flag was honored.
   say "installing a once-a-minute cron entry"
   [ "$INTERVAL_S" != 60 ] && warn "cron cannot run more often than once a minute; --interval $INTERVAL_S ignored"
-  run sh -c "printf '* * * * * %s %s\n#\n# Daily: pull the schedule. CapMetro republishes about three times a year and\n# without this the board serves last season's departures until someone notices.\n17 4 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
+  run sh -c "printf '* * * * * %s %s\n#\n# Four times a day, matching capmetro-update.timer. 04:17 used to be the hour,\n# seven hours BEFORE the GTFS job commits at 11:20, so a rebuild waited a day.\n20 0,6,12,18 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
   run chmod 0644 /etc/cron.d/capmetro
   SCHEDULER="cron /etc/cron.d/capmetro (60s generate + daily update)"
 fi

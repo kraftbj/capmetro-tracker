@@ -30,20 +30,27 @@
 
 CM_UNIT_FILES='capmetro-generate.service capmetro-generate.timer capmetro-update.service capmetro-update.timer'
 
+# cm_unit_drift's four answers, named. The numbers are local to this function and mean
+# nothing outside it -- in particular update.sh's EXIT_UNIT_DRIFT is also 3 and is the
+# OPPOSITE kind of answer (a confirmed difference, not an inability to tell). Same numeral,
+# different layer, so both ends are named rather than left as digits to be recognized.
+CM_DRIFT_SAME=0
+CM_DRIFT_FOUND=1
+CM_DRIFT_NO_STAMP=2
+CM_DRIFT_NO_TOOL=3
+
 # Ubuntu ships sha256sum; macOS ships shasum. The tests run on whichever the developer has.
 #
-# Returns non-zero and prints nothing when neither exists. An earlier version printed the
-# literal string `no-sha256-tool` instead, which is the worst thing it could have done: every
-# file hashes to the same value, every fingerprint matches every other fingerprint, and drift
-# is reported as clean forever. That is this repo's signature failure -- a skip that reads as a
-# pass -- and it would have hidden the exact condition this file exists to surface.
+# Returns non-zero and prints NOTHING when neither exists. Never a placeholder value: a
+# stand-in hash makes every file compare equal to every other, so drift reads as clean
+# forever -- a skip that reads as a pass, hiding the exact condition this file surfaces.
 cm_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
     sha256sum "$1" | awk '{print $1}'
   elif command -v shasum >/dev/null 2>&1; then
     shasum -a 256 "$1" | awk '{print $1}'
   else
-    return 3
+    return "$CM_DRIFT_NO_TOOL"
   fi
 }
 
@@ -53,13 +60,14 @@ cm_sha256() {
 # A missing file is recorded as `missing` rather than skipped: a unit that disappears from
 # the checkout is exactly as much of a change as one that was edited, and dropping the line
 # would make the two fingerprints match by omission.
-# Returns 3 without printing anything when no hashing tool is available, so a box that cannot
-# compute a fingerprint says so rather than emitting one that compares equal to everything.
+# Returns CM_DRIFT_NO_TOOL without printing anything when a hash cannot be computed, so a box
+# that cannot answer says so rather than emitting a fingerprint that compares equal to
+# everything.
 cm_unit_fingerprint() {
   local dir="$1" f hash out=""
   for f in $CM_UNIT_FILES; do
     if [ -f "$dir/$f" ]; then
-      hash=$(cm_sha256 "$dir/$f") || return 3
+      hash=$(cm_sha256 "$dir/$f") || return "$CM_DRIFT_NO_TOOL"
       out="$out$hash  $f
 "
     else
@@ -68,6 +76,25 @@ cm_unit_fingerprint() {
     fi
   done
   printf '%s' "$out"
+}
+
+# Is systemd actually running here, such that this deployment's units are its business?
+#
+# systemctl can exist where systemd is not pid 1 -- a container, a chroot, WSL -- so the test
+# is /run/systemd/system, which is what sd_booted(3) checks and what Debian's own maintainer
+# scripts use. It was the only one of three candidates right in every case: systemctl is
+# absent from a base ubuntu image but arrives as a dependency of cron, and
+# `systemctl is-system-running` sent the installer down the systemd path on a box with no
+# systemd, which then died at daemon-reload with the directories and config already created.
+#
+# Lives here because install.sh and update.sh must agree on it. They did not: install.sh
+# asked both halves and update.sh only the directory, so a box with the directory and no
+# systemctl got the cron install from one and questions about units it does not own from the
+# other. The overrides exist so this is testable off a systemd box; nothing sets them in
+# production.
+cm_systemd_live() {
+  [ -d "${SYSTEMD_MARKER:-/run/systemd/system}" ] \
+    && command -v "${SYSTEMCTL_BIN:-systemctl}" >/dev/null 2>&1
 }
 
 # cm_unit_stamp_path <state-dir>
@@ -82,53 +109,51 @@ cm_unit_stamp_path() {
 #   0  the sources agree with the stamp
 #   1  they differ; the drifted unit names are printed, one per line
 #   2  no stamp exists, so the question cannot be answered
-#   3  no hashing tool exists, so the question cannot be answered
+#   3  a hash could not be computed (no sha256sum or shasum, or a unit file unreadable),
+#      so the question cannot be answered
 #
 # Keeping 2 and 3 distinct from 0 is the whole contract. runtime/lib/upstream.php makes the
 # same call for the same reason: a probe that could not answer reports nothing and never
 # reports a mismatch it is not sure of. Collapsing "I cannot tell" into "unchanged" would
 # report a clean bill of health for precisely the state this file exists to catch.
 cm_unit_drift() {
-  local deploy="$1" stamp="$2" now was f a b drifted want lines
-  [ -f "$stamp" ] || return 2
+  local deploy="$1" stamp="$2" now was f a b drifted want lines total
+  [ -f "$stamp" ] || return "$CM_DRIFT_NO_STAMP"
 
-  now=$(cm_unit_fingerprint "$deploy") || return 3
-  was=$(cat "$stamp") || return 2
+  now=$(cm_unit_fingerprint "$deploy") || return "$CM_DRIFT_NO_TOOL"
+  was=$(cat "$stamp") || return "$CM_DRIFT_NO_STAMP"
 
   # The stamp has to actually parse before it can be believed. A zero-byte, truncated or
   # hand-mangled record would otherwise make every unit's recorded hash empty, differ from
   # every real hash, and be reported as "all four units drifted" -- a confident, specific,
   # wrong accusation about a box where nothing drifted. Corruption is not drift; it is
   # another way of not knowing, and this file's whole contract is that the two stay apart.
-  # Exactly one line per unit, no extras.
+  # Exactly one well-formed line per unit, and nothing else in the file. Both counts are
+  # load-bearing: the well-formed tally alone accepts a stamp carrying junk that simply fails
+  # to match the pattern, and the total alone accepts four malformed lines.
   want=$(printf '%s\n' $CM_UNIT_FILES | wc -l | tr -d ' ')
   lines=$(printf '%s\n' "$was" | grep -c '^[^ ][^ ]*  [^ ][^ ]*$' || true)
-  if [ "$lines" != "$want" ]; then
-    return 2
+  total=$(printf '%s\n' "$was" | grep -c . || true)
+  if [ "$lines" != "$want" ] || [ "$total" != "$want" ]; then
+    return "$CM_DRIFT_NO_STAMP"
   fi
   for f in $CM_UNIT_FILES; do
     if [ "$(printf '%s\n' "$was" | awk -v n="$f" '$2==n' | wc -l | tr -d ' ')" != "1" ]; then
-      return 2
+      return "$CM_DRIFT_NO_STAMP"
     fi
   done
 
-  # Decided per unit, and ONLY per unit. An earlier version compared the two fingerprints as
-  # whole text first and returned 1 on any difference, then re-derived the names with this
-  # loop -- two different tests that can disagree. A stamp with reordered lines, a trailing
-  # blank, or any byte the loop does not look at made the text comparison say "drift" while
-  # the loop named nothing, so update.sh printed "the units have changed:" followed by an
-  # empty list and failed forever with no way to tell which unit was at fault.
-  #
-  # One test now decides both the answer and the report, so rc=1 always names at least one
-  # unit. A stamp that is empty or missing lines makes every unit's recorded hash empty, which
-  # differs from its real hash, so all four are named -- honest, and pointing at install.sh.
-  local drifted=0
+  # One comparison decides both the verdict and the report, so rc=1 always names at least one
+  # unit. Deciding drift by one test and explaining it by another lets the two disagree, and
+  # "the units have changed:" followed by an empty list is a permanent failure with nothing
+  # to act on.
+  local drifted="$CM_DRIFT_SAME"
   for f in $CM_UNIT_FILES; do
     a=$(printf '%s\n' "$now" | awk -v n="$f" '$2==n {print $1}')
     b=$(printf '%s\n' "$was" | awk -v n="$f" '$2==n {print $1}')
     if [ "$a" != "$b" ]; then
       printf '%s\n' "$f"
-      drifted=1
+      drifted="$CM_DRIFT_FOUND"
     fi
   done
   return "$drifted"
