@@ -75,16 +75,21 @@
    * the server. The client never decides that data is stale.
    *
    * It does decide which SENTENCE to write, and that needs one more bit than the
-   * level carries. `stale` has two causes -- the realtime feed has stopped
-   * arriving, or the schedule has run out -- and only the first is fixed by
-   * waiting. Announcing "Data 14 sec old. Lateness is hidden until the feed
-   * catches up." over a feed that is fourteen seconds old and arriving fine sends
-   * the reader to look for a fault that is not there, and offers them a wait that
-   * will never end. The cause is read off the contract's own feed thresholds
-   * (section 1), the same ones app.js applies when it ages a held payload: at
-   * `stale` with the feed itself under ten minutes old, the schedule is what gave
-   * out. That is naming the server's reason, not second-guessing its verdict --
-   * suppress_adherence is still the only thing that decides what may be drawn.
+   * level carries. `stale` has three causes -- the realtime feed has stopped
+   * arriving, the schedule has run out, or CapMetro has replaced the schedule --
+   * and each one ends differently. Announcing "Data 14 sec old. Lateness is hidden
+   * until the feed catches up." over a feed that is fourteen seconds old and
+   * arriving fine sends the reader to look for a fault that is not there, and
+   * offers them a wait that will never end.
+   *
+   * The feed case is read off the contract's own thresholds (section 1), the same
+   * ones app.js applies when it ages a held payload. The other two are NOT
+   * inferred: `schedule_state` states which it is, because "ran out" and "was
+   * replaced" look identical from the ages and only the server knows the
+   * difference. A payload without that field is read as the run-out case, which is
+   * what the field's absence used to mean. Either way this is naming the server's
+   * reason, not second-guessing its verdict -- suppress_adherence is still the only
+   * thing that decides what may be drawn.
    */
   function stalenessBanner(staleness, feeds, onRetry) {
     if (!staleness || staleness.level === 'fresh') return null;
@@ -95,14 +100,27 @@
 
     var age = staleness.oldest_feed_age_s;
     var feedIsStale = typeof age === 'number' && age > 600;
+    var scheduleState = staleness.schedule_state || null;
 
     var head;
     if (level === 'aging') head = 'Data ' + fmt.age(age) + '.';
     else if (level === 'stale') {
-      head = feedIsStale
-        ? 'Data ' + fmt.age(age) + '. Lateness is hidden until the feed catches up.'
-        : 'The schedule this board compares against has run out. Lateness is hidden ' +
+      if (feedIsStale) {
+        head = 'Data ' + fmt.age(age) + '. Lateness is hidden until the feed catches up.';
+      } else if (scheduleState === 'superseded') {
+        /*
+         * A different sentence from `expired`, because a different thing is true and a
+         * different thing happens next. The timetable did not run out -- CapMetro replaced
+         * it, the new one already exists, and this board picks it up on its own. Saying
+         * "has run out" here would be false, and offering a wait for a publication that
+         * already happened sends the reader nowhere.
+         */
+        head = 'CapMetro has published a newer schedule than this board is using. ' +
+          'Lateness is hidden until the board catches up.';
+      } else {
+        head = 'The schedule this board compares against has run out. Lateness is hidden ' +
           'until a new one is published.';
+      }
     } else head = 'Feed is down. Showing the last positions received, ' +
       fmt.age(age) + '.';
 
@@ -213,6 +231,7 @@
       apply: function (d) {
         d.staleness = {
           level: 'stale', oldest_feed_age_s: 940, schedule_age_days: 1,
+          schedule_state: 'current',
           suppress_adherence: true, reason: 'positions feed has not updated since 9:54a'
         };
         return d;
@@ -229,7 +248,26 @@
       apply: function (d) {
         d.staleness = {
           level: 'stale', oldest_feed_age_s: 12, schedule_age_days: 190,
+          schedule_state: 'expired',
           suppress_adherence: true, reason: 'Schedule data ran out on 2027-01-09'
+        };
+        return d;
+      }
+    },
+    /*
+     * The third road to `stale`, and the only one the board fixes by itself: the timetable
+     * has not run out, CapMetro has REPLACED it, and these shards are the previous edition.
+     * On 2026-08-27 that renumbered every trip id and 56 of 71 routes lost every match while
+     * feed_end_date still read 2027-01-09 and every feed was seconds old.
+     */
+    'schedule-superseded': {
+      note: 'STALE — a newer feed_version is published; the realtime feed is fine',
+      apply: function (d) {
+        d.staleness = {
+          level: 'stale', oldest_feed_age_s: 14, schedule_age_days: 9,
+          schedule_state: 'superseded',
+          suppress_adherence: true,
+          reason: 'CapMetro published a newer schedule (260826_0956)'
         };
         return d;
       }
@@ -239,6 +277,7 @@
       apply: function (d) {
         d.staleness = {
           level: 'dead', oldest_feed_age_s: 5220, schedule_age_days: 1,
+          schedule_state: 'current',
           suppress_adherence: true, reason: 'no successful feed poll since 8:43a'
         };
         return d;

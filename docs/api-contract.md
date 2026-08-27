@@ -87,6 +87,7 @@ The primary endpoint. One file per route, regenerated every cron run.
     "level": "fresh",                   // fresh | aging | stale | dead
     "oldest_feed_age_s": 43,
     "schedule_age_days": 1,             // reported only; does not set the level, see §1
+    "schedule_state": "current",        // current | superseded | expired, see §1
     "suppress_adherence": false,        // when true the client MUST NOT render any lateness value
     "reason": null                      // human-readable string when level != fresh
   },
@@ -143,7 +144,7 @@ reason it exists, but a route showing five buses can still answer "when does the
 |---|---|---|
 | `fresh` | oldest feed age <= 120s | Normal render |
 | `aging` | oldest feed age <= 600s | Render normally, show age chip |
-| `stale` | oldest feed age > 600s **or** the service date is past `feed_end_date` | `suppress_adherence: true`; positions shown, no lateness numbers, banner |
+| `stale` | oldest feed age > 600s **or** `schedule_state` is `expired` or `superseded` | `suppress_adherence: true`; positions shown, no lateness numbers, banner |
 | `dead` | oldest feed age > 3600s | Positions shown greyed; prominent banner with last-good time |
 
 `suppress_adherence` is authoritative. The client checks that flag, not the ages. This is the
@@ -158,6 +159,34 @@ one; the old rule spent all but the first week of every feed suppressing latenes
 telling the reader a feed fourteen seconds old was behind. What invalidates adherence is a
 schedule that has run out — past `feed_end_date` there is no timetable for today to measure
 against — and that is the condition above. It is the same one `health.json` fails on (§10).
+
+**`schedule_state` says which timetable problem it is**, because the ages cannot: `current`,
+`superseded`, or `expired`. Both non-current values force `stale`, and `expired` outranks
+`superseded` when somehow both hold.
+
+- `expired` — the service date is past `feed_end_date`. There is no timetable for today, so a
+  lateness number is measured against nothing.
+- `superseded` — CapMetro is publishing a `feed_version` different from the one these shards
+  were built from. The timetable has not run out; it has been REPLACED, and the numbers are
+  measured against an edition that is no longer in force.
+
+The client MUST NOT infer the cause from the ages. `expired` and `superseded` are
+indistinguishable from `oldest_feed_age_s`, and they need different sentences: one waits for a
+publication, the other waits for this board to catch up with a publication that has already
+happened. A payload with no `schedule_state` is read as `expired`, which is what the field's
+absence meant before it existed.
+
+**How `superseded` is detected.** `feed_version` identity, never age — see the note above for
+why age is the wrong question. The runtime reads `feed_info.txt` out of the upstream zip with
+three HTTP range requests, about 5.4 KB, at most once every 15 minutes, and compares the
+`feed_version` there with the one the shards carry. A probe that cannot answer reports nothing
+and raises no banner: an unreachable upstream is never a mismatch.
+
+This exists because of 2026-08-27. CapMetro replaced `260818_1456` with `260826_0956` eight
+days into a feed advertised through 2027-01-09. Every trip id was renumbered, 56 of 71 routes
+reported 100% of their live trips absent from the schedule shard, and every clock the board
+owned still read healthy: feeds seconds old, `feed_end_date` five months away. The board told
+its reader that no bus on the road was in today's schedule and could not say why.
 
 The two causes of `stale` need different words on screen, and the client tells them apart
 from `oldest_feed_age_s` against the thresholds in this table: at `stale` with a feed under

@@ -144,6 +144,47 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **CapMetro replaced the schedule off-cycle and the board could not tell.** On
+  2026-08-27, `260818_1456` became `260826_0956` eight days into a feed advertised
+  as valid through 2027-01-09. Every trip id was renumbered, so nothing joined:
+  **56 of 71 routes reported 100% of their live trips absent from the schedule
+  shard**, every bus showed lateness `unknown` with reason `trip_not_in_schedule`,
+  and the board said no bus on the road was in today's schedule. Every clock it
+  owned still read healthy — feeds seconds old, `feed_end_date` five months away —
+  so nothing raised a banner and nothing said why.
+
+  The board now asks the only question that can detect this: is the `feed_version`
+  we built from still the one upstream publishes? It reads `feed_info.txt` out of
+  the upstream zip with three HTTP range requests — about 5.4 KB, not the 34 MB
+  archive — at most once every fifteen minutes. A mismatch sets the new
+  `staleness.schedule_state: "superseded"`, forces `stale`, and draws a banner that
+  says CapMetro has published a newer schedule rather than claiming the timetable
+  ran out, which would have been false. A probe that cannot answer reports nothing
+  and raises nothing: an unreachable upstream is never a mismatch.
+
+  Age was not an option. The rule that graded schedule age was removed for good
+  reason (see the entry below) and reinstating it would fail on exactly the feed it
+  was meant to protect: this one was nine days old and correct on 08-26, nine days
+  old and superseded on 08-27. Identity separates those two; age cannot.
+
+  Delivery was the other half. `deploy/capmetro-update.timer` pulled at 04:17 on a
+  box running `Etc/UTC`, **seven hours before** the GTFS job's 11:20 UTC commit, so
+  a rebuilt schedule was never picked up until the following day — worst case about
+  41 hours from CapMetro publishing to this board serving it. The job now runs four
+  times a day and the box pulls an hour after each, putting the worst case under six.
+
+- **A shard rebuild was blocked by a gate that had been wrong all along.** The
+  §7 shortener breaks a stop name on a space **or** a slash, because Austin names
+  are `Street/CrossStreet` with no space around the slash. `build/verify.mjs` kept
+  its own copy of the normalization steps and then demanded the cut land on a
+  space, so all 23 slash cuts — `Martin Luther King/…`, `Pleasant Valley/…` — were
+  reported as ending mid-word. The names were never wrong; the committed tree
+  carries the same 23 and the JS and PHP implementations agree on all 2,326 upstream
+  names. `npm run verify` only runs in CI when `feed_version` changes, so the broken
+  gate sat latent until the first moment it mattered and then refused the rebuild
+  that would have fixed production. `verify.mjs` now imports `stopNameStem` instead
+  of keeping a second copy, and accepts both legal cut shapes.
+
 - **A schedule eight days old blanked every lateness number on the board.** The
   staleness ladder graded the realtime feeds and the schedule on one scale, and
   more than seven days past `feed_start_date` forced `stale` — which sets

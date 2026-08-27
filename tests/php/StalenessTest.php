@@ -213,6 +213,74 @@ final class StalenessTest extends TestCase
         self::assertSame($golden['staleness']['oldest_feed_age_s'], $result['oldest_feed_age_s']);
     }
 
+    /*
+     * A superseded schedule: CapMetro is publishing a feed_version we did not build from.
+     * On 2026-08-27 that renumbered every trip id eight days into a feed advertised through
+     * 2027-01-09, so nothing joined, 56 of 71 routes reported every live trip missing, and
+     * both of the board's own health clocks read fine. Age cannot see this and must not try;
+     * identity can.
+     */
+    public function testASupersededScheduleForcesStaleUnderAPerfectlyHealthyFeed(): void
+    {
+        $result = cm_staleness(self::NOW, ['positions' => self::NOW - 14], 9, null, '260826_0956');
+
+        self::assertSame('stale', $result['level']);
+        self::assertSame('superseded', $result['schedule_state']);
+        self::assertTrue($result['suppress_adherence']);
+        self::assertStringContainsString('260826_0956', (string) $result['reason']);
+    }
+
+    public function testAMatchingFeedVersionIsNotSupersededAndRaisesNothing(): void
+    {
+        /* The caller passes null when the versions agree; see cm_schedule_superseded_by. */
+        $result = cm_staleness(self::NOW, ['positions' => self::NOW - 14], 9, null, null);
+
+        self::assertSame('fresh', $result['level']);
+        self::assertSame('current', $result['schedule_state']);
+        self::assertFalse($result['suppress_adherence']);
+        self::assertNull($result['reason']);
+    }
+
+    /*
+     * A probe that could not answer must not raise a banner. An empty string is the shape a
+     * failed read could plausibly produce, and it means the same thing as null here.
+     */
+    public function testAnEmptyUpstreamVersionIsTreatedAsNoOpinion(): void
+    {
+        $result = cm_staleness(self::NOW, ['positions' => self::NOW - 14], 9, null, '');
+
+        self::assertSame('fresh', $result['level']);
+        self::assertSame('current', $result['schedule_state']);
+        self::assertFalse($result['suppress_adherence']);
+    }
+
+    public function testAnExpiredScheduleOutranksASupersededOne(): void
+    {
+        $result = cm_staleness(self::NOW, ['positions' => self::NOW - 14], 190, '20270109', '260826_0956');
+
+        self::assertSame('stale', $result['level']);
+        self::assertSame('expired', $result['schedule_state']);
+        self::assertStringContainsString('2027-01-09', (string) $result['reason']);
+    }
+
+    public function testADeadFeedOutranksASupersededSchedule(): void
+    {
+        $result = cm_staleness(self::NOW, ['positions' => self::NOW - 4000], 9, null, '260826_0956');
+
+        self::assertSame('dead', $result['level']);
+        /* The level is the feed's, but the schedule fact is still reported. */
+        self::assertSame('superseded', $result['schedule_state']);
+        self::assertStringContainsString('No fresh data', (string) $result['reason']);
+    }
+
+    public function testEveryStalenessResultCarriesAScheduleState(): void
+    {
+        foreach ([[14, null, null], [900, null, null], [14, '20270109', null], [14, null, '260826_0956']] as $case) {
+            $result = cm_staleness(self::NOW, ['positions' => self::NOW - $case[0]], 9, $case[1], $case[2]);
+            self::assertContains($result['schedule_state'], ['current', 'superseded', 'expired']);
+        }
+    }
+
     public function testTheDeadCronFixtureCarriesTheShapeADegradedRouteFileMustHave(): void
     {
         $dead = Fixtures::synthetic('route-4-dead-cron.json');

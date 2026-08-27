@@ -72,6 +72,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/servicetime.php';
 require_once __DIR__ . '/lib/fetch.php';
+require_once __DIR__ . '/lib/upstream.php';
 require_once __DIR__ . '/lib/write.php';
 require_once __DIR__ . '/lib/shards.php';
 require_once __DIR__ . '/lib/alerts.php';
@@ -233,7 +234,45 @@ $schedule_expired_on = (preg_match('/^\d{8}$/', $feed_end) === 1 && $service_dat
     ? $feed_end
     : null;
 
-$staleness = cm_staleness($now, $feed_times, $schedule_age_days, $schedule_expired_on);
+/*
+ * And a schedule is superseded when CapMetro is publishing a different feed_version than the
+ * one these shards were built from. That is a question only upstream can answer, so it is
+ * asked on a timer of its own -- every 15 minutes, three range requests, ~5.4 KB -- and the
+ * answer is carried in the same state file as cron_last_success_at. A run that cannot reach
+ * upstream keeps the last good answer until it expires and then falls back to no opinion; it
+ * never invents a mismatch. Skipped entirely in fixture mode, which has no network.
+ */
+$upstream_version = null;
+if ($fixtures === null) {
+    $due = cm_upstream_probe_due($now, $state);
+    $upstream_version = $due['upstream_version'];
+    if ($due['probe']) {
+        $probe = cm_upstream_feed_version(CM_GTFS_ZIP_URL, (int) $config['timeout_s']);
+        $upstream_version = $probe['ok'] ? (string) $probe['feed_version'] : null;
+        $state['upstream_checked_at']    = $now;
+        $state['upstream_ok']            = (bool) $probe['ok'];
+        $state['upstream_feed_version']  = $upstream_version;
+        if (!$probe['ok']) {
+            $log('upstream probe failed: ' . $probe['error']);
+        }
+        /* Persisted here rather than with cron_last_success_at at the end, because the
+           error path exits before that write and a probe whose result is not recorded
+           would be repeated every 60 seconds for as long as a feed stays down. */
+        cm_atomic_write_json($state_path, $state);
+    }
+}
+$schedule_superseded_by = cm_schedule_superseded_by($feed_version, $upstream_version);
+if ($schedule_superseded_by !== null) {
+    $log(sprintf('schedule superseded: built from %s, upstream now %s', $feed_version, $schedule_superseded_by));
+}
+
+$staleness = cm_staleness(
+    $now,
+    $feed_times,
+    $schedule_age_days,
+    $schedule_expired_on,
+    $schedule_superseded_by
+);
 $suppress = (bool) $staleness['suppress_adherence'];
 
 /* ------------------------------------------------------------------------------------
@@ -613,7 +652,13 @@ foreach ($watch_targets as $t) {
 
 if ($errors === []) {
     $cron_last_success_at = $now;
-    cm_atomic_write_json($state_path, ['cron_last_success_at' => $now, 'service_date' => $service_date]);
+    /* Merged, not replaced: the upstream probe's own bookkeeping lives in this file too and
+       a bare literal here would reset its clock on every successful run, turning a 15-minute
+       cadence into one probe every 60 seconds. */
+    cm_atomic_write_json($state_path, [
+        'cron_last_success_at' => $now,
+        'service_date'         => $service_date,
+    ] + $state);
 }
 
 cm_atomic_write_json($api_dir . '/health.json', cm_build_health(

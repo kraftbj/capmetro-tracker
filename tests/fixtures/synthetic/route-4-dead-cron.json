@@ -34,6 +34,7 @@
     "level": "dead",
     "oldest_feed_age_s": 2932,
     "schedule_age_days": 1,
+    "schedule_state": "current",
     "suppress_adherence": true,
     "reason": "cron has not written since 10:10 CT"
   },

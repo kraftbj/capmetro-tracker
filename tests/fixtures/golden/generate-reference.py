@@ -261,8 +261,10 @@ doc={"schema":1,"generated_at":NOW,
    "next_departure":next_departure},
  "feeds":{"positions_at":NOW,"trip_updates_at":int(tu['entity'][0]['tripUpdate']['timestamp']),
    "alerts_at":NOW-100,"gtfs_feed_version":"260818_1456","gtfs_built_at":NOW-52000},
+ # schedule_state: this capture ran on the feed that was current at the time, so neither
+ # expired (past feed_end_date) nor superseded (a newer feed_version published upstream).
  "staleness":{"level":"fresh","oldest_feed_age_s":max(oldest,0),"schedule_age_days":1,
-   "suppress_adherence":False,"reason":None},
+   "schedule_state":"current","suppress_adherence":False,"reason":None},
  "service_day":{"date":today,"service_ids":active,
    "is_exception_day":any(len(cd[s])==1 for s in active)},
  "vehicles":vehicles,"timepoints":timepoints,"schedule":schedule,"alerts":alerts}

@@ -8,8 +8,13 @@
  *
  *   fresh   oldest feed age <= 120s
  *   aging   oldest feed age <= 600s
- *   stale   oldest feed age > 600s, or the schedule no longer covers today
+ *   stale   oldest feed age > 600s, or the schedule is not the one to measure against
  *   dead    oldest feed age > 3600s
+ *
+ * `schedule_state` says which of the three the schedule is in -- current, superseded (a
+ * newer feed_version is published; see upstream.php) or expired (past feed_end_date) -- so
+ * the client picks its sentence off a stated fact instead of re-deriving the cause from the
+ * feed ages, which it could only ever do for two of the three.
  *
  * Two clocks, one level. The realtime feeds are the fast one and they set the level on
  * their own. The schedule is the slow one, and it used to set the level too: more than
@@ -46,12 +51,19 @@ const CM_STALE_DEAD_S  = 3600;
  * generated falls past it, and null whenever the schedule still covers today. The caller
  * owns that comparison because it is the one holding the service date; passing the date
  * itself rather than a bare bool keeps the reason line able to name it.
+ *
+ * $schedule_superseded_by is the feed_version CapMetro is publishing NOW, when that is a
+ * different feed from the one we built these shards from, and null otherwise -- including
+ * whenever the probe could not answer, so an upstream we failed to reach never raises a
+ * banner. Same division of labour as above: upstream.php owns the comparison, this owns
+ * what it means. Passing the version rather than a bool lets the reason name it.
  */
 function cm_staleness(
     int $now,
     array $feed_times,
     int $schedule_age_days,
-    ?string $schedule_expired_on = null
+    ?string $schedule_expired_on = null,
+    ?string $schedule_superseded_by = null
 ): array {
     $oldest = 0;
     $oldest_label = null;
@@ -65,6 +77,19 @@ function cm_staleness(
 
     $expired = is_string($schedule_expired_on)
         && preg_match('/^\d{8}$/', $schedule_expired_on) === 1;
+    $superseded = is_string($schedule_superseded_by) && $schedule_superseded_by !== '';
+
+    /*
+     * Expired outranks superseded. Both mean the timetable cannot be trusted, but a feed
+     * that ran out has no replacement in hand to name, and telling someone a newer feed
+     * exists is the more useful sentence only when it is also the whole story.
+     */
+    $schedule_state = 'current';
+    if ($expired) {
+        $schedule_state = 'expired';
+    } elseif ($superseded) {
+        $schedule_state = 'superseded';
+    }
 
     $level  = 'fresh';
     $reason = null;
@@ -80,6 +105,17 @@ function cm_staleness(
            and a level is never lowered by a second condition. */
         $level = 'stale';
         $reason = sprintf('Schedule data ran out on %s', cm_staleness_human_date($schedule_expired_on));
+    } elseif ($superseded) {
+        /*
+         * Also above `aging`, and for the harder reason. Every lateness number on the board
+         * is measured against a timetable CapMetro has replaced. On 2026-08-27 the
+         * replacement kept the times and only renumbered the trips, so the join failed
+         * loudly and each vehicle went `unknown` on its own -- but that was luck. A
+         * republish that moves a departure five minutes leaves the ids intact and every
+         * number confidently wrong, which is the case this exists for.
+         */
+        $level = 'stale';
+        $reason = sprintf('CapMetro published a newer schedule (%s)', $schedule_superseded_by);
     } elseif ($oldest > CM_STALE_AGING_S) {
         $level = 'aging';
         $reason = sprintf('%s feed is %ds old', $oldest_label, $oldest);
@@ -89,6 +125,7 @@ function cm_staleness(
         'level'              => $level,
         'oldest_feed_age_s'  => $oldest,
         'schedule_age_days'  => max(0, $schedule_age_days),
+        'schedule_state'     => $schedule_state,
         'suppress_adherence' => $level === 'stale' || $level === 'dead',
         'reason'             => $reason,
     ];
