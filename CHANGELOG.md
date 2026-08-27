@@ -144,6 +144,29 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **A systemd unit change deployed and then did nothing.** `deploy/update.sh` pulls
+  code and republishes the client but never writes `/etc/systemd/system`; only
+  `install.sh` does. So a change to a `.timer` or `.service` merged, deployed, and
+  left the box running the old one, with nothing reporting the difference. The
+  `capmetro-update.timer` fix below is itself an example: it moved off 04:17 UTC and
+  the box kept firing at 04:17.
+
+  `install.sh` now records a fingerprint of the unit sources it rendered from, and
+  `update.sh` compares the checkout against it on every run — including the "already
+  up to date, nothing to do" path, which is the one that matters, since drift persists
+  across runs while every later run short-circuits. On a mismatch it names the units
+  and exits non-zero, after the code and the schedule are already live: a stale timer
+  is worth a red `systemctl status`, never worth withholding a schedule the board
+  needs today.
+
+  It fingerprints the *sources* rather than diffing the installed files because
+  `install.sh` renders three of the four units, substituting `@RUN_USER@`, `@GEN@`,
+  `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff
+  would report drift on a perfectly current box every time, and re-rendering to compare
+  like with like would need install-time flags that nothing records. `update.sh` still
+  does not install units: restarting a timer from inside the service that timer started
+  is a hazard worth avoiding, so it notices and says so rather than acting.
+
 - **CapMetro replaced the schedule off-cycle and the board could not tell.** On
   2026-08-27, `260818_1456` became `260826_0956` eight days into a feed advertised
   as valid through 2027-01-09. Every trip id was renumbered, so nothing joined:

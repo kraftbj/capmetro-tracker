@@ -209,6 +209,11 @@ if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
   SYSTEMD_LIVE=1
 fi
 
+# The unit list and the fingerprint helper, shared with update.sh so the two cannot drift
+# apart about what "installed" means. Sourced after the clone, because it lives in it.
+# shellcheck source=deploy/lib/units.sh
+. "$SRC_DIR/deploy/lib/units.sh"
+
 if [ "$SYSTEMD_LIVE" = 1 ]; then
   say "installing the systemd timer (every ${INTERVAL_S}s)"
   if [ "$DRY_RUN" = 0 ]; then
@@ -244,6 +249,14 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
     systemctl daemon-reload
     systemctl enable --now capmetro-generate.timer
     systemctl enable --now capmetro-update.timer
+
+    # Record which unit sources these were rendered from. update.sh reads this to notice
+    # when the repo's units have moved on and the box has not, which is otherwise silent:
+    # update.sh never touches /etc/systemd/system, so a committed timer change deploys and
+    # then does nothing. That is how capmetro-update.timer spent 2026-08-27 firing at 04:17
+    # UTC, seven hours before the GTFS job it exists to collect from.
+    cm_unit_fingerprint "$SRC_DIR/deploy" > "$(cm_unit_stamp_path "$STATE_DIR")"
+    chmod 0644 "$(cm_unit_stamp_path "$STATE_DIR")"
   fi
   SCHEDULER="systemd timers capmetro-generate.timer (60s) + capmetro-update.timer (daily)"
 else

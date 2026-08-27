@@ -66,6 +66,11 @@ Expectations:
 - `update.sh` does not restart anything. The generator is a systemd oneshot, so
   new code is picked up on the next firing and there is no window where the
   board is down for a deploy.
+- `update.sh` does not install systemd units either; only `install.sh` writes
+  `/etc/systemd/system`. It does now *detect* when the committed units have moved
+  on and exits non-zero saying so, after the code and schedule are already live.
+  A unit change therefore needs `sudo deploy/install.sh` to take effect — a plain
+  `update.sh` will tell you, not fix it.
 - `/etc/capmetro/config.php` is never overwritten by the installer. It carries
   the watch list, which is the one file on the box describing somebody's routine.
 - The GTFS Action is still required and is also the delivery mechanism: it
