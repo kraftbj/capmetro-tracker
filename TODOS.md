@@ -136,6 +136,7 @@ together: `ShardFreshnessTest` asserts they agree, so half a re-pin fails loudly
 
 **Effort:** M
 **Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/12
 
 ### `update.sh` cannot deploy a systemd unit change
 
@@ -154,6 +155,24 @@ timers during an unattended pull is its own hazard.
 
 **Effort:** S
 **Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/10
+
+### Nothing tells anyone when the schedule pipeline breaks
+
+**What:** The GTFS job failed on 2026-08-27 and the board sat on a superseded schedule until a
+person looked at the site and thought the notice seemed wrong. A failed Action, an `ok:false`
+health file and a failed `capmetro-update.service` are each visible only to someone already
+looking in the right place.
+
+**Why:** The runtime now tells riders what is wrong. It tells the operator nothing.
+
+**Context:** `health.json` already carries the whole diagnosis; the gap is that nobody reads
+it. Alert on persistence, not on a single poll — one failed upstream fetch flips `ok` to false
+routinely.
+
+**Effort:** S
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/11
 
 ### Deploy it somewhere you can actually open on a phone
 
