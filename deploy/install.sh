@@ -210,9 +210,13 @@ if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
 fi
 
 # The unit list and the fingerprint helper, shared with update.sh so the two cannot drift
-# apart about what "installed" means. Sourced after the clone, because it lives in it.
-# shellcheck source=deploy/lib/units.sh
-. "$SRC_DIR/deploy/lib/units.sh"
+# apart about what "installed" means. Sourced after the clone, because it lives in it --
+# guarded, because under --dry-run the clone above only printed what it would do, so on a
+# fresh box the file is not there and an unguarded `.` would abort the dry run under `set -e`.
+if [ -f "$SRC_DIR/deploy/lib/units.sh" ]; then
+  # shellcheck source=deploy/lib/units.sh
+  . "$SRC_DIR/deploy/lib/units.sh"
+fi
 
 if [ "$SYSTEMD_LIVE" = 1 ]; then
   say "installing the systemd timer (every ${INTERVAL_S}s)"
@@ -255,8 +259,31 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
     # update.sh never touches /etc/systemd/system, so a committed timer change deploys and
     # then does nothing. That is how capmetro-update.timer spent 2026-08-27 firing at 04:17
     # UTC, seven hours before the GTFS job it exists to collect from.
-    cm_unit_fingerprint "$SRC_DIR/deploy" > "$(cm_unit_stamp_path "$STATE_DIR")"
-    chmod 0644 "$(cm_unit_stamp_path "$STATE_DIR")"
+    #
+    # In CONF_DIR, deliberately, and NOT in STATE_DIR. Line 130 chowns STATE_DIR to the job
+    # account, which is a nologin sandbox precisely because the generator is the thing most
+    # likely to be compromised. Writing this file as root into a directory that account owns
+    # would hand it two gifts: a symlink planted at the stamp path turns a root write into an
+    # arbitrary-file overwrite, and absent that, it could simply forge the stamp to make drift
+    # report clean forever -- switching off the check this file exists to be. CONF_DIR is
+    # created root:root at line 121 and never chowned, so root is the only writer.
+    #
+    # Written to a temp file and moved into place only on success. A plain `>` redirect
+    # truncates the target BEFORE the command runs, so a fingerprint that fails -- no
+    # sha256sum on the box, or sha256sum itself erroring under `set -o pipefail` -- would
+    # leave a zero-byte stamp behind and then abort the install with the timers already
+    # enabled. A zero-byte stamp matches nothing, so update.sh would report all four units
+    # as drifted, forever, on a box where nothing had drifted at all.
+    _stamp="$(cm_unit_stamp_path "$CONF_DIR")"
+    _stamp_tmp="$(mktemp "${_stamp}.XXXXXX")"
+    if cm_unit_fingerprint "$SRC_DIR/deploy" > "$_stamp_tmp"; then
+      mv "$_stamp_tmp" "$_stamp"
+      chmod 0644 "$_stamp"
+    else
+      rm -f "$_stamp_tmp"
+      die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units are
+     installed, but update.sh will have no record to check them against."
+    fi
   fi
   SCHEDULER="systemd timers capmetro-generate.timer (60s) + capmetro-update.timer (daily)"
 else

@@ -16,6 +16,11 @@
 # kept firing at 04:17. This script still does not install units -- restarting timers from
 # inside the timer-driven service that is running is its own hazard -- but it now NOTICES,
 # and says so in a way that survives being read later. See the note in deploy/lib/units.sh.
+#
+# The check runs on every path where the deploy itself got far enough to have an answer:
+# the no-op path, the generator-clean path, and the rollback path. It does NOT run on the
+# hard refusals above it -- not root, no git checkout, not a fast-forward -- because those
+# exit before the checkout has been touched and the units are not the story.
 set -euo pipefail
 
 QUIET=0
@@ -26,6 +31,7 @@ WEBROOT="${WEBROOT:-/var/www/capmetro}"
 RUN_USER="${RUN_USER:-capmetro}"
 BRANCH="${BRANCH:-trunk}"
 CONF="${CONF:-/etc/capmetro/config.php}"
+CONF_DIR="${CONF_DIR:-/etc/capmetro}"
 
 # See install.sh: a minimal Debian has no sudo, runuser is always there.
 as_user() {
@@ -48,28 +54,43 @@ die() { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 # systemd unit drift
 # ---------------------------------------------------------------------------
 
-# The state directory is asked of the config file rather than assumed, because --state-dir
-# is an install.sh flag and a box that used it would otherwise be checked against a stamp
-# that is not there. php is already a hard requirement below, so this costs nothing new.
-state_dir() {
-  local d=""
-  if [ -f "$CONF" ] && command -v php >/dev/null 2>&1; then
-    d=$(php -r '$c = @include $argv[1]; echo is_array($c) && isset($c["state_dir"]) ? $c["state_dir"] : "";' "$CONF" 2>/dev/null || true)
-  fi
-  printf '%s\n' "${d:-/var/lib/capmetro}"
-}
+# Exit status for "the deploy worked, but the units on disk are behind the repo". Distinct
+# from 1 on purpose: 1 already means the deploy itself failed and rolled back, and collapsing
+# the two teaches whoever eventually wires up alerting (issue 11) that a red capmetro-update
+# is ambiguous and therefore ignorable.
+readonly EXIT_UNIT_DRIFT=3
 
 # Reports whether the unit files in the checkout still match the ones install.sh rendered
-# from. Returns 0 when they agree or when the question does not apply, 1 when they do not.
-# Never touches anything: this is the whole "notices but does not act" contract from the
-# header, and acting would mean restarting a timer from inside its own service.
+# from. Returns 0 when they agree, when the question does not apply, or when it cannot be
+# answered; EXIT_UNIT_DRIFT when they genuinely differ.
+#
+# Not-knowing returns 0 deliberately. An absent stamp is the expected state of every box
+# installed before this feature existed, including this one, and failing on it would put
+# capmetro-update.service into FAILED four times a day for a condition that is not drift and
+# that no amount of re-running will clear. runtime/lib/upstream.php draws the same line for
+# the same reason: a probe that could not answer reports nothing and never reports a mismatch
+# it is not sure of. The warning still reaches the journal on every run, so the state stays
+# visible without being fatal.
+#
+# Never touches anything: this is the "notices but does not act" contract from the header,
+# and acting would mean restarting a timer from inside its own service.
+# $1 is the caller's context: `deployed` (the code and schedule went live) or `rolled-back`
+# (they did not). It only decides which sentences are true enough to print.
 check_units() {
+  local context="${1:-deployed}"
   # A box with no systemd running got a cron entry instead and owns none of these units, so
   # there is nothing here for it to be behind on. Its /etc/cron.d/capmetro has the same
   # shape of problem -- install.sh writes it, update.sh does not refresh it -- but that file
   # is generated inline rather than committed, so it has no source to fingerprint and is not
   # covered here. The systemd path is the one this deployment actually runs.
-  [ -d /run/systemd/system ] || return 0
+  # The SAME two-part probe install.sh uses (it checks the directory AND systemctl before it
+  # installs units or writes a stamp). Checking only the directory made the two asymmetric: a
+  # box with /run/systemd/system but no systemctl binary gets the cron install and no stamp,
+  # yet would still have been asked about units it does not own.
+  # Both halves are overridable so this function can be exercised off a systemd box. The
+  # defaults are the real thing; nothing in production sets either variable.
+  { [ -d "${SYSTEMD_MARKER:-/run/systemd/system}" ] \
+    && command -v "${SYSTEMCTL_BIN:-systemctl}" >/dev/null 2>&1; } || return 0
 
   local lib="$SRC_DIR/deploy/lib/units.sh"
   if [ ! -f "$lib" ]; then
@@ -78,32 +99,68 @@ check_units() {
   # shellcheck source=deploy/lib/units.sh
   . "$lib"
 
-  local stamp drift rc
-  stamp="$(cm_unit_stamp_path "$(state_dir)")"
-  set +e
-  drift=$(cm_unit_drift "$SRC_DIR/deploy" "$stamp")
-  rc=$?
-  set -e
+  # CONF_DIR, not the state dir: install.sh chowns the state dir to the nologin job account,
+  # and a stamp that account can rewrite is a check it can switch off.
+  local stamp drift rc=0
+  stamp="$(cm_unit_stamp_path "$CONF_DIR")"
+  # `|| rc=$?` rather than toggling errexit off and back on. The earlier version ended with a
+  # bare `set -e`, which does not restore the caller's setting -- it forces errexit ON. Under
+  # this script that was invisible because errexit is always on, but it made the function
+  # unusable from anywhere that had deliberately turned it off, including its own test.
+  # A failing left-hand side of `||` is exempt from errexit, so nothing needs toggling.
+  drift=$(cm_unit_drift "$SRC_DIR/deploy" "$stamp") || rc=$?
 
-  if [ "$rc" = 0 ]; then
-    return 0
-  fi
-
-  if [ "$rc" = 2 ]; then
-    loud "cannot tell which systemd units are installed: no record at $stamp"
-    loud "run 'install.sh' once to write it. Until then a unit change deploys silently."
-    return 1
-  fi
+  case "$rc" in
+    0) return 0 ;;
+    2)
+      if [ -f "$stamp" ]; then
+        loud "the record of which systemd units are installed is unreadable: $stamp"
+        loud "it does not parse, so it cannot be compared. Rewrite it with:"
+      else
+        loud "cannot tell which systemd units are installed: no record at $stamp"
+        loud "this is normal on a box installed before that record existed. Write it with:"
+      fi
+      loud "    sudo $SRC_DIR/deploy/install.sh"
+      loud "until then a unit change would deploy silently, but nothing else is wrong."
+      return 0
+      ;;
+    3)
+      loud "cannot fingerprint the systemd units: no sha256sum or shasum on this box"
+      loud "drift detection is off until one is installed. Nothing else is wrong."
+      return 0
+      ;;
+  esac
 
   loud "the systemd units in the checkout have changed since install.sh last ran:"
-  printf '%s\n' "$drift" | while IFS= read -r u; do
+  # A here-string, not a pipe: the loop must run in THIS shell so `loud` output is not the
+  # only thing that survives it. A piped `while` is a subshell, which worked here by luck.
+  local u
+  while IFS= read -r u; do
     [ -n "$u" ] && loud "    $u"
-  done
-  loud "the box is still running the OLD ones. The code and the schedule data above are"
-  loud "up to date; only the units are behind. Apply them with:"
+  done <<< "$drift"
+  loud "the box is still running the OLD ones."
+  # Only on the paths where it is true. Called from the rollback branch this used to print
+  # "the code and the schedule data above are up to date" immediately after `git reset --hard`
+  # had put the previous commit back -- a reassurance that was precisely false at the one
+  # moment someone would be reading it closely.
+  if [ "$context" = deployed ]; then
+    loud "the code and the schedule data above are up to date; only the units are behind."
+  fi
+  loud "Apply them with:"
   loud "    sudo $SRC_DIR/deploy/install.sh"
-  return 1
+  return "$EXIT_UNIT_DRIFT"
 }
+
+# ---------------------------------------------------------------------------
+# Everything above is definitions; everything below deploys. Sourcing this file with
+# CM_UPDATE_SH_LIB_ONLY=1 stops here, which is how tests/node/deploy-unit-drift.test.mjs
+# exercises check_units for real instead of grepping this file for the string "check_units".
+# A regex cannot tell a live call from a commented-out one, and the bug this whole feature
+# exists to prevent is a check that looks present and does nothing.
+# ---------------------------------------------------------------------------
+if [ "${CM_UPDATE_SH_LIB_ONLY:-0}" = 1 ]; then
+  return 0
+fi
 
 [ "$(id -u)" = 0 ] || die "run as root"
 if [ ! -d "$SRC_DIR/.git" ]; then
@@ -125,7 +182,7 @@ if [ "$BEFORE" = "$AFTER" ]; then
   # Checked even here, and this is the case that matters most. Drift persists across runs:
   # the commit that changed a unit lands once, and every run after it reports "nothing to
   # do" while the box quietly stays on the old unit forever.
-  check_units || exit 1
+  check_units || exit $?
   exit 0
 fi
 say "$BEFORE -> $AFTER"
@@ -145,7 +202,7 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   # Last, and non-fatal to the deploy itself: the code and the schedule are already live by
   # this point. A unit change that has not been applied is worth a failed unit and a red
   # `systemctl status`, but not worth withholding a schedule the board needs today.
-  check_units || exit 1
+  check_units || exit $?
   exit 0
 fi
 
@@ -166,7 +223,7 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   loud "$AFTER is broken; fix it before the next update runs"
   # Reported but not allowed to change the exit code: a broken commit is the headline and
   # a stale unit must not read as the reason the rollback happened.
-  check_units || true
+  check_units rolled-back || true
   exit 1
 fi
 

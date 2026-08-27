@@ -159,6 +159,15 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   is worth a red `systemctl status`, never worth withholding a schedule the board
   needs today.
 
+  Not-knowing is kept apart from both answers, the way `upstream.php` keeps an unreachable
+  probe apart from a real mismatch. A box with no record — every box installed before this
+  shipped — warns once per run and carries on rather than failing four times a day for a
+  condition that is not drift and that re-running never clears. A record that does not parse
+  says so instead of accusing all four units. And when no `sha256sum` or `shasum` exists,
+  the check reports that it cannot answer rather than hashing every file to the same
+  placeholder, which would have made drift read as clean forever — the exact
+  skip-that-reads-as-a-pass this repo keeps getting bitten by.
+
   It fingerprints the *sources* rather than diffing the installed files because
   `install.sh` renders three of the four units, substituting `@RUN_USER@`, `@GEN@`,
   `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff
