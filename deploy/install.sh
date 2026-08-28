@@ -217,7 +217,8 @@ fi
 
 # Whether systemd is really running here. Asked through deploy/lib/units.sh so update.sh
 # asks exactly the same question; see the note there. Falls back to the literal test when
-# the helper is absent, which happens only under --dry-run on a box with no checkout yet.
+# the helper is absent -- under --dry-run before the clone, or on a tree rsynced up with
+# --src-from that predates deploy/lib/.
 if command -v cm_systemd_live >/dev/null 2>&1 && cm_systemd_live; then
   SYSTEMD_LIVE=1
 elif [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
@@ -289,7 +290,11 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
       # outcome than simply having no drift record.
       warn "no $SRC_DIR/deploy/lib/units.sh here; units installed, but no drift record written"
     else
-      if ! cm_write_stamp "$SRC_DIR/deploy" "$CONF_DIR"; then
+      cm_write_stamp "$SRC_DIR/deploy" "$CONF_DIR" || STAMP_RC=$?
+      if [ "${STAMP_RC:-0}" = 2 ]; then
+        die "cannot create a temp file in $CONF_DIR (read-only filesystem, or full?).
+     The units ARE installed and running, but there is no drift record."
+      elif [ "${STAMP_RC:-0}" != 0 ]; then
         # Naming what update.sh will say, because it will say "no record ... normal on a box
         # installed before that record existed", which is the wrong story for this failure.
         die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units ARE

@@ -264,6 +264,16 @@ describe('not knowing is its own answer, never mistaken for agreement', () => {
 	 * the test passed having asserted nothing -- a skip that reads as a pass, in the very file
 	 * whose subject is a skip that reads as a pass.
 	 */
+	/*
+	 * The hasher's status is captured directly, not read off a pipeline, so "this file could
+	 * not be hashed" does not depend on the caller having set pipefail.
+	 */
+	it('reports an unhashable unit without relying on the caller setting pipefail', () => {
+		const r = sh('set +o pipefail\nsha256sum() { return 1; }\nshasum() { return 1; }\ncm_unit_fingerprint src/deploy')
+		expect(r.code).not.toBe(0)
+		expect(r.stdout.trim()).toBe('')
+	})
+
 	it('both hashing backends produce the same fingerprint', () => {
 		const viaSha256sum = sh('cm_sha256() { sha256sum "$1" | awk \'{print $1}\'; }\ncm_unit_fingerprint src/deploy')
 		const viaShasum = sh('cm_sha256() { shasum -a 256 "$1" | awk \'{print $1}\'; }\ncm_unit_fingerprint src/deploy')
@@ -365,6 +375,19 @@ describe('check_units, executed for real out of update.sh', () => {
 		expect(checkUnits().code).toBe(3)
 		expect(checkUnits({ EXIT_UNIT_DRIFT: '0' }).code).toBe(3)
 		expect(checkUnits({ EXIT_UNIT_DRIFT: '99' }).code).toBe(3)
+	})
+
+	/*
+	 * EXIT_UNIT_DRIFT is a plain assignment, so it cannot be inherited -- but check_units
+	 * sources a lib out of $SRC_DIR, and that lib could assign the same name. Third variant of
+	 * "the verdict is reachable from outside", so the value is snapshotted before the source.
+	 */
+	it('ignores a sourced lib that tries to redefine the drift exit code', () => {
+		const lib = readFileSync(LIB, 'utf8') + '\nEXIT_UNIT_DRIFT=0\n'
+		writeStamp()
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+		editUnit('capmetro-update.timer')
+		expect(checkUnits().code).toBe(3)
 	})
 
 	/*
@@ -526,6 +549,23 @@ describe('writing the record', () => {
 		expect(r.code).not.toBe(0)
 		expect(readFileSync(path.join(work, 'conf/installed-units.sha256'), 'utf8')).toBe(before)
 		expect(readdirSync(path.join(work, 'conf'))).toEqual([ 'installed-units.sha256' ])
+	})
+
+	/*
+	 * The chmod and the mv ARE the write, so their status is the answer. Returning 0 after them
+	 * unconditionally reported a successful record when the rename had failed: no stamp on
+	 * disk, a temp file left behind, and an install that said it was fine.
+	 */
+	it('reports failure when the rename fails, and leaves no temp file behind', () => {
+		const r = sh('mv() { return 1; }\ncm_write_stamp src/deploy conf')
+		expect(r.code).not.toBe(0)
+		expect(readdirSync(path.join(work, 'conf'))).toEqual([])
+	})
+
+	it('reports failure when the mode cannot be set', () => {
+		const r = sh('chmod() { return 1; }\ncm_write_stamp src/deploy conf')
+		expect(r.code).not.toBe(0)
+		expect(readdirSync(path.join(work, 'conf'))).toEqual([])
 	})
 
 	it('reports failure when the temp file cannot be created at all', () => {

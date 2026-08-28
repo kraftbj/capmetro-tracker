@@ -83,6 +83,12 @@ EXIT_UNIT_DRIFT=3
 # (they did not). It only decides which sentences are true enough to print.
 check_units() {
   local context="${1:-deployed}"
+  # Snapshotted BEFORE the source below. EXIT_UNIT_DRIFT is a plain assignment at the top of
+  # this file, which stops it being INHERITED -- but not overwritten by the lib this function
+  # is about to source out of $SRC_DIR. That lib is pulled code; a units.sh that assigned the
+  # same name, for any reason, would silently zero the verdict. Third variant of the same
+  # bug, so this time the value is simply put beyond reach.
+  local exit_drift="$EXIT_UNIT_DRIFT"
   local lib="$SRC_DIR/deploy/lib/units.sh"
   if [ ! -f "$lib" ]; then
     return 0   # a checkout older than this feature; nothing to compare against
@@ -188,11 +194,11 @@ check_units() {
   # `git reset --hard` put the previous commit back, it would be precisely false at the one
   # moment someone is reading closely.
   if [ "$context" = deployed ]; then
-    loud "the code and the schedule data above are up to date; only the units are behind."
+    loud "the code and the schedule data are up to date; only the units are behind."
   fi
   loud "Apply them with:"
   loud "    sudo $SRC_DIR/deploy/install.sh"
-  return "$EXIT_UNIT_DRIFT"
+  return "$exit_drift"
 }
 
 # ---------------------------------------------------------------------------

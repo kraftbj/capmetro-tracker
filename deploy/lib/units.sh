@@ -45,13 +45,19 @@ CM_DRIFT_NO_TOOL=3
 # stand-in hash makes every file compare equal to every other, so drift reads as clean
 # forever -- a skip that reads as a pass, hiding the exact condition this file surfaces.
 cm_sha256() {
+  local out
+  # The hasher's own status, captured directly, never the pipeline's. Piping into awk and
+  # relying on the exit code makes "this file could not be hashed" depend on the CALLER
+  # having set pipefail -- true of both scripts today, and a silent downgrade to "everything
+  # drifted" the first time something sources this without it.
   if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$1" | awk '{print $1}'
+    out=$(sha256sum "$1") || return 1
   elif command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 "$1" | awk '{print $1}'
+    out=$(shasum -a 256 "$1") || return 1
   else
     return "$CM_DRIFT_NO_TOOL"
   fi
+  printf '%s\n' "${out%% *}"
 }
 
 # cm_unit_fingerprint <deploy-dir>
@@ -116,8 +122,10 @@ cm_unit_stamp_path() {
 
 # cm_write_stamp <deploy-dir> <conf-dir>
 #
-# Records the fingerprint of <deploy-dir>'s units into <conf-dir>. Returns non-zero without
-# disturbing any existing record when the fingerprint cannot be computed.
+# Records the fingerprint of <deploy-dir>'s units into <conf-dir>, leaving any existing
+# record untouched unless the new one is complete. Returns 1 when the fingerprint or the
+# write failed, 2 when the temp file could not be created at all -- a read-only /etc or a
+# full disk, which is a different thing to tell the operator than a missing hashing tool.
 #
 # Written to a temp file and renamed, never with a plain `>` redirect: that truncates the
 # target BEFORE the command runs, so a failing fingerprint leaves a zero-byte record behind
@@ -132,11 +140,15 @@ cm_unit_stamp_path() {
 cm_write_stamp() {
   local deploy="$1" conf="$2" stamp tmp
   stamp="$(cm_unit_stamp_path "$conf")"
-  tmp="$(mktemp "${stamp}.XXXXXX")" || return 1
+  tmp="$(mktemp "${stamp}.XXXXXX")" || return 2
   if cm_unit_fingerprint "$deploy" > "$tmp"; then
-    chmod 0644 "$tmp"
-    mv "$tmp" "$stamp"
-    return 0
+    # The chmod and the mv ARE the write, so their status is the function's answer. Returning
+    # 0 unconditionally after them reported a successful record to install.sh when the rename
+    # had failed -- no stamp on disk, a temp file left in /etc/capmetro, and an install that
+    # said it was fine.
+    if chmod 0644 "$tmp" && mv "$tmp" "$stamp"; then
+      return 0
+    fi
   fi
   rm -f "$tmp"
   return 1
@@ -168,7 +180,7 @@ cm_unit_drift() {
   # every real hash, and be reported as "all four units drifted" -- a confident, specific,
   # wrong accusation about a box where nothing drifted. Corruption is not drift; it is
   # another way of not knowing, and this file's whole contract is that the two stay apart.
-  # Exactly one well-formed line per unit, and nothing else in the file. Both counts are
+  # Exactly one well-formed line per unit and no other content-bearing line. Both counts are
   # load-bearing: the well-formed tally alone accepts a stamp carrying junk that simply fails
   # to match the pattern, and the total alone accepts four malformed lines.
   #
