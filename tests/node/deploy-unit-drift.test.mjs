@@ -3,9 +3,8 @@
  *
  * `deploy/update.sh` pulls code and republishes the client; only `install.sh` writes
  * /etc/systemd/system. So a change to a .timer or .service merged, deployed, and did nothing,
- * with nothing anywhere reporting the difference. `capmetro-update.timer` was moved off 04:17
- * UTC on 2026-08-27 because 04:17 is seven hours BEFORE the GTFS job commits at 11:20, so a
- * rebuilt schedule waited a full day. The fix reached the box; the box kept firing at 04:17.
+ * with nothing anywhere reporting the difference. deploy/update.sh's header has the incident
+ * that found it.
  *
  * The detection cannot diff the installed files against the committed ones: install.sh RENDERS
  * three of the four, substituting @RUN_USER@, @GEN@, @INTERVAL_S@ and friends, so the installed
@@ -384,6 +383,58 @@ describe('check_units, executed for real out of update.sh', () => {
 	})
 
 	/*
+	 * The lib is read out of $SRC_DIR, and on the rollback path `git reset --hard` has already
+	 * replaced the checkout underneath the running script -- so the units.sh on disk is from
+	 * BEFORE while the update.sh reading it is from AFTER. Two commits on this branch ship a
+	 * units.sh with neither cm_systemd_live nor the CM_DRIFT_* constants.
+	 */
+	it('says it did not check, rather than passing silently, on a lib that predates it', () => {
+		const old = execFileSync('git', [ 'show', '074ed16:deploy/lib/units.sh' ],
+			{ cwd: REPO, encoding: 'utf8' })
+		writeStamp()
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), old)
+		const r = checkUnits()
+
+		expect(r.code).toBe(0)
+		expect(r.stdout).toMatch(/predates this version of update\.sh/)
+		expect(r.stdout).toMatch(/NOT checked/)
+	})
+
+	/*
+	 * And a lib that has the functions but not the constants: the case arms default so the
+	 * script cannot die on an unbound variable, and whatever cm_unit_drift does in that state
+	 * must not become a confident answer.
+	 */
+	it('survives a lib whose constants are missing without aborting or accusing', () => {
+		const lib = readFileSync(LIB, 'utf8')
+			.replace(/^CM_DRIFT_(SAME|FOUND|NO_STAMP|NO_TOOL)=\d\n/gm, '')
+		writeStamp()
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+		editUnit('capmetro-update.timer')
+		const r = checkUnits()
+
+		expect(r.code).not.toBe(1)
+		expect(r.stdout).not.toMatch(/unbound variable[\s\S]*have changed since/)
+	})
+
+	/*
+	 * The invariant behind both: a drift report with no unit named is not an answer. It has
+	 * come apart twice by different routes, so it is guarded at the point of reporting rather
+	 * than trusted to the contract upstream.
+	 */
+	it('never accuses without naming a unit', () => {
+		const lib = readFileSync(LIB, 'utf8')
+			.replace('cm_unit_drift() {', 'cm_unit_drift() { return 1;')
+		writeStamp()
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+		const r = checkUnits()
+
+		expect(r.code).toBe(0)
+		expect(r.stdout).toMatch(/named no unit/)
+		expect(r.stdout).not.toMatch(/have changed since install\.sh last ran/)
+	})
+
+	/*
 	 * check_units used to end its drift computation with a bare `set -e`, which does not
 	 * restore the caller's setting -- it forces errexit ON. Invisible inside update.sh, which
 	 * always has it on, and fatal to anything that had deliberately turned it off.
@@ -402,6 +453,49 @@ case "$-" in *e*) echo LEAKED ;; *) echo CLEAN ;; esac
 	})
 })
 
+/**
+ * The write side, executed. install.sh cannot be run in this suite -- it needs root, a clone
+ * and systemctl -- so for three review rounds the stamp write was asserted only by matching
+ * install.sh's own source text, which is the technique this file's header rejects. The
+ * sequence now lives in units.sh as cm_write_stamp and install.sh calls it, so the thing that
+ * actually writes the record is the thing under test.
+ */
+describe('writing the record', () => {
+	it('produces a stamp that immediately reads back as agreement', () => {
+		expect(sh('cm_write_stamp src/deploy conf').code).toBe(0)
+		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(0)
+	})
+
+	it('writes it 0644 and leaves no temp file behind', () => {
+		sh('cm_write_stamp src/deploy conf')
+		const mode = execFileSync('bash', ['-c',
+			`ls -l "${ work }/conf/installed-units.sha256" | cut -c1-10`], { encoding: 'utf8' }).trim()
+		expect(mode).toBe('-rw-r--r--')
+		expect(readdirSync(path.join(work, 'conf'))).toEqual([ 'installed-units.sha256' ])
+	})
+
+	/*
+	 * The reason it is not a plain `>` redirect: that truncates the target before the command
+	 * runs, so a failing fingerprint would leave a zero-byte record -- and a zero-byte record
+	 * matches nothing, reporting all four units as drifted on a box where nothing drifted.
+	 */
+	it('leaves an existing record untouched when the fingerprint fails', () => {
+		sh('cm_write_stamp src/deploy conf')
+		const before = readFileSync(path.join(work, 'conf/installed-units.sha256'), 'utf8')
+
+		const r = sh('cm_sha256() { return 3; }\ncm_write_stamp src/deploy conf')
+		expect(r.code).not.toBe(0)
+		expect(readFileSync(path.join(work, 'conf/installed-units.sha256'), 'utf8')).toBe(before)
+		expect(readdirSync(path.join(work, 'conf'))).toEqual([ 'installed-units.sha256' ])
+	})
+
+	it('reports failure rather than writing an empty record when there was none', () => {
+		const r = sh('cm_sha256() { return 3; }\ncm_write_stamp src/deploy conf')
+		expect(r.code).not.toBe(0)
+		expect(readdirSync(path.join(work, 'conf'))).toEqual([])
+	})
+})
+
 describe('the two scripts agree about what is deployed', () => {
 	const install = readFileSync(path.join(REPO, 'deploy/install.sh'), 'utf8')
 	const update = readFileSync(path.join(REPO, 'deploy/update.sh'), 'utf8')
@@ -412,18 +506,8 @@ describe('the two scripts agree about what is deployed', () => {
 		expect(update).toContain('deploy/lib/units.sh')
 	})
 
-	it('install.sh records the fingerprint when it installs the units', () => {
-		expect(install).toMatch(/cm_unit_fingerprint "\$SRC_DIR\/deploy" > "\$_stamp_tmp"/)
-	})
-
-	/*
-	 * A plain `>` truncates before the command runs, so a fingerprint that fails would leave a
-	 * zero-byte stamp -- which matches nothing, and would report all four units as drifted
-	 * forever on a box where nothing drifted.
-	 */
-	it('writes the stamp atomically rather than truncating it up front', () => {
-		expect(install).toMatch(/mktemp/)
-		expect(install).toMatch(/mv "\$_stamp_tmp" "\$_stamp"/)
+	it('install.sh writes the record through the shared helper', () => {
+		expect(install).toMatch(/cm_write_stamp "\$SRC_DIR\/deploy" "\$CONF_DIR"/)
 	})
 
 	/* A cron-only box owns no units, so update.sh must ask the same question install.sh did. */
@@ -453,9 +537,12 @@ describe('the two scripts agree about what is deployed', () => {
 	 * replaced with a symlink, turning a root write into an arbitrary-file overwrite.
 	 */
 	it('keeps the stamp in the root-owned config dir, not the job account\'s state dir', () => {
-		expect(install).toMatch(/cm_unit_stamp_path "\$CONF_DIR"/)
-		expect(install).not.toMatch(/cm_unit_stamp_path "\$STATE_DIR"/)
+		expect(install).toMatch(/cm_write_stamp "\$SRC_DIR\/deploy" "\$CONF_DIR"/)
+		expect(install).not.toMatch(/cm_write_stamp .*\$STATE_DIR/)
 		expect(update).toMatch(/cm_unit_stamp_path "\$CONF_DIR"/)
+		// install.sh hands the job account WEBROOT and STATE_DIR; CONF_DIR must not be in that list.
+		expect(install).toMatch(/chown -R "\$RUN_USER:\$RUN_USER" "\$WEBROOT" "\$STATE_DIR"/)
+		expect(install).toMatch(/chown root:root "\$CONF_DIR"/)
 	})
 
 	/*

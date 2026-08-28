@@ -156,6 +156,8 @@ timers during an unattended pull is its own hazard.
 **Effort:** S
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/10
+**Status:** Fixed on the `deploy/detect-unit-drift` branch, which takes the fail-loudly
+option above. Move this to Completed when that lands.
 
 ### Nothing tells anyone when the schedule pipeline breaks
 

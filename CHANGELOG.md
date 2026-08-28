@@ -177,7 +177,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
   It fingerprints the *sources* rather than diffing the installed files because
   `install.sh` renders three of the four units, substituting `@RUN_USER@`, `@GEN@`,
-  `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff
+  `@WEBROOT@`, `@STATE_DIR@`, `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff
   would report drift on a perfectly current box every time, and re-rendering to compare
   like with like would need install-time flags that nothing records. `update.sh` still
   does not install units: restarting a timer from inside the service that timer started

@@ -257,8 +257,7 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
     # Record which unit sources these were rendered from. update.sh reads this to notice
     # when the repo's units have moved on and the box has not, which is otherwise silent:
     # update.sh never touches /etc/systemd/system, so a committed timer change deploys and
-    # then does nothing. That is how capmetro-update.timer spent 2026-08-27 firing at 04:17
-    # UTC, seven hours before the GTFS job it exists to collect from.
+    # then does nothing. See deploy/update.sh's header for the incident that found this.
     #
     # In CONF_DIR, deliberately, and NOT in STATE_DIR. Line 130 chowns STATE_DIR to the job
     # account, which is a nologin sandbox precisely because the generator is the thing most
@@ -266,7 +265,8 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
     # would hand it two gifts: a symlink planted at the stamp path turns a root write into an
     # arbitrary-file overwrite, and absent that, it could simply forge the stamp to make drift
     # report clean forever -- switching off the check this file exists to be. CONF_DIR is
-    # created root:root at line 121 and never chowned, so root is the only writer.
+    # asserted root:root 0755 above, right after WEBROOT and STATE_DIR are handed to the job
+    # account, so root is the only writer.
     #
     # Written to a temp file and moved into place only on success. A plain `>` redirect
     # truncates the target BEFORE the command runs, so a fingerprint that fails -- no
@@ -281,16 +281,7 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
       # outcome than simply having no drift record.
       warn "no $SRC_DIR/deploy/lib/units.sh here; units installed, but no drift record written"
     else
-      _stamp="$(cm_unit_stamp_path "$CONF_DIR")"
-      _stamp_tmp="$(mktemp "${_stamp}.XXXXXX")"
-      if cm_unit_fingerprint "$SRC_DIR/deploy" > "$_stamp_tmp"; then
-        # Mode set on the temp file, where mktemp's O_EXCL still guarantees we are the only
-        # writer, and carried into place by the rename. chmod AFTER the mv follows whatever
-        # is at the destination -- including a symlink planted there between the two.
-        chmod 0644 "$_stamp_tmp"
-        mv "$_stamp_tmp" "$_stamp"
-      else
-        rm -f "$_stamp_tmp"
+      if ! cm_write_stamp "$SRC_DIR/deploy" "$CONF_DIR"; then
         # Naming what update.sh will say, because it will say "no record ... normal on a box
         # installed before that record existed", which is the wrong story for this failure.
         die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units ARE
@@ -308,7 +299,7 @@ else
   # runs once a minute. Say so rather than pretending the flag was honored.
   say "installing a once-a-minute cron entry"
   [ "$INTERVAL_S" != 60 ] && warn "cron cannot run more often than once a minute; --interval $INTERVAL_S ignored"
-  run sh -c "printf '* * * * * %s %s\n#\n# Four times a day, matching capmetro-update.timer. 04:17 used to be the hour,\n# seven hours BEFORE the GTFS job commits at 11:20, so a rebuild waited a day.\n20 0,6,12,18 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
+  run sh -c "printf '* * * * * %s %s\n#\n# Four times a day, matching capmetro-update.timer; see the note there.\n20 0,6,12,18 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
   run chmod 0644 /etc/cron.d/capmetro
   SCHEDULER="cron /etc/cron.d/capmetro (60s generate + daily update)"
 fi

@@ -97,6 +97,25 @@ check_units() {
     return 0
   fi
 
+  # What that lib provides is NOT guaranteed to be what this update.sh expects. On the
+  # rollback path `git reset --hard` has replaced the checkout underneath a running script,
+  # so the lib on disk is from BEFORE while the code reading it is from AFTER. Two commits on
+  # this branch ship a units.sh with neither cm_systemd_live nor the CM_DRIFT_* constants.
+  #
+  # Unchecked that goes wrong in both available directions: `cm_systemd_live` is then
+  # command-not-found, whose 127 the `|| return 0` below would swallow into a silent success,
+  # and the case arms would reference unbound constants and abort under `set -u`. A silent
+  # success is this feature's own anti-pattern; an abort takes down a deploy that already
+  # worked. Say which it is instead.
+  local fn
+  for fn in cm_systemd_live cm_unit_drift cm_unit_stamp_path; do
+    if ! command -v "$fn" >/dev/null 2>&1; then
+      loud "$lib predates this version of update.sh (no $fn); units NOT checked."
+      loud "expected right after a rollback. Nothing else is wrong."
+      return 0
+    fi
+  done
+
   # A box with no systemd running got a cron entry instead and owns none of these units, so
   # there is nothing here for it to be behind on. The same probe install.sh uses, out of the
   # same file, so the two cannot disagree about which kind of box this is.
@@ -115,8 +134,8 @@ check_units() {
   # The arms are cm_unit_drift's contract, named in deploy/lib/units.sh. Anything that is not
   # one of these three is CM_DRIFT_FOUND, handled below.
   case "$rc" in
-    "$CM_DRIFT_SAME") return 0 ;;
-    "$CM_DRIFT_NO_STAMP")
+    "${CM_DRIFT_SAME:-0}") return 0 ;;
+    "${CM_DRIFT_NO_STAMP:-2}")
       if [ -f "$stamp" ]; then
         loud "the record of which systemd units are installed is unreadable: $stamp"
         loud "it does not parse, so it cannot be compared. Rewrite it with:"
@@ -128,7 +147,7 @@ check_units() {
       loud "until then a unit change would deploy silently, but nothing else is wrong."
       return 0
       ;;
-    "$CM_DRIFT_NO_TOOL")
+    "${CM_DRIFT_NO_TOOL:-3}")
       # Deliberately not "no sha256sum on this box": the same status also covers a unit file
       # that exists and could not be read, and asserting the wrong cause sends someone to
       # install a package they already have.
@@ -136,7 +155,7 @@ check_units() {
       loud "no sha256sum or shasum, or a unit file could not be read. Nothing else is wrong."
       return 0
       ;;
-    "$CM_DRIFT_FOUND") ;;
+    "${CM_DRIFT_FOUND:-1}") ;;
     *)
       # Anything else is a contract this function does not know about. Falling through to the
       # drift branch would print "the units have changed:" with nothing after it, which is the
@@ -145,6 +164,17 @@ check_units() {
       return 0
       ;;
   esac
+
+  # Never an accusation with nothing in it. rc says drift, but the names are what make that
+  # actionable, and the two have come apart twice by different routes: once from deciding
+  # drift with one comparison and explaining it with another, once from a partial lib whose
+  # own unbound constants made cm_unit_drift fail in a way that merely LOOKED like rc=1.
+  # Whatever the route, an empty list means the answer is not known, so say that instead.
+  if [ -z "$drift" ]; then
+    loud "the unit check reported a difference but named no unit, so it cannot be trusted."
+    loud "the units were NOT checked. Nothing else is wrong."
+    return 0
+  fi
 
   loud "the systemd units in the checkout have changed since install.sh last ran:"
   # A here-string, not a pipe: the loop must run in THIS shell so `loud` output is not the

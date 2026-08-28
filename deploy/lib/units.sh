@@ -105,9 +105,41 @@ cm_systemd_live() {
     && command -v "${SYSTEMCTL_BIN:-systemctl}" >/dev/null 2>&1
 }
 
-# cm_unit_stamp_path <state-dir>
+# cm_unit_stamp_path <conf-dir>
+#
+# Deliberately not <state-dir>: the state dir belongs to the job account, and keeping the
+# stamp out of it is the whole reason this feature cannot be switched off from inside the
+# sandbox. Both callers pass CONF_DIR.
 cm_unit_stamp_path() {
   printf '%s/installed-units.sha256\n' "${1%/}"
+}
+
+# cm_write_stamp <deploy-dir> <conf-dir>
+#
+# Records the fingerprint of <deploy-dir>'s units into <conf-dir>. Returns non-zero without
+# disturbing any existing record when the fingerprint cannot be computed.
+#
+# Written to a temp file and renamed, never with a plain `>` redirect: that truncates the
+# target BEFORE the command runs, so a failing fingerprint leaves a zero-byte record behind
+# and a zero-byte record matches nothing, which reads as all four units drifting on a box
+# where nothing drifted. The mode is set on the temp file, where mktemp's O_EXCL still
+# guarantees we are the only writer; a chmod after the rename follows whatever is at the
+# destination, including a symlink planted between the two.
+#
+# Lives here rather than inline in install.sh so it can be executed by a test. It was inline,
+# and three review rounds running flagged that the write side of this feature was asserted
+# only by pattern-matching install.sh's own source text.
+cm_write_stamp() {
+  local deploy="$1" conf="$2" stamp tmp
+  stamp="$(cm_unit_stamp_path "$conf")"
+  tmp="$(mktemp "${stamp}.XXXXXX")" || return 1
+  if cm_unit_fingerprint "$deploy" > "$tmp"; then
+    chmod 0644 "$tmp"
+    mv "$tmp" "$stamp"
+    return 0
+  fi
+  rm -f "$tmp"
+  return 1
 }
 
 # cm_unit_drift <deploy-dir> <stamp-file>
