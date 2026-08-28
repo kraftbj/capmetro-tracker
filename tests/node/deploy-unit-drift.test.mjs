@@ -78,7 +78,12 @@ export SYSTEMD_MARKER="${ env.SYSTEMD_MARKER ?? `${ work }/src` }"
 export SYSTEMCTL_BIN="${ env.SYSTEMCTL_BIN ?? 'true' }"
 ${ env.EXIT_UNIT_DRIFT ? `export EXIT_UNIT_DRIFT=${ env.EXIT_UNIT_DRIFT }` : '' }
 . "${ UPDATE }"
-check_units ${ env.context ?? '' }
+# Exactly how the real call sites invoke it. A bare \`check_units\` is STRICTER than
+# production: in \`cmd || exit $?\` bash suppresses errexit for the whole left-hand side, so
+# a bare call turns an internal failure into a script abort that no real caller would see.
+# Testing under stricter options than production over-reports rather than under-reports, but
+# it means these results would not model the context check_units actually runs in.
+check_units ${ env.context ?? '' } || exit $?
 `
 	try {
 		const stdout = execFileSync('bash', ['-c', script], {
@@ -418,6 +423,23 @@ describe('check_units, executed for real out of update.sh', () => {
 	})
 
 	/*
+	 * One case per name, because the loop is a list and a list can lose an entry silently. The
+	 * only historical lib that actually exists is missing all three at once, which would pass
+	 * even if two of the three checks were deleted.
+	 */
+	it.each([ 'cm_systemd_live', 'cm_unit_drift', 'cm_unit_stamp_path' ])(
+		'notices a lib missing only %s', (fn) => {
+			const lib = readFileSync(LIB, 'utf8').replace(`${ fn }() {`, `${ fn }_disabled() {`)
+			writeStamp()
+			writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+			const r = checkUnits()
+
+			expect(r.code).toBe(0)
+			expect(r.stdout).toContain(`no ${ fn }`)
+			expect(r.stdout).toMatch(/NOT checked/)
+		})
+
+	/*
 	 * And a lib that has the functions but not the constants: the case arms default so the
 	 * script cannot die on an unbound variable, and whatever cm_unit_drift does in that state
 	 * must not become a confident answer.
@@ -504,6 +526,11 @@ describe('writing the record', () => {
 		expect(r.code).not.toBe(0)
 		expect(readFileSync(path.join(work, 'conf/installed-units.sha256'), 'utf8')).toBe(before)
 		expect(readdirSync(path.join(work, 'conf'))).toEqual([ 'installed-units.sha256' ])
+	})
+
+	it('reports failure when the temp file cannot be created at all', () => {
+		const r = sh('cm_write_stamp src/deploy conf/does-not-exist')
+		expect(r.code).not.toBe(0)
 	})
 
 	it('reports failure rather than writing an empty record when there was none', () => {
