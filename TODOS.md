@@ -138,27 +138,6 @@ together: `ShardFreshnessTest` asserts they agree, so half a re-pin fails loudly
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/12
 
-### `update.sh` cannot deploy a systemd unit change
-
-**What:** `deploy/update.sh` deliberately never touches `/etc/systemd/system`; only
-`install.sh` copies the timer and service files. So a change to `capmetro-generate.timer` or
-`capmetro-update.timer` lands in the repo, passes review, deploys — and never takes effect.
-
-**Why:** Found on 2026-08-27 fixing the update timer's firing hour. The repo said one schedule
-and the box ran another, with nothing reporting the difference. The same trap applies to any
-future unit edit.
-
-**Context:** Either have `update.sh` diff the committed units against the installed ones and
-re-copy plus `daemon-reload` when they differ, or have it fail loudly when they diverge so the
-operator knows to run `install.sh`. Failing loudly is probably right: silently restarting
-timers during an unattended pull is its own hazard.
-
-**Effort:** S
-**Priority:** P2
-**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/10
-**Status:** Fixed on the `deploy/detect-unit-drift` branch, which takes the fail-loudly
-option above. Move this to Completed when that lands.
-
 ### Nothing tells anyone when the schedule pipeline breaks
 
 **What:** The GTFS job failed on 2026-08-27 and the board sat on a superseded schedule until a
@@ -243,6 +222,38 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### `update.sh` silently ignored systemd unit changes
+
+**What:** `deploy/update.sh` never touches `/etc/systemd/system`; only `install.sh` writes
+unit files. So a committed change to `capmetro-generate.timer` or `capmetro-update.timer`
+merged, deployed, and never took effect, with nothing reporting the difference.
+
+**Why:** Found on 2026-08-27 while fixing the update timer's firing hour — 04:17 on a box
+running `Etc/UTC`, seven hours *before* the GTFS job commits at 11:20, so a rebuilt schedule
+waited a full day. That fix reached the box; the box kept firing at 04:17.
+
+**Context:** Took the fail-loudly option rather than having `update.sh` install units itself:
+restarting a timer from inside the service that timer started is its own hazard.
+`install.sh` records a sha256 fingerprint of the four unit *sources* into
+`/etc/capmetro/installed-units.sha256`; `update.sh` compares and exits **3** — distinct from
+1, which means the deploy failed — after the code and schedule are already live. It
+fingerprints sources rather than diffing installed files because `install.sh` renders three
+of the four units, so the installed copy never equals the source.
+
+Four review rounds, and in each one the previous round's fix opened the next hole: a test
+rewrite unpinned the call sites, a `readonly` repair made the exit code inheritable from the
+environment, and the extraction that finally made the write testable stopped reporting its
+own failures. The recurring class throughout was a check that silently passes. Along the way
+it also turned out `install.sh` itself would not run — `php -m | grep -q` races under
+`pipefail` and reported every extension missing — which would have made the documented remedy
+fail on first use.
+
+**Effort:** S (became M)
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/10
+**Completed:** 2026-08-28, PR 13 (`8b43897`). Needs `sudo deploy/install.sh` on the box once
+to write the first record.
 
 ### Regenerate the golden route 4 fixture and make the block fields required
 
