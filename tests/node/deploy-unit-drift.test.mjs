@@ -383,6 +383,23 @@ describe('check_units, executed for real out of update.sh', () => {
 	})
 
 	/*
+	 * The `*)` arm exists for a status outside cm_unit_drift's contract. Nothing produces one
+	 * today, which is exactly why it needs a test: it is the arm that stops an unknown status
+	 * falling through into the drift branch, and an untested defence is a guess.
+	 */
+	it('treats a status outside the contract as "not checked", not as drift', () => {
+		const lib = readFileSync(LIB, 'utf8')
+			.replace('cm_unit_drift() {', 'cm_unit_drift() { return 9;')
+		writeStamp()
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+		const r = checkUnits()
+
+		expect(r.code).toBe(0)
+		expect(r.stdout).toMatch(/unexpected status \(9\)/)
+		expect(r.stdout).not.toMatch(/have changed since install\.sh last ran/)
+	})
+
+	/*
 	 * The lib is read out of $SRC_DIR, and on the rollback path `git reset --hard` has already
 	 * replaced the checkout underneath the running script -- so the units.sh on disk is from
 	 * BEFORE while the update.sh reading it is from AFTER. Two commits on this branch ship a
@@ -561,6 +578,9 @@ describe('the two scripts agree about what is deployed', () => {
 		expect(update).not.toMatch(/systemctl\s+(restart|start|enable|reenable|link|daemon-reload)/)
 		expect(update).not.toMatch(/(cp|install|mv|ln)\s+[^\n]*\/etc\/systemd/)
 		expect(update).not.toMatch(/>\s*\/etc\/systemd/)
+		// `| tee /etc/systemd/...` is a shape this repo actually writes elsewhere (install.sh
+		// uses `| sudo tee` for the vhosts), so it is the plausible way this guard gets evaded.
+		expect(update).not.toMatch(/tee\s+[^\n]*\/etc\/systemd/)
 	})
 
 	it('guards the source so a dry-run install without a checkout cannot abort', () => {
@@ -619,7 +639,18 @@ describe('the drift check is actually wired into the deploy', () => {
 		}
 		stub('id', 'echo 0')
 		stub('chown', 'exit 0')
-		stub('runuser', 'shift 2; [ "$1" = "--" ] && shift; exec "$@"')
+		/*
+		 * Asserts the exact shape `as_user` promises -- `runuser -u <user> -- <cmd>` -- and dies
+		 * loudly on anything else. A tolerant stub (`shift 2; [ "$1" = "--" ] && shift`) accepted
+		 * both the right and the wrong invocation, so dropping the `--` separator from as_user
+		 * left the whole suite green. A stub that forgives is a test that does not test.
+		 */
+		stub('runuser', [
+			'[ "$1" = "-u" ] || { echo "runuser stub: expected -u, got $1" >&2; exit 99; }',
+			'[ "$3" = "--" ] || { echo "runuser stub: expected -- separator, got $3" >&2; exit 99; }',
+			'shift 3',
+			'exec "$@"',
+		].join('\n'))
 		stub('php', 'd=$(dirname "$1"); [ -f "$d/BOOM" ] && exit 1; exit 0')
 		return { origin, src, bin }
 	}
@@ -742,5 +773,77 @@ exec bash "${ UPDATE }"
 		const r = runUpdate(fx)
 		expect(r.code).toBe(0)
 		expect(r.out).not.toMatch(/have changed since/)
+	})
+})
+
+/**
+ * install.sh, executed.
+ *
+ * Four review rounds ran with install.sh asserted only by pattern-matching its own source
+ * text, and that fragility was demonstrated live: two behavior-preserving refactors during
+ * the review broke three of those assertions while the behavior they described was fine.
+ *
+ * It cannot be run for real here -- it clones, writes /etc/systemd, and calls systemctl -- but
+ * `--dry-run` walks the same argument parsing, the same preconditions, and the same branch
+ * structure while printing instead of acting. With `id` stubbed to 0 that is reachable, and it
+ * is enough to prove the script parses, gets to the end, and does not abort on the paths this
+ * PR added.
+ */
+describe('install.sh --dry-run', () => {
+	const INSTALL = path.join(REPO, 'deploy/install.sh')
+	const install = readFileSync(INSTALL, 'utf8')
+
+	function runInstall(extraArgs = []) {
+		const bin = path.join(work, 'ibin')
+		mkdirSync(bin, { recursive: true })
+		writeFileSync(path.join(bin, 'id'), '#!/bin/sh\necho 0\n', { mode: 0o755 })
+		const script = `
+export PATH="${ bin }:$PATH"
+bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
+  ${ extraArgs.map((a) => `'${ a }'`).join(' ') }
+`
+		try {
+			return { code: 0, out: execFileSync('bash', ['-c', script], {
+				cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ] }) }
+		} catch (e) {
+			return { code: e.status, out: (e.stdout || '') + (e.stderr || '') }
+		}
+	}
+
+	it('runs to completion without aborting', () => {
+		const r = runInstall()
+		expect(r.code).toBe(0)
+	})
+
+	/*
+	 * The guard round 2 added. Under --dry-run the clone only prints, so on a fresh box
+	 * deploy/lib/units.sh does not exist -- and an unguarded `.` of it would abort the whole
+	 * dry run under `set -euo pipefail`. This is the case that guard exists for.
+	 */
+	it('survives a source tree with no units.sh, which is the dry-run case', () => {
+		rmSync(path.join(work, 'src/deploy/lib/units.sh'))
+		const r = runInstall()
+		expect(r.code).toBe(0)
+		expect(r.out).not.toMatch(/cm_unit_(stamp_path|fingerprint|write_stamp): command not found/)
+	})
+
+	/*
+	 * `php -m | grep -qix json` is a race under `set -o pipefail`: grep -q exits on the match,
+	 * php takes SIGPIPE, and pipefail promotes its status -- so the check reports an extension
+	 * MISSING exactly when it is present. It took install.sh down at the prerequisite check on
+	 * this machine every time, which is how four rounds of "run install.sh to fix the drift"
+	 * advice would have played out in practice.
+	 */
+	it('does not ask php about its extensions through a pipe', () => {
+		// Directive lines only -- the comment above the fix quotes the broken pattern on purpose.
+		const code = install.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
+		expect(code).not.toMatch(/php -m\s*\|\s*grep/)
+		expect(code).toMatch(/extension_loaded/)
+	})
+
+	it('changes nothing on disk', () => {
+		const before = readdirSync(path.join(work, 'conf'))
+		runInstall()
+		expect(readdirSync(path.join(work, 'conf'))).toEqual(before)
 	})
 })

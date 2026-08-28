@@ -144,6 +144,16 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **`install.sh` reported every PHP extension missing, on some hosts, every time.**
+  `php -m | grep -qix "$ext"` is a race under `set -o pipefail`: `grep -q` exits the moment
+  it matches, `php` still has output to write, takes SIGPIPE, and pipefail promotes its status
+  to the pipeline's — so the check reports an extension MISSING exactly when it is present and
+  matches early. Whether it bites depends on the pipe buffer and scheduling, which is why it
+  went unnoticed; on the machine this was found on it fails every time, killing `install.sh` at
+  the prerequisite check with "PHP extension 'json' is missing" while json is loaded. Asked of
+  `php` directly now. Pre-existing, and in scope only because the drift detection above makes
+  `sudo deploy/install.sh` a step this project now tells people to run.
+
 - **A systemd unit change deployed and then did nothing.** `deploy/update.sh` pulls
   code and republishes the client but never writes `/etc/systemd/system`; only
   `install.sh` does. So a change to a `.timer` or `.service` merged, deployed, and

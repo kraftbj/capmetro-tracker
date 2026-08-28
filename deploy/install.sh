@@ -105,8 +105,16 @@ fi
 PHP_OK=$(php -r 'echo PHP_VERSION_ID >= 80200 ? "yes" : "no";')
 PHP_V=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
 [ "$PHP_OK" = yes ] || die "PHP $PHP_V found; composer.json requires php>=8.2"
+# Asked of php directly, never `php -m | grep -q`. That pipeline is a race under
+# `set -o pipefail`: grep -q exits the moment it matches, php still has output to write, takes
+# SIGPIPE, and pipefail promotes its 141/255 to the pipeline's status -- so the check reports
+# a MISSING extension precisely when it is present and listed early enough to match. Whether
+# it bites depends on the pipe buffer and scheduling, which is why it survived this long; on
+# this developer's machine it fails every time, taking install.sh down at the prerequisite
+# check with "PHP extension 'json' is missing" while json is loaded.
 for ext in json curl mbstring; do
-  php -m | grep -qix "$ext" || die "PHP extension '$ext' is missing (apt install php-$ext)"
+  php -r 'exit(extension_loaded($argv[1]) ? 0 : 1);' "$ext" \
+    || die "PHP extension '$ext' is missing (apt install php-$ext)"
 done
 say "php $PHP_V with json, curl, mbstring (no composer packages needed)"
 
