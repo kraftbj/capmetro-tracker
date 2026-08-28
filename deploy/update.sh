@@ -58,9 +58,12 @@ die() { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 # from 1 on purpose: 1 already means the deploy itself failed and rolled back, and collapsing
 # the two teaches whoever eventually wires up alerting (issue 11) that a red capmetro-update
 # is ambiguous and therefore ignorable.
-# Not a bare `readonly`: re-sourcing this file in one shell would make the second assignment
-# a fatal, untrappable error.
-[ -n "${EXIT_UNIT_DRIFT:-}" ] || readonly EXIT_UNIT_DRIFT=3
+# A plain assignment, deliberately. `readonly` made re-sourcing this file a fatal error, and
+# the obvious repair -- keep whatever is already set -- turned it into an inherited switch:
+# EXIT_UNIT_DRIFT=0 in the environment made confirmed drift exit 0, silently, which is the
+# whole failure this file exists to end. Plain assignment is idempotent across sourcing AND
+# overwrites anything inherited, which is everything readonly was buying.
+EXIT_UNIT_DRIFT=3
 
 # Reports whether the unit files in the checkout still match the ones install.sh rendered
 # from. Returns 0 when they agree, when the question does not apply, or when it cannot be

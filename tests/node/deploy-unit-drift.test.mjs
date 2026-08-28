@@ -49,10 +49,15 @@ beforeEach(() => {
 })
 afterEach(() => rmSync(work, { recursive: true, force: true }))
 
-/** Runs a snippet with deploy/lib/units.sh sourced. Returns { code, stdout }. */
+/**
+ * Runs a snippet with deploy/lib/units.sh sourced, under `set -euo pipefail` -- the same
+ * shell options install.sh and update.sh both set. Testing a library under laxer options
+ * than its only two callers use hides exactly the failures errexit causes: a helper whose
+ * non-zero return is meant to be caught instead takes the caller down.
+ */
 function sh(snippet, opts = {}) {
 	try {
-		const stdout = execFileSync('bash', ['-c', `. "${ LIB }"\n${ snippet }`], {
+		const stdout = execFileSync('bash', ['-c', `set -euo pipefail\n. "${ LIB }"\n${ snippet }`], {
 			cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ], ...opts,
 		})
 		return { code: 0, stdout }
@@ -72,6 +77,7 @@ set -euo pipefail
 export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf"
 export SYSTEMD_MARKER="${ env.SYSTEMD_MARKER ?? `${ work }/src` }"
 export SYSTEMCTL_BIN="${ env.SYSTEMCTL_BIN ?? 'true' }"
+${ env.EXIT_UNIT_DRIFT ? `export EXIT_UNIT_DRIFT=${ env.EXIT_UNIT_DRIFT }` : '' }
 . "${ UPDATE }"
 check_units ${ env.context ?? '' }
 `
@@ -214,6 +220,32 @@ describe('not knowing is its own answer, never mistaken for agreement', () => {
 		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(2)
 	})
 
+	/*
+	 * A stamp can be the right shape and still be nonsense. The pattern used to accept any
+	 * non-space token as a hash, so a record whose hash fields were arbitrary text passed
+	 * validation, compared unequal to every real hash, and was reported as CONFIRMED drift --
+	 * corruption laundered into a specific accusation. Only the two things install.sh actually
+	 * writes count: a sha256 digest, or the literal `missing`.
+	 */
+	it.each([
+		[ 'arbitrary text', 'whoops' ],
+		[ 'a truncated digest', 'abc123' ],
+		[ 'an uppercase digest', 'A'.repeat(64) ],
+	])('rejects a shape-valid stamp whose hash fields are %s', (_label, fake) => {
+		const good = sh('cm_unit_fingerprint src/deploy').stdout
+		writeFileSync(
+			path.join(work, 'conf/installed-units.sha256'),
+			good.replace(/^\S+/gm, fake),
+		)
+		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(2)
+	})
+
+	it('still accepts the literal "missing" that a deleted unit records', () => {
+		rmSync(path.join(work, 'src/deploy/capmetro-update.timer'))
+		writeStamp()
+		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(0)
+	})
+
 	it('tells the operator a corrupt record is unreadable rather than blaming the units', () => {
 		writeFileSync(path.join(work, 'conf/installed-units.sha256'), 'garbage\n')
 		const r = checkUnits()
@@ -314,6 +346,41 @@ describe('check_units, executed for real out of update.sh', () => {
 			expect(r.stdout).toContain('capmetro-update.timer')
 			expect(r.stdout).toContain('install.sh')
 		}
+	})
+
+	/*
+	 * The verdict must not be settable from outside. EXIT_UNIT_DRIFT was briefly written as
+	 * "keep whatever is already set" -- a repair for a double-source crash that turned the
+	 * exit code into an inherited switch, so EXIT_UNIT_DRIFT=0 in the environment made
+	 * confirmed drift exit 0. A silent switch that disables the check is the failure this
+	 * whole feature exists to end, so it is worth a test rather than a comment.
+	 */
+	it('ignores EXIT_UNIT_DRIFT arriving from the environment', () => {
+		writeStamp()
+		editUnit('capmetro-update.timer')
+		expect(checkUnits().code).toBe(3)
+		expect(checkUnits({ EXIT_UNIT_DRIFT: '0' }).code).toBe(3)
+		expect(checkUnits({ EXIT_UNIT_DRIFT: '99' }).code).toBe(3)
+	})
+
+	/*
+	 * The systemd overrides stay overridable -- that is what makes this testable off a systemd
+	 * box -- but they can point the probe at nothing and make the whole check pass, so they
+	 * must not be able to do it quietly.
+	 */
+	it('says on stderr when the systemd probe has been pointed somewhere else', () => {
+		const r = sh('cm_systemd_live || true', {
+			env: { ...process.env, SYSTEMD_MARKER: path.join(work, 'nope'), SYSTEMCTL_BIN: 'true' },
+			stdio: [ 'ignore', 'pipe', 'pipe' ],
+		})
+		// sh() returns stdout on success; read stderr directly for this one.
+		const err = execFileSync('bash', ['-c',
+			`set -euo pipefail\n. "${ LIB }"\ncm_systemd_live 2>&1 >/dev/null || true`], {
+			cwd: work, encoding: 'utf8',
+			env: { ...process.env, SYSTEMD_MARKER: path.join(work, 'nope'), SYSTEMCTL_BIN: 'true' },
+		})
+		expect(err).toMatch(/overridden/)
+		expect(r.code).toBe(0)
 	})
 
 	/*

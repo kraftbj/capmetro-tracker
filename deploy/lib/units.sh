@@ -93,6 +93,14 @@ cm_unit_fingerprint() {
 # other. The overrides exist so this is testable off a systemd box; nothing sets them in
 # production.
 cm_systemd_live() {
+  # An override in effect says so on stderr. Both of these can point the probe at something
+  # that does not exist, which makes the whole drift check return "not my kind of box" and
+  # pass -- a switch that fails OPEN. It stays overridable because that is what makes the
+  # function testable off a systemd box, but it can no longer do it quietly.
+  if [ -n "${SYSTEMD_MARKER:-}" ] || [ -n "${SYSTEMCTL_BIN:-}" ]; then
+    printf 'cm_systemd_live: overridden (marker=%s systemctl=%s)\n' \
+      "${SYSTEMD_MARKER:-default}" "${SYSTEMCTL_BIN:-default}" >&2
+  fi
   [ -d "${SYSTEMD_MARKER:-/run/systemd/system}" ] \
     && command -v "${SYSTEMCTL_BIN:-systemctl}" >/dev/null 2>&1
 }
@@ -131,8 +139,13 @@ cm_unit_drift() {
   # Exactly one well-formed line per unit, and nothing else in the file. Both counts are
   # load-bearing: the well-formed tally alone accepts a stamp carrying junk that simply fails
   # to match the pattern, and the total alone accepts four malformed lines.
+  #
+  # "Well-formed" means the two things install.sh actually writes -- a sha256 digest or the
+  # literal `missing`. A looser "any non-space token" pattern accepted a record whose hash
+  # fields were arbitrary text, which then compared unequal to every real hash and was
+  # reported as confirmed drift: a corrupt stamp laundered into a specific accusation.
   want=$(printf '%s\n' $CM_UNIT_FILES | wc -l | tr -d ' ')
-  lines=$(printf '%s\n' "$was" | grep -c '^[^ ][^ ]*  [^ ][^ ]*$' || true)
+  lines=$(printf '%s\n' "$was" | grep -c '^\([0-9a-f]\{64\}\|missing\)  [^ ][^ ]*$' || true)
   total=$(printf '%s\n' "$was" | grep -c . || true)
   if [ "$lines" != "$want" ] || [ "$total" != "$want" ]; then
     return "$CM_DRIFT_NO_STAMP"

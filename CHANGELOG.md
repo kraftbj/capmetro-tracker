@@ -168,6 +168,13 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   placeholder, which would have made drift read as clean forever — the exact
   skip-that-reads-as-a-pass this repo keeps getting bitten by.
 
+  Nothing about the verdict is settable from outside. That took two passes to get right: an
+  exit-code constant briefly kept whatever value it inherited (a repair for a double-source
+  crash), which turned `EXIT_UNIT_DRIFT=0` in the environment into a switch that made
+  confirmed drift exit 0. The systemd probe stays overridable so it can be tested off a
+  systemd box, but says on stderr when it has been pointed elsewhere, because an override
+  makes the whole check pass.
+
   It fingerprints the *sources* rather than diffing the installed files because
   `install.sh` renders three of the four units, substituting `@RUN_USER@`, `@GEN@`,
   `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff

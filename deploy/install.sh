@@ -281,19 +281,22 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
       # outcome than simply having no drift record.
       warn "no $SRC_DIR/deploy/lib/units.sh here; units installed, but no drift record written"
     else
-    _stamp="$(cm_unit_stamp_path "$CONF_DIR")"
-    _stamp_tmp="$(mktemp "${_stamp}.XXXXXX")"
-    if cm_unit_fingerprint "$SRC_DIR/deploy" > "$_stamp_tmp"; then
-      # Mode set on the temp file, where mktemp's O_EXCL still guarantees we are the only
-      # writer, and carried into place by the rename. chmod AFTER the mv follows whatever
-      # is at the destination -- including a symlink planted there between the two.
-      chmod 0644 "$_stamp_tmp"
-      mv "$_stamp_tmp" "$_stamp"
-    else
-      rm -f "$_stamp_tmp"
-      die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units are
-     installed, but update.sh will have no record to check them against."
-    fi
+      _stamp="$(cm_unit_stamp_path "$CONF_DIR")"
+      _stamp_tmp="$(mktemp "${_stamp}.XXXXXX")"
+      if cm_unit_fingerprint "$SRC_DIR/deploy" > "$_stamp_tmp"; then
+        # Mode set on the temp file, where mktemp's O_EXCL still guarantees we are the only
+        # writer, and carried into place by the rename. chmod AFTER the mv follows whatever
+        # is at the destination -- including a symlink planted there between the two.
+        chmod 0644 "$_stamp_tmp"
+        mv "$_stamp_tmp" "$_stamp"
+      else
+        rm -f "$_stamp_tmp"
+        # Naming what update.sh will say, because it will say "no record ... normal on a box
+        # installed before that record existed", which is the wrong story for this failure.
+        die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units ARE
+     installed and running. update.sh will report no drift record and call that normal for
+     an older box; it is not, it is this failure. Fix the hashing tool and re-run."
+      fi
     fi
   fi
   SCHEDULER="systemd timers capmetro-generate.timer (60s) + capmetro-update.timer (daily)"
