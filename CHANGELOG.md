@@ -144,6 +144,55 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **`install.sh` reported every PHP extension missing, on some hosts, every time.**
+  `php -m | grep -qix "$ext"` is a race under `set -o pipefail`: `grep -q` exits the moment
+  it matches, `php` still has output to write, takes SIGPIPE, and pipefail promotes its status
+  to the pipeline's — so the check reports an extension MISSING exactly when it is present and
+  matches early. Whether it bites depends on the pipe buffer and scheduling, which is why it
+  went unnoticed; on the machine this was found on it fails every time, killing `install.sh` at
+  the prerequisite check with "PHP extension 'json' is missing" while json is loaded. Asked of
+  `php` directly now. Pre-existing, and in scope only because the drift detection above makes
+  `sudo deploy/install.sh` a step this project now tells people to run.
+
+- **A systemd unit change deployed and then did nothing.** `deploy/update.sh` pulls
+  code and republishes the client but never writes `/etc/systemd/system`; only
+  `install.sh` does. So a change to a `.timer` or `.service` merged, deployed, and
+  left the box running the old one, with nothing reporting the difference. The
+  `capmetro-update.timer` fix below is itself an example: it moved off 04:17 UTC and
+  the box kept firing at 04:17.
+
+  `install.sh` now records a fingerprint of the unit sources it rendered from, and
+  `update.sh` compares the checkout against it on every run — including the "already
+  up to date, nothing to do" path, which is the one that matters, since drift persists
+  across runs while every later run short-circuits. On a mismatch it names the units
+  and exits non-zero, after the code and the schedule are already live: a stale timer
+  is worth a red `systemctl status`, never worth withholding a schedule the board
+  needs today.
+
+  Not-knowing is kept apart from both answers, the way `upstream.php` keeps an unreachable
+  probe apart from a real mismatch. A box with no record — every box installed before this
+  shipped — warns once per run and carries on rather than failing four times a day for a
+  condition that is not drift and that re-running never clears. A record that does not parse
+  says so instead of accusing all four units. And when no `sha256sum` or `shasum` exists,
+  the check reports that it cannot answer rather than hashing every file to the same
+  placeholder, which would have made drift read as clean forever — the exact
+  skip-that-reads-as-a-pass this repo keeps getting bitten by.
+
+  Nothing about the verdict is settable from outside. That took two passes to get right: an
+  exit-code constant briefly kept whatever value it inherited (a repair for a double-source
+  crash), which turned `EXIT_UNIT_DRIFT=0` in the environment into a switch that made
+  confirmed drift exit 0. The systemd probe stays overridable so it can be tested off a
+  systemd box, but says on stderr when it has been pointed elsewhere, because an override
+  makes the whole check pass.
+
+  It fingerprints the *sources* rather than diffing the installed files because
+  `install.sh` renders three of the four units, substituting `@RUN_USER@`, `@GEN@`,
+  `@WEBROOT@`, `@STATE_DIR@`, `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff
+  would report drift on a perfectly current box every time, and re-rendering to compare
+  like with like would need install-time flags that nothing records. `update.sh` still
+  does not install units: restarting a timer from inside the service that timer started
+  is a hazard worth avoiding, so it notices and says so rather than acting.
+
 - **CapMetro replaced the schedule off-cycle and the board could not tell.** On
   2026-08-27, `260818_1456` became `260826_0956` eight days into a feed advertised
   as valid through 2027-01-09. Every trip id was renumbered, so nothing joined:

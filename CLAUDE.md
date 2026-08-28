@@ -26,7 +26,7 @@ Run everything: `npm test` (wraps `tests/run-all.sh`).
 | Suite | Command | Covers |
 |---|---|---|
 | Schema | `npm run test:schema` | Generated output vs `schemas/*.json`, plus the staff-PII assertion |
-| Node | `npm run test:node` | `build/` shard generation and shared client logic (vitest) |
+| Node | `npm run test:node` | `build/` shard generation, shared client logic, and the `deploy/` scripts (vitest) |
 | PHP | `npm run test:php` | `runtime/` pure functions (phpunit) |
 | E2E | `npm run test:e2e` | The client at 412px against fixture scenarios (playwright) |
 
@@ -58,6 +58,15 @@ Expectations:
 - Deploy trigger: `ssh <host> 'sudo /srv/capmetro/src/deploy/update.sh'`
 - Deploy status: `curl -sf https://bus.dillo.dev/api/health.json | grep -q '"ok":true'`
 - Health check: `https://bus.dillo.dev/api/health.json`
+- `update.sh` exit codes: **0** clean; **1** anything that stopped the deploy (a
+  precondition refusal — not root, no checkout, not a fast-forward — or the generator
+  failed and the commit was rolled back); **3** the deploy succeeded but the committed
+  systemd units are not the ones installed, so run `sudo deploy/install.sh`.
+  Anything treating a non-zero exit as a failed deploy must special-case 3, or it
+  will report a healthy board as broken. Note that systemd itself does not: the unit
+  carries no `SuccessExitStatus=3`, so a drift run shows as failed in
+  `systemctl status`, deliberately, since that is the loudest signal available until
+  something alerts. Read `ExecMainStatus` to tell 3 from 1.
 
 ### Notes
 - Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd
@@ -66,6 +75,19 @@ Expectations:
 - `update.sh` does not restart anything. The generator is a systemd oneshot, so
   new code is picked up on the next firing and there is no window where the
   board is down for a deploy.
+- `update.sh` does not install systemd units either; only `install.sh` writes
+  `/etc/systemd/system`. It does now *detect* when the committed units have moved
+  on: it names them and exits **3** (distinct from 1, which means the deploy itself
+  failed and rolled back), after the code and schedule are already live. A unit
+  change therefore needs `sudo deploy/install.sh` to take effect — a plain
+  `update.sh` will tell you, not fix it. Anything reading update.sh's exit status
+  as a deploy verdict should treat 3 as "deployed, units stale", not as a failure.
+- The record it checks against is `/etc/capmetro/installed-units.sha256`, written by
+  `install.sh`. It lives in the root-owned config dir rather than the state dir
+  because the state dir belongs to the nologin job account, and a stamp that account
+  could rewrite is a check it could switch off. A box that has never run an
+  `install.sh` carrying this feature has no record; `update.sh` says so once per run
+  and carries on, because "cannot tell" is not "drifted".
 - `/etc/capmetro/config.php` is never overwritten by the installer. It carries
   the watch list, which is the one file on the box describing somebody's routine.
 - The GTFS Action is still required and is also the delivery mechanism: it
