@@ -155,6 +155,29 @@ routinely.
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/11
 
+### Fall back to the protobuf positions feed when the JSON one stalls
+
+**What:** On 2026-09-01 `vehiclepositions.json` (`cuc7-ywmd`) froze at 12:40:09 CDT for over
+four hours while CapMetro's protobuf publication of the same feed (`eiei-9rpf`) stayed current
+to the second. Read the PB twin when the JSON is stale, converting it to the same camelCase
+shape so nothing downstream changes.
+
+**Why:** The data was never missing. The board spent an afternoon showing four-hour-old
+positions, and because `cm_staleness()` takes the oldest feed, it also suppressed lateness for
+trip updates that were 39 seconds fresh.
+
+**Context:** The stall was upstream and only on the publish side — the file served a clean 200
+throughout, and Socrata's per-publish blob UUID never advanced. The work is a PB decoder in
+`fetch.php` returning the `cm_fetch_json()` array shape. Watch the enum mapping:
+`scheduleRelationship` and `currentStatus` are strings in the JSON and integers in the PB, and
+`adherence.php` compares `CANCELED` by name, so a bad mapping changes lateness silently. Prove
+it with a differential run against the JSON while both feeds are live, not with fixture unit
+tests.
+
+**Effort:** M
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/14
+
 ### Deploy it somewhere you can actually open on a phone
 
 **What:** The board runs locally and nowhere else. Get the static client onto GitHub

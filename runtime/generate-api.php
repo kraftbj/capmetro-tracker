@@ -71,6 +71,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/lib/servicetime.php';
+require_once __DIR__ . '/lib/gtfsrt.php';
 require_once __DIR__ . '/lib/fetch.php';
 require_once __DIR__ . '/lib/upstream.php';
 require_once __DIR__ . '/lib/write.php';
@@ -164,11 +165,19 @@ if ($fixtures !== null) {
     $feeds['positions']    = cm_read_json_file($fixtures . '/vehiclepositions.json');
     $feeds['trip_updates'] = cm_read_json_file($fixtures . '/tripupdates.json');
     $feeds['alerts']       = cm_read_json_file($fixtures . '/servicealerts.json');
+    $feeds['positions']['source'] = 'json';
 } else {
-    foreach (CM_FEED_URLS as $name => $url) {
-        $feeds[$name] = cm_fetch_json($url, (int) $config['timeout_s']);
-    }
+    $timeout_s = (int) $config['timeout_s'];
+    /*
+     * Positions goes through its own fetch because it is the one feed with a second
+     * publication to fall back on when the first stalls (issue 14). CM_STALE_STALE_S is passed
+     * so that falling back and the board going `stale` are the same threshold by construction.
+     */
+    $feeds['positions']    = cm_fetch_positions($timeout_s, time(), CM_STALE_STALE_S);
+    $feeds['trip_updates'] = cm_fetch_json(CM_FEED_URLS['trip_updates'], $timeout_s);
+    $feeds['alerts']       = cm_fetch_json(CM_FEED_URLS['alerts'], $timeout_s);
 }
+$positions_source = (string) ($feeds['positions']['source'] ?? 'json');
 foreach ($feeds as $name => $r) {
     if (!$r['ok']) {
         $errors[] = $name . ': ' . $r['error'];
@@ -291,7 +300,8 @@ if ($errors !== []) {
         ],
         ['vehicles' => 0, 'routes_written' => 0],
         $errors,
-        $cron_last_success_at
+        $cron_last_success_at,
+        $positions_source
     ));
     foreach ($errors as $e) {
         fwrite(STDERR, "error: $e\n");
@@ -671,7 +681,8 @@ cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
     ],
     ['vehicles' => count($all_vehicles), 'routes_written' => $routes_written],
     $errors,
-    $cron_last_success_at
+    $cron_last_success_at,
+    $positions_source
 ));
 
 $log(sprintf(
