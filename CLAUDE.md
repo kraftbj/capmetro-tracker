@@ -69,6 +69,15 @@ Expectations:
   something alerts. Read `ExecMainStatus` to tell 3 from 1.
 
 ### Notes
+- CapMetro publishes vehicle positions **twice**: as JSON (`cuc7-ywmd`) and as
+  protobuf (`eiei-9rpf`). The runtime reads the JSON and falls back to the protobuf
+  when the JSON is more than `CM_STALE_STALE_S` behind, because on 2026-09-01 the
+  JSON publication froze for over five hours while the protobuf stayed current. Both
+  are fetched server-side by the cron; neither is ever fetched by the browser, which
+  only ever reads our own `/api/*.json`. `health.json`'s `feeds.positions_source`
+  says which one a run used — if it reads `protobuf`, the JSON feed has stalled
+  upstream and the board is running on the fallback. A stalled feed serves a clean
+  200 with internally consistent content, so only its header age gives it away.
 - Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd
   timer that writes JSON to disk; there is no PHP handler in the vhost and that
   is deliberate, not an omission.
