@@ -14,6 +14,22 @@ require_once __DIR__ . '/stopstatus.php';
 require_once __DIR__ . '/shards.php';
 
 /*
+ * Every value schedule_relationship is allowed to publish, matching the enum in
+ * schemas/common.schema.json. Anything upstream hands us that is not on this list becomes
+ * UNKNOWN; see where it is applied below for why that is not the same as guessing.
+ */
+const CM_SCHEDULE_RELATIONSHIPS = [
+    'SCHEDULED',
+    'CANCELED',
+    'ADDED',
+    'UNSCHEDULED',
+    'REPLACEMENT',
+    'DUPLICATED',
+    'DELETED',
+    'UNKNOWN',
+];
+
+/*
  * Index the trip updates feed by trip id.
  *
  * 912 entries in the 2026-08-19 capture, of which 100 are CANCELED with no stopTimeUpdate
@@ -214,7 +230,19 @@ function cm_build_vehicle(
      * 2 of the decision table dead code and compute lateness against canceled trips, so
      * the trip update wins and the emitted schedule_relationship says so too.
      */
+    /*
+     * A value neither feed's vocabulary covers is published as UNKNOWN rather than passed
+     * through. The protobuf decoder deliberately hands back an unmapped enum as its raw wire
+     * integer -- guessing SCHEDULED for a value GTFS-RT adds later could quietly reinstate a
+     * canceled trip -- but that integer is not one of the names schedule_relationship is
+     * declared to hold, and publishing it would put the board's own output outside its schema.
+     * UNKNOWN keeps the honesty and stays inside the contract. It is not CANCELED either way,
+     * which is the property that actually matters.
+     */
     $relationship = (string) ($trip['scheduleRelationship'] ?? 'SCHEDULED');
+    if (!in_array($relationship, CM_SCHEDULE_RELATIONSHIPS, true)) {
+        $relationship = 'UNKNOWN';
+    }
     if (($trip_update['trip']['scheduleRelationship'] ?? null) === 'CANCELED') {
         $relationship = 'CANCELED';
     }

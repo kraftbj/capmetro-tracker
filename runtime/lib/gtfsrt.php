@@ -155,7 +155,14 @@ function cm_pb_fields(string $b): ?array
                 /* 'g' is little-endian float32, which is what protobuf fixed32 floats are. */
                 $u = unpack('g', substr($b, $i, 4));
                 $v = $u === false ? null : $u[1];
-                if ($v === null) {
+                /*
+                 * NAN and INF are representable on the wire and are not encodable as JSON:
+                 * json_encode() fails on them outright, and write.php then refuses to write.
+                 * That is the same hole invalid UTF-8 opens on the string side, reached
+                 * through the float side, so it closes the same way — a message carrying one
+                 * is corrupt, not merely unusual.
+                 */
+                if ($v === null || !is_finite($v)) {
                     return null;
                 }
                 $i += 4;
@@ -168,7 +175,7 @@ function cm_pb_fields(string $b): ?array
                 /* 'e' is little-endian float64. Only `odometer` uses this and we drop it. */
                 $u = unpack('e', substr($b, $i, 8));
                 $v = $u === false ? null : $u[1];
-                if ($v === null) {
+                if ($v === null || !is_finite($v)) {
                     return null;
                 }
                 $i += 8;
@@ -217,23 +224,60 @@ function cm_pb_enum($value, array $map)
 }
 
 /*
- * A length-delimited field read as a string, or null when it is not usable as one.
+ * A length-delimited field read as a string: the string, null when the field is absent, or
+ * false when it is present but unusable.
  *
- * GTFS-RT strings are UTF-8 by specification, so bytes that are not valid UTF-8 are a corrupt
- * field rather than an exotic one. Dropping them matters more than it looks: write.php refuses
- * to write a document json_encode() could not encode, and json_encode() fails outright on
- * invalid UTF-8. One bad byte in one vehicle label would otherwise stop every file that vehicle
- * appears in from being written at all. Losing the label costs one field; losing the write
- * costs the board. The JSON publication cannot reach this path — json_decode() would have
- * rejected the payload upstream — so it is the protobuf that makes it reachable.
+ * The three-way return is the point. GTFS-RT strings are UTF-8 by specification, so bytes that
+ * are not valid UTF-8 are a corrupt field rather than an exotic one, and it matters that a
+ * corrupt field is not quietly reported as an absent one: absent fields carry meaning here. A
+ * vehicle with no `trip` is not an error downstream, it is a deadhead — join.php reads it as a
+ * bus running out of service — so dropping an unreadable tripId would publish an in-service
+ * bus as out of service, stating something false rather than admitting a gap.
+ *
+ * Validating at all is what keeps the run alive: write.php refuses to write a document
+ * json_encode() could not encode, and json_encode() fails outright on invalid UTF-8, so one
+ * bad byte in one vehicle would otherwise cost every file that vehicle appears in. The JSON
+ * publication cannot reach this path — json_decode() rejects it upstream — so the protobuf is
+ * what makes it reachable at all.
  */
-function cm_pb_string($value): ?string
+function cm_pb_string($value)
 {
-    if (!is_string($value) || !mb_check_encoding($value, 'UTF-8')) {
+    if ($value === null) {
         return null;
+    }
+    if (!is_string($value) || !mb_check_encoding($value, 'UTF-8')) {
+        return false;
     }
 
     return $value;
+}
+
+/*
+ * Put a string field, reporting whether it was usable.
+ *
+ * Returns false when the field was present but corrupt, which every caller turns into a failed
+ * message rather than a message with a hole in it.
+ */
+function cm_pb_put_string(array &$out, string $key, $value): bool
+{
+    $s = cm_pb_string($value);
+    if ($s === false) {
+        return false;
+    }
+    cm_pb_put($out, $key, $s);
+
+    return true;
+}
+
+/* A numeric field of the expected PHP type, or null when it is absent or the wrong wire type. */
+function cm_pb_int($value): ?int
+{
+    return is_int($value) ? $value : null;
+}
+
+function cm_pb_float($value): ?float
+{
+    return is_float($value) ? $value : null;
 }
 
 /* Set $out[$key] only when $value is non-null, so absent fields stay absent as in the JSON. */
@@ -253,15 +297,18 @@ function cm_pb_trip_descriptor(string $bytes): ?array
     }
 
     $out = [];
-    cm_pb_put($out, 'tripId', cm_pb_string(cm_pb_scalar($f, 1)));
-    cm_pb_put($out, 'startTime', cm_pb_string(cm_pb_scalar($f, 2)));
-    cm_pb_put($out, 'startDate', cm_pb_string(cm_pb_scalar($f, 3)));
+    if (!cm_pb_put_string($out, 'tripId', cm_pb_scalar($f, 1))
+        || !cm_pb_put_string($out, 'startTime', cm_pb_scalar($f, 2))
+        || !cm_pb_put_string($out, 'startDate', cm_pb_scalar($f, 3))
+        || !cm_pb_put_string($out, 'routeId', cm_pb_scalar($f, 5))
+    ) {
+        return null;
+    }
     cm_pb_put($out, 'scheduleRelationship', cm_pb_enum(
         cm_pb_scalar($f, 4),
         CM_PB_TRIP_SCHEDULE_RELATIONSHIP
     ));
-    cm_pb_put($out, 'routeId', cm_pb_string(cm_pb_scalar($f, 5)));
-    cm_pb_put($out, 'directionId', cm_pb_scalar($f, 6));
+    cm_pb_put($out, 'directionId', cm_pb_int(cm_pb_scalar($f, 6)));
 
     return $out;
 }
@@ -280,10 +327,10 @@ function cm_pb_position(string $bytes): ?array
     }
 
     $out = [];
-    cm_pb_put($out, 'latitude', cm_pb_scalar($f, 1));
-    cm_pb_put($out, 'longitude', cm_pb_scalar($f, 2));
-    cm_pb_put($out, 'bearing', cm_pb_scalar($f, 3));
-    cm_pb_put($out, 'speed', cm_pb_scalar($f, 5));
+    cm_pb_put($out, 'latitude', cm_pb_float(cm_pb_scalar($f, 1)));
+    cm_pb_put($out, 'longitude', cm_pb_float(cm_pb_scalar($f, 2)));
+    cm_pb_put($out, 'bearing', cm_pb_float(cm_pb_scalar($f, 3)));
+    cm_pb_put($out, 'speed', cm_pb_float(cm_pb_scalar($f, 5)));
 
     return $out;
 }
@@ -297,9 +344,12 @@ function cm_pb_vehicle_descriptor(string $bytes): ?array
     }
 
     $out = [];
-    cm_pb_put($out, 'id', cm_pb_string(cm_pb_scalar($f, 1)));
-    cm_pb_put($out, 'label', cm_pb_string(cm_pb_scalar($f, 2)));
-    cm_pb_put($out, 'licensePlate', cm_pb_string(cm_pb_scalar($f, 3)));
+    if (!cm_pb_put_string($out, 'id', cm_pb_scalar($f, 1))
+        || !cm_pb_put_string($out, 'label', cm_pb_scalar($f, 2))
+        || !cm_pb_put_string($out, 'licensePlate', cm_pb_scalar($f, 3))
+    ) {
+        return null;
+    }
 
     return $out;
 }
@@ -344,7 +394,7 @@ function cm_pb_vehicle_position(string $bytes): ?array
         cm_pb_put($out, 'position', $decoded);
     }
 
-    cm_pb_put($out, 'currentStopSequence', cm_pb_scalar($f, 3));
+    cm_pb_put($out, 'currentStopSequence', cm_pb_int(cm_pb_scalar($f, 3)));
     cm_pb_put($out, 'currentStatus', cm_pb_enum(
         cm_pb_scalar($f, 4),
         CM_PB_VEHICLE_STOP_STATUS
@@ -353,7 +403,9 @@ function cm_pb_vehicle_position(string $bytes): ?array
     $ts = cm_pb_scalar($f, 5);
     cm_pb_put($out, 'timestamp', is_int($ts) ? (string) $ts : null);
 
-    cm_pb_put($out, 'stopId', cm_pb_string(cm_pb_scalar($f, 7)));
+    if (!cm_pb_put_string($out, 'stopId', cm_pb_scalar($f, 7))) {
+        return null;
+    }
 
     $vehicle = cm_pb_scalar($f, 8);
     if (is_string($vehicle)) {
@@ -404,29 +456,53 @@ function cm_gtfsrt_decode(string $bytes): ?array
     $header_ts = cm_pb_scalar($hf, 3);
     cm_pb_put($header, 'timestamp', is_int($header_ts) ? (string) $header_ts : null);
 
+    /*
+     * A vehicle that will not decode is dropped, not fatal to the feed. One corrupt field in
+     * one of 413 buses should cost that bus, not the rescue: failing the whole feed would hand
+     * the board back four-hour-old data over a single bad byte. A dropped bus is simply absent,
+     * which the board already knows how to mean; the thing that must never happen is a bus
+     * present with a hole in it, and the message decoders above return null rather than do that.
+     *
+     * The floor is what keeps "drop the bad ones" from becoming "publish whatever survived". A
+     * handful of failures is field corruption. Most of them failing means we are reading the
+     * message wrongly, and a confident partial fleet is worse than no fallback at all, so the
+     * feed loses and the stale JSON is kept.
+     */
     $entities = [];
+    $failed   = 0;
     foreach (($f[2] ?? []) as $entity_bytes) {
         if (!is_string($entity_bytes)) {
+            $failed++;
             continue;
         }
         $ef = cm_pb_fields($entity_bytes);
         if ($ef === null) {
-            return null;
+            $failed++;
+            continue;
         }
 
         $vp = cm_pb_scalar($ef, 4);
         if (!is_string($vp)) {
+            /* A TripUpdate or Alert entity. Not ours, and not a failure. */
             continue;
         }
         $vehicle = cm_pb_vehicle_position($vp);
         if ($vehicle === null) {
-            return null;
+            $failed++;
+            continue;
         }
 
         $entity = [];
-        cm_pb_put($entity, 'id', cm_pb_string(cm_pb_scalar($ef, 1)));
+        if (!cm_pb_put_string($entity, 'id', cm_pb_scalar($ef, 1))) {
+            $failed++;
+            continue;
+        }
         $entity['vehicle'] = $vehicle;
         $entities[] = $entity;
+    }
+
+    if ($failed > count($entities)) {
+        return null;
     }
 
     return ['header' => $header, 'entity' => $entities];

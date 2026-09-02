@@ -155,6 +155,31 @@ routinely.
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/11
 
+### A run's worst-case fetch time is roughly twice the unit's TimeoutStartSec
+
+**What:** `deploy/capmetro-generate.service` sets `TimeoutStartSec=50`. A run makes three feed
+requests at `timeout_s` each — 45s at the configured 15 — and every fifteenth minute the
+upstream probe adds three more ranged GETs at the same timeout, for 90s. The positions fallback
+adds a capped 10s on a stalled cycle. Nothing bounds the run as a whole, so a slow upstream can
+have systemd kill the generator outright.
+
+**Why:** It has never fired, because the feeds answer in well under a second and the failure
+needs several requests to hang at once. But the runs where it would fire are exactly the runs
+where upstream is already misbehaving — which is when the board most needs the cycle to finish.
+A killed run writes nothing, and the failure looks like a dead cron rather than a slow feed.
+
+**Context:** Found reviewing PR 15, which added the fourth request and made the arithmetic
+worth doing. The fallback is capped at `CM_POSITIONS_PB_TIMEOUT_S = 10` so it cannot be the
+thing that blows the budget, but the budget was already over the ceiling without it, so that
+cap narrows the problem rather than fixing it. The fix is to bound the run rather than each
+request: a deadline threaded through the fetches, so whatever has not answered by then is
+treated as a failed feed and the run publishes what it has. Raising `TimeoutStartSec` instead
+would only move the cliff, and it is a unit change, so it costs a `sudo deploy/install.sh` and
+an exit-3 run to take effect.
+
+**Effort:** S
+**Priority:** P3
+
 ### Deploy it somewhere you can actually open on a phone
 
 **What:** The board runs locally and nowhere else. Get the static client onto GitHub

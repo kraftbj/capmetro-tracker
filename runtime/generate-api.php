@@ -165,7 +165,34 @@ if ($fixtures !== null) {
     $feeds['positions']    = cm_read_json_file($fixtures . '/vehiclepositions.json');
     $feeds['trip_updates'] = cm_read_json_file($fixtures . '/tripupdates.json');
     $feeds['alerts']       = cm_read_json_file($fixtures . '/servicealerts.json');
-    $feeds['positions']['source'] = 'json';
+    /*
+     * A fixture directory carrying a vehiclepositions.pb runs the same choice the network path
+     * runs, against the same two feeds, so the fallback is exercised end to end by something
+     * that writes a real webroot rather than only by unit tests of the chooser. Without this
+     * the fixture path hardcodes `json` and the protobuf branch is unreachable from any test
+     * that produces generated output -- which is the output the project's own QA rule says to
+     * check against. Fixtures with no .pb behave exactly as they did.
+     *
+     * The clock is --now, or the fixture's own protobuf header. It cannot be $now, which is
+     * derived further down from whichever positions feed wins and so does not exist yet, and
+     * it must not be the wall clock: a committed fixture ages, and a chooser fed real time
+     * would answer differently in a year than it does today.
+     */
+    $positions_pb = $fixtures . '/vehiclepositions.pb';
+    if (is_file($positions_pb)) {
+        $pb_result = cm_decode_positions_pb((string) file_get_contents($positions_pb));
+        $choose_at = isset($args['now'])
+            ? (int) $args['now']
+            : cm_positions_header_at($pb_result);
+        $feeds['positions'] = cm_positions_choose(
+            $feeds['positions'],
+            $pb_result,
+            $choose_at,
+            CM_STALE_STALE_S
+        );
+    } else {
+        $feeds['positions']['source'] = 'json';
+    }
 } else {
     $timeout_s = (int) $config['timeout_s'];
     /*
@@ -178,6 +205,14 @@ if ($fixtures !== null) {
     $feeds['alerts']       = cm_fetch_json(CM_FEED_URLS['alerts'], $timeout_s);
 }
 $positions_source = (string) ($feeds['positions']['source'] ?? 'json');
+/*
+ * A fallback that was consulted and could not help. Not an error in itself -- the JSON is
+ * still serving, or its own staleness is already the error -- but a run where the rescue was
+ * unavailable must not read like a run where it was never wanted.
+ */
+if (isset($feeds['positions']['fallback_error'])) {
+    $log('positions fallback unavailable: ' . $feeds['positions']['fallback_error']);
+}
 foreach ($feeds as $name => $r) {
     if (!$r['ok']) {
         $errors[] = $name . ': ' . $r['error'];

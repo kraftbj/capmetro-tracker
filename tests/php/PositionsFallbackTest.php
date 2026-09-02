@@ -25,7 +25,13 @@ final class PositionsFallbackTest extends TestCase
     {
         Runtime::functionsOrSkip(
             $this,
-            ['cm_positions_choose', 'cm_positions_needs_fallback', 'cm_positions_header_at'],
+            [
+                'cm_positions_choose',
+                'cm_positions_needs_fallback',
+                'cm_positions_header_at',
+                'cm_positions_entity_count',
+                'cm_gtfsrt_decode',
+            ],
             self::FILES
         );
     }
@@ -219,6 +225,139 @@ final class PositionsFallbackTest extends TestCase
 
         self::assertTrue($chosen['ok']);
         self::assertArrayNotHasKey('error', $chosen);
+    }
+
+    /**
+     * The JSON keeps a dead-even tie, so an ordinary run never changes source for no reason.
+     * Documented in cm_positions_choose() and, until now, asserted nowhere.
+     */
+    public function testAProtobufExactlyAsFreshAsTheJsonDoesNotDisplaceIt(): void
+    {
+        $chosen = $this->choose(
+            $this->feedAt(self::NOW - 14089),
+            $this->feedAt(self::NOW - 14089)
+        );
+
+        self::assertSame('json', $chosen['source'], 'equal headers are not an improvement');
+    }
+
+    /* ---- the whole path, through the real generator ---------------------------------- */
+
+    /**
+     * Everything above tests the chooser as a pure function. This runs the real generator over
+     * the real captured stall and checks the webroot it writes -- the project's own rule is
+     * that checks run against real generated output, and until this existed the fixture path
+     * hardcoded `json`, so no test could reach the protobuf branch through anything that
+     * produces output at all.
+     *
+     * What is deliberately NOT asserted is board content. The stall capture is from 2026-09-01
+     * and the only committed schedule shards are 260818_1456, so the joined trips do not
+     * correlate and the run exits 1 saying so. That mismatch is the fixtures', not the
+     * fallback's: the claim under test is that a stalled JSON beside a healthy protobuf makes
+     * the generator decode the protobuf, write a webroot from it, and report which source it
+     * used. Correlating content is what the differential capture is for.
+     */
+    public function testTheRealGeneratorWritesAWebrootFromTheProtobufWhenTheJsonHasStalled(): void
+    {
+        $root  = Runtime::root();
+        $stall = $root . '/tests/fixtures/feeds-20260901-stall';
+        if (!is_file($stall . '/vehiclepositions.pb')) {
+            self::markTestSkipped('needs tests/fixtures/feeds-20260901-stall; see tests/fixtures/README.md');
+        }
+
+        $tmp   = sys_get_temp_dir() . '/cm-fallback-' . bin2hex(random_bytes(6));
+        $feeds = $tmp . '/feeds';
+        mkdir($feeds, 0o777, true);
+
+        /* A coherent-enough feed set: the stall's own two positions halves, plus the trip
+           updates and alerts the 2026-08-19 capture provides, since the stall capture is
+           positions only. */
+        foreach (['tripupdates.json', 'servicealerts.json'] as $f) {
+            copy($root . '/tests/fixtures/feeds-20260819/' . $f, $feeds . '/' . $f);
+        }
+        foreach (['vehiclepositions.json', 'vehiclepositions.pb'] as $f) {
+            copy($stall . '/' . $f, $feeds . '/' . $f);
+        }
+
+        exec(sprintf(
+            '%s %s --fixtures=%s --shards=%s --out=%s 2>&1',
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg($root . '/runtime/generate-api.php'),
+            escapeshellarg($feeds),
+            escapeshellarg($root . '/tests/fixtures/shards-260818_1456'),
+            escapeshellarg($tmp . '/web')
+        ), $output, $status);
+
+        $health_path = $tmp . '/web/api/health.json';
+        self::assertFileExists($health_path, 'the run must write a health endpoint: ' . implode("\n", $output));
+
+        $health = json_decode((string) file_get_contents($health_path), true);
+
+        self::assertSame(
+            'protobuf',
+            $health['feeds']['positions_source'],
+            'the JSON half of this capture is four hours stale; the run must have taken the fallback'
+        );
+        self::assertSame(
+            (int) $this->stallHeaderTimestamp($stall . '/vehiclepositions.pb'),
+            $health['feeds']['positions_at'],
+            'and the age it reports must be the protobuf header, not the stale JSON one'
+        );
+        self::assertFileExists($tmp . '/web/api/all.json', 'a real webroot, not just a health file');
+
+        self::removeTree($tmp);
+    }
+
+    /** The protobuf capture's own header time, read through the decoder under test. */
+    private function stallHeaderTimestamp(string $path): string
+    {
+        $decoded = cm_gtfsrt_decode((string) file_get_contents($path));
+        self::assertNotNull($decoded, 'the committed capture must decode');
+
+        return $decoded['header']['timestamp'];
+    }
+
+    private static function removeTree(string $dir): void
+    {
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($items as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+        }
+        rmdir($dir);
+    }
+
+    /* ---- the module loads on its own ------------------------------------------------- */
+
+    /**
+     * fetch.php calls cm_gtfsrt_decode(), so it must require gtfsrt.php itself.
+     *
+     * This cannot be checked in-process: bootstrap.php requires every runtime/lib/*.php, so a
+     * missing require is invisible to every other test in this suite -- which is exactly how
+     * the real one survived until review. It shipped working only because generate-api.php
+     * happened to require the two files in the right order, one edit away from a fatal in the
+     * cron. So the check runs in a subprocess that loads the one file and nothing else.
+     */
+    public function testFetchLoadsOnItsOwnWithoutTheBootstrapRequiringEverything(): void
+    {
+        /* The path arrives as $argv[1] rather than inside the snippet, so no quoting of one
+           shell level has to survive being nested inside another. */
+        $code = 'require $argv[1]; exit(function_exists("cm_gtfsrt_decode") ? 0 : 3);';
+
+        exec(sprintf(
+            '%s -d error_reporting=E_ALL -r %s %s 2>&1',
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg($code),
+            escapeshellarg(Runtime::root() . '/runtime/lib/fetch.php')
+        ), $output, $status);
+
+        self::assertSame(
+            0,
+            $status,
+            "requiring fetch.php alone must define what it calls; got: " . implode("\n", $output)
+        );
     }
 
     /* ---- header reading -------------------------------------------------------------- */

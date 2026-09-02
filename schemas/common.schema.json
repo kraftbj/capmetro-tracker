@@ -430,7 +430,7 @@
               ]
             },
             "schedule_relationship": {
-              "description": "GTFS-RT TripDescriptor.ScheduleRelationship, by name. The last three are reachable only through the protobuf positions fallback, which maps every value the spec defines rather than guessing at the ones CapMetro's JSON export has been observed to emit.",
+              "description": "GTFS-RT TripDescriptor.ScheduleRelationship, by name. REPLACEMENT, DUPLICATED and DELETED are reachable only through the protobuf positions fallback, which maps every value the spec defines rather than only the ones CapMetro's JSON export has been observed to emit. UNKNOWN is what a value outside the spec's vocabulary publishes as, since guessing SCHEDULED for one could quietly reinstate a canceled trip.",
               "enum": [
                 "SCHEDULED",
                 "CANCELED",
@@ -438,7 +438,8 @@
                 "UNSCHEDULED",
                 "REPLACEMENT",
                 "DUPLICATED",
-                "DELETED"
+                "DELETED",
+                "UNKNOWN"
               ]
             }
           }

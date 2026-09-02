@@ -55,6 +55,14 @@ its header, which is what makes the stall invisible to anything that checks only
 successful fetch. `GtfsRtDecoderTest` decodes the PB half; the fallback logic in `fetch.php`
 exists because of this capture.
 
+**It also drives the fallback end to end.** `generate-api.php --fixtures=<dir>` runs the same
+choice the network path runs whenever the directory holds a `vehiclepositions.pb` beside the
+JSON, so `PositionsFallbackTest` points the real generator at this pair and asserts the webroot
+it writes reports `positions_source: protobuf`. That run exits 1: the positions are from
+2026-09-01 and the only committed shards are `260818_1456`, so the trips do not correlate and
+the generator says so. The mismatch is the fixtures', not the fallback's — the test asserts
+which source was used and that a webroot was written, never the board's content.
+
 **This pair cannot serve the differential test.** The two files are four hours apart, so
 nothing in them pairs. Proving the decoder agrees with the JSON export needs a separate capture
 taken while BOTH publications are healthy, in `feeds-pb-differential/`, which does not exist

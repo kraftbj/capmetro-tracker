@@ -27,10 +27,22 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   the two on the wire anyway (13.5 KB gzipped against the JSON's 16 KB).
 
   The fallback is not assumed fresh merely because it is the fallback. A protobuf that has
-  also stalled loses to the JSON, and the board degrades exactly as it does now.
-  `health.json` gains **`feeds.positions_source`** (`json` or `protobuf`): a board running on
-  the fallback that looks identical to a healthy one is how the next stall goes unnoticed for
-  another four hours.
+  also stalled loses to the JSON, and the board degrades exactly as it does now. Nor is it
+  assumed to be *carrying* anything: a protobuf with a current header and no vehicles in it
+  would win on age every time and quietly empty the board, reporting `ok:true` while doing it,
+  because a feed with nothing in it never trips a staleness check. Stale positions are wrong
+  about when; no positions are wrong about whether the service is running, so an empty
+  fallback loses too. `health.json` gains **`feeds.positions_source`** (`json` or `protobuf`):
+  a board running on the fallback that looks identical to a healthy one is how the next stall
+  goes unnoticed for another four hours. A fallback that was consulted and could not help says
+  so in the run log rather than passing for a run that never needed it.
+
+  Reading a second, hand-decoded source widened what can reach the published output, so
+  `schedule_relationship` now accepts the three GTFS-RT names CapMetro's JSON export has never
+  been observed to emit (`REPLACEMENT`, `DUPLICATED`, `DELETED`) plus `UNKNOWN`. The decoder
+  deliberately refuses to guess at an enum value the spec adds later — defaulting one to
+  `SCHEDULED` could quietly reinstate a canceled trip — and `UNKNOWN` is how that refusal is
+  published without putting the board's own output outside its schema.
 
   Measured against the stall as it happened. Production reported `ok:false`, positions 295
   minutes old, `staleness.level: dead` and lateness suppressed board-wide. The same code with

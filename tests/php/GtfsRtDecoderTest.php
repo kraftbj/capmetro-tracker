@@ -341,35 +341,114 @@ final class GtfsRtDecoderTest extends TestCase
         ];
     }
 
+    /** A FeedMessage carrying several VehiclePositions, one entity per set of vehicle bytes. */
+    private function feedWithVehicles(array $vehicleBytes, int $headerTs = 1788300715): string
+    {
+        $header = $this->stringField(1, '2.0')
+            . $this->varintField(2, 0)
+            . $this->varintField(3, $headerTs);
+
+        $out = $this->lenField(1, $header);
+        foreach ($vehicleBytes as $i => $bytes) {
+            $out .= $this->lenField(2, $this->stringField(1, 'e' . $i) . $this->lenField(4, $bytes));
+        }
+
+        return $out;
+    }
+
+    /** A minimal well-formed vehicle, distinguishable by its label. */
+    private function goodVehicle(string $label): string
+    {
+        return $this->lenField(1, $this->stringField(1, 'trip-' . $label))
+            . $this->lenField(8, $this->stringField(1, 'v' . $label) . $this->stringField(2, $label));
+    }
+
     /**
      * write.php refuses to write a document json_encode() could not encode, and json_encode()
-     * fails outright on invalid UTF-8. One bad byte in one vehicle label would otherwise cost
-     * every file that vehicle appears in. The JSON publication cannot reach this -- json_decode()
-     * rejects it upstream -- so the protobuf is what makes the case reachable at all.
+     * fails outright on invalid UTF-8. One bad byte would otherwise cost every file that
+     * vehicle appears in. The JSON publication cannot reach this -- json_decode() rejects it
+     * upstream -- so the protobuf is what makes the case reachable at all.
+     *
+     * The corrupt bus is dropped rather than published with a hole in it: an absent field is
+     * meaningful here, so a vehicle carrying an unreadable identifier must not be emitted
+     * looking like a vehicle that simply had none.
      */
-    public function testInvalidUtf8InAStringFieldIsDroppedSoTheRunCanStillEncode(): void
+    public function testAVehicleWithInvalidUtf8IsDroppedAndTheRestOfTheFeedStillEncodes(): void
     {
-        $vehicle = $this->lenField(8, $this->stringField(1, "bus\xC3\x28") . $this->stringField(2, '4090'));
+        $corrupt = $this->lenField(8, $this->stringField(1, "bus\xC3\x28") . $this->stringField(2, 'bad'));
 
-        $decoded = cm_gtfsrt_decode($this->feedWithVehicle($vehicle));
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('4090'),
+            $corrupt,
+            $this->goodVehicle('4091'),
+        ]));
 
-        self::assertNotNull($decoded);
-        self::assertArrayNotHasKey('id', $decoded['entity'][0]['vehicle']['vehicle'], 'the bad byte is dropped');
-        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label'], 'its neighbours survive');
+        self::assertNotNull($decoded, 'one bad bus must not cost the whole rescue');
+        self::assertCount(2, $decoded['entity'], 'the corrupt bus is dropped, the others are not');
+        self::assertSame(
+            ['4090', '4091'],
+            array_map(static fn (array $e): string => $e['vehicle']['vehicle']['label'], $decoded['entity']),
+            'the survivors are the two good buses, in order'
+        );
         self::assertNotFalse(json_encode($decoded), 'the whole point: the run can still write');
     }
 
     /**
      * A vehicle with no `trip` is not an error downstream, it is a deadhead -- join.php reads
      * it as a bus running out of service. So dropping a TripDescriptor that would not decode
-     * turns a corrupt field into a confident, wrong statement about that bus. Failing the
-     * vehicle, and with it the feed, keeps the stale JSON instead.
+     * turns a corrupt field into a confident, wrong statement about that bus. The vehicle is
+     * dropped whole instead.
      */
-    public function testAnUndecodableSubmessageFailsTheFeedRatherThanDeadheadingTheBus(): void
+    public function testAnUndecodableSubmessageDropsTheBusRatherThanDeadheadingIt(): void
     {
-        $feed = $this->feedWithVehicle($this->lenField(1, "\x08\xFF\xFF"));
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('4090'),
+            $this->lenField(1, "\x08\xFF\xFF"),
+        ]));
 
-        self::assertNull(cm_gtfsrt_decode($feed), 'a broken trip must not read as no trip');
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity'], 'a broken trip must not read as no trip');
+        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label']);
+    }
+
+    /**
+     * The floor on dropping. A handful of unreadable buses is field corruption and the rescue
+     * is still worth having; most of them failing means we are reading the message wrongly,
+     * and a confident partial fleet is worse than no fallback at all. The stale JSON wins.
+     */
+    public function testAFeedWhoseEntitiesMostlyFailIsRejectedRatherThanPublishedPartial(): void
+    {
+        $broken = $this->lenField(1, "\x08\xFF\xFF");
+
+        $mostlyGood = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('1'),
+            $this->goodVehicle('2'),
+            $broken,
+        ]));
+        $mostlyBad = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('1'),
+            $broken,
+            $broken,
+        ]));
+
+        self::assertNotNull($mostlyGood, 'one failure in three is corruption, not a misread');
+        self::assertCount(2, $mostlyGood['entity']);
+        self::assertNull($mostlyBad, 'more failures than successes means we are reading it wrongly');
+    }
+
+    /**
+     * NAN and INF are representable in a float32 on the wire and are not encodable as JSON.
+     * Same hole invalid UTF-8 opens, reached through the position fields instead.
+     */
+    public function testANonFiniteCoordinateIsRejectedRatherThanBreakingEveryWrite(): void
+    {
+        $nan = $this->lenField(2, $this->varint((1 << 3) | 5) . pack('g', NAN));
+
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([$this->goodVehicle('4090'), $nan]));
+
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity'], 'the bus carrying NAN is dropped');
+        self::assertNotFalse(json_encode($decoded));
     }
 
     /** @return array<string, array{string, string}> */

@@ -186,17 +186,27 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
     }
 
     /*
-     * The JSON is kept, so its error is the one the caller reports. When the fallback was
-     * tried and also failed, say so in the same breath: an operator reading `positions: HTTP
-     * 500` would otherwise have no way to tell whether the second publication had been
-     * consulted at all, which is exactly the blindness issue 14 was about.
+     * The JSON is kept, and the caller is told the fallback was consulted and did not help.
+     *
+     * Two channels, because the two cases are not the same severity. A JSON that failed
+     * outright is already an error, so the fallback's failure joins it there. A JSON that
+     * merely went stale is `ok`, and generate-api.php only reads `error` off a result that is
+     * not ok — putting it there would be writing into a field nothing reads. It goes in
+     * `fallback_error` instead, which the caller logs. Either way the run stops looking like
+     * one where the fallback was never needed, which is the blindness issue 14 was about one
+     * level up: a rescue that quietly fails to fire is a rescue nobody knows is broken.
      */
-    if (!($json_result['ok'] ?? false) && $pb_result !== null && !($pb_result['ok'] ?? false)) {
-        $json_result['error'] = sprintf(
-            '%s (fallback also failed: %s)',
-            (string) ($json_result['error'] ?? 'unknown error'),
-            (string) ($pb_result['error'] ?? 'unknown error')
-        );
+    if ($pb_result !== null && !($pb_result['ok'] ?? false)) {
+        $why = (string) ($pb_result['error'] ?? 'unknown error');
+        if ($json_result['ok'] ?? false) {
+            $json_result['fallback_error'] = $why;
+        } else {
+            $json_result['error'] = sprintf(
+                '%s (fallback also failed: %s)',
+                (string) ($json_result['error'] ?? 'unknown error'),
+                $why
+            );
+        }
     }
 
     $json_result['source'] = 'json';
@@ -207,16 +217,45 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
 /*
  * The fallback's share of the run's time budget.
  *
- * The generator is a systemd oneshot with TimeoutStartSec=50, and a run makes three feed
- * requests at `timeout_s` each. At the configured 15s that is 45s of worst case, which fits.
- * A fourth full-budget request does not: 60s would have systemd kill the run outright, and it
- * would do so precisely on the runs where upstream is already misbehaving, which is when the
- * fallback is the only thing that could have saved the board. So the fallback gets a bounded
- * slice rather than the whole budget. Ten seconds is far more than the observed response
- * time — the PB body is 13.5 KB gzipped — and keeps the worst case at 55s of request time
- * against a 50s ceiling that no run has ever approached.
+ * Ten seconds is far more than the response needs — the body is 13.5 KB gzipped — and the cap
+ * exists so the fallback cannot be the thing that runs a cycle out of time. It is deliberately
+ * a small fixed slice rather than the full `timeout_s`, because the fallback fires precisely
+ * on the runs where upstream is already misbehaving, which is when every other request is
+ * slowest too.
+ *
+ * WHAT IT DOES NOT DO is bring the run inside the generator unit's TimeoutStartSec=50. Nothing
+ * here could: at the configured `timeout_s` of 15 the three feed requests are already 45s, and
+ * every fifteenth minute the upstream probe adds three more ranged GETs at the same timeout,
+ * for 90s of worst case that predates this feed entirely. The budget is over the ceiling with
+ * or without the fallback, and closing that gap means bounding the whole run rather than one
+ * request in it. See TODOS.md. This cap keeps the fallback from making an existing problem
+ * meaningfully worse; it does not pretend to solve it.
  */
 const CM_POSITIONS_PB_TIMEOUT_S = 10;
+
+/*
+ * Decode protobuf bytes into the result shape cm_positions_choose() compares.
+ *
+ * Split from the fetch so the decode can be driven from bytes that did not come off a socket:
+ * generate-api.php's fixture mode reads a committed .pb through this, which is what lets a
+ * test produce a real webroot from the fallback path rather than only unit-test the chooser.
+ *
+ * $fetched_at defaults to now for callers holding bytes rather than a response.
+ */
+function cm_decode_positions_pb(string $body, ?int $fetched_at = null): array
+{
+    $data = cm_gtfsrt_decode($body);
+    if ($data === null) {
+        return ['ok' => false, 'error' => sprintf('%s: not a decodable FeedMessage', CM_POSITIONS_PB_URL)];
+    }
+
+    return [
+        'ok'         => true,
+        'data'       => $data,
+        'bytes'      => strlen($body),
+        'fetched_at' => $fetched_at ?? time(),
+    ];
+}
 
 /*
  * Fetch the positions feed, falling back to protobuf when the JSON one has stalled.
@@ -252,17 +291,7 @@ function cm_fetch_positions_pb(int $timeout_s): array
         return $r;
     }
 
-    $data = cm_gtfsrt_decode($r['body']);
-    if ($data === null) {
-        return ['ok' => false, 'error' => sprintf('%s: not a decodable FeedMessage', CM_POSITIONS_PB_URL)];
-    }
-
-    return [
-        'ok'         => true,
-        'data'       => $data,
-        'bytes'      => strlen($r['body']),
-        'fetched_at' => $r['fetched_at'],
-    ];
+    return cm_decode_positions_pb($r['body'], $r['fetched_at']);
 }
 
 /*
