@@ -210,9 +210,13 @@ function cm_pb_scalar(array $fields, int $number)
  * ScheduleRelationship value must not silently become SCHEDULED; a caller comparing against
  * names will simply not match, which is the honest outcome.
  *
- * Anything that is not an integer is treated as absent. An enum field arriving with a
- * non-varint wire type is a corrupt message, and the value is untyped rather than `?int`
- * precisely so that case returns null instead of raising a TypeError out of the cron.
+ * Three-way, like cm_pb_string: the name (or the raw number when unmapped) for a usable value,
+ * null when the field is absent, and false when it is present with a non-varint wire type.
+ * Corrupt is not absent -- join.php defaults an absent scheduleRelationship to SCHEDULED, so
+ * folding the two together would make the guess here that the paragraph above refuses to make.
+ *
+ * The parameter is untyped rather than `?int` so that a wire-type mismatch returns false
+ * instead of raising a TypeError out of the cron.
  */
 function cm_pb_enum($value, array $map)
 {
@@ -536,8 +540,16 @@ function cm_gtfsrt_decode(string $bytes): ?array
         }
 
         $vp = cm_pb_scalar($ef, 4);
-        if (!is_string($vp)) {
+        if ($vp === null) {
             /* A TripUpdate or Alert entity. Not ours, and not a failure. */
+            continue;
+        }
+        if (!is_string($vp)) {
+            /* Present but not a submessage: a corrupt vehicle, not somebody else's entity.
+               Counting it as "not ours" would drop a bus from the fleet without it reaching
+               `dropped`, and a silently short fleet is the one outcome this feed exists to
+               prevent. */
+            $failed++;
             continue;
         }
         $vehicle = cm_pb_vehicle_position($vp);

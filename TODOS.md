@@ -155,6 +155,29 @@ routinely.
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/11
 
+### A vehicle with no position renders at null island rather than nowhere
+
+**What:** `join.php` reads coordinates as `$pos = $v['position'] ?? []` then
+`(float) ($pos['latitude'] ?? 0)`, so a vehicle carrying no position submessage at all
+publishes as `lat: 0, lon: 0` — a point in the Gulf of Guinea — instead of as a vehicle whose
+position is unknown. The board would draw it, confidently, in the Atlantic.
+
+**Why:** It is the same failure PR 15 fixed one level down inside the protobuf decoder, where a
+*corrupt* latitude was defaulting to 0 and plotting a bus mid-ocean. The decoder now refuses to
+emit a half-position, but the consumer's default is still there, and it is reachable from the
+JSON path too, which no decoder change can protect.
+
+**Context:** Not observed in real data — 0 of 404 vehicles in the 2026-09-01 JSON capture, 0 of
+392 in the 2026-08-19 one, and 0 of 413 in the protobuf omit position — which is why it has
+never shown. CapMetro appears to omit the vehicle entirely rather than publish it without
+coordinates. The fix is to make `position` nullable through the join and the schema rather than
+defaulting it, so an unknown position renders as unknown; the client already handles a vehicle
+it cannot place, since that is what a deadhead outside the service area looks like. Predates
+PR 15 and is reachable from either feed, so it is not that PR's to fix.
+
+**Effort:** S
+**Priority:** P3
+
 ### A run's worst-case fetch time is roughly twice the unit's TimeoutStartSec
 
 **What:** `deploy/capmetro-generate.service` sets `TimeoutStartSec=50`. A run makes three feed

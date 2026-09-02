@@ -79,10 +79,7 @@ The primary endpoint. One file per route, regenerated every cron run.
   "feeds": {                            // age of each upstream input, for staleness rendering
     "positions_at": 1787152239,
     "trip_updates_at": 1787152196,
-    "alerts_at": 1787152100,
-    "positions_source": "json",         // json | protobuf -- which of CapMetro's two positions
-                                        // publications this run used. "protobuf" means the
-                                        // JSON one had stalled. See §17.
+    "alerts_at": 1787152100,            // positions_source is health.json only; see §10 and §17
     "gtfs_feed_version": "260818_1456",
     "gtfs_built_at": 1787100000
   },

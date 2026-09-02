@@ -574,6 +574,31 @@ final class GtfsRtDecoderTest extends TestCase
         self::assertEqualsWithDelta(-97.66901, $decoded['entity'][0]['vehicle']['position']['longitude'], 1e-5);
     }
 
+    /**
+     * An entity whose VehiclePosition field is present but not a submessage is a corrupt bus,
+     * not somebody else's entity. Counting it as "not ours" would shorten the fleet without
+     * the drop ever reaching `dropped`, and a silently short fleet is the outcome this whole
+     * feed exists to prevent.
+     */
+    public function testACorruptVehiclePositionFieldIsCountedAsADropNotAsAnotherEntityType(): void
+    {
+        $header = $this->stringField(1, '2.0')
+            . $this->varintField(2, 0)
+            . $this->varintField(3, 1788300715);
+
+        $good = $this->lenField(2, $this->stringField(1, 'e1') . $this->lenField(4, $this->goodVehicle('4090')));
+        /* Field 4 present as a varint rather than a submessage. */
+        $corrupt = $this->lenField(2, $this->stringField(1, 'e2') . $this->varintField(4, 1));
+        /* Field 4 absent entirely: a TripUpdate entity, which is genuinely not ours. */
+        $tripUpdate = $this->lenField(2, $this->stringField(1, 'e3') . $this->lenField(3, ''));
+
+        $decoded = cm_gtfsrt_decode($this->lenField(1, $header) . $good . $corrupt . $tripUpdate);
+
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity']);
+        self::assertSame(1, $decoded['dropped'], 'the corrupt one counts; the trip update does not');
+    }
+
     /** A corrupt header string must not store boolean false where a version belongs. */
     public function testACorruptHeaderVersionFailsTheFeedRatherThanStoringFalse(): void
     {
