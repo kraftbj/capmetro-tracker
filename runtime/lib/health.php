@@ -20,7 +20,8 @@ function cm_build_health(
     array $gtfs,
     array $counts,
     array $errors,
-    int $cron_last_success_at
+    int $cron_last_success_at,
+    string $positions_source = 'json'
 ): array {
     $errors = array_values(array_unique(array_map('strval', $errors)));
 
@@ -54,6 +55,13 @@ function cm_build_health(
             'positions_at'    => (int) ($feed_times['positions'] ?? 0),
             'trip_updates_at' => (int) ($feed_times['trip_updates'] ?? 0),
             'alerts_at'       => (int) ($feed_times['alerts'] ?? 0),
+            /*
+             * Which of CapMetro's two positions publications this run used. A board running
+             * on the protobuf fallback is otherwise indistinguishable from a healthy one,
+             * and the whole reason issue 14 exists is that a stall went unnoticed for four
+             * hours. "json" on every ordinary run; "protobuf" means the JSON feed stalled.
+             */
+            'positions_source' => $positions_source,
         ],
         'gtfs'                 => [
             'feed_version' => (string) ($gtfs['feed_version'] ?? 'unknown'),

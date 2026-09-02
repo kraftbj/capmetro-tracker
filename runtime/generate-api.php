@@ -71,6 +71,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/lib/servicetime.php';
+require_once __DIR__ . '/lib/gtfsrt.php';
 require_once __DIR__ . '/lib/fetch.php';
 require_once __DIR__ . '/lib/upstream.php';
 require_once __DIR__ . '/lib/write.php';
@@ -164,10 +165,76 @@ if ($fixtures !== null) {
     $feeds['positions']    = cm_read_json_file($fixtures . '/vehiclepositions.json');
     $feeds['trip_updates'] = cm_read_json_file($fixtures . '/tripupdates.json');
     $feeds['alerts']       = cm_read_json_file($fixtures . '/servicealerts.json');
-} else {
-    foreach (CM_FEED_URLS as $name => $url) {
-        $feeds[$name] = cm_fetch_json($url, (int) $config['timeout_s']);
+    /*
+     * A fixture directory carrying a vehiclepositions.pb runs the same choice the network path
+     * runs, against the same two feeds, so the fallback is exercised end to end by something
+     * that writes a real webroot rather than only by unit tests of the chooser. Without this
+     * the fixture path hardcodes `json` and the protobuf branch is unreachable from any test
+     * that produces generated output -- which is the output the project's own QA rule says to
+     * check against. Fixtures with no .pb behave exactly as they did.
+     *
+     * The clock is --now, or the fixture's own protobuf header. It cannot be $now, which is
+     * derived further down from whichever positions feed wins and so does not exist yet, and
+     * it must not be the wall clock: a committed fixture ages, and a chooser fed real time
+     * would answer differently in a year than it does today.
+     */
+    $positions_pb = $fixtures . '/vehiclepositions.pb';
+    if (is_file($positions_pb)) {
+        $pb_result = cm_decode_positions_pb((string) file_get_contents($positions_pb));
+        /*
+         * A committed .pb that no longer decodes is a broken fixture, not a scenario. Without
+         * this the run falls back to a $choose_at of 0, decides the JSON is not stale, and
+         * reports source `json` -- so a fixture whose protobuf half rotted would be
+         * indistinguishable from one that never had a protobuf half.
+         */
+        if (!$pb_result['ok'] && !isset($args['now'])) {
+            fwrite(STDERR, 'error: ' . $positions_pb . ': ' . $pb_result['error'] . "\n");
+            exit(2);
+        }
+        $choose_at = isset($args['now'])
+            ? (int) $args['now']
+            : cm_positions_header_at($pb_result);
+        $feeds['positions'] = cm_positions_choose(
+            $feeds['positions'],
+            $pb_result,
+            $choose_at,
+            CM_STALE_STALE_S
+        );
+    } else {
+        $feeds['positions']['source'] = 'json';
     }
+} else {
+    $timeout_s = (int) $config['timeout_s'];
+    /*
+     * Positions goes through its own fetch because it is the one feed with a second
+     * publication to fall back on when the first stalls (issue 14). CM_STALE_STALE_S is passed
+     * so that falling back and the board going `stale` are the same threshold by construction.
+     */
+    $feeds['positions']    = cm_fetch_positions($timeout_s, time(), CM_STALE_STALE_S);
+    $feeds['trip_updates'] = cm_fetch_json(CM_FEED_URLS['trip_updates'], $timeout_s);
+    $feeds['alerts']       = cm_fetch_json(CM_FEED_URLS['alerts'], $timeout_s);
+}
+$positions_source = (string) ($feeds['positions']['source'] ?? 'json');
+/*
+ * Anything unusual about the positions source goes to stderr unconditionally, NOT through
+ * $log. Production runs the generator with --quiet -- install.sh builds the ExecStart that
+ * way -- so $log writes to nobody on the only box that matters, which is why errors below
+ * bypass it too. These are not errors: the board is serving, on the fallback or on a JSON the
+ * fallback could not improve on. They are the conditions an operator has to be able to see
+ * without polling health.json, and the whole premise of issue 14 is that an invisible
+ * degradation runs for four hours.
+ */
+if ($positions_source !== 'json') {
+    fwrite(STDERR, "notice: positions from $positions_source; the JSON publication has stalled\n");
+}
+if (isset($feeds['positions']['fallback_error'])) {
+    fwrite(STDERR, 'notice: positions fallback unavailable: ' . $feeds['positions']['fallback_error'] . "\n");
+}
+if (($feeds['positions']['data']['dropped'] ?? 0) > 0) {
+    fwrite(STDERR, sprintf(
+        "notice: positions source dropped %d undecodable vehicle(s); the fleet is incomplete\n",
+        (int) $feeds['positions']['data']['dropped']
+    ));
 }
 foreach ($feeds as $name => $r) {
     if (!$r['ok']) {
@@ -291,7 +358,8 @@ if ($errors !== []) {
         ],
         ['vehicles' => 0, 'routes_written' => 0],
         $errors,
-        $cron_last_success_at
+        $cron_last_success_at,
+        $positions_source
     ));
     foreach ($errors as $e) {
         fwrite(STDERR, "error: $e\n");
@@ -671,17 +739,21 @@ cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
     ],
     ['vehicles' => count($all_vehicles), 'routes_written' => $routes_written],
     $errors,
-    $cron_last_success_at
+    $cron_last_success_at,
+    $positions_source
 ));
 
 $log(sprintf(
-    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s',
+    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s%s',
     $routes_written,
     count($catalog),
     count($all_vehicles),
     $in_service,
     count($all_vehicles) - $in_service,
     count($watch_targets),
+    /* Named only when it is not the ordinary one. The stderr notice above is what an operator
+       actually sees, since production runs --quiet; this is for an interactive run. */
+    $positions_source === 'json' ? '' : ', positions via ' . $positions_source,
     $errors === [] ? '' : ', ' . count($errors) . ' error(s)'
 ));
 foreach ($errors as $e) {

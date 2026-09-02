@@ -14,6 +14,29 @@ require_once __DIR__ . '/stopstatus.php';
 require_once __DIR__ . '/shards.php';
 
 /*
+ * Every value schedule_relationship is allowed to publish, matching the enum in
+ * schemas/common.schema.json. Anything upstream hands us that is not on this list becomes
+ * UNKNOWN; see where it is applied below for why that is not the same as guessing.
+ */
+const CM_SCHEDULE_RELATIONSHIPS = [
+    'SCHEDULED',
+    'CANCELED',
+    'ADDED',
+    'UNSCHEDULED',
+    'REPLACEMENT',
+    'DUPLICATED',
+    'DELETED',
+    'UNKNOWN',
+];
+
+/* Likewise for current_status, whose schema already allows null for "not stated". */
+const CM_VEHICLE_STOP_STATUSES = [
+    'INCOMING_AT',
+    'STOPPED_AT',
+    'IN_TRANSIT_TO',
+];
+
+/*
  * Index the trip updates feed by trip id.
  *
  * 912 entries in the 2026-08-19 capture, of which 100 are CANCELED with no stopTimeUpdate
@@ -214,7 +237,19 @@ function cm_build_vehicle(
      * 2 of the decision table dead code and compute lateness against canceled trips, so
      * the trip update wins and the emitted schedule_relationship says so too.
      */
+    /*
+     * A value neither feed's vocabulary covers is published as UNKNOWN rather than passed
+     * through. The protobuf decoder deliberately hands back an unmapped enum as its raw wire
+     * integer -- guessing SCHEDULED for a value GTFS-RT adds later could quietly reinstate a
+     * canceled trip -- but that integer is not one of the names schedule_relationship is
+     * declared to hold, and publishing it would put the board's own output outside its schema.
+     * UNKNOWN keeps the honesty and stays inside the contract. It is not CANCELED either way,
+     * which is the property that actually matters.
+     */
     $relationship = (string) ($trip['scheduleRelationship'] ?? 'SCHEDULED');
+    if (!in_array($relationship, CM_SCHEDULE_RELATIONSHIPS, true)) {
+        $relationship = 'UNKNOWN';
+    }
     if (($trip_update['trip']['scheduleRelationship'] ?? null) === 'CANCELED') {
         $relationship = 'CANCELED';
     }
@@ -235,10 +270,21 @@ function cm_build_vehicle(
     $css = array_key_exists('currentStopSequence', $v) && $v['currentStopSequence'] !== null
         ? (int) $v['currentStopSequence']
         : null;
+    /*
+     * Same rule as schedule_relationship above, and for the same reason: the protobuf decoder
+     * hands back an enum value it does not recognize as its raw wire integer rather than
+     * guessing, and that integer is not one of the names current_status is declared to hold.
+     * Here the schema already allows null, so an unrecognized status reads as "we do not know
+     * where this bus is in its trip" -- which is true, and is what the field already means
+     * when the feed omits it.
+     */
+    $status = $v['currentStatus'] ?? null;
     $out['progress'] = [
         'current_stop_sequence' => $css,
         'current_stop_id'       => isset($v['stopId']) ? (string) $v['stopId'] : null,
-        'current_status'        => isset($v['currentStatus']) ? (string) $v['currentStatus'] : null,
+        'current_status'        => in_array($status, CM_VEHICLE_STOP_STATUSES, true)
+            ? (string) $status
+            : null,
     ];
 
     $scheduled = ($route_shard !== null && $shard_trip !== null)

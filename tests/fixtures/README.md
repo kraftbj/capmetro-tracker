@@ -37,3 +37,37 @@ Gotchas these fixtures encode:
 - At capture time, 6 stop/route pairs were scheduled but under an active `NO_SERVICE` alert,
   including route 4 stops `1967` and `1971`, two of the three stops the Austin High special
   pattern adds.
+
+## `feeds-20260901-stall/`
+
+The vehicle positions stall of 2026-09-01, captured live at 17:12 CDT while it was happening.
+Both halves are the same feed at the same moment, published two different ways:
+
+- `vehiclepositions.json` — CapMetro's JSON publication (`cuc7-ywmd`), **frozen at 12:40:09
+  CDT**, 404 entities, 272 minutes stale at capture.
+- `vehiclepositions.pb` — the protobuf publication of the same feed (`eiei-9rpf`), current to
+  the second, 413 entities.
+
+**Why this pair is worth keeping.** It is the failure mode itself, not a reconstruction of it:
+a JSON feed serving a clean 200 with well-formed, internally consistent, four-hour-old content
+while the alternative publication is fine. Every per-vehicle timestamp in the JSON agrees with
+its header, which is what makes the stall invisible to anything that checks only for a
+successful fetch. `GtfsRtDecoderTest` decodes the PB half; the fallback logic in `fetch.php`
+exists because of this capture.
+
+**It also drives the fallback end to end.** `generate-api.php --fixtures=<dir>` runs the same
+choice the network path runs whenever the directory holds a `vehiclepositions.pb` beside the
+JSON, so `PositionsFallbackTest` points the real generator at this pair and asserts the webroot
+it writes reports `positions_source: protobuf`. That run exits 1: the positions are from
+2026-09-01 and the only committed shards are `260818_1456`, so the trips do not correlate and
+the generator says so. The mismatch is the fixtures', not the fallback's — the test asserts
+which source was used and that a webroot was written, never the board's content.
+
+**This pair cannot serve the differential test.** The two files are four hours apart, so
+nothing in them pairs. Proving the decoder agrees with the JSON export needs a separate capture
+taken while BOTH publications are healthy, in `feeds-pb-differential/`, which does not exist
+yet. `GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` skips
+with that reason until it does. See issue 14.
+
+**No PII.** Vehicle positions carry vehicle and trip identifiers and nothing about a person.
+The staff-identity problem described at the top of this file is confined to `servicealerts.json`.

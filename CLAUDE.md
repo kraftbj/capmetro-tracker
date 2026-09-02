@@ -41,6 +41,16 @@ Expectations:
   identical. They both write `stop_name`, so a divergence renders one stop two ways on one
   screen. Any change to either needs a differential run over all upstream names, not unit
   tests alone. This has already bitten once: ISSUE-002 in `.gstack/qa-reports/`.
+- `runtime/lib/gtfsrt.php` MUST keep producing exactly what CapMetro's JSON positions export
+  produces. It is the second pair of this shape in the codebase and the same rule applies for
+  the same reason: two producers feeding one consumer, where a divergence is invisible until
+  the day the fallback runs. The difference from the stop-names pair is that we own neither
+  half of the comparison — CapMetro can change its JSON export without telling us, and the
+  decoder would keep agreeing with a spec nobody is publishing any more. Unit tests prove the
+  decoder matches the **spec**; only a differential run over both live publications proves it
+  matches the **export**. That capture is `tests/fixtures/feeds-pb-differential/`, which does
+  not exist yet, so `GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations`
+  skips and says why. Take the capture the next time both feeds are healthy.
 - Never commit code that makes existing tests fail.
 
 ## Deploy Configuration (configured by /setup-deploy)
@@ -69,6 +79,26 @@ Expectations:
   something alerts. Read `ExecMainStatus` to tell 3 from 1.
 
 ### Notes
+- CapMetro publishes vehicle positions **twice**: as JSON (`cuc7-ywmd`) and as
+  protobuf (`eiei-9rpf`). The runtime reads the JSON and falls back to the protobuf
+  when the JSON is more than `CM_STALE_STALE_S` behind, because on 2026-09-01 the
+  JSON publication froze for over four hours while the protobuf stayed current. The
+  JSON is fetched every cycle; the protobuf is fetched **only** on a cycle that has
+  already seen a stalled JSON, which is what makes recovery need no stored state and
+  keeps a healthy run costing what it always did. Both are fetched server-side by the
+  cron when they are fetched at all; neither is ever fetched by the browser, which
+  only ever reads our own `/api/*.json`. `health.json`'s `feeds.positions_source`
+  says which one a run used — if it reads `protobuf`, the JSON feed has stalled
+  upstream and the board is running on the fallback. The generator also writes a
+  `notice:` line to stderr, and therefore to the journal, when the source is not
+  `json`, when the fallback was consulted and could not help, and when the decode
+  dropped vehicles. Those go to stderr **unconditionally**, not through the `--quiet`
+  logger: production runs the generator with `--quiet` (see the `GEN` line in
+  `install.sh`), so anything routed through `$log` reaches nobody on the box. A
+  stalled feed serves a clean 200 with internally consistent content, so only its
+  header age gives it away. The fallback gets a bounded 10s timeout rather than the
+  full `timeout_s` — it is not what brings a run inside the unit's
+  `TimeoutStartSec=50`, which the fetch budget already exceeds without it; see TODOS.
 - Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd
   timer that writes JSON to disk; there is no PHP handler in the vhost and that
   is deliberate, not an omission.

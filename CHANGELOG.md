@@ -7,6 +7,48 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Added
 
+- **The board no longer goes dark when one of CapMetro's two positions publications
+  stalls.** On 2026-09-01 `vehiclepositions.json` (`cuc7-ywmd`) froze at 12:40:09 CDT and
+  was still frozen five hours later, while CapMetro's protobuf publication of the same feed
+  (`eiei-9rpf`) stayed current to the second. The data was never missing; one of two publish
+  jobs had stopped. Nothing could see it, either: the feed served a clean 200 throughout, and
+  its 404 per-vehicle timestamps all agreed with its header, so a payload four hours old was
+  internally consistent and looked exactly like a healthy one to anything checking that the
+  fetch succeeded. Socrata mints a new blob UUID per publish, and that one had not moved.
+
+  The runtime now reads the protobuf feed when the JSON one is more than `CM_STALE_STALE_S`
+  behind, decoding it into the shape the Socrata JSON export produces so `join.php`,
+  `adherence.php` and everything downstream cannot tell which source they were handed. The
+  threshold is passed in rather than shared as a constant, so falling back and the board
+  going `stale` are the same moment by construction instead of by two numbers that agree
+  until someone edits one. The JSON is still fetched every cycle, which is what makes
+  recovery need no state: the cycle it starts publishing again is the cycle it is used
+  again. A healthy run costs exactly what it did before, and the fallback is the cheaper of
+  the two on the wire anyway (13.5 KB gzipped against the JSON's 16 KB).
+
+  The fallback is not assumed fresh merely because it is the fallback. A protobuf that has
+  also stalled loses to the JSON, and the board degrades exactly as it does now. Nor is it
+  assumed to be *carrying* anything: a protobuf with a current header and no vehicles in it
+  would win on age every time and quietly empty the board, reporting `ok:true` while doing it,
+  because a feed with nothing in it never trips a staleness check. Stale positions are wrong
+  about when; no positions are wrong about whether the service is running, so an empty
+  fallback loses too. `health.json` gains **`feeds.positions_source`** (`json` or `protobuf`):
+  a board running on the fallback that looks identical to a healthy one is how the next stall
+  goes unnoticed for another four hours. A fallback that was consulted and could not help says
+  so in the run log rather than passing for a run that never needed it.
+
+  Reading a second, hand-decoded source widened what can reach the published output, so
+  `schedule_relationship` now accepts the three GTFS-RT names CapMetro's JSON export has never
+  been observed to emit (`REPLACEMENT`, `DUPLICATED`, `DELETED`) plus `UNKNOWN`. The decoder
+  deliberately refuses to guess at an enum value the spec adds later — defaulting one to
+  `SCHEDULED` could quietly reinstate a canceled trip — and `UNKNOWN` is how that refusal is
+  published without putting the board's own output outside its schema.
+
+  Measured against the stall as it happened. Production reported `ok:false`, positions 295
+  minutes old, `staleness.level: dead` and lateness suppressed board-wide. The same code with
+  the fallback, on the same feeds in the same minute, reported `ok:true`, positions 41 seconds
+  old, `level: fresh`, and an adherence number for all 273 in-service buses.
+
 - **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
   the 350, the 337 to the 7 to the 837 — saved and shown as one card instead of two
   or three route boards to compare by hand. The card leads with when the first bus

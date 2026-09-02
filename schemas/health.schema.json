@@ -33,7 +33,8 @@
       "required": [
         "positions_at",
         "trip_updates_at",
-        "alerts_at"
+        "alerts_at",
+        "positions_source"
       ],
       "properties": {
         "positions_at": {
@@ -44,6 +45,14 @@
         },
         "alerts_at": {
           "$ref": "common.schema.json#/$defs/epoch"
+        },
+        "positions_source": {
+          "description": "Which CapMetro positions publication this run used. 'protobuf' means the JSON feed had stalled and the fallback ran; see issue 14.",
+          "type": "string",
+          "enum": [
+            "json",
+            "protobuf"
+          ]
         }
       }
     },

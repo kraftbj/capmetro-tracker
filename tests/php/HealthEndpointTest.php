@@ -108,6 +108,43 @@ final class HealthEndpointTest extends TestCase
         self::assertSame(['shard missing'], $report['errors']);
     }
 
+    /**
+     * The field exists so a board running on the protobuf fallback is distinguishable from a
+     * healthy one (issue 14). A default of 'json' that silently swallowed the caller's real
+     * argument would report every fallback run as ordinary, which is the exact blindness the
+     * field was added to remove.
+     */
+    public function testReportsWhichPositionsPublicationTheRunUsed(): void
+    {
+        $ordinary = cm_build_health(self::NOW, $this->freshFeeds(), $this->validGtfs(), [], [], self::NOW);
+        $fallback = cm_build_health(self::NOW, $this->freshFeeds(), $this->validGtfs(), [], [], self::NOW, 'protobuf');
+
+        self::assertSame('json', $ordinary['feeds']['positions_source'], 'an ordinary run reads the JSON');
+        self::assertSame('protobuf', $fallback['feeds']['positions_source']);
+    }
+
+    /**
+     * Three states a monitor has to tell apart from health.json alone: healthy on the JSON,
+     * healthy on the fallback, and both publications stale. The third is the one that must not
+     * be mistaken for either of the first two.
+     */
+    public function testBothFeedsStaleIsDistinguishableFromEitherHealthyState(): void
+    {
+        $stale = $this->freshFeeds();
+        $stale['positions'] = self::NOW - 14089;
+
+        $onJson     = cm_build_health(self::NOW, $this->freshFeeds(), $this->validGtfs(), [], [], self::NOW);
+        $onFallback = cm_build_health(self::NOW, $this->freshFeeds(), $this->validGtfs(), [], [], self::NOW, 'protobuf');
+        $bothStale  = cm_build_health(self::NOW, $stale, $this->validGtfs(), [], [], self::NOW);
+
+        self::assertTrue($onJson['ok']);
+        self::assertTrue($onFallback['ok'], 'the fallback working is a healthy board, not a broken one');
+
+        self::assertFalse($bothStale['ok'], 'a stale positions feed the fallback could not rescue is not ok');
+        self::assertSame('json', $bothStale['feeds']['positions_source']);
+        self::assertStringContainsString('positions', implode(' ', $bothStale['errors']));
+    }
+
     public function testValidatesAgainstTheHealthSchema(): void
     {
         $report = cm_build_health(self::NOW, $this->freshFeeds(), $this->validGtfs(), ['vehicles' => 392, 'routes_written' => 71], [], self::NOW);
