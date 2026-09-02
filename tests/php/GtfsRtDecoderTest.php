@@ -33,7 +33,7 @@ final class GtfsRtDecoderTest extends TestCase
     {
         Runtime::functionsOrSkip(
             $this,
-            ['cm_gtfsrt_decode', 'cm_pb_fields', 'cm_pb_varint', 'cm_pb_enum'],
+            ['cm_gtfsrt_decode', 'cm_pb_fields', 'cm_pb_varint', 'cm_pb_enum', 'cm_pb_scalar'],
             self::FILES
         );
     }
@@ -119,6 +119,37 @@ final class GtfsRtDecoderTest extends TestCase
     }
 
     /**
+     * The capture really does carry a field this decoder does not model.
+     *
+     * The suite claims forward tolerance is exercised by real data rather than only by bytes we
+     * constructed to prove a point, and that claim rests entirely on VehiclePosition field 9 --
+     * occupancy_status -- being present in the committed capture. Nothing asserted it, so a
+     * recapture could quietly leave the claim in the prose and take the evidence out from under
+     * it. This ties the two together: if the number ever moves, this fails and says so rather
+     * than letting the docblock go on describing a fixture that no longer exists.
+     */
+    public function testTheCaptureCarriesTheUnmodelledFieldThisSuiteReliesOn(): void
+    {
+        $fields = cm_pb_fields(Fixtures::text(self::STALL_DIR . '/vehiclepositions.pb'));
+
+        $vehicles = 0;
+        $carrying = 0;
+        foreach ($fields[2] as $entity_bytes) {
+            $vp = cm_pb_scalar(cm_pb_fields($entity_bytes), 4);
+            if (!is_string($vp)) {
+                continue;
+            }
+            $vehicles++;
+            if (isset(cm_pb_fields($vp)[9])) {
+                $carrying++;
+            }
+        }
+
+        self::assertSame(413, $vehicles, 'the capture is 413 vehicles');
+        self::assertSame(2, $carrying, 'two of them carry occupancy_status, which this decoder ignores');
+    }
+
+    /**
      * Strictness must not become brittleness. GTFS-RT is extensible by design and CapMetro can
      * add a field without telling anyone -- the committed capture already carries one this
      * decoder does not model, VehiclePosition field 9, on two of its 413 vehicles. A field we
@@ -164,6 +195,39 @@ final class GtfsRtDecoderTest extends TestCase
             'NAN in an unread field' => [$self->float32Field(22, NAN), 'not encodable, but nothing publishes it'],
             'INF in an unread field' => [$self->float32Field(22, INF), 'likewise'],
         ];
+    }
+
+    /**
+     * Forward tolerance has to hold one level down too.
+     *
+     * Every case above appends its unknown field to the outer VehiclePosition. But GTFS-RT can
+     * just as easily grow a field inside TripDescriptor, Position or VehicleDescriptor, and
+     * those are the submessages whose decoders return null on anything they dislike -- a null
+     * there fails the whole bus, not just the field. So the tolerant path and the strict path
+     * meet inside exactly these three functions, and only the outer one was pinned.
+     */
+    public function testAnUnrecognizedFieldNestedInASubmessageDoesNotFailTheVehicle(): void
+    {
+        $trip = $this->stringField(1, 'trip-4090') . $this->varintField(30, 1);
+        $position = $this->float32Field(1, 30.27623)
+            . $this->float32Field(2, -97.66901)
+            . $this->stringField(31, 'added later');
+        $descriptor = $this->stringField(1, 'v4090')
+            . $this->stringField(2, '4090')
+            . $this->float32Field(32, 2.5);
+
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->lenField(1, $trip) . $this->lenField(2, $position) . $this->lenField(8, $descriptor),
+        ]));
+
+        self::assertNotNull($decoded, 'an unknown field inside a submessage is not corruption');
+        self::assertCount(1, $decoded['entity']);
+        self::assertArrayNotHasKey('dropped', $decoded);
+
+        $vehicle = $decoded['entity'][0]['vehicle'];
+        self::assertSame('trip-4090', $vehicle['trip']['tripId'], 'the fields we do read still arrive');
+        self::assertSame('4090', $vehicle['vehicle']['label']);
+        self::assertEqualsWithDelta(30.27623, $vehicle['position']['latitude'], 1e-5);
     }
 
     /**
