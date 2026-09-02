@@ -367,9 +367,23 @@
 
     var next = vehicle.block && vehicle.block.next_trip;
     if (next) {
+      /*
+       * next_trip has no headsign of its own — the contract lists nine properties and
+       * closes the object — so `next.headsign` read undefined on every bus and this line
+       * always said "its next trip". The catalog knows the successor's route and what
+       * that route calls the direction, which is the same headsign the board shows
+       * everywhere else. Still falls back when the catalog has not landed.
+       */
+      var nextHeadsign = fmt.headsignForRouteId(model.routes, next.route_id, next.direction_id);
+      /*
+       * Headsigns already lead with the route number ("1 Tech Ridge Park & Ride NB"), so
+       * prefixing route_short_name too would read "1 1 Tech Ridge…". The number is only
+       * said on its own when there is no headsign to say it.
+       */
+      var nextLabel = nextHeadsign ||
+        (next.route_short_name ? 'route ' + next.route_short_name : 'its next trip');
       var foot = el('p', 'trip__next',
-        'Then becomes ' + (next.route_short_name ? next.route_short_name + ' ' : '') +
-        (next.headsign || 'its next trip') + ', ' + fmt.clock(next.start_epoch) +
+        'Then becomes ' + nextLabel + ', ' + fmt.clock(next.start_epoch) +
         ' from ' + (next.start_stop_name || 'its next start'));
       if (vehicle.block.confidence !== 'high') {
         /* Section 4: continuation is verified on route 4 only. Saying it plainly

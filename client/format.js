@@ -94,11 +94,15 @@
     return h12 + ':' + m + suffix;
   }
 
+  /* "4 Shady EB" -> "EB", or null when the headsign carries no bearing. */
+  function compassTag(headsign) {
+    var m = /\b(NB|SB|EB|WB)\b/.exec(headsign || '');
+    return m ? m[1] : null;
+  }
+
   /* "4 Shady EB" -> "EB". Falls back to the letter the toggle needs. */
   function directionTag(headsign, directionId) {
-    var m = /\b(NB|SB|EB|WB)\b/.exec(headsign || '');
-    if (m) return m[1];
-    return directionId === 0 ? 'A' : 'B';
+    return compassTag(headsign) || (directionId === 0 ? 'A' : 'B');
   }
 
   /*
@@ -113,6 +117,38 @@
   function directionTagFor(data, id) {
     var d = directionsForRows(data).filter(function (x) { return x.id === id; })[0];
     return directionTag(d && d.headsign, id);
+  }
+
+  /*
+   * The same question asked about a route the open payload does NOT describe.
+   *
+   * directionTagFor(data, id) resolves against the payload's own route, which is right
+   * for every vehicle on the board and wrong for exactly one thing: a block continuation
+   * whose successor runs a different route. direction_id is a per-route index, not a
+   * compass bearing — route 4 direction 1 is "4 Shady EB" and route 1 direction 1 is
+   * "1 Tech Ridge Park & Ride NB" — so asking route 4's payload what direction 1 means
+   * and printing it beside a route 1 trip draws a northbound bus as "EB". Block 1010 does
+   * exactly this every weekday afternoon.
+   *
+   * That is the same shape as the rows-grouping bug: a key resolved against a source that
+   * does not define it. There the wrong source dropped a bus; here it invents a bearing.
+   *
+   * Answers from api/routes.json, which carries every route's directions and is already
+   * fetched. Returns null rather than a guess when the catalog cannot answer — before the
+   * catalog lands, or opened from disk where there is none. Callers omit the tag on null:
+   * a missing bearing is a gap, a wrong one is a lie.
+   */
+  function headsignForRouteId(routes, routeId, directionId) {
+    var route = (routes || []).filter(function (r) {
+      return String(r.id) === String(routeId);
+    })[0];
+    if (!route || !route.directions) return null;
+    var d = route.directions.filter(function (x) { return x.id === directionId; })[0];
+    return (d && d.headsign) || null;
+  }
+
+  function directionTagForRouteId(routes, routeId, directionId) {
+    return compassTag(headsignForRouteId(routes, routeId, directionId));
   }
 
   /*
@@ -500,6 +536,9 @@
     directionIds: directionIds,
     directionsForRows: directionsForRows,
     directionTagFor: directionTagFor,
+    directionTagForRouteId: directionTagForRouteId,
+    headsignForRouteId: headsignForRouteId,
+    compassTag: compassTag,
     AGENCY_TZ: AGENCY_TZ,
     MINUS: MINUS,
     clock: clock,

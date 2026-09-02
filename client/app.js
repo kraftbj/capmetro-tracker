@@ -1583,7 +1583,15 @@
       geo: state.geo,
       window: global,
       onLocate: locate,
-      onClear: function () { state.geo = null; render(); }
+      onClear: function () { state.geo = null; render(); },
+      /*
+       * The catalog, for the one fact this route's payload cannot supply: what a
+       * direction_id means on a DIFFERENT route. A block continuation that interlines
+       * names its successor's route, and only routes.json knows that route's headsigns.
+       * Before it lands this is the fallback catalog with empty directions, which reads
+       * as "cannot say" and drops the bearing rather than borrowing this route's.
+       */
+      routes: catalog()
     };
 
     /*
@@ -1722,7 +1730,9 @@
       dep: usableDepartures(state.routeId),
       vehicleId: state.tripBusId,
       now: (state.data && state.data.generated_at) || null,
-      lastSeen: state.tripLastSeen
+      lastSeen: state.tripLastSeen,
+      /* Same reason as the rows: next_trip carries no headsign of its own. */
+      routes: catalog()
     }, {
       /*
        * Whether the null above means "not fetched yet" or "held, and refused".
