@@ -284,6 +284,177 @@
     return false;
   }
 
+  /*
+   * ---- who is going to run this trip ------------------------------------
+   *
+   * A departure with no bus joined to it was rendered "no bus reporting yet", which
+   * reads as "it has not started". That sentence covers three states that call for
+   * completely different actions from someone standing at the stop, and it is the same
+   * flattening that once rendered a CANCELED trip as "not reporting" and left a kid
+   * waiting for a bus that was never coming. One level down, the same harm:
+   *
+   *   2026-09-01, the 16:49 run on block 4091. The board said "no bus reporting yet" at
+   *   16:49, at 16:55, at 16:59. CapMetro published the cancellation at 16:59, ten
+   *   minutes after the bus was due out. For those ten minutes the board's sentence was
+   *   indistinguishable from the one it prints for a bus that is simply early in its
+   *   layover, and somebody stood at 5th/West Lynn reading it.
+   *
+   * What the board can actually know, given `block_id` on every trip in the departures
+   * document and `block` on every live vehicle:
+   *
+   *   live       — a bus is on this trip right now. Nothing to infer.
+   *   inbound    — no bus on THIS trip, but one is working this block on an earlier run.
+   *                It exists, it is out, and it is coming. Naming it is the difference
+   *                between "no bus reporting yet" and "2810 is two runs away".
+   *   unassigned — no bus anywhere on this block, and this trip is not due out yet. The
+   *                honest state for a fresh pull-out: nobody can name the vehicle,
+   *                CapMetro's own app included, because the assignment does not exist
+   *                until a bus starts reporting. Benign, and it must not read as alarm.
+   *   overdue    — no bus anywhere on this block and this trip's own start time has
+   *                PASSED. This is the one that is news. It does not claim a
+   *                cancellation, because we have not been told of one; it states the
+   *                observation, which is already more than the feed is saying.
+   *   unknown    — we may not say. No route document, a stale feed, or a trip with no
+   *                block. A dead feed and a dead bus produce the identical observation
+   *                — no vehicle — and calling that overdue would read the silence of a
+   *                broken feed as news about a bus.
+   *
+   * `unknown` is checked FIRST and deliberately. Every other state here is an assertion
+   * about the world, and none of them may be made from a snapshot that stopped updating.
+   */
+
+  /* A bus can begin reporting a little after its booked start without anything being
+     wrong. Below this it is a layover; above it, the trip is late to exist. */
+  var OVERDUE_GRACE_S = 120;
+
+  /*
+   * The longest gap between two of a block's runs on one route that still reads as a
+   * layover. Above it the block was plausibly away on another route, where this route's
+   * payload cannot see its bus, and no claim about a missing bus may be made.
+   */
+  var INTERLINE_GAP_S = 5400;
+
+  function tripStartEpoch(dep, trip) {
+    if (!dep || !trip) { return null; }
+    var s = secondsOf(trip.start_time);
+    if (s === null || dep.service_day_start_epoch === undefined) { return null; }
+    return dep.service_day_start_epoch + s;
+  }
+
+  /* Every trip of one block on this route, in running order. */
+  function tripsInBlock(dep, blockId) {
+    if (!dep || !blockId) { return []; }
+    return ((dep && dep.trips) || []).filter(function (t) {
+      return String(t.block_id) === String(blockId);
+    }).sort(function (a, b) {
+      return (secondsOf(a.start_time) || 0) - (secondsOf(b.start_time) || 0);
+    });
+  }
+
+  /*
+   * How many runs sit between the bus and this trip, or null when it cannot be counted.
+   *
+   * Counted over this route's trips only, which is all the departures document holds.
+   * A block that interlines is away on another route for part of its day, so the count
+   * is unavailable rather than wrong: null prints "is working this block" and a number
+   * prints "two runs away", and inventing a number from a partial list would be the
+   * second kind of sentence built on the first kind of knowledge.
+   */
+  function runsAhead(dep, vehicle, trip) {
+    var current = vehicle && vehicle.trip && vehicle.trip.trip_id;
+    if (!current) { return null; }
+    var seq = tripsInBlock(dep, trip.block_id);
+    var from = -1, to = -1;
+    for (var i = 0; i < seq.length; i++) {
+      if (String(seq[i].id) === String(current)) { from = i; }
+      if (String(seq[i].id) === String(trip.id)) { to = i; }
+    }
+    if (from === -1 || to === -1 || to <= from) { return null; }
+    return to - from;
+  }
+
+  function vehiclesOnBlock(route, blockId) {
+    if (!blockId) { return []; }
+    return ((route && route.vehicles) || []).filter(function (v) {
+      return v.block && String(v.block.block_id) === String(blockId);
+    });
+  }
+
+  function coverageFor(dep, route, trip, now) {
+    var out = {
+      state: 'unknown', vehicle: null, runs_ahead: null,
+      start_epoch: tripStartEpoch(dep, trip), overdue_s: null
+    };
+    if (!trip || !route) { return out; }
+    /* A snapshot that has stopped updating cannot say a bus is missing. */
+    if (route.staleness && route.staleness.suppress_adherence) { return out; }
+
+    var onIt = vehicleForTrip(route, trip.id);
+    if (onIt) { out.state = 'live'; out.vehicle = onIt; return out; }
+
+    if (!trip.block_id) { return out; }
+
+    /*
+     * The successor claim first, because it is exact: a vehicle publishing
+     * next_trip.trip_id for this trip is one run away by the build's own chaining.
+     * The block match behind it catches the same bus further out, where there is no
+     * published claim to read.
+     */
+    var mates = vehiclesOnBlock(route, trip.block_id);
+    var claimant = null;
+    for (var i = 0; i < mates.length; i++) {
+      var nt = mates[i].block && mates[i].block.next_trip;
+      if (nt && String(nt.trip_id) === String(trip.id)) { claimant = mates[i]; break; }
+    }
+    if (claimant) {
+      out.state = 'inbound'; out.vehicle = claimant; out.runs_ahead = 1;
+      return out;
+    }
+    if (mates.length) {
+      out.state = 'inbound'; out.vehicle = mates[0];
+      out.runs_ahead = runsAhead(dep, mates[0], trip);
+      return out;
+    }
+
+    /* Nothing is on this block. Only the clock separates "not out yet" from news. */
+    if (out.start_epoch === null || now === null || now === undefined) { return out; }
+    if (now <= out.start_epoch + OVERDUE_GRACE_S) { out.state = 'unassigned'; return out; }
+
+    /*
+     * Past its time with nothing on the block — but "nothing on the block" is read from
+     * THIS ROUTE's vehicle list, and an interlined block spends part of its day on
+     * another route where this payload cannot see it. Block 1010 leaves route 4 at 16:19
+     * and works route 1 until midnight; a route 4 trip it returned for would look
+     * abandoned while the bus was running perfectly well two routes over, and a late
+     * bus wrongly reported missing is the same class of lie as a missing bus reported
+     * on time.
+     *
+     * So `overdue` is claimed only where the block cannot be somewhere else:
+     *
+     *   - the trip is the block's FIRST of the day. A pull-out has no prior work, so
+     *     there is nowhere else for it to be. This is the 4091 case, and the one that
+     *     went unannounced for ten minutes on 2026-09-01.
+     *   - or the block's previous run on this route was recent enough to be a layover
+     *     rather than an excursion. Consecutive same-route runs sit 30-60 minutes apart
+     *     by start time; an interline gap is hours. Beyond the threshold we do not know,
+     *     and `unknown` is the honest answer.
+     */
+    var seq = tripsInBlock(dep, trip.block_id);
+    var idx = -1;
+    for (var j = 0; j < seq.length; j++) {
+      if (String(seq[j].id) === String(trip.id)) { idx = j; break; }
+    }
+    if (idx > 0) {
+      var prev = secondsOf(seq[idx - 1].start_time);
+      var mine = secondsOf(trip.start_time);
+      if (prev === null || mine === null || mine - prev > INTERLINE_GAP_S) { return out; }
+    }
+
+    out.state = 'overdue';
+    out.overdue_s = now - out.start_epoch;
+    return out;
+  }
+
   function resolve(watch, dep, route, now) {
     var base = { watch: watch, key: keyFor(watch) };
 
@@ -745,6 +916,9 @@
     matchDeparture: matchDeparture,
     vehicleForTrip: vehicleForTrip,
     isCanceled: isCanceled,
+    coverageFor: coverageFor,
+    tripsInBlock: tripsInBlock,
+    tripStartEpoch: tripStartEpoch,
     resolve: resolve,
     untilText: untilText,
     sortModels: sortModels,

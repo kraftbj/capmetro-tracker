@@ -39,6 +39,12 @@
    * moment.
    */
   var GRACE_S = 90;
+  /*
+   * How long an overdue run stays on the board past its time. Long enough that a rider
+   * who arrives for a bus that never came still sees why, short enough that the warning
+   * does not outlive its usefulness and become part of the furniture.
+   */
+  var OVERDUE_KEEP_S = 1800;
 
   /*
    * Every direction the stop is served in, in id order.
@@ -144,11 +150,40 @@
         : lateness === null ? null : scheduledAt + lateness;
       var dueAt = predictedAt === null ? scheduledAt : predictedAt;
 
-      if (dueAt < now - GRACE_S) { return; }
+      var coverage = W.coverageFor(dep, route, row.trip, now);
+
+      /*
+       * A departure leaves the list GRACE_S after it was due, because a bus that has
+       * been and gone is not an answer to "when is the next one".
+       *
+       * An overdue run is the exception, and it has to be: it is the row whose absence
+       * IS the harm. A run nobody is operating would otherwise drop off the board 90
+       * seconds after its time, leaving a rider looking at the NEXT departure with
+       * nothing to say the one they were waiting for never existed — the same silence
+       * that made 2026-09-01 unreadable until CapMetro published, ten minutes late.
+       *
+       * Bounded, because a warning that never clears becomes furniture. After
+       * OVERDUE_KEEP_S the following run is the honest answer and this one is history.
+       *
+       * Note the ordering against GRACE_S: overdue does not begin until
+       * OVERDUE_GRACE_S (120s) and the list drops rows at 90s, so computing coverage
+       * after this filter made the state unreachable in the UI entirely.
+       */
+      if (dueAt < now - GRACE_S &&
+        !(coverage.state === 'overdue' && dueAt > now - OVERDUE_KEEP_S)) { return; }
 
       out.push({
         trip: row.trip,
         canceled: W.isCanceled(row.trip, route),
+        /*
+         * Who is going to run this, when no bus is on it yet. See the long note on
+         * coverageFor: "no bus reporting yet" covered a bus two runs away, a block that
+         * has not pulled out, and a run that is already overdue with nothing on its
+         * block — three states, one sentence, and the last one is the only warning a
+         * rider gets before CapMetro publishes a cancellation, sometimes ten minutes
+         * after the bus was due.
+         */
+        coverage: coverage,
         vehicle: vehicle,
         view: view,
         suppressed: suppressed,
@@ -181,7 +216,9 @@
     var live = 0;
     for (var i = 0; i < out.length && live < want; i++) {
       picked.push(out[i]);
-      if (!out[i].canceled) { live++; }
+      /* An overdue run is not a bus you can catch, so like a cancellation it rides
+         along without consuming one of the two answers being asked for. */
+      if (!out[i].canceled && (out[i].coverage || {}).state !== 'overdue') { live++; }
     }
     return picked;
   }
@@ -286,8 +323,49 @@
        * No vehicle on the trip yet. That is normal before a run starts, and it
        * is NOT the same as "on time" - saying nothing would let a reader assume
        * a prediction exists.
+       *
+       * It is also not one state. "no bus reporting yet" was printed identically for a
+       * bus two runs down the same block, a block that has not pulled out, and a run
+       * already overdue with nothing on its block — and the reader can act on those
+       * three differently. See coverageFor() in watch.js for why the last one matters.
        */
-      row.appendChild(el('p', 'nextbus__sched', 'scheduled · no bus reporting yet'));
+      var cov = d.coverage || {};
+      if (cov.state === 'inbound' && cov.vehicle) {
+        var busName = cov.vehicle.label || cov.vehicle.vehicle_id;
+        var where = cov.runs_ahead === 1 ? 'becomes this run'
+          : cov.runs_ahead > 1 ? 'is ' + fmt.plural(cov.runs_ahead, 'run', 'runs') + ' away'
+            /* Interlined: away on another route, so this route's list cannot count. */
+            : 'is working this block';
+        row.appendChild(el('p', 'nextbus__sched', 'scheduled · bus ' + busName + ' ' + where));
+        row.appendChild(el('p', 'sr-only',
+          'No bus on this trip yet. Bus ' + busName + ' ' + where + '.'));
+      } else if (cov.state === 'overdue') {
+        /*
+         * The warning this whole path exists for. It asserts only what was observed —
+         * the run is late to exist and nothing is on its block — and explicitly does
+         * NOT claim a cancellation, because none has been published. On 2026-09-01 the
+         * cancellation arrived ten minutes after the bus was due; this line is what
+         * those ten minutes should have said.
+         */
+        var mins = Math.max(1, Math.round(cov.overdue_s / 60));
+        row.classList.add('nextbus--overdue');
+        when.appendChild(el('span', 'nextbus__overdue', 'NO BUS'));
+        row.appendChild(el('p', 'nextbus__sched',
+          'Due to start ' + fmt.plural(mins, 'minute', 'minutes') + ' ago and no bus is ' +
+          'running it. CapMetro has not announced a cancellation.'));
+        row.appendChild(el('p', 'sr-only',
+          fmt.clock(d.scheduled_at) + ' was due to start ' + fmt.plural(mins, 'minute', 'minutes') +
+          ' ago and no bus is running it. CapMetro has not announced a cancellation.'));
+      } else if (cov.state === 'unassigned') {
+        /*
+         * A fresh pull-out. Nobody can name the vehicle — not this board and not
+         * CapMetro's own app — because the assignment does not exist until a bus starts
+         * reporting. Saying so beats "no bus reporting yet", which reads as late.
+         */
+        row.appendChild(el('p', 'nextbus__sched', 'scheduled · no bus assigned to it yet'));
+      } else {
+        row.appendChild(el('p', 'nextbus__sched', 'scheduled · no bus reporting yet'));
+      }
     }
 
     if (d.is_special) {

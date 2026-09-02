@@ -252,8 +252,20 @@ describe('"next" is when the bus arrives, not when it was due', () => {
       routeWith({ [TRIP_0732]: 1500, [TRIP_0752]: 0 }),
       '6293', 1, at(7, 45), 4,
     )
-    expect(rows.slice(0, 2).map((r) => r.trip.id)).toEqual([TRIP_0752, TRIP_0732])
-    expect(rows[0].due_at).toBeLessThan(rows[1].due_at)
+    /*
+     * Asserted as the RELATIVE order of the two trips this test is about, not as the
+     * first two rows of the list. Every trip in this fixture sits on its own
+     * single-trip block, so one with no vehicle reads as a pull-out that never
+     * happened and rides along as an overdue row — a true statement about the
+     * fixture, and nothing to do with the ordering rule under test here.
+     */
+    const ids = rows.map((r) => r.trip.id)
+    expect(ids).toContain(TRIP_0752)
+    expect(ids).toContain(TRIP_0732)
+    expect(ids.indexOf(TRIP_0752)).toBeLessThan(ids.indexOf(TRIP_0732))
+    const late = rows.find((r) => r.trip.id === TRIP_0732)
+    const ontime = rows.find((r) => r.trip.id === TRIP_0752)
+    expect(ontime.due_at).toBeLessThan(late.due_at)
   })
 
   t('drops a bus that has actually been, not one that is merely overdue', (sb) => {

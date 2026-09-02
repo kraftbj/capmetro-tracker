@@ -1043,6 +1043,18 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   padding: 2px 6px; border-radius: var(--radius-sm);
   background: var(--danger); color: var(--adh-ink-dark);
 }
+/*
+ * Overdue: due out, nothing on its block, and no cancellation published. Warn and not
+ * danger, and no strike-through — the run is not called off, it is unaccounted for, and
+ * the two must not look alike at a glance. The word carries it for a screen reader.
+ */
+.nextbus--overdue { border-left-color: var(--warn); }
+.nextbus__overdue {
+  font-size: var(--fs-chrome); font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  background: var(--warn); color: var(--adh-ink-dark);
+}
+
 .watchcard--canceled { border-left-color: var(--danger); }
 .watchcard__canceled {
   font-family: var(--font-figure); font-size: 20px; font-weight: 700;
