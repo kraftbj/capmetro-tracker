@@ -152,6 +152,101 @@
   }
 
   /*
+   * ---- distance, and one claim worth checking ---------------------------
+   */
+
+  var EARTH_RADIUS_M = 6371008.8;
+
+  /*
+   * Great-circle metres. Moved here from near.js, which now delegates the way it already
+   * delegates hasFix: a third copy was about to be written for the check below, and this
+   * file exists to stop exactly that (ISSUE-002).
+   *
+   * Same formula as build/lib/geo.mjs, which cannot be imported: that is an ES module in
+   * the build job and this is a classic script, because ES modules are blocked on file://
+   * URLs. Infinity rather than null for an unusable input, so a caller ranking by
+   * distance sorts it last instead of crashing.
+   *
+   * chain.js still carries its own `metres(a, b)`, which takes points and returns null.
+   * Different signature, different answer for "unknown", and its own local hasFix — that
+   * tangle is worth undoing, but not inside a bug fix about vehicle positions.
+   */
+  function metersBetween(lat1, lon1, lat2, lon2) {
+    if (![lat1, lon1, lat2, lon2].every(function (n) {
+      return typeof n === 'number' && isFinite(n);
+    })) return Infinity;
+    var toRad = Math.PI / 180;
+    var dLat = (lat2 - lat1) * toRad;
+    var dLon = (lon2 - lon1) * toRad;
+    var a = Math.pow(Math.sin(dLat / 2), 2) +
+      Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.pow(Math.sin(dLon / 2), 2);
+    return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+
+  /* "5.7 km" / "240 m". Metres under a kilometre, rounded to something a person reads. */
+  function distance(meters) {
+    if (meters === null || meters === undefined || !isFinite(meters)) return null;
+    if (meters < 1000) return Math.round(meters / 10) * 10 + ' m';
+    return (Math.round(meters / 100) / 10) + ' km';
+  }
+
+  /*
+   * Every stop the route document can place, by id: timepoints and the minor stops
+   * between them. Memoized per document, one entry, like stopTimesForTrip — the board
+   * has one route open at a time and rebuilding this per row is wasted work.
+   */
+  var stopPosCache = { doc: null, index: null };
+  function stopPositions(data) {
+    if (!data) return null;
+    if (stopPosCache.doc === data) return stopPosCache.index;
+    var index = Object.create(null);
+    ((data && data.timepoints) || []).forEach(function (tp) {
+      if (tp && tp.stop_id !== undefined) { index[String(tp.stop_id)] = tp; }
+      ((tp && tp.minor_stops) || []).forEach(function (m) {
+        if (m && m.stop_id !== undefined) { index[String(m.stop_id)] = m; }
+      });
+    });
+    stopPosCache = { doc: data, index: index };
+    return index;
+  }
+
+  /*
+   * A bus can only be STOPPED_AT a stop it is actually at.
+   *
+   * The feed publishes current_status alongside a position, and the two can disagree.
+   * Bus 2354 on 2026-09-02 reported STOPPED_AT stop 6243 (Campbell/5th) at 16:34 while
+   * its own coordinates put it 5,715 m away at the Pleasant Valley yard, deadheading to
+   * a run that had not started. The board printed "stopped at stop 6243" and printed the
+   * contradicting position four lines below it.
+   *
+   * This is what GTFS-RT looks like when a vehicle is assigned to a trip it has not
+   * begun: sequence 1, STOPPED_AT, as a placeholder for "has not departed". Read
+   * literally it is a false claim about where a bus is, and it is the kind a rider acts
+   * on — "it is at my stop" is the one sentence that gets someone to run for a door.
+   *
+   * Only STOPPED_AT is checked. IN_TRANSIT_TO says nothing about distance, and
+   * INCOMING_AT is a claim about arrival rather than presence.
+   *
+   * Returns null when there is nothing to say: another status, no position, or a stop
+   * this document cannot place. A stop we cannot locate is not a stop the bus is far
+   * from, and absence of evidence gets no sentence.
+   */
+  var STOPPED_AT_TOLERANCE_M = 250;
+
+  function stoppedAtGap(data, v) {
+    if (!v || !v.progress || v.progress.current_status !== 'STOPPED_AT') return null;
+    var stopId = v.progress.current_stop_id;
+    if (stopId === null || stopId === undefined) return null;
+    if (!hasFix(v.position)) return null;
+    var index = stopPositions(data);
+    var stop = index && index[String(stopId)];
+    if (!hasFix(stop)) return null;
+    var m = metersBetween(v.position.lat, v.position.lon, stop.lat, stop.lon);
+    if (!isFinite(m) || m <= STOPPED_AT_TOLERANCE_M) return null;
+    return { stop_id: String(stopId), stop_name: stop.stop_name || null, meters: m };
+  }
+
+  /*
    * Does this object carry a usable coordinate?
    *
    * 0/0 is the Gulf of Guinea, not Austin: the feed uses it for "no position
@@ -537,6 +632,10 @@
     directionsForRows: directionsForRows,
     directionTagFor: directionTagFor,
     directionTagForRouteId: directionTagForRouteId,
+    metersBetween: metersBetween,
+    distance: distance,
+    stopPositions: stopPositions,
+    stoppedAtGap: stoppedAtGap,
     headsignForRouteId: headsignForRouteId,
     compassTag: compassTag,
     AGENCY_TZ: AGENCY_TZ,

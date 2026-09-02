@@ -51,8 +51,6 @@
   var S = global.CMB.states;
   var el = S.el;
 
-  var EARTH_RADIUS_M = 6371008.8;
-
   /*
    * A fix older than this is not "where you are", it is where you were. Two
    * minutes is roughly two board refreshes; past that the panel offers to take
@@ -67,23 +65,13 @@
   var GEO_OPTS = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 };
 
   /*
-   * Great-circle metres. Same formula as build/lib/geo.mjs, which cannot be
-   * imported here: that is an ES module in the build job and this file is a
-   * classic script because ES modules are blocked on file:// URLs. The two are
-   * not required to stay in lockstep the way the stop-name pair is — nothing
-   * renders a value from both — but they are the same formula on purpose.
+   * Great-circle metres, now shared through format.js the same way hasFix below is.
+   * It moved when rows.js needed it to check a bus's reported stop against its own
+   * position: that would have been a third copy in the client, which is the shape
+   * CLAUDE.md forbids after ISSUE-002. Same formula, same radius, same Infinity for an
+   * unusable input — this is a delegation, not a rewrite.
    */
-  function metersBetween(lat1, lon1, lat2, lon2) {
-    if (![lat1, lon1, lat2, lon2].every(function (n) {
-      return typeof n === 'number' && isFinite(n);
-    })) return Infinity;
-    var toRad = Math.PI / 180;
-    var dLat = (lat2 - lat1) * toRad;
-    var dLon = (lon2 - lon1) * toRad;
-    var a = Math.pow(Math.sin(dLat / 2), 2) +
-      Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.pow(Math.sin(dLon / 2), 2);
-    return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)));
-  }
+  var metersBetween = fmt.metersBetween;
 
   /* 0/0 is the Gulf of Guinea, not Austin — the feed's "no position recorded".
      Shared with map.js through format.js; see the note there. */

@@ -156,7 +156,11 @@
       bits.push('measured at ' + against.stop_name + ', scheduled ' +
         fmt.clockSpoken(against.scheduled_at) + ', predicted ' + fmt.clockSpoken(against.predicted_at));
     } else if (v.progress && v.progress.current_stop_id) {
-      bits.push((STATUS_WORD[v.progress.current_status] || 'near') + ' stop ' + v.progress.current_stop_id);
+      var posGap = fmt.stoppedAtGap(data, v);
+      bits.push(posGap
+        ? fmt.distance(posGap.meters) + ' from stop ' + posGap.stop_id +
+          ', though the feed reports it stopped there'
+        : (STATUS_WORD[v.progress.current_status] || 'near') + ' stop ' + v.progress.current_stop_id);
     }
     if (v.pattern && v.pattern.is_special) bits.push('special trip pattern');
     var cont = continuationText(v.block, data, routes, v.route_id);
@@ -235,8 +239,19 @@
       l2.appendChild(el('span', 'warnink', view.reasonLabel || 'no prediction available'));
       if (v.progress && v.progress.current_stop_id) {
         l2.appendChild(el('span', 'sep', ' · '));
-        l2.appendChild(el('span', 'dim', (STATUS_WORD[v.progress.current_status] || 'near') + ' stop '));
-        l2.appendChild(el('span', 'fig', v.progress.current_stop_id));
+        /*
+         * The feed's own position can contradict its "stopped at". When it does, the
+         * measured distance is the honest line and the claim is left to the detail,
+         * where it can be shown as a claim rather than repeated as a fact.
+         */
+        var gap = fmt.stoppedAtGap(data, v);
+        if (gap) {
+          l2.appendChild(el('span', 'warnink', fmt.distance(gap.meters) + ' from stop '));
+          l2.appendChild(el('span', 'fig', gap.stop_id));
+        } else {
+          l2.appendChild(el('span', 'dim', (STATUS_WORD[v.progress.current_status] || 'near') + ' stop '));
+          l2.appendChild(el('span', 'fig', v.progress.current_stop_id));
+        }
       }
     } else {
       l2.appendChild(el('span', 'dim', 'last seen '));
@@ -287,6 +302,18 @@
         (v.progress.current_stop_id || '—') +
         (v.progress.current_stop_sequence === null ? ', sequence not reported'
           : ', sequence ' + v.progress.current_stop_sequence)));
+      /*
+       * Shown as a claim the payload contradicts, not silently dropped. The feed said
+       * it, and a reader comparing this board against CapMetro's own app needs to see
+       * the same sentence plus the reason it cannot be true.
+       */
+      var detailGap = fmt.stoppedAtGap(data, v);
+      if (detailGap) {
+        detail.appendChild(fact('But the position says',
+          fmt.distance(detailGap.meters) + ' from ' +
+          (detailGap.stop_name ? detailGap.stop_name + ' (stop ' + detailGap.stop_id + ')'
+            : 'stop ' + detailGap.stop_id)));
+      }
     }
     if (v.trip) {
       detail.appendChild(fact('Trip', v.trip.trip_id + ' · ' + v.trip.schedule_relationship.toLowerCase()));

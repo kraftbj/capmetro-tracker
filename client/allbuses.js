@@ -315,6 +315,22 @@
         field(dl, 'Just left', 'loading the route…', 'dim');
       }
       field(dl, 'Status', STATUS_WORD[prog.current_status] || prog.current_status || null);
+      /*
+       * The feed's "stopped at" against the feed's own coordinates. Bus 2354 reported
+       * STOPPED_AT Campbell/5th on 2026-09-02 while sitting 5.7 km away at the yard.
+       *
+       * Answerable only once the route document is loaded, because api/all.json carries
+       * no stops (§8) and a stop we cannot place is not a stop the bus is far from. So
+       * this is silent on the fleet view until routeFor() has something, which is the
+       * same reason the compact row above it still prints the status unchallenged.
+       */
+      var gap = fmt.stoppedAtGap(route, v);
+      if (gap) {
+        field(dl, 'But the position says',
+          fmt.distance(gap.meters) + ' from ' +
+          (gap.stop_name ? gap.stop_name + ' (stop ' + gap.stop_id + ')' : 'stop ' + gap.stop_id),
+          'abdet__v--change');
+      }
     }
 
     field(dl, 'Where', coords(v));
