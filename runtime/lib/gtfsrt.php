@@ -155,14 +155,7 @@ function cm_pb_fields(string $b): ?array
                 /* 'g' is little-endian float32, which is what protobuf fixed32 floats are. */
                 $u = unpack('g', substr($b, $i, 4));
                 $v = $u === false ? null : $u[1];
-                /*
-                 * NAN and INF are representable on the wire and are not encodable as JSON:
-                 * json_encode() fails on them outright, and write.php then refuses to write.
-                 * That is the same hole invalid UTF-8 opens on the string side, reached
-                 * through the float side, so it closes the same way — a message carrying one
-                 * is corrupt, not merely unusual.
-                 */
-                if ($v === null || !is_finite($v)) {
+                if ($v === null) {
                     return null;
                 }
                 $i += 4;
@@ -175,7 +168,7 @@ function cm_pb_fields(string $b): ?array
                 /* 'e' is little-endian float64. Only `odometer` uses this and we drop it. */
                 $u = unpack('e', substr($b, $i, 8));
                 $v = $u === false ? null : $u[1];
-                if ($v === null || !is_finite($v)) {
+                if ($v === null) {
                     return null;
                 }
                 $i += 8;
@@ -301,9 +294,24 @@ function cm_pb_int($value): ?int
     return is_int($value) ? $value : null;
 }
 
+/*
+ * A float field, or null when it is absent, the wrong wire type, or not finite.
+ *
+ * NAN and INF are representable in a float32 and are not encodable as JSON: json_encode()
+ * fails on them outright and write.php then refuses to write, which would cost every file the
+ * vehicle appears in. So they must never reach the output — but the check belongs HERE, at the
+ * point a float is consumed, not in cm_pb_fields() where every field is parsed.
+ *
+ * The difference matters more than it looks. cm_pb_fields() parses fields this decoder does not
+ * model and never reads; the real capture already carries one, VehiclePosition field 9. Failing
+ * a message because an unread field held NAN would let a benign upstream addition disable the
+ * fallback, and a fallback that refuses to fire is indistinguishable from one that was never
+ * needed. Rejecting at consumption keeps a NAN out of latitude while leaving a NAN in a field
+ * nobody reads exactly as harmless as it is.
+ */
 function cm_pb_float($value): ?float
 {
-    return is_float($value) ? $value : null;
+    return is_float($value) && is_finite($value) ? $value : null;
 }
 
 /* Set $out[$key] only when $value is non-null, so absent fields stay absent as in the JSON. */

@@ -20,13 +20,20 @@ ExecStart=@GEN@
 # the backstop if it does.
 #
 # This does NOT bound the worst case, and the comment that used to say it did was
-# wrong. Three feeds at timeout_s (15) is 45s, which fits. But a cycle where the
-# positions JSON has stalled adds the protobuf fallback (capped at 10s), and every
-# fifteenth minute the upstream feed_version probe adds three ranged GETs at
-# timeout_s each. Worst case is nearer 100s than 45s, and it has been since long
-# before the fallback existed. Bounding it means giving the run a deadline rather
-# than each request its own timeout; see the TODOS.md entry. Raising this number
-# alone would only move the cliff.
+# wrong. Three feeds at timeout_s each is 45s at the 15 that config.example.php
+# ships, which fits -- but timeout_s lives in /etc/capmetro/config.php, which the
+# installer never overwrites, so the real figure is whatever that file says.
+# On top of it: a cycle where the positions JSON has stalled adds the protobuf
+# fallback (capped at 10s), and the upstream feed_version probe adds three ranged
+# GETs at timeout_s each -- every 15 minutes after a good probe, but every 3 after
+# a failed one, which is precisely when upstream is slow. Worst case is nearer
+# 100s than 45s, and has been since long before the fallback existed.
+#
+# Bounding it means giving the run a deadline rather than each request its own
+# timeout; see the TODOS.md entry. Raising this number alone does not change the
+# failure mode: the timer fires every 60s, so anything above that guarantees a run
+# overruns its own cadence, and a killed run still publishes nothing. A deadline
+# lets the run publish what it has.
 TimeoutStartSec=50
 
 # The job writes to exactly three places and reads the rest. Everything else on

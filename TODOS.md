@@ -203,6 +203,10 @@ an exit-3 run to take effect.
 The unit file's own comment claimed a ~45s worst case, which was wrong by roughly half and had
 been since before the fallback existed. Corrected in place, so the next person to reach for
 `TimeoutStartSec` reads the real arithmetic rather than the one that made 50 look generous.
+That correction is itself a unit edit, so it trips the drift check it describes: `update.sh`
+names the file and exits 3 until `sudo deploy/install.sh` runs. On a box with no
+`/etc/capmetro/installed-units.sha256` yet it says it cannot tell and exits 0 instead — either
+way `install.sh` is what settles it.
 
 **Effort:** S
 **Priority:** P3

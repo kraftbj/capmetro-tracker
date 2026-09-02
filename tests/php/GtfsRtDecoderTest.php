@@ -140,7 +140,13 @@ final class GtfsRtDecoderTest extends TestCase
 
     /**
      * One per wire type the decoder understands, since an unknown field can arrive as any of
-     * them, plus the two enum values GTFS-RT could add tomorrow.
+     * them; the real unmodelled field the capture already carries; and an enum value added to
+     * a field the decoder does read.
+     *
+     * The two non-finite rows are the subtle ones. NAN and INF cannot be encoded as JSON, so
+     * the decoder must keep them out of the output — but only out of fields it publishes.
+     * Failing a vehicle because a field nobody reads held NAN would let a benign upstream
+     * addition disable the fallback, which is the failure this whole test exists to prevent.
      *
      * @return array<string, array{string, string}>
      */
@@ -149,13 +155,47 @@ final class GtfsRtDecoderTest extends TestCase
         $self = new self('benignUpstreamAdditions');
 
         return [
-            'unknown varint field'      => [$self->varintField(20, 7), 'a new counter'],
-            'unknown length field'      => [$self->stringField(21, 'whatever'), 'a new string'],
-            'unknown float32 field'     => [$self->float32Field(22, 1.5), 'a new float'],
-            'unknown float64 field'     => [$self->varint((23 << 3) | 1) . pack('e', 1.5), 'a new double'],
-            'occupancy_status'          => [$self->varintField(9, 2), 'the real field 9 the capture carries'],
-            'unknown currentStatus'     => [$self->varintField(4, 42), 'a stop status added later'],
+            'unknown varint field'  => [$self->varintField(20, 7), 'a new counter'],
+            'unknown length field'  => [$self->stringField(21, 'whatever'), 'a new string'],
+            'unknown float32 field' => [$self->float32Field(22, 1.5), 'a new float'],
+            'unknown float64 field' => [$self->varint((23 << 3) | 1) . pack('e', 1.5), 'a new double'],
+            'occupancy_status'      => [$self->varintField(9, 4), 'field 9, value 4, exactly as the capture carries it'],
+            'unknown currentStatus' => [$self->varintField(4, 42), 'a stop status added later'],
+            'NAN in an unread field' => [$self->float32Field(22, NAN), 'not encodable, but nothing publishes it'],
+            'INF in an unread field' => [$self->float32Field(22, INF), 'likewise'],
         ];
+    }
+
+    /**
+     * The other half of the same rule: a non-finite value in a field the decoder DOES publish
+     * still fails the bus, because json_encode() would refuse the document and write.php would
+     * then write nothing at all.
+     */
+    public function testANonFiniteCoordinateStillFailsTheBusThatCarriesIt(): void
+    {
+        $nanLat = $this->lenField(2, $this->float32Field(1, NAN) . $this->float32Field(2, -97.66901));
+
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([$this->goodVehicle('4090'), $nanLat]));
+
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity'], 'the bus with a NAN latitude is dropped');
+        self::assertSame(1, $decoded['dropped']);
+        self::assertNotFalse(json_encode($decoded), 'and the run can still write');
+    }
+
+    /** A non-finite optional field is dropped without costing the bus, since nothing needs it. */
+    public function testANonFiniteBearingDropsTheFieldRatherThanTheBus(): void
+    {
+        $position = $this->float32Field(1, 30.27623)
+            . $this->float32Field(2, -97.66901)
+            . $this->float32Field(3, NAN);
+
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([$this->lenField(2, $position)]));
+
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity']);
+        self::assertArrayNotHasKey('bearing', $decoded['entity'][0]['vehicle']['position']);
+        self::assertNotFalse(json_encode($decoded));
     }
 
     public function testEveryDecodedEntityCarriesTheFieldsTheJoinReads(): void
