@@ -89,12 +89,16 @@ Expectations:
   cron when they are fetched at all; neither is ever fetched by the browser, which
   only ever reads our own `/api/*.json`. `health.json`'s `feeds.positions_source`
   says which one a run used — if it reads `protobuf`, the JSON feed has stalled
-  upstream and the board is running on the fallback; the generator's log names it too,
-  but only on the runs where it is not `json`. A stalled feed serves a clean 200 with
-  internally consistent content, so only its header age gives it away. The fallback
-  gets a bounded 10s timeout rather than the full `timeout_s`, because a fourth
-  full-budget request would put a bad run over the generator unit's
-  `TimeoutStartSec=50`.
+  upstream and the board is running on the fallback. The generator also writes a
+  `notice:` line to stderr, and therefore to the journal, when the source is not
+  `json`, when the fallback was consulted and could not help, and when the decode
+  dropped vehicles. Those go to stderr **unconditionally**, not through the `--quiet`
+  logger: production runs the generator with `--quiet` (see the `GEN` line in
+  `install.sh`), so anything routed through `$log` reaches nobody on the box. A
+  stalled feed serves a clean 200 with internally consistent content, so only its
+  header age gives it away. The fallback gets a bounded 10s timeout rather than the
+  full `timeout_s` — it is not what brings a run inside the unit's
+  `TimeoutStartSec=50`, which the fetch budget already exceeds without it; see TODOS.
 - Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd
   timer that writes JSON to disk; there is no PHP handler in the vhost and that
   is deliberate, not an omission.

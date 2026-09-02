@@ -29,6 +29,13 @@ const CM_SCHEDULE_RELATIONSHIPS = [
     'UNKNOWN',
 ];
 
+/* Likewise for current_status, whose schema already allows null for "not stated". */
+const CM_VEHICLE_STOP_STATUSES = [
+    'INCOMING_AT',
+    'STOPPED_AT',
+    'IN_TRANSIT_TO',
+];
+
 /*
  * Index the trip updates feed by trip id.
  *
@@ -263,10 +270,21 @@ function cm_build_vehicle(
     $css = array_key_exists('currentStopSequence', $v) && $v['currentStopSequence'] !== null
         ? (int) $v['currentStopSequence']
         : null;
+    /*
+     * Same rule as schedule_relationship above, and for the same reason: the protobuf decoder
+     * hands back an enum value it does not recognize as its raw wire integer rather than
+     * guessing, and that integer is not one of the names current_status is declared to hold.
+     * Here the schema already allows null, so an unrecognized status reads as "we do not know
+     * where this bus is in its trip" -- which is true, and is what the field already means
+     * when the feed omits it.
+     */
+    $status = $v['currentStatus'] ?? null;
     $out['progress'] = [
         'current_stop_sequence' => $css,
         'current_stop_id'       => isset($v['stopId']) ? (string) $v['stopId'] : null,
-        'current_status'        => isset($v['currentStatus']) ? (string) $v['currentStatus'] : null,
+        'current_status'        => in_array($status, CM_VEHICLE_STOP_STATUSES, true)
+            ? (string) $status
+            : null,
     ];
 
     $scheduled = ($route_shard !== null && $shard_trip !== null)

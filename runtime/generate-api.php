@@ -206,12 +206,25 @@ if ($fixtures !== null) {
 }
 $positions_source = (string) ($feeds['positions']['source'] ?? 'json');
 /*
- * A fallback that was consulted and could not help. Not an error in itself -- the JSON is
- * still serving, or its own staleness is already the error -- but a run where the rescue was
- * unavailable must not read like a run where it was never wanted.
+ * Anything unusual about the positions source goes to stderr unconditionally, NOT through
+ * $log. Production runs the generator with --quiet -- install.sh builds the ExecStart that
+ * way -- so $log writes to nobody on the only box that matters, which is why errors below
+ * bypass it too. These are not errors: the board is serving, on the fallback or on a JSON the
+ * fallback could not improve on. They are the conditions an operator has to be able to see
+ * without polling health.json, and the whole premise of issue 14 is that an invisible
+ * degradation runs for four hours.
  */
+if ($positions_source !== 'json') {
+    fwrite(STDERR, "notice: positions from $positions_source; the JSON publication has stalled\n");
+}
 if (isset($feeds['positions']['fallback_error'])) {
-    $log('positions fallback unavailable: ' . $feeds['positions']['fallback_error']);
+    fwrite(STDERR, 'notice: positions fallback unavailable: ' . $feeds['positions']['fallback_error'] . "\n");
+}
+if (($feeds['positions']['data']['dropped'] ?? 0) > 0) {
+    fwrite(STDERR, sprintf(
+        "notice: positions source dropped %d undecodable vehicle(s); the fleet is incomplete\n",
+        (int) $feeds['positions']['data']['dropped']
+    ));
 }
 foreach ($feeds as $name => $r) {
     if (!$r['ok']) {
@@ -728,11 +741,8 @@ $log(sprintf(
     $in_service,
     count($all_vehicles) - $in_service,
     count($watch_targets),
-    /*
-     * Named only when it is not the ordinary one. health.json carries positions_source on
-     * every run, but nobody watching `journalctl -fu capmetro-generate` is reading that, and a
-     * fallback that leaves no trace in the log is a fallback nobody notices is load-bearing.
-     */
+    /* Named only when it is not the ordinary one. The stderr notice above is what an operator
+       actually sees, since production runs --quiet; this is for an interactive run. */
     $positions_source === 'json' ? '' : ', positions via ' . $positions_source,
     $errors === [] ? '' : ', ' . count($errors) . ' error(s)'
 ));

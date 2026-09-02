@@ -33,7 +33,7 @@ final class GtfsRtDecoderTest extends TestCase
     {
         Runtime::functionsOrSkip(
             $this,
-            ['cm_gtfsrt_decode', 'cm_pb_fields', 'cm_pb_varint'],
+            ['cm_gtfsrt_decode', 'cm_pb_fields', 'cm_pb_varint', 'cm_pb_enum'],
             self::FILES
         );
     }
@@ -270,25 +270,32 @@ final class GtfsRtDecoderTest extends TestCase
         self::assertSame([], $decoded['entity']);
     }
 
-    /** @dataProvider incrementalities */
-    public function testIncrementalityMapsToItsName(int $wire, string $expected): void
+    public function testAFullDatasetHeaderDecodesAndSaysSo(): void
     {
         $header = $this->stringField(1, '2.0')
-            . $this->varintField(2, $wire)
+            . $this->varintField(2, 0)
             . $this->varintField(3, 1788300715);
 
         $decoded = cm_gtfsrt_decode($this->lenField(1, $header));
 
-        self::assertSame($expected, $decoded['header']['incrementality']);
+        self::assertSame('FULL_DATASET', $decoded['header']['incrementality']);
     }
 
     /**
-     * DIFFERENTIAL is unreachable from CapMetro today, which is exactly why it is asserted
-     * here: a capture can only ever cover what upstream happened to publish, and the claim
-     * this suite makes is that every value in the map is right, not every value in service.
+     * The map itself, asserted at the unit rather than through a decode, because a
+     * DIFFERENTIAL feed is declined outright -- see
+     * testADifferentialFeedIsDeclinedRatherThanReadAsTheWholeFleet -- and there is no whole
+     * feed to read the name off. The mapping still has to be right: it is what the decline
+     * depends on, and a capture can only ever cover the values upstream happened to publish.
      *
-     * @return array<string, array{int, string}>
+     * @dataProvider incrementalities
      */
+    public function testIncrementalityMapsToItsName(int $wire, string $expected): void
+    {
+        self::assertSame($expected, cm_pb_enum($wire, CM_PB_INCREMENTALITY));
+    }
+
+    /** @return array<string, array{int, string}> */
     public static function incrementalities(): array
     {
         return [
@@ -434,6 +441,83 @@ final class GtfsRtDecoderTest extends TestCase
         self::assertNotNull($mostlyGood, 'one failure in three is corruption, not a misread');
         self::assertCount(2, $mostlyGood['entity']);
         self::assertNull($mostlyBad, 'more failures than successes means we are reading it wrongly');
+    }
+
+    /**
+     * The tie. `$failed > count($entities)` keeps a feed that broke exactly even, so the
+     * boundary is where an off-by-one would hide: one-for-one survives, one more does not.
+     */
+    public function testTheFloorKeepsAnEvenSplitAndRejectsOneWorse(): void
+    {
+        $broken = $this->lenField(1, "\x08\xFF\xFF");
+
+        $even = cm_gtfsrt_decode($this->feedWithVehicles([$this->goodVehicle('1'), $broken]));
+        $worse = cm_gtfsrt_decode($this->feedWithVehicles([$this->goodVehicle('1'), $broken, $broken]));
+
+        self::assertNotNull($even, 'one good and one bad is a tie, and a tie is kept');
+        self::assertCount(1, $even['entity']);
+        self::assertNull($worse, 'one more failure than success is not');
+    }
+
+    /**
+     * How many buses were dropped has to leave the decoder, or a board quietly missing a third
+     * of the fleet looks exactly like a board showing all of it -- which is the shape of
+     * failure this whole feed exists to stop.
+     */
+    public function testTheDroppedCountIsReportedRatherThanOnlyCounted(): void
+    {
+        $clean = cm_gtfsrt_decode($this->feedWithVehicles([$this->goodVehicle('1')]));
+        $lossy = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('1'),
+            $this->lenField(1, "\x08\xFF\xFF"),
+        ]));
+
+        self::assertArrayNotHasKey('dropped', $clean, 'an ordinary feed says nothing');
+        self::assertSame(1, $lossy['dropped']);
+    }
+
+    /**
+     * A DIFFERENTIAL feed carries changes since the last message, so publishing its entities
+     * as the fleet would show whichever handful of buses moved and call it the whole board.
+     * CapMetro publishes FULL_DATASET; this is the guard for the day it stops.
+     */
+    public function testADifferentialFeedIsDeclinedRatherThanReadAsTheWholeFleet(): void
+    {
+        $header = $this->stringField(1, '2.0')
+            . $this->varintField(2, 1)
+            . $this->varintField(3, 1788300715);
+        $entity = $this->stringField(1, 'e1') . $this->lenField(4, $this->goodVehicle('4090'));
+
+        $feed = $this->lenField(1, $header) . $this->lenField(2, $entity);
+
+        self::assertNull(cm_gtfsrt_decode($feed), 'a delta is not a fleet');
+    }
+
+    /**
+     * A submessage present with the wrong wire type is corrupt, not absent. The difference
+     * matters because an absent trip reads downstream as a deadhead, so omitting an unreadable
+     * one publishes an in-service bus as out of service.
+     */
+    public function testASubmessageWithTheWrongWireTypeDropsTheBusRatherThanDeadheadingIt(): void
+    {
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('4090'),
+            $this->varintField(1, 7),
+        ]));
+
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity'], 'a trip that is not a message must not read as no trip');
+        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label']);
+    }
+
+    /** A corrupt header string must not store boolean false where a version belongs. */
+    public function testACorruptHeaderVersionFailsTheFeedRatherThanStoringFalse(): void
+    {
+        $header = $this->stringField(1, "2.0\xC3\x28")
+            . $this->varintField(2, 0)
+            . $this->varintField(3, 1788300715);
+
+        self::assertNull(cm_gtfsrt_decode($this->lenField(1, $header)));
     }
 
     /**

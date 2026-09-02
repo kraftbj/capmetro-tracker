@@ -225,6 +225,42 @@ final class PositionsFallbackTest extends TestCase
 
         self::assertTrue($chosen['ok']);
         self::assertArrayNotHasKey('error', $chosen);
+        self::assertArrayNotHasKey('fallback_error', $chosen);
+    }
+
+    /**
+     * A stale JSON the fallback could not improve on is the quietest failure available: the
+     * board is `ok`, so nothing enters the error list, and without this the run is
+     * indistinguishable from one where the fallback was never wanted.
+     *
+     * @dataProvider unhelpfulFallbacks
+     */
+    public function testAStaleJsonWhoseFallbackDidNotHelpSaysWhy(string $expected, string $why): void
+    {
+        $chosen = $this->choose($this->feedAt(self::NOW - 14089), $this->unhelpfulFallback($why));
+
+        self::assertSame('json', $chosen['source']);
+        self::assertTrue($chosen['ok'], 'a stale feed is still a usable one');
+        self::assertStringContainsString($expected, $chosen['fallback_error'], $why);
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function unhelpfulFallbacks(): array
+    {
+        return [
+            'fetch failed'     => ['HTTP 503', 'fetch failed'],
+            'carried nothing'  => ['no vehicles', 'decoded but empty'],
+            'also stalled'     => ['no fresher', 'decoded, full, and older than the JSON'],
+        ];
+    }
+
+    private function unhelpfulFallback(string $why): array
+    {
+        return match ($why) {
+            'fetch failed'                        => $this->failed(),
+            'decoded but empty'                   => $this->feedAt(self::NOW - 12, 0),
+            'decoded, full, and older than the JSON' => $this->feedAt(self::NOW - 20000),
+        };
     }
 
     /**
@@ -279,33 +315,42 @@ final class PositionsFallbackTest extends TestCase
             copy($stall . '/' . $f, $feeds . '/' . $f);
         }
 
-        exec(sprintf(
-            '%s %s --fixtures=%s --shards=%s --out=%s 2>&1',
-            escapeshellarg(PHP_BINARY),
-            escapeshellarg($root . '/runtime/generate-api.php'),
-            escapeshellarg($feeds),
-            escapeshellarg($root . '/tests/fixtures/shards-260818_1456'),
-            escapeshellarg($tmp . '/web')
-        ), $output, $status);
+        try {
+            exec(sprintf(
+                '%s %s --fixtures=%s --shards=%s --out=%s 2>&1',
+                escapeshellarg(PHP_BINARY),
+                escapeshellarg($root . '/runtime/generate-api.php'),
+                escapeshellarg($feeds),
+                escapeshellarg($root . '/tests/fixtures/shards-260818_1456'),
+                escapeshellarg($tmp . '/web')
+            ), $output, $status);
 
-        $health_path = $tmp . '/web/api/health.json';
-        self::assertFileExists($health_path, 'the run must write a health endpoint: ' . implode("\n", $output));
+            $health_path = $tmp . '/web/api/health.json';
+            self::assertFileExists($health_path, 'the run must write a health endpoint: ' . implode("\n", $output));
 
-        $health = json_decode((string) file_get_contents($health_path), true);
+            $health = json_decode((string) file_get_contents($health_path), true);
 
-        self::assertSame(
-            'protobuf',
-            $health['feeds']['positions_source'],
-            'the JSON half of this capture is four hours stale; the run must have taken the fallback'
-        );
-        self::assertSame(
-            (int) $this->stallHeaderTimestamp($stall . '/vehiclepositions.pb'),
-            $health['feeds']['positions_at'],
-            'and the age it reports must be the protobuf header, not the stale JSON one'
-        );
-        self::assertFileExists($tmp . '/web/api/all.json', 'a real webroot, not just a health file');
+            self::assertSame(
+                'protobuf',
+                $health['feeds']['positions_source'],
+                'the JSON half of this capture is four hours stale; the run must have taken the fallback'
+            );
+            self::assertSame(
+                (int) $this->stallHeaderTimestamp($stall . '/vehiclepositions.pb'),
+                $health['feeds']['positions_at'],
+                'and the age it reports must be the protobuf header, not the stale JSON one'
+            );
+            self::assertFileExists($tmp . '/web/api/all.json', 'a real webroot, not just a health file');
 
-        self::removeTree($tmp);
+            /* The operator signal has to survive --quiet, which production always passes. */
+            self::assertStringContainsString(
+                'notice: positions from protobuf',
+                implode("\n", $output),
+                'a run on the fallback must say so on stderr, not only in health.json'
+            );
+        } finally {
+            self::removeTree($tmp);
+        }
     }
 
     /** The protobuf capture's own header time, read through the decoder under test. */

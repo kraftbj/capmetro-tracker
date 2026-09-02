@@ -166,6 +166,13 @@ function cm_positions_entity_count(?array $result): int
  * feed raises no staleness error. Stale positions are wrong about when; no positions are wrong
  * about whether the service is running at all. The first is the better failure, and it is the
  * one the board was already built to say out loud.
+ *
+ * The threshold is zero and deliberately not a proportion of what the JSON holds. Comparing
+ * the two counts sounds stricter and is worse: the JSON's count is by definition hours old, so
+ * at 1am a healthy protobuf reporting eleven night-owl buses would be refused for disagreeing
+ * with a stale afternoon count of four hundred. That would decline the rescue at exactly the
+ * hours the fleet legitimately changes size. Zero is the only count that means "this feed is
+ * telling us nothing" rather than "the fleet is smaller than it was".
  */
 function cm_positions_choose(array $json_result, ?array $pb_result, int $now, int $threshold_s): array
 {
@@ -196,8 +203,20 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
      * one where the fallback was never needed, which is the blindness issue 14 was about one
      * level up: a rescue that quietly fails to fire is a rescue nobody knows is broken.
      */
-    if ($pb_result !== null && !($pb_result['ok'] ?? false)) {
-        $why = (string) ($pb_result['error'] ?? 'unknown error');
+    if ($pb_result !== null) {
+        if (!($pb_result['ok'] ?? false)) {
+            $why = (string) ($pb_result['error'] ?? 'unknown error');
+        } elseif (cm_positions_entity_count($pb_result) === 0) {
+            /* The case round 1 added the guard for. It was the one leaving no trace at all:
+               a fallback that fetched and decoded cleanly and still could not help. */
+            $why = 'fallback carried no vehicles';
+        } else {
+            $why = sprintf(
+                'fallback is no fresher (%ds behind the stale JSON)',
+                cm_positions_header_at($json_result) - cm_positions_header_at($pb_result)
+            );
+        }
+
         if ($json_result['ok'] ?? false) {
             $json_result['fallback_error'] = $why;
         } else {

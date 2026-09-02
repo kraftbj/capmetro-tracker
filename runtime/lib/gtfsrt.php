@@ -376,9 +376,15 @@ function cm_pb_vehicle_position(string $bytes): ?array
 
     $out = [];
 
+    /*
+     * A submessage field that is present but not length-delimited is corrupt, not absent, and
+     * the difference is the whole point: an absent `trip` reads downstream as a deadhead, so
+     * skipping an unreadable one would publish an in-service bus as out of service. Present
+     * and unreadable fails the vehicle, exactly as a submessage that will not decode does.
+     */
     $trip = cm_pb_scalar($f, 1);
-    if (is_string($trip)) {
-        $decoded = cm_pb_trip_descriptor($trip);
+    if ($trip !== null) {
+        $decoded = is_string($trip) ? cm_pb_trip_descriptor($trip) : null;
         if ($decoded === null) {
             return null;
         }
@@ -386,8 +392,8 @@ function cm_pb_vehicle_position(string $bytes): ?array
     }
 
     $position = cm_pb_scalar($f, 2);
-    if (is_string($position)) {
-        $decoded = cm_pb_position($position);
+    if ($position !== null) {
+        $decoded = is_string($position) ? cm_pb_position($position) : null;
         if ($decoded === null) {
             return null;
         }
@@ -408,8 +414,8 @@ function cm_pb_vehicle_position(string $bytes): ?array
     }
 
     $vehicle = cm_pb_scalar($f, 8);
-    if (is_string($vehicle)) {
-        $decoded = cm_pb_vehicle_descriptor($vehicle);
+    if ($vehicle !== null) {
+        $decoded = is_string($vehicle) ? cm_pb_vehicle_descriptor($vehicle) : null;
         if ($decoded === null) {
             return null;
         }
@@ -448,11 +454,22 @@ function cm_gtfsrt_decode(string $bytes): ?array
     }
 
     $header = [];
-    cm_pb_put($header, 'gtfsRealtimeVersion', cm_pb_string(cm_pb_scalar($hf, 1)));
-    cm_pb_put($header, 'incrementality', cm_pb_enum(
-        cm_pb_scalar($hf, 2),
-        CM_PB_INCREMENTALITY
-    ));
+    if (!cm_pb_put_string($header, 'gtfsRealtimeVersion', cm_pb_scalar($hf, 1))) {
+        return null;
+    }
+    $incrementality = cm_pb_enum(cm_pb_scalar($hf, 2), CM_PB_INCREMENTALITY);
+    /*
+     * Only a full dataset is usable. A DIFFERENTIAL feed carries the changes since the last
+     * message, so publishing its entities as the fleet would show whichever handful of buses
+     * happened to move -- a confident, current-looking, almost entirely wrong board. CapMetro
+     * publishes FULL_DATASET and always has; this exists so that if it ever stops, the
+     * fallback declines rather than silently reinterprets. Absent means full, per the spec's
+     * own default.
+     */
+    if ($incrementality !== null && $incrementality !== 'FULL_DATASET') {
+        return null;
+    }
+    cm_pb_put($header, 'incrementality', $incrementality);
     $header_ts = cm_pb_scalar($hf, 3);
     cm_pb_put($header, 'timestamp', is_int($header_ts) ? (string) $header_ts : null);
 
@@ -505,5 +522,18 @@ function cm_gtfsrt_decode(string $bytes): ?array
         return null;
     }
 
-    return ['header' => $header, 'entity' => $entities];
+    /*
+     * `dropped` is reported rather than merely counted. Below the floor the fleet is published
+     * as though it were whole, and a board quietly missing buses is the failure this feed
+     * exists to prevent, one level down -- so the number rides along and the caller says so.
+     * It sits outside `entity` deliberately: everything under `header` and `entity` is the
+     * JSON export's shape, and inventing a key there would break the one property the whole
+     * decoder is built on.
+     */
+    $out = ['header' => $header, 'entity' => $entities];
+    if ($failed > 0) {
+        $out['dropped'] = $failed;
+    }
+
+    return $out;
 }
