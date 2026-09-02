@@ -155,29 +155,6 @@ routinely.
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/11
 
-### Fall back to the protobuf positions feed when the JSON one stalls
-
-**What:** On 2026-09-01 `vehiclepositions.json` (`cuc7-ywmd`) froze at 12:40:09 CDT for over
-four hours while CapMetro's protobuf publication of the same feed (`eiei-9rpf`) stayed current
-to the second. Read the PB twin when the JSON is stale, converting it to the same camelCase
-shape so nothing downstream changes.
-
-**Why:** The data was never missing. The board spent an afternoon showing four-hour-old
-positions, and because `cm_staleness()` takes the oldest feed, it also suppressed lateness for
-trip updates that were 39 seconds fresh.
-
-**Context:** The stall was upstream and only on the publish side — the file served a clean 200
-throughout, and Socrata's per-publish blob UUID never advanced. The work is a PB decoder in
-`fetch.php` returning the `cm_fetch_json()` array shape. Watch the enum mapping:
-`scheduleRelationship` and `currentStatus` are strings in the JSON and integers in the PB, and
-`adherence.php` compares `CANCELED` by name, so a bad mapping changes lateness silently. Prove
-it with a differential run against the JSON while both feeds are live, not with fixture unit
-tests.
-
-**Effort:** M
-**Priority:** P2
-**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/14
-
 ### Deploy it somewhere you can actually open on a phone
 
 **What:** The board runs locally and nowhere else. Get the static client onto GitHub
@@ -245,6 +222,46 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### Fall back to the protobuf positions feed when the JSON one stalls
+
+**What:** On 2026-09-01 `vehiclepositions.json` (`cuc7-ywmd`) froze at 12:40:09 CDT for over
+four hours while CapMetro's protobuf publication of the same feed (`eiei-9rpf`) stayed current
+to the second. Read the PB twin when the JSON is stale, converting it to the same camelCase
+shape so nothing downstream changes.
+
+**Why:** The data was never missing. The board spent an afternoon showing four-hour-old
+positions, and because `cm_staleness()` takes the oldest feed, it also suppressed lateness for
+trip updates that were 39 seconds fresh.
+
+**Context:** The stall was upstream and only on the publish side — the file served a clean 200
+throughout, and Socrata's per-publish blob UUID never advanced. The decoder landed in its own
+`runtime/lib/gtfsrt.php` rather than inside `fetch.php`, returning the `cm_fetch_json()` array
+shape. The enum mapping was the part to watch, as expected: `scheduleRelationship` and
+`currentStatus` are strings in the JSON and integers in the PB, and `adherence.php` compares
+`CANCELED` by name, so a bad mapping would have changed lateness silently.
+
+Review turned up the failure modes that freshness alone does not cover, and they were the
+interesting ones. An empty protobuf with a current header beat a stale-but-populated JSON on
+age and reported `ok:true` while emptying the board — no staleness error fires on a feed that
+has nothing in it to be stale. A wire-type mismatch on an enum field raised a TypeError out of
+a decoder whose entire premise is that it degrades instead of failing. Invalid UTF-8 from the
+wire would have made `json_encode()` return false and `write.php` correctly refuse to write —
+one bad byte in one vehicle label costing every file that vehicle appears in. And a fourth
+full-budget HTTP request put the worst case over the unit's `TimeoutStartSec=50`, on exactly
+the runs where upstream is already misbehaving.
+
+**Still open:** the differential proof. Unit tests show the decoder matches the GTFS-RT spec;
+only a capture with both publications healthy shows it matches CapMetro's JSON *export*, and
+the JSON feed was still stalled when this shipped.
+`GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` is written
+and skips with that reason until `tests/fixtures/feeds-pb-differential/` exists.
+
+**Effort:** M
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/14
+**Completed:** 2026-09-02, PR 15. Needs the differential capture the next time both
+publications are healthy at once.
 
 ### `update.sh` silently ignored systemd unit changes
 

@@ -430,11 +430,15 @@
               ]
             },
             "schedule_relationship": {
+              "description": "GTFS-RT TripDescriptor.ScheduleRelationship, by name. The last three are reachable only through the protobuf positions fallback, which maps every value the spec defines rather than guessing at the ones CapMetro's JSON export has been observed to emit.",
               "enum": [
                 "SCHEDULED",
                 "CANCELED",
                 "ADDED",
-                "UNSCHEDULED"
+                "UNSCHEDULED",
+                "REPLACEMENT",
+                "DUPLICATED",
+                "DELETED"
               ]
             }
           }

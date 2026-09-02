@@ -10,7 +10,7 @@
  * WHAT IT DECODES. The header and VehiclePosition entities, and nothing else. TripUpdate and
  * Alert entities are skipped: the trip updates JSON has never been the thing that breaks, and
  * the alerts feed is not GTFS-RT at all (see alerts.php). Decoding messages we do not use would
- * be surface with no caller.
+ * be surface area with no caller.
  *
  * OUTPUT SHAPE. Deliberately identical to what the Socrata JSON export produces, so join.php,
  * adherence.php and everything downstream cannot tell which source they were handed. That means
@@ -26,6 +26,13 @@
  * against CANCELED by name. An enum mapped to the wrong name changes lateness silently, which
  * is the worst failure available here, so the maps below are indexed by the wire number and a
  * value not in the map is passed through as an integer rather than guessed at.
+ *
+ * NOTHING HERE MAY RAISE. Every decode path returns null on bad input instead of throwing. The
+ * caller is a cron job whose only job is to keep writing files, and a fatal in a decoder that
+ * exists to survive a bad upstream would defeat the entire point of having it. That is why the
+ * enum and string readers below check the type they were handed rather than declaring it: the
+ * wire is free to put a length-delimited field where an enum belongs, and a signature of
+ * `?int` would turn that into an uncaught TypeError.
  *
  * FLOATS ARE NOT EXACTLY COMPARABLE TO THE JSON. Position fields are protobuf `float`, i.e.
  * 32-bit. Widened to a PHP double, float32(30.26187) is 30.261869430541992, while the JSON
@@ -195,14 +202,38 @@ function cm_pb_scalar(array $fields, int $number)
  * An unknown number is returned as-is rather than defaulted to anything. A future
  * ScheduleRelationship value must not silently become SCHEDULED; a caller comparing against
  * names will simply not match, which is the honest outcome.
+ *
+ * Anything that is not an integer is treated as absent. An enum field arriving with a
+ * non-varint wire type is a corrupt message, and the value is untyped rather than `?int`
+ * precisely so that case returns null instead of raising a TypeError out of the cron.
  */
-function cm_pb_enum(?int $value, array $map)
+function cm_pb_enum($value, array $map)
 {
-    if ($value === null) {
+    if (!is_int($value)) {
         return null;
     }
 
     return $map[$value] ?? $value;
+}
+
+/*
+ * A length-delimited field read as a string, or null when it is not usable as one.
+ *
+ * GTFS-RT strings are UTF-8 by specification, so bytes that are not valid UTF-8 are a corrupt
+ * field rather than an exotic one. Dropping them matters more than it looks: write.php refuses
+ * to write a document json_encode() could not encode, and json_encode() fails outright on
+ * invalid UTF-8. One bad byte in one vehicle label would otherwise stop every file that vehicle
+ * appears in from being written at all. Losing the label costs one field; losing the write
+ * costs the board. The JSON publication cannot reach this path — json_decode() would have
+ * rejected the payload upstream — so it is the protobuf that makes it reachable.
+ */
+function cm_pb_string($value): ?string
+{
+    if (!is_string($value) || !mb_check_encoding($value, 'UTF-8')) {
+        return null;
+    }
+
+    return $value;
 }
 
 /* Set $out[$key] only when $value is non-null, so absent fields stay absent as in the JSON. */
@@ -222,14 +253,14 @@ function cm_pb_trip_descriptor(string $bytes): ?array
     }
 
     $out = [];
-    cm_pb_put($out, 'tripId', cm_pb_scalar($f, 1));
-    cm_pb_put($out, 'startTime', cm_pb_scalar($f, 2));
-    cm_pb_put($out, 'startDate', cm_pb_scalar($f, 3));
+    cm_pb_put($out, 'tripId', cm_pb_string(cm_pb_scalar($f, 1)));
+    cm_pb_put($out, 'startTime', cm_pb_string(cm_pb_scalar($f, 2)));
+    cm_pb_put($out, 'startDate', cm_pb_string(cm_pb_scalar($f, 3)));
     cm_pb_put($out, 'scheduleRelationship', cm_pb_enum(
         cm_pb_scalar($f, 4),
         CM_PB_TRIP_SCHEDULE_RELATIONSHIP
     ));
-    cm_pb_put($out, 'routeId', cm_pb_scalar($f, 5));
+    cm_pb_put($out, 'routeId', cm_pb_string(cm_pb_scalar($f, 5)));
     cm_pb_put($out, 'directionId', cm_pb_scalar($f, 6));
 
     return $out;
@@ -266,9 +297,9 @@ function cm_pb_vehicle_descriptor(string $bytes): ?array
     }
 
     $out = [];
-    cm_pb_put($out, 'id', cm_pb_scalar($f, 1));
-    cm_pb_put($out, 'label', cm_pb_scalar($f, 2));
-    cm_pb_put($out, 'licensePlate', cm_pb_scalar($f, 3));
+    cm_pb_put($out, 'id', cm_pb_string(cm_pb_scalar($f, 1)));
+    cm_pb_put($out, 'label', cm_pb_string(cm_pb_scalar($f, 2)));
+    cm_pb_put($out, 'licensePlate', cm_pb_string(cm_pb_scalar($f, 3)));
 
     return $out;
 }
@@ -279,6 +310,12 @@ function cm_pb_vehicle_descriptor(string $bytes): ?array
  * timestamp is emitted as a STRING because that is what the JSON export does. Downstream casts
  * it with (int); handing back an int here would work today and diverge the moment anything
  * compares the two sources field by field.
+ *
+ * A submessage that is present but does not decode fails the whole vehicle rather than being
+ * dropped. A vehicle with no `trip` is not an error downstream, it is a deadhead — join.php
+ * reads it as a bus running out of service — so quietly omitting an unparseable TripDescriptor
+ * would turn a corrupt field into a confident, wrong statement about that bus. Failing the
+ * vehicle is the honest outcome; cm_gtfsrt_decode() then fails the feed and the JSON is kept.
  */
 function cm_pb_vehicle_position(string $bytes): ?array
 {
@@ -291,12 +328,20 @@ function cm_pb_vehicle_position(string $bytes): ?array
 
     $trip = cm_pb_scalar($f, 1);
     if (is_string($trip)) {
-        cm_pb_put($out, 'trip', cm_pb_trip_descriptor($trip));
+        $decoded = cm_pb_trip_descriptor($trip);
+        if ($decoded === null) {
+            return null;
+        }
+        cm_pb_put($out, 'trip', $decoded);
     }
 
     $position = cm_pb_scalar($f, 2);
     if (is_string($position)) {
-        cm_pb_put($out, 'position', cm_pb_position($position));
+        $decoded = cm_pb_position($position);
+        if ($decoded === null) {
+            return null;
+        }
+        cm_pb_put($out, 'position', $decoded);
     }
 
     cm_pb_put($out, 'currentStopSequence', cm_pb_scalar($f, 3));
@@ -306,13 +351,17 @@ function cm_pb_vehicle_position(string $bytes): ?array
     ));
 
     $ts = cm_pb_scalar($f, 5);
-    cm_pb_put($out, 'timestamp', $ts === null ? null : (string) $ts);
+    cm_pb_put($out, 'timestamp', is_int($ts) ? (string) $ts : null);
 
-    cm_pb_put($out, 'stopId', cm_pb_scalar($f, 7));
+    cm_pb_put($out, 'stopId', cm_pb_string(cm_pb_scalar($f, 7)));
 
     $vehicle = cm_pb_scalar($f, 8);
     if (is_string($vehicle)) {
-        cm_pb_put($out, 'vehicle', cm_pb_vehicle_descriptor($vehicle));
+        $decoded = cm_pb_vehicle_descriptor($vehicle);
+        if ($decoded === null) {
+            return null;
+        }
+        cm_pb_put($out, 'vehicle', $decoded);
     }
 
     return $out;
@@ -347,13 +396,13 @@ function cm_gtfsrt_decode(string $bytes): ?array
     }
 
     $header = [];
-    cm_pb_put($header, 'gtfsRealtimeVersion', cm_pb_scalar($hf, 1));
+    cm_pb_put($header, 'gtfsRealtimeVersion', cm_pb_string(cm_pb_scalar($hf, 1)));
     cm_pb_put($header, 'incrementality', cm_pb_enum(
         cm_pb_scalar($hf, 2),
         CM_PB_INCREMENTALITY
     ));
     $header_ts = cm_pb_scalar($hf, 3);
-    cm_pb_put($header, 'timestamp', $header_ts === null ? null : (string) $header_ts);
+    cm_pb_put($header, 'timestamp', is_int($header_ts) ? (string) $header_ts : null);
 
     $entities = [];
     foreach (($f[2] ?? []) as $entity_bytes) {
@@ -375,7 +424,7 @@ function cm_gtfsrt_decode(string $bytes): ?array
         }
 
         $entity = [];
-        cm_pb_put($entity, 'id', cm_pb_scalar($ef, 1));
+        cm_pb_put($entity, 'id', cm_pb_string(cm_pb_scalar($ef, 1)));
         $entity['vehicle'] = $vehicle;
         $entities[] = $entity;
     }

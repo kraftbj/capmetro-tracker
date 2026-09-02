@@ -200,7 +200,7 @@ final class GtfsRtDecoderTest extends TestCase
 
     /**
      * A value GTFS-RT adds later must not be guessed at. Defaulting an unknown
-     * ScheduleRelationship to SCHEDULED would quietly reinstate a cancelled trip.
+     * ScheduleRelationship to SCHEDULED would quietly reinstate a canceled trip.
      */
     public function testUnknownEnumIsPassedThroughRatherThanDefaulted(): void
     {
@@ -270,12 +270,106 @@ final class GtfsRtDecoderTest extends TestCase
         self::assertSame([], $decoded['entity']);
     }
 
+    /** @dataProvider incrementalities */
+    public function testIncrementalityMapsToItsName(int $wire, string $expected): void
+    {
+        $header = $this->stringField(1, '2.0')
+            . $this->varintField(2, $wire)
+            . $this->varintField(3, 1788300715);
+
+        $decoded = cm_gtfsrt_decode($this->lenField(1, $header));
+
+        self::assertSame($expected, $decoded['header']['incrementality']);
+    }
+
+    /**
+     * DIFFERENTIAL is unreachable from CapMetro today, which is exactly why it is asserted
+     * here: a capture can only ever cover what upstream happened to publish, and the claim
+     * this suite makes is that every value in the map is right, not every value in service.
+     *
+     * @return array<string, array{int, string}>
+     */
+    public static function incrementalities(): array
+    {
+        return [
+            'FULL_DATASET' => [0, 'FULL_DATASET'],
+            'DIFFERENTIAL' => [1, 'DIFFERENTIAL'],
+        ];
+    }
+
     /* ---- malformed input ----------------------------------------------------------- */
 
     /** @dataProvider malformed */
     public function testMalformedBytesDecodeToNull(string $bytes, string $why): void
     {
         self::assertNull(cm_gtfsrt_decode($bytes), $why);
+    }
+
+    /**
+     * The decoder's premise is that it degrades instead of failing, and a raise would break
+     * that promise in the loudest possible way: the cron dies, no files are written, and the
+     * board freezes on the run whose whole purpose was to rescue it from a frozen board.
+     *
+     * An enum arriving as a length-delimited field is the shape that does it -- the reader
+     * gets a string where the wire type promised a varint. Treated as absent, not guessed at
+     * and not fatal.
+     *
+     * @dataProvider wireTypeConfusions
+     */
+    public function testAWireTypeMismatchIsSurvivedRatherThanRaised(string $vehicleBytes, string $why): void
+    {
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicle($vehicleBytes));
+
+        self::assertNotNull($decoded, $why);
+        self::assertArrayNotHasKey('currentStatus', $decoded['entity'][0]['vehicle']);
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function wireTypeConfusions(): array
+    {
+        $self = new self('wireTypeConfusions');
+
+        return [
+            'enum as string' => [
+                $self->stringField(4, 'IN_TRANSIT_TO'),
+                'a string where currentStatus expects a varint',
+            ],
+            'enum as float'  => [
+                $self->float32Field(4, 2.0),
+                'a float32 where currentStatus expects a varint',
+            ],
+        ];
+    }
+
+    /**
+     * write.php refuses to write a document json_encode() could not encode, and json_encode()
+     * fails outright on invalid UTF-8. One bad byte in one vehicle label would otherwise cost
+     * every file that vehicle appears in. The JSON publication cannot reach this -- json_decode()
+     * rejects it upstream -- so the protobuf is what makes the case reachable at all.
+     */
+    public function testInvalidUtf8InAStringFieldIsDroppedSoTheRunCanStillEncode(): void
+    {
+        $vehicle = $this->lenField(8, $this->stringField(1, "bus\xC3\x28") . $this->stringField(2, '4090'));
+
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicle($vehicle));
+
+        self::assertNotNull($decoded);
+        self::assertArrayNotHasKey('id', $decoded['entity'][0]['vehicle']['vehicle'], 'the bad byte is dropped');
+        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label'], 'its neighbours survive');
+        self::assertNotFalse(json_encode($decoded), 'the whole point: the run can still write');
+    }
+
+    /**
+     * A vehicle with no `trip` is not an error downstream, it is a deadhead -- join.php reads
+     * it as a bus running out of service. So dropping a TripDescriptor that would not decode
+     * turns a corrupt field into a confident, wrong statement about that bus. Failing the
+     * vehicle, and with it the feed, keeps the stale JSON instead.
+     */
+    public function testAnUndecodableSubmessageFailsTheFeedRatherThanDeadheadingTheBus(): void
+    {
+        $feed = $this->feedWithVehicle($this->lenField(1, "\x08\xFF\xFF"));
+
+        self::assertNull(cm_gtfsrt_decode($feed), 'a broken trip must not read as no trip');
     }
 
     /** @return array<string, array{string, string}> */

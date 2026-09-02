@@ -30,12 +30,21 @@ final class PositionsFallbackTest extends TestCase
         );
     }
 
-    /** A successful fetch result whose feed header claims the given time. */
-    private function feedAt(int $timestamp): array
+    /**
+     * A successful fetch result whose feed header claims the given time.
+     *
+     * Carries one vehicle by default. A feed's entity count is load-bearing in the choice, so
+     * a helper that produced empty feeds would quietly make every freshness test also a test
+     * of the empty case, and neither would mean what it says.
+     */
+    private function feedAt(int $timestamp, int $entities = 1): array
     {
         return [
             'ok'         => true,
-            'data'       => ['header' => ['timestamp' => (string) $timestamp], 'entity' => []],
+            'data'       => [
+                'header' => ['timestamp' => (string) $timestamp],
+                'entity' => array_fill(0, $entities, ['id' => '1', 'vehicle' => []]),
+            ],
             'bytes'      => 1234,
             'fetched_at' => self::NOW,
         ];
@@ -53,7 +62,7 @@ final class PositionsFallbackTest extends TestCase
 
     /* ---- the ordinary run ----------------------------------------------------------- */
 
-    public function testAFreshJsonFeedIsUsedAndLabelledJson(): void
+    public function testAFreshJsonFeedIsUsedAndLabeledJson(): void
     {
         $chosen = $this->choose($this->feedAt(self::NOW - 30), $this->feedAt(self::NOW));
 
@@ -119,6 +128,34 @@ final class PositionsFallbackTest extends TestCase
         self::assertSame((string) (self::NOW - 14089), $chosen['data']['header']['timestamp']);
     }
 
+    /**
+     * The failure freshness cannot see. A protobuf publishing a current header with nothing in
+     * it wins on age against a stale JSON every time, and swapping four-hour-old buses for no
+     * buses would be reported `ok:true` — an empty feed is never "stale", so nothing downstream
+     * objects. Wrong about when beats wrong about whether the service is running.
+     */
+    public function testAFreshButEmptyProtobufDoesNotEmptyTheBoard(): void
+    {
+        $chosen = $this->choose(
+            $this->feedAt(self::NOW - 14089, 404),
+            $this->feedAt(self::NOW - 12, 0)
+        );
+
+        self::assertSame('json', $chosen['source'], 'a full stale board beats a fresh empty one');
+        self::assertCount(404, $chosen['data']['entity']);
+    }
+
+    public function testAFreshProtobufWithVehiclesStillWins(): void
+    {
+        $chosen = $this->choose(
+            $this->feedAt(self::NOW - 14089, 404),
+            $this->feedAt(self::NOW - 12, 413)
+        );
+
+        self::assertSame('protobuf', $chosen['source'], 'the empty-feed guard must not block the ordinary rescue');
+        self::assertCount(413, $chosen['data']['entity']);
+    }
+
     public function testAFailedProtobufLeavesTheStaleJsonInPlace(): void
     {
         $chosen = $this->choose($this->feedAt(self::NOW - 14089), $this->failed());
@@ -159,8 +196,29 @@ final class PositionsFallbackTest extends TestCase
         $chosen = $this->choose($this->failed('HTTP 500'), $this->failed('HTTP 503'));
 
         self::assertFalse($chosen['ok']);
-        self::assertSame('HTTP 500', $chosen['error']);
+        self::assertStringStartsWith('HTTP 500', $chosen['error'], 'the primary failure leads');
         self::assertSame('json', $chosen['source']);
+    }
+
+    /**
+     * `positions: HTTP 500` alone cannot tell an operator whether the second publication was
+     * ever consulted. Not knowing that is the same blindness issue 14 was about, one level up.
+     */
+    public function testBothFailingSaysTheFallbackWasTriedAndAlsoFailed(): void
+    {
+        $chosen = $this->choose($this->failed('HTTP 500'), $this->failed('HTTP 503'));
+
+        self::assertStringContainsString('HTTP 503', $chosen['error']);
+        self::assertStringContainsString('fallback', $chosen['error']);
+    }
+
+    /** A JSON failure the fallback rescued is not an error at all, so nothing is appended. */
+    public function testARescuedJsonFailureReportsNoError(): void
+    {
+        $chosen = $this->choose($this->failed('HTTP 500'), $this->feedAt(self::NOW - 12));
+
+        self::assertTrue($chosen['ok']);
+        self::assertArrayNotHasKey('error', $chosen);
     }
 
     /* ---- header reading -------------------------------------------------------------- */

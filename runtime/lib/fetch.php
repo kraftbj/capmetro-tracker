@@ -15,6 +15,8 @@
  * elsewhere.
  */
 
+require_once __DIR__ . '/gtfsrt.php';
+
 const CM_FEED_URLS = [
     'positions'    => 'https://data.texas.gov/download/cuc7-ywmd/application%2FJSON',
     'trip_updates' => 'https://data.texas.gov/download/mqtr-wwpy/application%2FJSON',
@@ -63,9 +65,14 @@ function cm_fetch_json(string $url, int $timeout_s = 20): array
  * PB body is binary and must not go through json_decode, which is the only difference between
  * the two callers.
  *
+ * $accept is a parameter rather than a constant because it is the one option the two callers
+ * cannot share: asking a protobuf endpoint for application/json invites a content-negotiating
+ * server to hand back something else, or an error, for a body we are about to parse as wire
+ * format. Socrata ignores it today. That is not a reason to send the wrong thing.
+ *
  * Returns ['ok' => true, 'body' => string, 'fetched_at' => int] or ['ok' => false, 'error' => string].
  */
-function cm_http_get(string $url, int $timeout_s = 20): array
+function cm_http_get(string $url, int $timeout_s = 20, string $accept = 'application/json'): array
 {
     $ch = curl_init($url);
     if ($ch === false) {
@@ -80,7 +87,7 @@ function cm_http_get(string $url, int $timeout_s = 20): array
         CURLOPT_USERAGENT      => CM_USER_AGENT,
         /* curl inflates transparently when the encoding is requested this way. */
         CURLOPT_ENCODING       => 'gzip',
-        CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+        CURLOPT_HTTPHEADER     => ['Accept: ' . $accept],
     ]);
     $body = curl_exec($ch);
     $err  = curl_error($ch);
@@ -130,6 +137,16 @@ function cm_positions_needs_fallback(array $json_result, int $now, int $threshol
     return ($now - cm_positions_header_at($json_result)) > $threshold_s;
 }
 
+/* How many vehicles a positions result actually carries. */
+function cm_positions_entity_count(?array $result): int
+{
+    if ($result === null || !($result['ok'] ?? false)) {
+        return 0;
+    }
+
+    return count((array) ($result['data']['entity'] ?? []));
+}
+
 /*
  * Pick between the JSON and protobuf positions feeds.
  *
@@ -141,6 +158,14 @@ function cm_positions_needs_fallback(array $json_result, int $now, int $threshol
  * A failed or undecodable PB simply loses. The fallback is not assumed fresh just because it
  * is the fallback; if it has also stalled, the JSON is returned still stale and cm_staleness()
  * degrades the board exactly as it does today.
+ *
+ * AN EMPTY PROTOBUF LOSES TOO, and this is the one rule that is not about freshness. A feed
+ * carrying zero vehicles with a current header is a perfectly plausible upstream failure, and
+ * on header age alone it would beat a stale JSON every time — trading a board full of
+ * four-hour-old buses for an empty one, and reporting ok:true while doing it, because an empty
+ * feed raises no staleness error. Stale positions are wrong about when; no positions are wrong
+ * about whether the service is running at all. The first is the better failure, and it is the
+ * one the board was already built to say out loud.
  */
 function cm_positions_choose(array $json_result, ?array $pb_result, int $now, int $threshold_s): array
 {
@@ -152,6 +177,7 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
 
     if ($pb_result !== null
         && ($pb_result['ok'] ?? false)
+        && cm_positions_entity_count($pb_result) > 0
         && cm_positions_header_at($pb_result) > cm_positions_header_at($json_result)
     ) {
         $pb_result['source'] = 'protobuf';
@@ -159,10 +185,38 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
         return $pb_result;
     }
 
+    /*
+     * The JSON is kept, so its error is the one the caller reports. When the fallback was
+     * tried and also failed, say so in the same breath: an operator reading `positions: HTTP
+     * 500` would otherwise have no way to tell whether the second publication had been
+     * consulted at all, which is exactly the blindness issue 14 was about.
+     */
+    if (!($json_result['ok'] ?? false) && $pb_result !== null && !($pb_result['ok'] ?? false)) {
+        $json_result['error'] = sprintf(
+            '%s (fallback also failed: %s)',
+            (string) ($json_result['error'] ?? 'unknown error'),
+            (string) ($pb_result['error'] ?? 'unknown error')
+        );
+    }
+
     $json_result['source'] = 'json';
 
     return $json_result;
 }
+
+/*
+ * The fallback's share of the run's time budget.
+ *
+ * The generator is a systemd oneshot with TimeoutStartSec=50, and a run makes three feed
+ * requests at `timeout_s` each. At the configured 15s that is 45s of worst case, which fits.
+ * A fourth full-budget request does not: 60s would have systemd kill the run outright, and it
+ * would do so precisely on the runs where upstream is already misbehaving, which is when the
+ * fallback is the only thing that could have saved the board. So the fallback gets a bounded
+ * slice rather than the whole budget. Ten seconds is far more than the observed response
+ * time — the PB body is 13.5 KB gzipped — and keeps the worst case at 55s of request time
+ * against a 50s ceiling that no run has ever approached.
+ */
+const CM_POSITIONS_PB_TIMEOUT_S = 10;
 
 /*
  * Fetch the positions feed, falling back to protobuf when the JSON one has stalled.
@@ -181,7 +235,9 @@ function cm_fetch_positions(int $timeout_s, int $now, int $threshold_s): array
         return $json_result;
     }
 
-    return cm_positions_choose($json_result, cm_fetch_positions_pb($timeout_s), $now, $threshold_s);
+    $pb_timeout_s = min($timeout_s, CM_POSITIONS_PB_TIMEOUT_S);
+
+    return cm_positions_choose($json_result, cm_fetch_positions_pb($pb_timeout_s), $now, $threshold_s);
 }
 
 /*
@@ -191,7 +247,7 @@ function cm_fetch_positions(int $timeout_s, int $now, int $threshold_s): array
  */
 function cm_fetch_positions_pb(int $timeout_s): array
 {
-    $r = cm_http_get(CM_POSITIONS_PB_URL, $timeout_s);
+    $r = cm_http_get(CM_POSITIONS_PB_URL, $timeout_s, 'application/x-protobuf');
     if (!$r['ok']) {
         return $r;
     }

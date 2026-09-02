@@ -686,13 +686,19 @@ cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
 ));
 
 $log(sprintf(
-    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s',
+    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s%s',
     $routes_written,
     count($catalog),
     count($all_vehicles),
     $in_service,
     count($all_vehicles) - $in_service,
     count($watch_targets),
+    /*
+     * Named only when it is not the ordinary one. health.json carries positions_source on
+     * every run, but nobody watching `journalctl -fu capmetro-generate` is reading that, and a
+     * fallback that leaves no trace in the log is a fallback nobody notices is load-bearing.
+     */
+    $positions_source === 'json' ? '' : ', positions via ' . $positions_source,
     $errors === [] ? '' : ', ' . count($errors) . ' error(s)'
 ));
 foreach ($errors as $e) {
