@@ -16,9 +16,17 @@ User=@RUN_USER@
 Group=@RUN_USER@
 ExecStart=@GEN@
 
-# Three feeds are fetched sequentially at 15s each, so the worst honest case is
-# ~45s. 50 keeps a wedged run from overlapping the next one; the runtime's own
-# flock is the backstop if it does.
+# 50 keeps a wedged run from overlapping the next one; the runtime's own flock is
+# the backstop if it does.
+#
+# This does NOT bound the worst case, and the comment that used to say it did was
+# wrong. Three feeds at timeout_s (15) is 45s, which fits. But a cycle where the
+# positions JSON has stalled adds the protobuf fallback (capped at 10s), and every
+# fifteenth minute the upstream feed_version probe adds three ranged GETs at
+# timeout_s each. Worst case is nearer 100s than 45s, and it has been since long
+# before the fallback existed. Bounding it means giving the run a deadline rather
+# than each request its own timeout; see the TODOS.md entry. Raising this number
+# alone would only move the cliff.
 TimeoutStartSec=50
 
 # The job writes to exactly three places and reads the rest. Everything else on

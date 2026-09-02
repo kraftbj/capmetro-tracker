@@ -100,6 +100,64 @@ final class GtfsRtDecoderTest extends TestCase
         self::assertNotEmpty($decoded['entity']);
     }
 
+    /**
+     * The count, pinned, and nothing dropped.
+     *
+     * This decoder was tightened five times over one review, each round making it refuse
+     * something the round before had accepted. Every one of those refusals was right, and the
+     * risk they add together is that a sixth makes the decoder correct and useless: a rule that
+     * rejects what CapMetro actually publishes turns the fallback into a fallback that never
+     * fires, and a board on stale data looks exactly like a board on fresh data. `assertNotEmpty`
+     * would have watched 412 of 413 buses disappear without comment.
+     */
+    public function testTheCapturedFeedDecodesInFullWithNothingDropped(): void
+    {
+        $decoded = cm_gtfsrt_decode(Fixtures::text(self::STALL_DIR . '/vehiclepositions.pb'));
+
+        self::assertCount(413, $decoded['entity'], 'every entity in the real capture must survive');
+        self::assertArrayNotHasKey('dropped', $decoded, 'and none of them may be dropped');
+    }
+
+    /**
+     * Strictness must not become brittleness. GTFS-RT is extensible by design and CapMetro can
+     * add a field without telling anyone -- the committed capture already carries one this
+     * decoder does not model, VehiclePosition field 9, on two of its 413 vehicles. A field we
+     * do not recognize is not corruption, and must not fail the bus carrying it.
+     *
+     * @dataProvider benignUpstreamAdditions
+     */
+    public function testAnUnrecognizedFieldDoesNotFailTheVehicle(string $extraBytes, string $what): void
+    {
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('4090') . $extraBytes,
+        ]));
+
+        self::assertNotNull($decoded, $what);
+        self::assertCount(1, $decoded['entity'], $what);
+        self::assertArrayNotHasKey('dropped', $decoded, $what);
+        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label']);
+    }
+
+    /**
+     * One per wire type the decoder understands, since an unknown field can arrive as any of
+     * them, plus the two enum values GTFS-RT could add tomorrow.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function benignUpstreamAdditions(): array
+    {
+        $self = new self('benignUpstreamAdditions');
+
+        return [
+            'unknown varint field'      => [$self->varintField(20, 7), 'a new counter'],
+            'unknown length field'      => [$self->stringField(21, 'whatever'), 'a new string'],
+            'unknown float32 field'     => [$self->float32Field(22, 1.5), 'a new float'],
+            'unknown float64 field'     => [$self->varint((23 << 3) | 1) . pack('e', 1.5), 'a new double'],
+            'occupancy_status'          => [$self->varintField(9, 2), 'the real field 9 the capture carries'],
+            'unknown currentStatus'     => [$self->varintField(4, 42), 'a stop status added later'],
+        ];
+    }
+
     public function testEveryDecodedEntityCarriesTheFieldsTheJoinReads(): void
     {
         $decoded = cm_gtfsrt_decode(Fixtures::text(self::STALL_DIR . '/vehiclepositions.pb'));

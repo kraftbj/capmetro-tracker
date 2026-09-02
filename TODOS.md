@@ -200,6 +200,10 @@ treated as a failed feed and the run publishes what it has. Raising `TimeoutStar
 would only move the cliff, and it is a unit change, so it costs a `sudo deploy/install.sh` and
 an exit-3 run to take effect.
 
+The unit file's own comment claimed a ~45s worst case, which was wrong by roughly half and had
+been since before the fallback existed. Corrected in place, so the next person to reach for
+`TimeoutStartSec` reads the real arithmetic rather than the one that made 50 look generous.
+
 **Effort:** S
 **Priority:** P3
 
