@@ -80,6 +80,9 @@ The primary endpoint. One file per route, regenerated every cron run.
     "positions_at": 1787152239,
     "trip_updates_at": 1787152196,
     "alerts_at": 1787152100,
+    "positions_source": "json",         // json | protobuf -- which of CapMetro's two positions
+                                        // publications this run used. "protobuf" means the
+                                        // JSON one had stalled. See §17.
     "gtfs_feed_version": "260818_1456",
     "gtfs_built_at": 1787100000
   },
@@ -212,13 +215,18 @@ from `oldest_feed_age_s` against the thresholds in this table: at `stale` with a
     "start_epoch": 1787147580,          // resolved to epoch; use THIS for display
     "direction_id": 1,
     "headsign": "4 Shady EB",
-    "schedule_relationship": "SCHEDULED" // SCHEDULED | CANCELED | ADDED | UNSCHEDULED
+    "schedule_relationship": "SCHEDULED" // SCHEDULED | CANCELED | ADDED | UNSCHEDULED |
+                                        // REPLACEMENT | DUPLICATED | DELETED | UNKNOWN
+                                        // the last four reachable only via the protobuf
+                                        // positions fallback; UNKNOWN is a value outside
+                                        // GTFS-RT's vocabulary, never a guess. See §17.
   },
 
   "progress": {                         // absent when in_service is false
     "current_stop_sequence": 42,        // null when the feed omits it
     "current_stop_id": "6243",
     "current_status": "IN_TRANSIT_TO"   // IN_TRANSIT_TO | STOPPED_AT | INCOMING_AT | null
+                                        // null also covers a value outside the vocabulary
   },
 
   "predictions": [                      // absent when in_service is false; see below
@@ -834,7 +842,8 @@ Small, cheap, and checkable without opening the app.
   "generated_at": 1787152239,
   "ok": true,
   "cron_last_success_at": 1787152239,
-  "feeds": { "positions_at": 1787152239, "trip_updates_at": 1787152196, "alerts_at": 1787152100 },
+  "feeds": { "positions_at": 1787152239, "trip_updates_at": 1787152196, "alerts_at": 1787152100,
+             "positions_source": "json" },   // json | protobuf, see §17
   "gtfs": { "feed_version": "260818_1456", "built_at": 1787100000, "valid_until": "20270109" },
   "counts": { "vehicles": 392, "routes_written": 71 },
   "errors": []                          // strings; non-empty forces ok:false
@@ -843,6 +852,13 @@ Small, cheap, and checkable without opening the app.
 
 `ok` is false when any feed is older than 600s, the GTFS feed version is past `valid_until`, or
 the last cron run raised an error. This is the endpoint an uptime check hits.
+
+`feeds.positions_source` says which of CapMetro's two positions publications the run used. It
+reads `json` on every ordinary run; `protobuf` means the JSON publication had stalled and the
+board is running on the fallback. Three states a monitor should tell apart: `ok:true` with
+`json` is healthy, `ok:true` with `protobuf` is healthy **on the fallback and worth looking
+at**, and `ok:false` with a `positions feed is Ns old` error is a stall the fallback could not
+rescue. See §17.
 
 ---
 
@@ -1236,3 +1252,50 @@ from a realtime feed — so §11's `no-cache` is the wrong policy for it. It cha
 `service_date` or `feed_version` changes, both of which are in the payload, and a client that has
 today's copy for a route does not need to fetch it again today.
 
+
+
+---
+
+## 17. The two positions publications
+
+CapMetro publishes vehicle positions **twice**: as JSON (`cuc7-ywmd`) and as GTFS-RT protobuf
+(`eiei-9rpf`). They are the same data from the same source, published by two jobs, and on
+2026-09-01 one of those jobs stopped while the other kept running. The JSON froze at 12:40:09
+CDT and was still frozen four hours later, serving a clean HTTP 200 the entire time with
+well-formed, internally consistent, four-hour-old content. Nothing that checks a fetch
+succeeded could have seen it.
+
+The runtime reads the JSON, and reads the protobuf instead when the JSON's own header is more
+than `CM_STALE_STALE_S` behind — the same threshold at which the board reports `stale`, passed
+in rather than duplicated, so falling back and going stale are the same moment by construction.
+The JSON is fetched every cycle regardless, which is what makes recovery need no stored state:
+the cycle it starts publishing again is the cycle it is used again.
+
+**Both are fetched server-side by the cron. Neither is ever fetched by the browser**, which
+only reads our own `/api/*.json`. The protobuf is decoded into exactly the shape the Socrata
+JSON export produces — camelCase keys, enums as names, timestamps as strings — so nothing
+downstream can tell which source it was handed. That shape-fidelity is a standing obligation,
+not an implementation detail; see the parity note in CLAUDE.md.
+
+What the fallback will **not** do:
+
+- **Win on freshness alone.** A protobuf that has also stalled loses to the JSON, and the board
+  degrades exactly as it would without a fallback.
+- **Win while carrying nothing.** A feed with a current header and zero vehicles would beat a
+  stale one on age every time, trading a board of old buses for an empty one while reporting
+  `ok:true`, since an empty feed never trips a staleness check. Stale positions are wrong about
+  *when*; no positions are wrong about whether the service is running.
+- **Guess at a value it does not recognize.** An enum outside GTFS-RT's vocabulary publishes as
+  `UNKNOWN` (`schedule_relationship`) or `null` (`current_status`), never as a plausible
+  default. Defaulting an unrecognized `schedule_relationship` to `SCHEDULED` could reinstate a
+  canceled trip.
+- **Reinterpret a feed it cannot read.** A `DIFFERENTIAL` feed carries changes since the last
+  message rather than the fleet, so it is declined rather than published as though it were the
+  whole board.
+
+**Observability.** `health.json`'s `feeds.positions_source` names the source on every run. The
+generator also writes `notice:` lines to stderr — and therefore to the journal — when the
+source is not `json`, when the fallback was consulted and could not help, and when the decode
+dropped undecodable vehicles. Those bypass the `--quiet` logger deliberately, because
+production runs the generator with `--quiet`. A degradation nobody can see is the failure this
+whole section exists to prevent: the original stall ran for four hours unnoticed.

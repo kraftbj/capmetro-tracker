@@ -181,6 +181,16 @@ if ($fixtures !== null) {
     $positions_pb = $fixtures . '/vehiclepositions.pb';
     if (is_file($positions_pb)) {
         $pb_result = cm_decode_positions_pb((string) file_get_contents($positions_pb));
+        /*
+         * A committed .pb that no longer decodes is a broken fixture, not a scenario. Without
+         * this the run falls back to a $choose_at of 0, decides the JSON is not stale, and
+         * reports source `json` -- so a fixture whose protobuf half rotted would be
+         * indistinguishable from one that never had a protobuf half.
+         */
+        if (!$pb_result['ok'] && !isset($args['now'])) {
+            fwrite(STDERR, 'error: ' . $positions_pb . ': ' . $pb_result['error'] . "\n");
+            exit(2);
+        }
         $choose_at = isset($args['now'])
             ? (int) $args['now']
             : cm_positions_header_at($pb_result);

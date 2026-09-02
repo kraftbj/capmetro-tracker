@@ -216,11 +216,33 @@ function cm_pb_scalar(array $fields, int $number)
  */
 function cm_pb_enum($value, array $map)
 {
-    if (!is_int($value)) {
+    if ($value === null) {
         return null;
+    }
+    if (!is_int($value)) {
+        return false;
     }
 
     return $map[$value] ?? $value;
+}
+
+/*
+ * Put an enum field, reporting whether it was usable.
+ *
+ * Same three-way contract as cm_pb_put_string, and for the same reason. A present-but-corrupt
+ * enum must not read as an absent one: join.php defaults an absent scheduleRelationship to
+ * SCHEDULED, so quietly treating a garbled value as missing is precisely the guess this file's
+ * header says it refuses to make -- it would just be making it one level up.
+ */
+function cm_pb_put_enum(array &$out, string $key, $value, array $map): bool
+{
+    $mapped = cm_pb_enum($value, $map);
+    if ($mapped === false) {
+        return false;
+    }
+    cm_pb_put($out, $key, $mapped);
+
+    return true;
 }
 
 /*
@@ -301,13 +323,10 @@ function cm_pb_trip_descriptor(string $bytes): ?array
         || !cm_pb_put_string($out, 'startTime', cm_pb_scalar($f, 2))
         || !cm_pb_put_string($out, 'startDate', cm_pb_scalar($f, 3))
         || !cm_pb_put_string($out, 'routeId', cm_pb_scalar($f, 5))
+        || !cm_pb_put_enum($out, 'scheduleRelationship', cm_pb_scalar($f, 4), CM_PB_TRIP_SCHEDULE_RELATIONSHIP)
     ) {
         return null;
     }
-    cm_pb_put($out, 'scheduleRelationship', cm_pb_enum(
-        cm_pb_scalar($f, 4),
-        CM_PB_TRIP_SCHEDULE_RELATIONSHIP
-    ));
     cm_pb_put($out, 'directionId', cm_pb_int(cm_pb_scalar($f, 6)));
 
     return $out;
@@ -326,9 +345,24 @@ function cm_pb_position(string $bytes): ?array
         return null;
     }
 
+    /*
+     * Latitude and longitude are both required by GTFS-RT, and a Position missing either is
+     * rejected rather than emitted half-filled. join.php reads them as
+     * `(float) ($pos['latitude'] ?? 0)`, so an absent latitude is not an absent position -- it
+     * is the equator, and a bus with a real Austin longitude and a defaulted latitude renders
+     * confidently in the middle of the Pacific. Every other field here is genuinely optional
+     * and stays so: bearing and speed absent mean the feed did not say, which is what the JSON
+     * export means by omitting them too.
+     */
+    $lat = cm_pb_float(cm_pb_scalar($f, 1));
+    $lon = cm_pb_float(cm_pb_scalar($f, 2));
+    if ($lat === null || $lon === null) {
+        return null;
+    }
+
     $out = [];
-    cm_pb_put($out, 'latitude', cm_pb_float(cm_pb_scalar($f, 1)));
-    cm_pb_put($out, 'longitude', cm_pb_float(cm_pb_scalar($f, 2)));
+    $out['latitude']  = $lat;
+    $out['longitude'] = $lon;
     cm_pb_put($out, 'bearing', cm_pb_float(cm_pb_scalar($f, 3)));
     cm_pb_put($out, 'speed', cm_pb_float(cm_pb_scalar($f, 5)));
 
@@ -401,10 +435,9 @@ function cm_pb_vehicle_position(string $bytes): ?array
     }
 
     cm_pb_put($out, 'currentStopSequence', cm_pb_int(cm_pb_scalar($f, 3)));
-    cm_pb_put($out, 'currentStatus', cm_pb_enum(
-        cm_pb_scalar($f, 4),
-        CM_PB_VEHICLE_STOP_STATUS
-    ));
+    if (!cm_pb_put_enum($out, 'currentStatus', cm_pb_scalar($f, 4), CM_PB_VEHICLE_STOP_STATUS)) {
+        return null;
+    }
 
     $ts = cm_pb_scalar($f, 5);
     cm_pb_put($out, 'timestamp', is_int($ts) ? (string) $ts : null);
@@ -457,19 +490,23 @@ function cm_gtfsrt_decode(string $bytes): ?array
     if (!cm_pb_put_string($header, 'gtfsRealtimeVersion', cm_pb_scalar($hf, 1))) {
         return null;
     }
-    $incrementality = cm_pb_enum(cm_pb_scalar($hf, 2), CM_PB_INCREMENTALITY);
     /*
      * Only a full dataset is usable. A DIFFERENTIAL feed carries the changes since the last
      * message, so publishing its entities as the fleet would show whichever handful of buses
      * happened to move -- a confident, current-looking, almost entirely wrong board. CapMetro
      * publishes FULL_DATASET and always has; this exists so that if it ever stops, the
-     * fallback declines rather than silently reinterprets. Absent means full, per the spec's
-     * own default.
+     * fallback declines rather than silently reinterprets.
+     *
+     * Absent means full, per the spec's own default. Present-but-corrupt does not: reading a
+     * garbled incrementality as absent would default it to FULL_DATASET and step straight past
+     * the guard, so cm_pb_put_enum fails the feed first.
      */
-    if ($incrementality !== null && $incrementality !== 'FULL_DATASET') {
+    if (!cm_pb_put_enum($header, 'incrementality', cm_pb_scalar($hf, 2), CM_PB_INCREMENTALITY)) {
         return null;
     }
-    cm_pb_put($header, 'incrementality', $incrementality);
+    if (($header['incrementality'] ?? 'FULL_DATASET') !== 'FULL_DATASET') {
+        return null;
+    }
     $header_ts = cm_pb_scalar($hf, 3);
     cm_pb_put($header, 'timestamp', is_int($header_ts) ? (string) $header_ts : null);
 

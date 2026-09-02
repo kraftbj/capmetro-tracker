@@ -210,6 +210,11 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
             /* The case round 1 added the guard for. It was the one leaving no trace at all:
                a fallback that fetched and decoded cleanly and still could not help. */
             $why = 'fallback carried no vehicles';
+        } elseif (cm_positions_header_at($pb_result) === 0) {
+            /* Undated, not stale. cm_positions_header_at() returns 0 for both "no header" and
+               "fetch failed", so subtracting it here would report a feed 56 years behind and
+               send someone looking for a stall that is really a missing field. */
+            $why = 'fallback carried no header timestamp';
         } else {
             $why = sprintf(
                 'fallback is no fresher (%ds behind the stale JSON)',

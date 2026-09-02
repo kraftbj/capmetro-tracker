@@ -318,17 +318,25 @@ final class GtfsRtDecoderTest extends TestCase
      * board freezes on the run whose whole purpose was to rescue it from a frozen board.
      *
      * An enum arriving as a length-delimited field is the shape that does it -- the reader
-     * gets a string where the wire type promised a varint. Treated as absent, not guessed at
-     * and not fatal.
+     * gets a string where the wire type promised a varint.
+     *
+     * The corrupt bus is dropped rather than published without the field. Treating
+     * present-but-garbled as absent is what join.php would then default to SCHEDULED, which is
+     * exactly the guess this decoder refuses to make one level down.
      *
      * @dataProvider wireTypeConfusions
      */
-    public function testAWireTypeMismatchIsSurvivedRatherThanRaised(string $vehicleBytes, string $why): void
+    public function testAWireTypeMismatchDropsTheBusAndDoesNotRaise(string $vehicleBytes, string $why): void
     {
-        $decoded = cm_gtfsrt_decode($this->feedWithVehicle($vehicleBytes));
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('4090'),
+            $vehicleBytes,
+        ]));
 
         self::assertNotNull($decoded, $why);
-        self::assertArrayNotHasKey('currentStatus', $decoded['entity'][0]['vehicle']);
+        self::assertCount(1, $decoded['entity'], 'the corrupt bus is dropped, not defaulted');
+        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label']);
+        self::assertSame(1, $decoded['dropped']);
     }
 
     /** @return array<string, array{string, string}> */
@@ -508,6 +516,62 @@ final class GtfsRtDecoderTest extends TestCase
         self::assertNotNull($decoded);
         self::assertCount(1, $decoded['entity'], 'a trip that is not a message must not read as no trip');
         self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label']);
+    }
+
+    /**
+     * The half-position. join.php reads coordinates as `(float) ($pos['latitude'] ?? 0)`, so a
+     * Position emitted with a real Austin longitude and no latitude is not an absent position:
+     * it is the equator, and the client plots that bus confidently in the middle of the ocean.
+     * Latitude and longitude are both required by GTFS-RT, so a Position missing either fails
+     * its vehicle rather than being published half-filled.
+     *
+     * @dataProvider halfPositions
+     */
+    public function testAPositionMissingACoordinateDropsTheBusRatherThanPlottingItAtZero(
+        string $positionBytes,
+        string $why
+    ): void {
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([
+            $this->goodVehicle('4090'),
+            $this->lenField(2, $positionBytes),
+        ]));
+
+        self::assertNotNull($decoded);
+        self::assertCount(1, $decoded['entity'], $why);
+        self::assertSame('4090', $decoded['entity'][0]['vehicle']['vehicle']['label']);
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function halfPositions(): array
+    {
+        $self = new self('halfPositions');
+
+        return [
+            'longitude only' => [
+                $self->float32Field(2, -97.66901),
+                'a real longitude with a defaulted latitude puts the bus on the equator',
+            ],
+            'latitude only' => [
+                $self->float32Field(1, 30.27623),
+                'and the mirror case puts it on the prime meridian',
+            ],
+            'latitude with the wrong wire type' => [
+                $self->varintField(1, 30) . $self->float32Field(2, -97.66901),
+                'a garbled latitude is not an absent one',
+            ],
+        ];
+    }
+
+    /** Both coordinates present is the ordinary case and must still decode. */
+    public function testACompletePositionIsKept(): void
+    {
+        $position = $this->float32Field(1, 30.27623) . $this->float32Field(2, -97.66901);
+
+        $decoded = cm_gtfsrt_decode($this->feedWithVehicles([$this->lenField(2, $position)]));
+
+        self::assertNotNull($decoded);
+        self::assertEqualsWithDelta(30.27623, $decoded['entity'][0]['vehicle']['position']['latitude'], 1e-5);
+        self::assertEqualsWithDelta(-97.66901, $decoded['entity'][0]['vehicle']['position']['longitude'], 1e-5);
     }
 
     /** A corrupt header string must not store boolean false where a version belongs. */
