@@ -25,8 +25,8 @@ Run everything: `npm test` (wraps `tests/run-all.sh`).
 
 | Suite | Command | Covers |
 |---|---|---|
-| Schema | `npm run test:schema` | Generated output vs `schemas/*.json`, plus the staff-PII assertion |
-| Node | `npm run test:node` | `build/` shard generation, shared client logic, and the `deploy/` scripts (vitest) |
+| Schema | `npm run test:schema` | Generated output vs `schemas/*.json` |
+| Node | `npm run test:node` | `build/` shard generation, shared client logic, the `deploy/` scripts, and the staff-PII sweep over generated output (vitest) |
 | PHP | `npm run test:php` | `runtime/` pure functions (phpunit) |
 | E2E | `npm run test:e2e` | The client at 412px against fixture scenarios (playwright) |
 
