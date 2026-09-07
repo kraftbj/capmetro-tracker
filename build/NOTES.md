@@ -249,13 +249,8 @@ These touch directories this job does not own.
 4. **`schemas/` has no schema for the build shards.** The five schemas cover the runtime's
    `/api/*` output, which is a different shape. If shard validation is wanted, a
    `schemas/shard-*.schema.json` set would need to be added by whoever owns `schemas/`.
-5. **`.gitignore` already ignores `build/data/` and `build/dist/`.** Those entries are now
-   vestigial, since the output goes to `data/` at the repo root so CI can commit it and the
-   webserver can serve it as `/data/*` per §11. `node_modules/` and `build/.cache/` are already
-   covered correctly. Harmless either way, but worth tidying.
-6. **`data/` is not committed yet.** The workflow commits it, but the first commit has to come
-   from a human or from a `workflow_dispatch` run with `force_commit`. It is 27.96 MB raw and
-   about 5.5 MB as a git object store; `TODOS.md` already tracks the history-growth question,
+5. **`data/` is committed, 358 files and 31 MB on disk.** The workflow keeps it current and
+   only commits when `feed_version` changes; `TODOS.md` tracks the history-growth question,
    and the `feed_version` gate it names as "the cheapest mitigation" is implemented here.
 
 ## Interfaces other lanes import
