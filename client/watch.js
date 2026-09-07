@@ -917,8 +917,6 @@
     vehicleForTrip: vehicleForTrip,
     isCanceled: isCanceled,
     coverageFor: coverageFor,
-    tripsInBlock: tripsInBlock,
-    tripStartEpoch: tripStartEpoch,
     resolve: resolve,
     untilText: untilText,
     sortModels: sortModels,

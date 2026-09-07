@@ -478,7 +478,6 @@
 
   global.CMB.rows = {
     render: render,
-    vehiclesFor: vehiclesFor,
     continuationText: continuationText,
     directionsInLadderOrder: directionsInLadderOrder
   };
