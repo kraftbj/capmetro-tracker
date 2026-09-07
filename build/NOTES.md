@@ -260,20 +260,24 @@ These touch directories this job does not own.
 
 ## Interfaces other lanes import
 
-`tests/node/` probes a handful of module paths under `build/`. Those paths exist as thin,
-stable entry points over `build/lib/`:
+`tests/node/` imports `build/lib/` directly:
 
-| Path | Exports |
+| Path | Exports the suite binds to |
 |---|---|
-| `build/time.js` | `serviceDayMidnight`, `serviceClockToEpoch`, `clockToSeconds`, `secondsToClock`, `feedVersionToEpoch` |
-| `build/stops.js` | `shortenStopName`, `stopsIndex` |
-| `build/blocks.js` | `blockConfidence`, `continuationReasons`, `buildBlockChains` |
-| `build/calendar.js` | `activeServiceIds`, `isExceptionDay`, `watchId`, `buildCalendar` |
+| `build/lib/time.mjs` | `serviceDayMidnight`, `serviceClockToEpoch`, `clockToSeconds`, `secondsToClock`, `feedVersionToEpoch` |
+| `build/lib/stop-names.mjs` | `shortenStopName`, `stopNameStem` |
+| `build/lib/blocks.mjs` | `continuationReasons`, `buildBlockChains` |
+| `build/lib/calendar.mjs` | `buildCalendar` |
 
-`blockConfidence` is §4's grade as a pure function over one predecessor/successor pair, and it
-is the same code path `buildBlockChains` runs over the feed, so the rule has one
-implementation. `serviceDayMidnight` implements §2's noon-minus-12 anchor: on 2026-03-08 it
-lands at 23:00 the previous evening, because that service day is 23 hours long.
+There used to be a shim layer — `build/time.js`, `build/stops.js`, `build/blocks.js`,
+`build/calendar.js` — re-exporting these under stable paths while build/, runtime/ and
+client/ were being authored concurrently. The suite moved off it and nothing else ever used
+it, so it is gone. `build/calendar.js` also carried a second implementation of §9's
+`watch_id` hash; the live one is `cm_watch_id` in `runtime/lib/watch.php`, which
+`WatchResolutionTest` covers.
+
+`serviceDayMidnight` implements §2's noon-minus-12 anchor: on 2026-03-08 it lands at 23:00 the
+previous evening, because that service day is 23 hours long.
 
 **`build/shards.js` (`unmatchedTripRate`, `shardHealth`) is deliberately absent.** Both grade
 how well live trip updates match a shard, which is a property of a runtime poll rather than of

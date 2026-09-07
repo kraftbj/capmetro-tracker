@@ -44,7 +44,7 @@ function unavailable(loaded, required) {
  * Build an `it` that skips itself, with a reason, when the module or the
  * export it needs is missing.
  *
- *   const t = gate(await optionalModule('build/time.js'), ['serviceClockToEpoch'], it)
+ *   const t = gate(await optionalModule('build/lib/time.mjs'), ['serviceClockToEpoch'], it)
  *   t('resolves 25:10:00 to 1:10am the next day', (mod) => { ... })
  */
 export function gate(loaded, required, it) {
