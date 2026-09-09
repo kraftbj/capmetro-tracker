@@ -1,16 +1,23 @@
 <?php
 /*
- * GTFS-Realtime protobuf decoder, used only for the vehicle positions fallback.
+ * GTFS-Realtime protobuf decoder, used for the vehicle positions and trip updates fallbacks.
  *
- * WHY THIS EXISTS. CapMetro publishes vehicle positions twice: as JSON (cuc7-ywmd) and as
- * protobuf (eiei-9rpf). On 2026-09-01 the JSON publication froze at 12:40:09 CDT for over four
- * hours while the protobuf copy stayed current to the second. The data was never missing; only
- * one of the two publish jobs had stopped. See issue 14.
+ * WHY THIS EXISTS. CapMetro publishes both feeds twice. Vehicle positions go out as JSON
+ * (cuc7-ywmd) and protobuf (eiei-9rpf); trip updates go out as JSON (mqtr-wwpy) and protobuf
+ * (rmk2-acnw). On 2026-09-01 the positions JSON froze at 12:40:09 CDT for over four hours while
+ * its protobuf copy stayed current to the second. The data was never missing; only one of the
+ * two publish jobs had stopped. See issue 14.
  *
- * WHAT IT DECODES. The header and VehiclePosition entities, and nothing else. TripUpdate and
- * Alert entities are skipped: the trip updates JSON has never been the thing that breaks, and
- * the alerts feed is not GTFS-RT at all (see alerts.php). Decoding messages we do not use would
- * be surface area with no caller.
+ * WHAT IT DECODES. The header, VehiclePosition entities, and TripUpdate entities. Alert
+ * entities are still skipped: the alerts feed is not GTFS-RT at all (see alerts.php), and it
+ * has no protobuf twin to fall back to.
+ *
+ * TRIP UPDATES CAME SECOND, on 2026-09-09, when every CapMetro publication to data.texas.gov
+ * stopped at once and the positions fallback could not help because its protobuf had stopped
+ * too. The trip updates protobuf had been sitting there unused since before issue 14; nothing
+ * in the runtime knew it existed. A JSON-only trip updates stall was unrecoverable purely
+ * because nobody had looked. That outage is not the case this fixes -- when the publisher dies
+ * everything dies together -- it is the case that revealed the gap.
  *
  * OUTPUT SHAPE. Deliberately identical to what the Socrata JSON export produces, so join.php,
  * adherence.php and everything downstream cannot tell which source they were handed. That means
@@ -52,6 +59,24 @@ const CM_PB_TRIP_SCHEDULE_RELATIONSHIP = [
     5 => 'REPLACEMENT',
     6 => 'DUPLICATED',
     7 => 'DELETED',
+];
+
+/*
+ * StopTimeUpdate.ScheduleRelationship. A DIFFERENT enum from the one above, sharing wire
+ * numbers with entirely different meanings, and the reason this map exists as its own constant
+ * rather than a reuse of CM_PB_TRIP_SCHEDULE_RELATIONSHIP.
+ *
+ * Wire 1 is SKIPPED here and ADDED there. join.php:102 and adherence.php:80 both drop a stop
+ * whose scheduleRelationship is SKIPPED, so decoding a skipped stop through the trip map would
+ * name it ADDED, no comparison would match, and the board would publish a prediction for a stop
+ * the bus is not going to serve -- confidently, with no error anywhere. That is the exact
+ * failure mode this file's header calls the worst available, so the two maps stay apart.
+ */
+const CM_PB_STOP_TIME_UPDATE_SCHEDULE_RELATIONSHIP = [
+    0 => 'SCHEDULED',
+    1 => 'SKIPPED',
+    2 => 'NO_DATA',
+    3 => 'UNSCHEDULED',
 ];
 
 /* VehiclePosition.VehicleStopStatus. */
@@ -322,7 +347,20 @@ function cm_pb_put(array &$out, string $key, $value): void
     }
 }
 
-/* TripDescriptor -> the JSON export's trip object. */
+/*
+ * TripDescriptor -> the JSON export's trip object.
+ *
+ * KEYS ARE INSERTED IN THE EXPORT'S ORDER, which is wire field number order: tripId(1),
+ * startTime(2), startDate(3), scheduleRelationship(4), routeId(5), directionId(6). Note that
+ * this is NOT the order the fields are declared in the GTFS-RT .proto, where route_id and
+ * direction_id are written second and third but numbered 5 and 6.
+ *
+ * Order is cosmetic to every reader in this codebase -- join.php and adherence.php go by key --
+ * and it is asserted anyway, because the trip updates differential test compares whole decoded
+ * entities against the real export with ===. Matching the export exactly is what lets that test
+ * be an equality rather than a normalized comparison, and an equality is what catches a key
+ * this decoder stops emitting, or starts.
+ */
 function cm_pb_trip_descriptor(string $bytes): ?array
 {
     $f = cm_pb_fields($bytes);
@@ -334,8 +372,8 @@ function cm_pb_trip_descriptor(string $bytes): ?array
     if (!cm_pb_put_string($out, 'tripId', cm_pb_scalar($f, 1))
         || !cm_pb_put_string($out, 'startTime', cm_pb_scalar($f, 2))
         || !cm_pb_put_string($out, 'startDate', cm_pb_scalar($f, 3))
-        || !cm_pb_put_string($out, 'routeId', cm_pb_scalar($f, 5))
         || !cm_pb_put_enum($out, 'scheduleRelationship', cm_pb_scalar($f, 4), CM_PB_TRIP_SCHEDULE_RELATIONSHIP)
+        || !cm_pb_put_string($out, 'routeId', cm_pb_scalar($f, 5))
     ) {
         return null;
     }
@@ -471,14 +509,160 @@ function cm_pb_vehicle_position(string $bytes): ?array
 }
 
 /*
+ * StopTimeEvent -> the JSON export's arrival/departure object.
+ *
+ * WIDTH DECIDES THE PHP TYPE, because it decides the JSON export's. `time` is an int64 and the
+ * export emits it as a STRING; `delay` and `uncertainty` are int32 and it emits them as
+ * NUMBERS. adherence.php reads `$stu['arrival']['time']` and compares it as a time, so handing
+ * it an int where the JSON hands a string is exactly the kind of divergence the two-producer
+ * rule in CLAUDE.md exists to prevent.
+ *
+ * An event with none of the three decodes to an empty object rather than to null. The export
+ * does the same, and an empty arrival is meaningful: adherence.php:84 reads it as "no time
+ * given" and moves to the departure, which is a different thing from the stop being absent.
+ *
+ * NEGATIVE DELAYS SURVIVE. A negative int32 goes on the wire sign-extended to ten bytes, and
+ * cm_pb_varint's `|=` reassembles it into the right PHP negative integer by two's complement.
+ * A bus running early is the ordinary case that produces one.
+ */
+function cm_pb_stop_time_event(string $bytes): ?array
+{
+    $f = cm_pb_fields($bytes);
+    if ($f === null) {
+        return null;
+    }
+
+    $out = [];
+    cm_pb_put($out, 'delay', cm_pb_int(cm_pb_scalar($f, 1)));
+    $time = cm_pb_scalar($f, 2);
+    cm_pb_put($out, 'time', is_int($time) ? (string) $time : null);
+    cm_pb_put($out, 'uncertainty', cm_pb_int(cm_pb_scalar($f, 3)));
+
+    return $out;
+}
+
+/*
+ * StopTimeUpdate -> the JSON export's stopTimeUpdate row.
+ *
+ * A row that will not decode fails the whole TripUpdate rather than being dropped from it, and
+ * this is the opposite of what cm_gtfsrt_decode() does with a bad vehicle. The asymmetry is
+ * deliberate. A missing bus is a bus the board does not draw, which the board already knows how
+ * to mean. A missing stopTimeUpdate row is invisible: the trip is still published, still looks
+ * complete, and the stop that vanished silently reverts to its scheduled time -- or, if it was
+ * the SKIPPED row that vanished, to a promise that a bus is coming to a stop it will drive past.
+ * There is no way to render "this trip is missing one of its stops", so the trip loses instead.
+ */
+function cm_pb_stop_time_update(string $bytes): ?array
+{
+    $f = cm_pb_fields($bytes);
+    if ($f === null) {
+        return null;
+    }
+
+    $out = [];
+    cm_pb_put($out, 'stopSequence', cm_pb_int(cm_pb_scalar($f, 1)));
+
+    foreach ([2 => 'arrival', 3 => 'departure'] as $number => $key) {
+        $event = cm_pb_scalar($f, $number);
+        if ($event === null) {
+            continue;
+        }
+        $decoded = is_string($event) ? cm_pb_stop_time_event($event) : null;
+        if ($decoded === null) {
+            return null;
+        }
+        $out[$key] = $decoded;
+    }
+
+    if (!cm_pb_put_string($out, 'stopId', cm_pb_scalar($f, 4))
+        || !cm_pb_put_enum($out, 'scheduleRelationship', cm_pb_scalar($f, 5), CM_PB_STOP_TIME_UPDATE_SCHEDULE_RELATIONSHIP)
+    ) {
+        return null;
+    }
+
+    return $out;
+}
+
+/*
+ * TripUpdate -> the JSON export's tripUpdate object.
+ *
+ * `trip` is required by GTFS-RT and required here: join.php reaches straight through
+ * `$tu['trip']['scheduleRelationship']` to decide whether a trip is CANCELED, and a TripUpdate
+ * with no trip cannot answer that question for the trip it is about.
+ *
+ * Key insertion order is the export's field order, which is the wire's field number order:
+ * trip(1), stopTimeUpdate(2), vehicle(3), timestamp(4), delay(5).
+ */
+function cm_pb_trip_update(string $bytes): ?array
+{
+    $f = cm_pb_fields($bytes);
+    if ($f === null) {
+        return null;
+    }
+
+    $trip_bytes = cm_pb_scalar($f, 1);
+    if (!is_string($trip_bytes)) {
+        return null;
+    }
+    $trip = cm_pb_trip_descriptor($trip_bytes);
+    if ($trip === null) {
+        return null;
+    }
+
+    $out = ['trip' => $trip];
+
+    $rows = [];
+    foreach (($f[2] ?? []) as $row_bytes) {
+        if (!is_string($row_bytes)) {
+            return null;
+        }
+        $row = cm_pb_stop_time_update($row_bytes);
+        if ($row === null) {
+            return null;
+        }
+        $rows[] = $row;
+    }
+    /*
+     * An empty list stays absent rather than becoming []. The export omits the key entirely
+     * for a trip with no rows -- 100 of the 912 entries in the 2026-08-19 capture are CANCELED
+     * with no stopTimeUpdate at all (join.php:42) -- and `[]` where the JSON has nothing is a
+     * shape difference even though every reader here happens to treat them alike.
+     */
+    if ($rows !== []) {
+        $out['stopTimeUpdate'] = $rows;
+    }
+
+    $vehicle = cm_pb_scalar($f, 3);
+    if ($vehicle !== null) {
+        $decoded = is_string($vehicle) ? cm_pb_vehicle_descriptor($vehicle) : null;
+        if ($decoded === null) {
+            return null;
+        }
+        $out['vehicle'] = $decoded;
+    }
+
+    $timestamp = cm_pb_scalar($f, 4);
+    cm_pb_put($out, 'timestamp', is_int($timestamp) ? (string) $timestamp : null);
+    cm_pb_put($out, 'delay', cm_pb_int(cm_pb_scalar($f, 5)));
+
+    return $out;
+}
+/*
  * Decode a FeedMessage into the shape the Socrata JSON export produces.
  *
  * Returns ['header' => [...], 'entity' => [...]] or null when the bytes are not a decodable
- * FeedMessage. Entities carrying anything other than a VehiclePosition are dropped, so a feed
- * of trip updates decodes to an empty entity list rather than to an error: that is a feed we
- * have no use for, not a corrupt one.
+ * FeedMessage. $entity_field selects which of FeedEntity's payloads this feed is about --
+ * VehiclePosition is field 4, TripUpdate is field 3 -- and entities carrying anything else are
+ * dropped without counting as failures, so a feed of trip updates decodes through the positions
+ * entry point to an empty entity list rather than to an error: that is a feed we have no use
+ * for, not a corrupt one.
+ *
+ * One body for both feeds on purpose. Everything below the entity payload is feed-independent
+ * and all of it is load-bearing: the DIFFERENTIAL refusal, the three-way absent/corrupt/usable
+ * split on `id`, the failure floor, and `dropped`. A second copy would be a second place for
+ * those to drift, and the drift would be silent in exactly the way the header warns about.
  */
-function cm_gtfsrt_decode(string $bytes): ?array
+function cm_gtfsrt_decode_feed(string $bytes, int $entity_field, string $entity_key, callable $decode_entity): ?array
 {
     if ($bytes === '') {
         return null;
@@ -523,11 +707,12 @@ function cm_gtfsrt_decode(string $bytes): ?array
     cm_pb_put($header, 'timestamp', is_int($header_ts) ? (string) $header_ts : null);
 
     /*
-     * A vehicle that will not decode is dropped, not fatal to the feed. One corrupt field in
+     * An entity that will not decode is dropped, not fatal to the feed. One corrupt field in
      * one of 413 buses should cost that bus, not the rescue: failing the whole feed would hand
-     * the board back four-hour-old data over a single bad byte. A dropped bus is simply absent,
-     * which the board already knows how to mean; the thing that must never happen is a bus
-     * present with a hole in it, and the message decoders above return null rather than do that.
+     * the board back four-hour-old data over a single bad byte. A dropped entity is simply
+     * absent, which the board already knows how to mean; the thing that must never happen is an
+     * entity present with a hole in it, and the message decoders above return null rather than
+     * do that.
      *
      * The floor is what keeps "drop the bad ones" from becoming "publish whatever survived". A
      * handful of failures is field corruption. Most of them failing means we are reading the
@@ -547,21 +732,21 @@ function cm_gtfsrt_decode(string $bytes): ?array
             continue;
         }
 
-        $vp = cm_pb_scalar($ef, 4);
-        if ($vp === null) {
-            /* A TripUpdate or Alert entity. Not ours, and not a failure. */
+        $payload = cm_pb_scalar($ef, $entity_field);
+        if ($payload === null) {
+            /* Somebody else's entity: a TripUpdate in a positions feed, or the reverse. Not
+               ours, and not a failure. */
             continue;
         }
-        if (!is_string($vp)) {
-            /* Present but not a submessage: a corrupt vehicle, not somebody else's entity.
-               Counting it as "not ours" would drop a bus from the fleet without it reaching
-               `dropped`, and a silently short fleet is the one outcome this feed exists to
-               prevent. */
+        if (!is_string($payload)) {
+            /* Present but not a submessage: a corrupt entity, not somebody else's. Counting it
+               as "not ours" would drop it without it reaching `dropped`, and a silently short
+               feed is the one outcome this decoder exists to prevent. */
             $failed++;
             continue;
         }
-        $vehicle = cm_pb_vehicle_position($vp);
-        if ($vehicle === null) {
+        $decoded = $decode_entity($payload);
+        if ($decoded === null) {
             $failed++;
             continue;
         }
@@ -571,7 +756,7 @@ function cm_gtfsrt_decode(string $bytes): ?array
             $failed++;
             continue;
         }
-        $entity['vehicle'] = $vehicle;
+        $entity[$entity_key] = $decoded;
         $entities[] = $entity;
     }
 
@@ -580,11 +765,11 @@ function cm_gtfsrt_decode(string $bytes): ?array
     }
 
     /*
-     * `dropped` is reported rather than merely counted. Below the floor the fleet is published
-     * as though it were whole, and a board quietly missing buses is the failure this feed
-     * exists to prevent, one level down -- so the number rides along and the caller says so.
-     * It sits outside `entity` deliberately: everything under `header` and `entity` is the
-     * JSON export's shape, and inventing a key there would break the one property the whole
+     * `dropped` is reported rather than merely counted. Below the floor the feed is published
+     * as though it were whole, and a board quietly missing buses or predictions is the failure
+     * this decoder exists to prevent, one level down -- so the number rides along and the caller
+     * says so. It sits outside `entity` deliberately: everything under `header` and `entity` is
+     * the JSON export's shape, and inventing a key there would break the one property the whole
      * decoder is built on.
      */
     $out = ['header' => $header, 'entity' => $entities];
@@ -593,4 +778,31 @@ function cm_gtfsrt_decode(string $bytes): ?array
     }
 
     return $out;
+}
+
+/*
+ * The vehicle positions feed (eiei-9rpf) -> the cuc7-ywmd JSON export's shape.
+ *
+ * FeedEntity.vehicle is field 4.
+ */
+function cm_gtfsrt_decode(string $bytes): ?array
+{
+    return cm_gtfsrt_decode_feed($bytes, 4, 'vehicle', 'cm_pb_vehicle_position');
+}
+
+/*
+ * The trip updates feed (rmk2-acnw) -> the mqtr-wwpy JSON export's shape.
+ *
+ * FeedEntity.trip_update is field 3.
+ *
+ * Proven against the real export rather than only against the spec: the differential fixture in
+ * tests/fixtures/feeds-pb-differential-tripupdates/ is both publications of the same instant
+ * (header timestamp 1788946436 on each), and all 2,299 entities decode equal. That capture is
+ * the one thing unit tests cannot substitute for, per CLAUDE.md -- we own neither half of the
+ * comparison, so only a differential run proves the decoder matches the export rather than
+ * matching a spec nobody may still be publishing.
+ */
+function cm_gtfsrt_decode_trip_updates(string $bytes): ?array
+{
+    return cm_gtfsrt_decode_feed($bytes, 3, 'tripUpdate', 'cm_pb_trip_update');
 }

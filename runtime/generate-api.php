@@ -203,15 +203,43 @@ if ($fixtures !== null) {
     } else {
         $feeds['positions']['source'] = 'json';
     }
+
+    /* The trip updates half of the same arrangement, on the same terms. */
+    $trip_updates_pb = $fixtures . '/tripupdates.pb';
+    if (is_file($trip_updates_pb)) {
+        $tu_pb_result = cm_decode_trip_updates_pb((string) file_get_contents($trip_updates_pb));
+        if (!$tu_pb_result['ok'] && !isset($args['now'])) {
+            fwrite(STDERR, 'error: ' . $trip_updates_pb . ': ' . $tu_pb_result['error'] . "\n");
+            exit(2);
+        }
+        $tu_choose_at = isset($args['now'])
+            ? (int) $args['now']
+            : cm_trip_updates_header_at($tu_pb_result);
+        $feeds['trip_updates'] = cm_trip_updates_choose(
+            $feeds['trip_updates'],
+            $tu_pb_result,
+            $tu_choose_at,
+            CM_STALE_STALE_S
+        );
+    } else {
+        $feeds['trip_updates']['source'] = 'json';
+    }
 } else {
     $timeout_s = (int) $config['timeout_s'];
     /*
-     * Positions goes through its own fetch because it is the one feed with a second
-     * publication to fall back on when the first stalls (issue 14). CM_STALE_STALE_S is passed
-     * so that falling back and the board going `stale` are the same threshold by construction.
+     * Positions and trip updates each go through their own fetch because each has a second
+     * publication to fall back on when the first stalls (issue 14 for positions, rmk2-acnw for
+     * trip updates). CM_STALE_STALE_S is passed so that falling back and the board going
+     * `stale` are the same threshold by construction rather than by two constants that agree
+     * until someone edits one.
+     *
+     * One $fetch_at for both, so a cycle cannot judge the two feeds against clocks a second
+     * apart. Alerts has no twin -- it is not GTFS-RT and CapMetro publishes it once -- so it
+     * stays a plain fetch.
      */
-    $feeds['positions']    = cm_fetch_positions($timeout_s, time(), CM_STALE_STALE_S);
-    $feeds['trip_updates'] = cm_fetch_json(CM_FEED_URLS['trip_updates'], $timeout_s);
+    $fetch_at = time();
+    $feeds['positions']    = cm_fetch_positions($timeout_s, $fetch_at, CM_STALE_STALE_S);
+    $feeds['trip_updates'] = cm_fetch_trip_updates($timeout_s, $fetch_at, CM_STALE_STALE_S);
     $feeds['alerts']       = cm_fetch_json(CM_FEED_URLS['alerts'], $timeout_s);
 }
 $positions_source = (string) ($feeds['positions']['source'] ?? 'json');
@@ -234,6 +262,28 @@ if (($feeds['positions']['data']['dropped'] ?? 0) > 0) {
     fwrite(STDERR, sprintf(
         "notice: positions source dropped %d undecodable vehicle(s); the fleet is incomplete\n",
         (int) $feeds['positions']['data']['dropped']
+    ));
+}
+$trip_updates_source = (string) ($feeds['trip_updates']['source'] ?? 'json');
+/*
+ * The same three notices for trip updates, on stderr for the same reason: production runs
+ * --quiet, so anything routed through $log reaches nobody on the box.
+ *
+ * A stalled trip updates feed degrades differently from stalled positions and is worth telling
+ * apart in the journal. Positions going stale empties the map. Trip updates going stale leaves
+ * the map full of buses and quietly takes the predictions with it -- staleness.php suppresses
+ * adherence, so the board stops saying how late anything is while still looking populated.
+ */
+if ($trip_updates_source !== 'json') {
+    fwrite(STDERR, "notice: trip updates from $trip_updates_source; the JSON publication has stalled\n");
+}
+if (isset($feeds['trip_updates']['fallback_error'])) {
+    fwrite(STDERR, 'notice: trip updates fallback unavailable: ' . $feeds['trip_updates']['fallback_error'] . "\n");
+}
+if (($feeds['trip_updates']['data']['dropped'] ?? 0) > 0) {
+    fwrite(STDERR, sprintf(
+        "notice: trip updates source dropped %d undecodable update(s); predictions are incomplete\n",
+        (int) $feeds['trip_updates']['data']['dropped']
     ));
 }
 foreach ($feeds as $name => $r) {
@@ -359,7 +409,8 @@ if ($errors !== []) {
         ['vehicles' => 0, 'routes_written' => 0],
         $errors,
         $cron_last_success_at,
-        $positions_source
+        $positions_source,
+        $trip_updates_source
     ));
     foreach ($errors as $e) {
         fwrite(STDERR, "error: $e\n");
@@ -740,11 +791,12 @@ cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
     ['vehicles' => count($all_vehicles), 'routes_written' => $routes_written],
     $errors,
     $cron_last_success_at,
-    $positions_source
+    $positions_source,
+    $trip_updates_source
 ));
 
 $log(sprintf(
-    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s%s',
+    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s%s%s',
     $routes_written,
     count($catalog),
     count($all_vehicles),
@@ -754,6 +806,7 @@ $log(sprintf(
     /* Named only when it is not the ordinary one. The stderr notice above is what an operator
        actually sees, since production runs --quiet; this is for an interactive run. */
     $positions_source === 'json' ? '' : ', positions via ' . $positions_source,
+    $trip_updates_source === 'json' ? '' : ', trip updates via ' . $trip_updates_source,
     $errors === [] ? '' : ', ' . count($errors) . ' error(s)'
 ));
 foreach ($errors as $e) {

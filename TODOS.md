@@ -182,9 +182,9 @@ PR 15 and is reachable from either feed, so it is not that PR's to fix.
 
 **What:** `deploy/capmetro-generate.service` sets `TimeoutStartSec=50`. A run makes three feed
 requests at `timeout_s` each — 45s at the configured 15 — and every fifteenth minute the
-upstream probe adds three more ranged GETs at the same timeout, for 90s. The positions fallback
-adds a capped 10s on a stalled cycle. Nothing bounds the run as a whole, so a slow upstream can
-have systemd kill the generator outright.
+upstream probe adds three more ranged GETs at the same timeout, for 90s. The two fallbacks add
+a capped 10s each on a stalled cycle, so a cycle that stalls on both feeds adds 20s. Nothing
+bounds the run as a whole, so a slow upstream can have systemd kill the generator outright.
 
 **Why:** It has never fired, because the feeds answer in well under a second and the failure
 needs several requests to hang at once. But the runs where it would fire are exactly the runs
@@ -192,9 +192,12 @@ where upstream is already misbehaving — which is when the board most needs the
 A killed run writes nothing, and the failure looks like a dead cron rather than a slow feed.
 
 **Context:** Found reviewing PR 15, which added the fourth request and made the arithmetic
-worth doing. The fallback is capped at `CM_POSITIONS_PB_TIMEOUT_S = 10` so it cannot be the
-thing that blows the budget, but the budget was already over the ceiling without it, so that
-cap narrows the problem rather than fixing it. The fix is to bound the run rather than each
+worth doing; the trip updates fallback later added a fifth. Both are capped at 10s
+(`CM_POSITIONS_PB_TIMEOUT_S`, `CM_TRIP_UPDATES_PB_TIMEOUT_S`) so neither can be the thing that
+blows the budget, but the budget was already over the ceiling without either, so those caps
+narrow the problem rather than fixing it. Worth noting the worst case is now genuinely
+reachable: on 2026-09-09 both feeds were stalled at once, which is exactly the cycle that fires
+both fallbacks. The fix is to bound the run rather than each
 request: a deadline threaded through the fetches, so whatever has not answered by then is
 treated as a failed feed and the run publishes what it has. Raising `TimeoutStartSec` instead
 would only move the cliff, and it is a unit change, so it costs a `sudo deploy/install.sh` and
@@ -307,17 +310,64 @@ one bad byte in one vehicle label costing every file that vehicle appears in. An
 full-budget HTTP request put the worst case over the unit's `TimeoutStartSec=50`, on exactly
 the runs where upstream is already misbehaving.
 
-**Still open:** the differential proof. Unit tests show the decoder matches the GTFS-RT spec;
-only a capture with both publications healthy shows it matches CapMetro's JSON *export*, and
-the JSON feed was still stalled when this shipped.
+**Still open:** the differential proof, for POSITIONS only. Unit tests show the decoder matches
+the GTFS-RT spec; only a capture with both publications describing one instant shows it matches
+CapMetro's JSON *export*.
 `GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` is written
-and skips with that reason until `tests/fixtures/feeds-pb-differential/` exists.
+and skips until `tests/fixtures/feeds-pb-differential/vehiclepositions.pb` exists.
+
+The 2026-09-09 outage could not supply it: the two positions publications froze 29 seconds
+apart, and the test pairs on `id@vehicle.timestamp`, so only 9 of 260 vehicles matched against
+a floor of 50. The trip updates pair from that same morning *did* work, and is committed — see
+the trip updates entry below. Buses move in 29 seconds; a trip's predicted stop times mostly do
+not, which is the whole difference.
 
 **Effort:** M
 **Priority:** P2
 **Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/14
 **Completed:** 2026-09-02, PR 15. Needs the differential capture the next time both
 publications are healthy at once.
+
+### Fall back to the protobuf trip updates feed when the JSON one stalls
+
+**What:** CapMetro publishes trip updates twice, as JSON (`mqtr-wwpy`) and protobuf
+(`rmk2-acnw`), exactly as it does positions. Nothing in the runtime knew the second one existed.
+Read the PB twin when the JSON is stale, on the same terms and through the same chooser.
+
+**Why:** A JSON-only trip updates stall was unrecoverable for no better reason than a missing
+URL. It also fails less visibly than a positions stall: stalled positions empty the map, while
+stalled trip updates leave the map full of buses and quietly take the predictions with them,
+because `cm_staleness()` suppresses adherence on the oldest feed. The board looks populated and
+has stopped saying when anything arrives.
+
+**Context:** Found on 2026-09-09 while diagnosing a total outage — every CapMetro publication to
+data.texas.gov stopped inside four minutes, so the positions fallback had nothing fresher to
+switch to either. This feed does **not** rescue that outage. It rescues the single-publication
+case, which is the one that had actually happened before, in the other feed.
+
+Three things worth recording:
+
+- **The dangerous part was an enum, again, and a different one than last time.**
+  `StopTimeUpdate.ScheduleRelationship` and `TripDescriptor.ScheduleRelationship` are different
+  enums sharing wire numbers: wire 1 is `SKIPPED` in one and `ADDED` in the other. `join.php`
+  and `adherence.php` both drop a stop whose relationship is `SKIPPED`, so decoding through the
+  wrong map would have published an arrival time for a stop the bus drives past — silently, with
+  nothing in `health.json` to show for it. It has its own constant and its own test.
+- **The differential capture finally happened**, for this feed. Both publications froze on the
+  same instant that morning (header `1788946436`), which makes a better differential pair than a
+  live capture: neither half moves while you fetch it. All 2,299 entities decode identical to
+  the JSON export including key order, asserted with `===`. That required one cosmetic fix to
+  `cm_pb_trip_descriptor`, which had been emitting `routeId` before `scheduleRelationship` where
+  the export emits them the other way round — harmless to every reader, but it is the difference
+  between an equality test and a weaker normalized one.
+- **The chooser is now one implementation with two names.** `cm_feed_choose()` holds the logic;
+  `cm_positions_choose()` and `cm_trip_updates_choose()` are wrappers. Four failure branches, a
+  threshold, a tie rule and a two-channel error report were not worth having twice — CLAUDE.md
+  already records what a duplicated behaviour cost here once, in the stop-names pair.
+
+**Effort:** M
+**Priority:** P2
+**Completed:** 2026-09-09.
 
 ### `update.sh` silently ignored systemd unit changes
 
