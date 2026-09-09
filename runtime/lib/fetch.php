@@ -32,6 +32,21 @@ const CM_FEED_URLS = [
  */
 const CM_POSITIONS_PB_URL = 'https://data.texas.gov/download/eiei-9rpf/application%2Foctet-stream';
 
+/*
+ * The same trip updates feed, published as protobuf (rmk2-acnw).
+ *
+ * The twin of the positions pair above, and it had been sitting on the portal unused since
+ * before issue 14 -- nothing in the runtime knew it existed until the 2026-09-09 outage sent
+ * somebody looking for a source that was still publishing. It is not the feed that saves that
+ * outage (every CapMetro publication stopped inside the same four minutes, this one included);
+ * it is the one that makes a JSON-only trip updates stall survivable, which until now it was
+ * not, purely for want of a URL.
+ *
+ * Cheaper on the wire than the JSON it backs up, unlike the positions pair where the saving is
+ * dramatic: 101 KB against the JSON's 123 KB, both gzipped, measured 2026-09-09.
+ */
+const CM_TRIP_UPDATES_PB_URL = 'https://data.texas.gov/download/rmk2-acnw/application%2Foctet-stream';
+
 const CM_USER_AGENT = 'capmetro-tracker/1 (+https://github.com/) cron';
 
 /*
@@ -106,12 +121,12 @@ function cm_http_get(string $url, int $timeout_s = 20, string $accept = 'applica
 }
 
 /*
- * The self-reported generation time of a positions result, or 0 when there isn't one.
+ * The self-reported generation time of a feed result, or 0 when there isn't one.
  *
  * Reads the feed's own header rather than when we fetched it, which is the whole point: a
  * stalled publication serves a clean 200 every minute and only its header gives it away.
  */
-function cm_positions_header_at(?array $result): int
+function cm_feed_header_at(?array $result): int
 {
     if ($result === null || !($result['ok'] ?? false)) {
         return 0;
@@ -128,17 +143,17 @@ function cm_positions_header_at(?array $result): int
  * CM_STALE_STALE_S, so falling back and the board going `stale` are the same moment by
  * construction rather than by two constants that agree until someone edits one.
  */
-function cm_positions_needs_fallback(array $json_result, int $now, int $threshold_s): bool
+function cm_feed_needs_fallback(array $json_result, int $now, int $threshold_s): bool
 {
     if (!($json_result['ok'] ?? false)) {
         return true;
     }
 
-    return ($now - cm_positions_header_at($json_result)) > $threshold_s;
+    return ($now - cm_feed_header_at($json_result)) > $threshold_s;
 }
 
-/* How many vehicles a positions result actually carries. */
-function cm_positions_entity_count(?array $result): int
+/* How many entities a feed result actually carries. */
+function cm_feed_entity_count(?array $result): int
 {
     if ($result === null || !($result['ok'] ?? false)) {
         return 0;
@@ -174,9 +189,9 @@ function cm_positions_entity_count(?array $result): int
  * hours the fleet legitimately changes size. Zero is the only count that means "this feed is
  * telling us nothing" rather than "the fleet is smaller than it was".
  */
-function cm_positions_choose(array $json_result, ?array $pb_result, int $now, int $threshold_s): array
+function cm_feed_choose(array $json_result, ?array $pb_result, int $now, int $threshold_s, string $unit): array
 {
-    if (!cm_positions_needs_fallback($json_result, $now, $threshold_s)) {
+    if (!cm_feed_needs_fallback($json_result, $now, $threshold_s)) {
         $json_result['source'] = 'json';
 
         return $json_result;
@@ -184,8 +199,8 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
 
     if ($pb_result !== null
         && ($pb_result['ok'] ?? false)
-        && cm_positions_entity_count($pb_result) > 0
-        && cm_positions_header_at($pb_result) > cm_positions_header_at($json_result)
+        && cm_feed_entity_count($pb_result) > 0
+        && cm_feed_header_at($pb_result) > cm_feed_header_at($json_result)
     ) {
         $pb_result['source'] = 'protobuf';
 
@@ -206,19 +221,19 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
     if ($pb_result !== null) {
         if (!($pb_result['ok'] ?? false)) {
             $why = (string) ($pb_result['error'] ?? 'unknown error');
-        } elseif (cm_positions_entity_count($pb_result) === 0) {
+        } elseif (cm_feed_entity_count($pb_result) === 0) {
             /* The case round 1 added the guard for. It was the one leaving no trace at all:
                a fallback that fetched and decoded cleanly and still could not help. */
-            $why = 'fallback carried no vehicles';
-        } elseif (cm_positions_header_at($pb_result) === 0) {
-            /* Undated, not stale. cm_positions_header_at() returns 0 for both "no header" and
+            $why = sprintf('fallback carried no %s', $unit);
+        } elseif (cm_feed_header_at($pb_result) === 0) {
+            /* Undated, not stale. cm_feed_header_at() returns 0 for both "no header" and
                "fetch failed", so subtracting it here would report a feed 56 years behind and
                send someone looking for a stall that is really a missing field. */
             $why = 'fallback carried no header timestamp';
         } else {
             $why = sprintf(
                 'fallback is no fresher (%ds behind the stale JSON)',
-                cm_positions_header_at($json_result) - cm_positions_header_at($pb_result)
+                cm_feed_header_at($json_result) - cm_feed_header_at($pb_result)
             );
         }
 
@@ -258,7 +273,7 @@ function cm_positions_choose(array $json_result, ?array $pb_result, int $now, in
 const CM_POSITIONS_PB_TIMEOUT_S = 10;
 
 /*
- * Decode protobuf bytes into the result shape cm_positions_choose() compares.
+ * Decode protobuf bytes into the result shape cm_feed_choose() compares.
  *
  * Split from the fetch so the decode can be driven from bytes that did not come off a socket:
  * generate-api.php's fixture mode reads a committed .pb through this, which is what lets a
@@ -292,7 +307,7 @@ function cm_decode_positions_pb(string $body, ?int $fetched_at = null): array
 function cm_fetch_positions(int $timeout_s, int $now, int $threshold_s): array
 {
     $json_result = cm_fetch_json(CM_FEED_URLS['positions'], $timeout_s);
-    if (!cm_positions_needs_fallback($json_result, $now, $threshold_s)) {
+    if (!cm_feed_needs_fallback($json_result, $now, $threshold_s)) {
         $json_result['source'] = 'json';
 
         return $json_result;
@@ -300,13 +315,13 @@ function cm_fetch_positions(int $timeout_s, int $now, int $threshold_s): array
 
     $pb_timeout_s = min($timeout_s, CM_POSITIONS_PB_TIMEOUT_S);
 
-    return cm_positions_choose($json_result, cm_fetch_positions_pb($pb_timeout_s), $now, $threshold_s);
+    return cm_feed_choose($json_result, cm_fetch_positions_pb($pb_timeout_s), $now, $threshold_s, 'vehicles');
 }
 
 /*
  * Fetch and decode the protobuf positions feed into the JSON export's shape.
  *
- * Same return shape as cm_fetch_json so cm_positions_choose does not care which it is holding.
+ * Same return shape as cm_fetch_json so cm_feed_choose does not care which it is holding.
  */
 function cm_fetch_positions_pb(int $timeout_s): array
 {
@@ -316,6 +331,141 @@ function cm_fetch_positions_pb(int $timeout_s): array
     }
 
     return cm_decode_positions_pb($r['body'], $r['fetched_at']);
+}
+
+/*
+ * The positions feed's names for the shared readers above.
+ *
+ * cm_feed_* holds the logic because positions and trip updates make the identical choice, and
+ * that choice has four failure branches, a threshold, a tie rule and a two-channel error
+ * report. A second copy would be a second place for those to drift, and CLAUDE.md already
+ * records what that costs here: the stop-names pair diverged and rendered one stop two ways on
+ * one screen. These wrappers keep the call sites reading in the vocabulary of the feed they are
+ * about while there stays exactly one implementation to be right.
+ */
+function cm_positions_header_at(?array $result): int
+{
+    return cm_feed_header_at($result);
+}
+
+function cm_positions_entity_count(?array $result): int
+{
+    return cm_feed_entity_count($result);
+}
+
+function cm_positions_needs_fallback(array $json_result, int $now, int $threshold_s): bool
+{
+    return cm_feed_needs_fallback($json_result, $now, $threshold_s);
+}
+
+function cm_positions_choose(array $json_result, ?array $pb_result, int $now, int $threshold_s): array
+{
+    return cm_feed_choose($json_result, $pb_result, $now, $threshold_s, 'vehicles');
+}
+
+/* The trip updates feed's names for the same readers. */
+function cm_trip_updates_header_at(?array $result): int
+{
+    return cm_feed_header_at($result);
+}
+
+function cm_trip_updates_entity_count(?array $result): int
+{
+    return cm_feed_entity_count($result);
+}
+
+function cm_trip_updates_needs_fallback(array $json_result, int $now, int $threshold_s): bool
+{
+    return cm_feed_needs_fallback($json_result, $now, $threshold_s);
+}
+
+/*
+ * THE EMPTY-FEED RULE MEANS SOMETHING DIFFERENT HERE, and it is worth being explicit about
+ * because the rule itself does not change.
+ *
+ * For positions, zero entities means "this feed is telling us nothing" -- there is always some
+ * bus somewhere. For trip updates, zero is rarer but no more trustworthy: it would mean the
+ * agency is predicting nothing for any trip, which suppresses every prediction on the board
+ * while the header looks current. The stale JSON at least still says when it was true. So a
+ * count of zero loses here too, for the same reason and to the same effect.
+ */
+function cm_trip_updates_choose(array $json_result, ?array $pb_result, int $now, int $threshold_s): array
+{
+    return cm_feed_choose($json_result, $pb_result, $now, $threshold_s, 'trip updates');
+}
+
+/*
+ * The trip updates fallback's share of the run's time budget.
+ *
+ * Its own constant rather than a share of the positions one because the two bodies are not
+ * remotely the same size: 101 KB gzipped against 5.7 KB, both measured 2026-09-09. Ten seconds
+ * is still ample -- the fetch took 0.5s that day -- and the cap is here for the same reason as
+ * the positions one, so a misbehaving upstream cannot make the fallback the thing that runs a
+ * cycle out of time.
+ *
+ * IT DOES WIDEN THE WORST CASE. TODOS.md already records that the run exceeds the unit's
+ * TimeoutStartSec=50 with or without any of this; a cycle that stalls on BOTH feeds now fires
+ * both fallbacks and adds up to 20s rather than 10s. That is the 2026-09-09 shape exactly, and
+ * it is still the wrong problem to fix here: bounding one more request does not bound the run.
+ */
+const CM_TRIP_UPDATES_PB_TIMEOUT_S = 10;
+
+/*
+ * Decode protobuf bytes into the result shape cm_trip_updates_choose() compares.
+ *
+ * Split from the fetch for the same reason cm_decode_positions_pb is: the fixture path in
+ * generate-api.php reads committed bytes through it, so a test can drive the fallback end to
+ * end and produce a real webroot rather than only unit-test the chooser.
+ */
+function cm_decode_trip_updates_pb(string $body, ?int $fetched_at = null): array
+{
+    $data = cm_gtfsrt_decode_trip_updates($body);
+    if ($data === null) {
+        return ['ok' => false, 'error' => sprintf('%s: not a decodable FeedMessage', CM_TRIP_UPDATES_PB_URL)];
+    }
+
+    return [
+        'ok'         => true,
+        'data'       => $data,
+        'bytes'      => strlen($body),
+        'fetched_at' => $fetched_at ?? time(),
+    ];
+}
+
+/*
+ * Fetch the trip updates feed, falling back to protobuf when the JSON one has stalled.
+ *
+ * Same shape as cm_fetch_positions, including the property that matters most: the JSON is
+ * always fetched, so recovery needs no stored state and a healthy cycle costs what it always
+ * did. The protobuf request happens only on a cycle that has already seen a stalled JSON.
+ */
+function cm_fetch_trip_updates(int $timeout_s, int $now, int $threshold_s): array
+{
+    $json_result = cm_fetch_json(CM_FEED_URLS['trip_updates'], $timeout_s);
+    if (!cm_trip_updates_needs_fallback($json_result, $now, $threshold_s)) {
+        $json_result['source'] = 'json';
+
+        return $json_result;
+    }
+
+    $pb_timeout_s = min($timeout_s, CM_TRIP_UPDATES_PB_TIMEOUT_S);
+
+    return cm_trip_updates_choose($json_result, cm_fetch_trip_updates_pb($pb_timeout_s), $now, $threshold_s);
+}
+
+/*
+ * Fetch and decode the protobuf trip updates feed into the JSON export's shape.
+ *
+ * Same return shape as cm_fetch_json so cm_trip_updates_choose does not care which it holds.
+ */
+function cm_fetch_trip_updates_pb(int $timeout_s): array
+{
+    $r = cm_http_get(CM_TRIP_UPDATES_PB_URL, $timeout_s, 'application/x-protobuf');
+    if (!$r['ok']) {
+        return $r;
+    }
+
+    return cm_decode_trip_updates_pb($r['body'], $r['fetched_at']);
 }
 
 /*

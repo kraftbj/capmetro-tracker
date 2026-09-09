@@ -21,7 +21,8 @@ function cm_build_health(
     array $counts,
     array $errors,
     int $cron_last_success_at,
-    string $positions_source = 'json'
+    string $positions_source = 'json',
+    string $trip_updates_source = 'json'
 ): array {
     $errors = array_values(array_unique(array_map('strval', $errors)));
 
@@ -56,12 +57,21 @@ function cm_build_health(
             'trip_updates_at' => (int) ($feed_times['trip_updates'] ?? 0),
             'alerts_at'       => (int) ($feed_times['alerts'] ?? 0),
             /*
-             * Which of CapMetro's two positions publications this run used. A board running
-             * on the protobuf fallback is otherwise indistinguishable from a healthy one,
-             * and the whole reason issue 14 exists is that a stall went unnoticed for four
-             * hours. "json" on every ordinary run; "protobuf" means the JSON feed stalled.
+             * Which of CapMetro's two publications of each feed this run used. A board running
+             * on a protobuf fallback is otherwise indistinguishable from a healthy one, and the
+             * whole reason issue 14 exists is that a stall went unnoticed for four hours.
+             * "json" on every ordinary run; "protobuf" means that feed's JSON publication
+             * stalled and its twin was fresher.
+             *
+             * Reported per feed, not as one flag, because the two stall independently: on
+             * 2026-09-01 only positions went, and a single field would have had to pick one
+             * story to tell. Both read "json" during the 2026-09-09 outage, when every
+             * publication stopped together and neither twin was any fresher -- the case where
+             * the fallback correctly declines, and the reason `errors` is what says the board
+             * is degraded rather than these two fields.
              */
-            'positions_source' => $positions_source,
+            'positions_source'    => $positions_source,
+            'trip_updates_source' => $trip_updates_source,
         ],
         'gtfs'                 => [
             'feed_version' => (string) ($gtfs['feed_version'] ?? 'unknown'),

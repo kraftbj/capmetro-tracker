@@ -34,7 +34,8 @@
         "positions_at",
         "trip_updates_at",
         "alerts_at",
-        "positions_source"
+        "positions_source",
+        "trip_updates_source"
       ],
       "properties": {
         "positions_at": {
@@ -48,6 +49,14 @@
         },
         "positions_source": {
           "description": "Which CapMetro positions publication this run used. 'protobuf' means the JSON feed had stalled and the fallback ran; see issue 14.",
+          "type": "string",
+          "enum": [
+            "json",
+            "protobuf"
+          ]
+        },
+        "trip_updates_source": {
+          "description": "Which CapMetro trip updates publication this run used. 'protobuf' means the mqtr-wwpy JSON feed had stalled and the rmk2-acnw fallback ran. Independent of positions_source: the two publications stall separately.",
           "type": "string",
           "enum": [
             "json",
