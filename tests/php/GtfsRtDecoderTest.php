@@ -814,14 +814,15 @@ final class GtfsRtDecoderTest extends TestCase
      */
     public function testDecodedProtobufMatchesTheJsonExportForTheSameObservations(): void
     {
-        $dir = Runtime::dirOrSkip(
+        $pb_path = Runtime::fileOrSkip(
             $this,
-            'tests/fixtures/feeds-pb-differential',
+            'tests/fixtures/feeds-pb-differential/vehiclepositions.pb',
             'needs a positions capture with both publications healthy; see issue 14'
         );
+        $dir = dirname($pb_path);
 
         $json = json_decode((string) file_get_contents($dir . '/vehiclepositions.json'), true, 512, JSON_THROW_ON_ERROR);
-        $pb = cm_gtfsrt_decode((string) file_get_contents($dir . '/vehiclepositions.pb'));
+        $pb = cm_gtfsrt_decode((string) file_get_contents($pb_path));
         self::assertIsArray($pb, 'the PB half of the differential fixture must decode');
 
         $index = [];
