@@ -45,6 +45,24 @@
    * does not outlive its usefulness and become part of the furniture.
    */
   var OVERDUE_KEEP_S = 1800;
+  /*
+   * And how long an announced cancellation stays, which is a different question with a
+   * different answer.
+   *
+   * A canceled trip has no bus and usually nothing on its block, so coverageFor calls it
+   * `overdue` and it used to inherit the 30 minutes above. That was never a decision:
+   * `overdue` means "due to start, nothing running it, and CapMetro has NOT announced a
+   * cancellation" — it is the warning that fires in the silence BEFORE an announcement.
+   * A published cancellation is that announcement, and departureRow renders `canceled`
+   * first and returns, so the overdue wording never appeared on these rows anyway. They
+   * were held up for half an hour by a rule their own state contradicts.
+   *
+   * Route 837 on 2026-09-17 had 7 cancellations and stacked three of them at
+   * 5th/Guadalupe, the oldest 27 minutes gone, above the two buses actually coming. Ten
+   * minutes keeps the answer a rider needs — why nothing came — without turning the
+   * panel into a list of buses that are never arriving.
+   */
+  var CANCELED_KEEP_S = 600;
 
   /*
    * Every direction the stop is served in, in id order.
@@ -114,9 +132,24 @@
 
     rows.forEach(function (row) {
       var scheduledAt = dep.service_day_start_epoch + row.seconds;
-      var vehicle = route ? W.vehicleForTrip(route, row.trip.id) : null;
-      var view = vehicle ? adhLib.view(vehicle, route.staleness) : null;
-      var lateness = view && view.seconds !== null && view.seconds !== undefined ? view.seconds : null;
+      /*
+       * Coverage first, and passed into timingFor rather than looked up twice:
+       * timingFor needs it to find an inbound successor and the row model needs
+       * the whole object, and coverageFor walks both the vehicle list and the
+       * block's trips on every call.
+       */
+      var coverage = W.coverageFor(dep, route, row.trip, now);
+      /*
+       * Through W.timingFor, not the three lines this used to inline. It is the
+       * one producer of a departure's due time, and it is what knows that a run
+       * nobody has started yet can still be timed from the bus that is inbound
+       * to run it — the whole reason the 17:03 below stays on the board.
+       */
+      var timing = route
+        ? W.timingFor(dep, route, row.trip, scheduledAt, now, coverage)
+        : { vehicle: null, predictor: null, view: null, predicted_at: null, due_at: scheduledAt };
+      var vehicle = timing.vehicle;
+      var view = timing.view;
 
       /*
        * WHERE THE ARRIVAL TIME COMES FROM, in order of preference.
@@ -139,6 +172,13 @@
        * started their trip yet, and for those the extrapolation is the only
        * answer there is.
        *
+       * For those unstarted runs the lateness cannot come from this trip -- no
+       * bus is on it -- so it comes from the bus that is inbound to run it. That
+       * is W.timingFor's job and the note there is the long version. This file
+       * used to look the vehicle up by THIS trip's id and get null, which made
+       * the sentence above an intention rather than a description: the row had
+       * no predicted time and was dropped for being in the past.
+       *
        * Which of the two a row used decides whether it may also show the
        * adherence badge -- see departureRow(). The badge is not recomputed from
        * these numbers either way: adherence.view() is the one lateness
@@ -146,11 +186,8 @@
        * not grow.
        */
       var fromFeed = feedArrivalFor(dep, route, vehicle, stopId, scheduledAt);
-      var predictedAt = fromFeed ? fromFeed.predicted_at
-        : lateness === null ? null : scheduledAt + lateness;
+      var predictedAt = fromFeed ? fromFeed.predicted_at : timing.predicted_at;
       var dueAt = predictedAt === null ? scheduledAt : predictedAt;
-
-      var coverage = W.coverageFor(dep, route, row.trip, now);
 
       /*
        * A departure leaves the list GRACE_S after it was due, because a bus that has
@@ -168,13 +205,20 @@
        * Note the ordering against GRACE_S: overdue does not begin until
        * OVERDUE_GRACE_S (120s) and the list drops rows at 90s, so computing coverage
        * after this filter made the state unreachable in the UI entirely.
+       *
+       * A cancellation is kept on its OWN clock and is checked first, because it is
+       * also `overdue` by coverageFor's reading and would otherwise take the longer
+       * window by accident. See CANCELED_KEEP_S.
        */
-      if (dueAt < now - GRACE_S &&
-        !(coverage.state === 'overdue' && dueAt > now - OVERDUE_KEEP_S)) { return; }
+      var canceled = W.isCanceled(row.trip, route);
+      var keep = canceled
+        ? dueAt > now - CANCELED_KEEP_S
+        : coverage.state === 'overdue' && dueAt > now - OVERDUE_KEEP_S;
+      if (dueAt < now - GRACE_S && !keep) { return; }
 
       out.push({
         trip: row.trip,
-        canceled: W.isCanceled(row.trip, route),
+        canceled: canceled,
         /*
          * Who is going to run this, when no bus is on it yet. See the long note on
          * coverageFor: "no bus reporting yet" covered a bus two runs away, a block that
@@ -185,6 +229,12 @@
          */
         coverage: coverage,
         vehicle: vehicle,
+        /*
+         * The bus that will run this, when nothing is on it yet and it is close
+         * enough to be timed from. It is what `due_at` was extrapolated from, so
+         * the row names it rather than leaving a shifted time unexplained.
+         */
+        predictor: timing.predictor,
         view: view,
         suppressed: suppressed,
         scheduled_at: scheduledAt,
@@ -313,9 +363,22 @@
       if (d.from_feed || Math.abs(d.predicted_at - d.scheduled_at) >= 60) {
         row.appendChild(el('p', 'nextbus__sched', 'scheduled ' + fmt.clock(d.scheduled_at)));
       }
+      /*
+       * A predictor row is the one case where the bus named is not on this trip
+       * yet, so it says what the bus is doing rather than implying the run is
+       * under way. Without "becomes this run" the line reads exactly like a
+       * live row and claims a bus is here that is still finishing another trip.
+       *
+       * The badge above stays: on a predictor row the time IS scheduled plus
+       * this bus's deviation, so badge and clock are the same number, which is
+       * the identity that decides the badge everywhere in this file.
+       */
+      var named = d.vehicle || d.predictor;
       row.appendChild(el('p', 'nextbus__bus',
-        'bus ' + (d.vehicle.label || d.vehicle.vehicle_id) + ' · ' +
-        (d.from_feed ? 'running ' + d.view.label : d.view.label)));
+        'bus ' + (named.label || named.vehicle_id) + ' · ' +
+        (d.predictor ? 'becomes this run, running ' + d.view.label
+          : d.from_feed ? 'running ' + d.view.label
+            : d.view.label)));
     } else if (d.suppressed) {
       row.appendChild(el('p', 'nextbus__sched', 'scheduled · lateness unavailable'));
     } else {
@@ -384,7 +447,13 @@
           ? ', scheduled ' + fmt.clockSpoken(d.scheduled_at) +
             '. Bus ' + (d.vehicle.label || d.vehicle.vehicle_id) +
             ' is running ' + d.view.label + ' overall'
-          : ', ' + d.view.spoken + ', scheduled ' + fmt.clockSpoken(d.scheduled_at))
+          : d.predictor
+            /* Same scoping as the printed line: the bus has not started this run,
+               and a spoken "eleven minutes late" alone would say it had. */
+            ? ', scheduled ' + fmt.clockSpoken(d.scheduled_at) + '. Bus ' +
+              (d.predictor.label || d.predictor.vehicle_id) +
+              ' becomes this run and is running ' + d.view.label
+            : ', ' + d.view.spoken + ', scheduled ' + fmt.clockSpoken(d.scheduled_at))
         : ', scheduled, no live prediction') + '.'));
     return row;
   }
@@ -490,6 +559,10 @@
 
   global.CMB.stopboard = {
     GRACE_S: GRACE_S,
+    /* Both retention windows are exported so a test asserts against the constant
+       rather than restating the number, which is how the two drift. */
+    OVERDUE_KEEP_S: OVERDUE_KEEP_S,
+    CANCELED_KEEP_S: CANCELED_KEEP_S,
     directionsAt: directionsAt,
     upcoming: upcoming,
     /* Exported so a test can assert what one row actually renders. The

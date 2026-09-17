@@ -455,6 +455,95 @@
     return out;
   }
 
+  /*
+   * When a departure is actually expected, and which bus that answer came from.
+   *
+   * ONE place, because the stop board and the saved cards both need it and both
+   * used to compute it inline from the same three lines. CLAUDE.md's rule after
+   * ISSUE-002 is that two producers of one value drift; here the first symptom
+   * would be the two panels disagreeing about when the same departure is due,
+   * on one screen.
+   *
+   * WHY THE BUS ON THE TRIP IS NOT THE ONLY PREDICTOR.
+   *
+   * Both callers looked the vehicle up by THIS trip's id, so a run that has not
+   * started yet had no vehicle, no lateness, and therefore no predicted time —
+   * `due_at` fell back to the bare schedule. stopboard.js then dropped the row
+   * for being in the past, and a saved card called it `passed`.
+   *
+   * That is wrong exactly when it matters most. Route 837 on 2026-09-17: the
+   * 17:03 northbound was to be run by bus 8007, which was still 820s late
+   * finishing its southbound trip and did not take the run over until 17:14.
+   * Between 17:04:30 (its time, plus the 90s grace) and 17:14 the board did not
+   * list it at all, and a rider at 5th/Guadalupe was shown the 17:33 as their
+   * next bus while their actual bus was ten minutes away. The capture is in
+   * .local/captures/837-nb-inbound-drop-20260917/.
+   *
+   * The payload already answered it. coverageFor() finds the bus that published
+   * `next_trip.trip_id == this trip`, and that bus's own lateness is the best
+   * estimate of how late this run will begin. Measured against that capture:
+   * at 17:12:36 the extrapolation said 17:15:28; 8007 actually took the run at
+   * 17:14:15 running 681s late, i.e. 17:14:21 at the origin. About a minute out,
+   * against a row that was not on the board at all.
+   *
+   * Only `runs_ahead === 1` — coverageFor's exact successor claim, the bus's own
+   * published `next_trip` — is used. Further down a block the weaker block-mate
+   * match is all coverageFor has, and a lateness measured two or three runs back
+   * says little about a departure half an hour out with layovers in between. That
+   * stays unpredicted rather than confidently wrong.
+   */
+  function timingFor(dep, route, trip, scheduledAt, now, coverage) {
+    var onIt = vehicleForTrip(route, trip && trip.id);
+    var predictor = null;
+    /*
+     * Never for a canceled trip, even when a bus is still advertising it as its
+     * next run — which happens: CapMetro published a cancellation for route 800's
+     * 3010826_22741 while bus 8010 went on naming it in next_trip. Extrapolating
+     * there says when a bus that is not coming would have arrived, and the
+     * canceled row leads with due_at, so it moved the one number a rider uses to
+     * recognise which run was canceled. Theirs said 17:30; the board would have
+     * said 17:44.
+     */
+    if (!onIt && !isCanceled(trip, route)) {
+      /* The caller may already hold it; coverageFor walks the vehicle list and
+         the block's trips, and the stop board asks per row per stop. */
+      var cov = coverage || coverageFor(dep, route, trip, now);
+      if (cov.state === 'inbound' && cov.runs_ahead === 1 && cov.vehicle) {
+        predictor = cov.vehicle;
+      }
+    }
+    var source = onIt || predictor;
+    var view = source ? adhLib.view(source, route && route.staleness) : null;
+    var lateness = view && view.seconds !== null && view.seconds !== undefined
+      ? view.seconds : null;
+    var predictedAt = lateness === null ? null : scheduledAt + lateness;
+    /*
+     * A successor with no usable deviation of its own predicts nothing, so it is
+     * not reported as a predictor. Bus 2817 on route 466 is the case: inbound to
+     * 3005797_15872, `in_service`, and `adherence.state` unknown with reason
+     * no_trip_update, so there is no number to add to the schedule.
+     *
+     * Naming it anyway left a row advertising a predictor beside a null
+     * predicted_at, and callers read the two as one fact — departureRow keys the
+     * shifted-time branch off predicted_at and would have said "becomes this run,
+     * running undefined". With this null the row falls back to the coverage
+     * wording, which names the same bus without attaching a time to it. Caught by
+     * a differential over all 71 live routes, not by a unit test.
+     */
+    if (predictedAt === null) { predictor = null; }
+    return {
+      /* The bus ON this trip. Callers key "live" off this and must not see the
+         successor here: it is running something else right now. */
+      vehicle: onIt,
+      /* The bus that WILL run it, when nothing is on it yet. Named separately so
+         a row can say "becomes this run" rather than claiming it is under way. */
+      predictor: predictor,
+      view: view,
+      predicted_at: predictedAt,
+      due_at: predictedAt === null ? scheduledAt : predictedAt
+    };
+  }
+
   function resolve(watch, dep, route, now) {
     var base = { watch: watch, key: keyFor(watch) };
 
@@ -499,15 +588,22 @@
         detail: 'CapMetro has canceled this trip. No bus is running it today.'
       });
     }
-    var vehicle = vehicleForTrip(route, trip.id);
-    var view = vehicle ? adhLib.view(vehicle, route && route.staleness) : null;
-    var lateness = view && view.seconds !== null && view.seconds !== undefined ? view.seconds : null;
-    var predictedAt = lateness === null ? null : scheduledAt + lateness;
-    var dueAt = predictedAt === null ? scheduledAt : predictedAt;
+    var timing = timingFor(dep, route, trip, scheduledAt, now);
+    var vehicle = timing.vehicle;
+    var view = timing.view;
+    var predictedAt = timing.predicted_at;
+    var dueAt = timing.due_at;
 
     var model = extend(base, {
       trip: trip,
       vehicle: vehicle,
+      /*
+       * The successor, when one is inbound and nothing is on the trip yet. It is
+       * what keeps `due_at` honest below: without it a card for a run whose bus
+       * is still finishing the trip before went `passed` on the schedule while
+       * the bus was minutes away.
+       */
+      predictor: timing.predictor,
       view: view,
       shifted: match.shifted,
       drift: match.drift,
@@ -597,6 +693,23 @@
         'Scheduled ' + fmt.clock(model.scheduled_at) + ' · ' + model.view.label));
       box.appendChild(el('p', 'watchcard__bus',
         'Bus ' + (model.vehicle.label || model.vehicle.vehicle_id)));
+    } else if (model.state === 'no-vehicle' && model.predictor && model.view) {
+      /*
+       * Nothing is on the trip, but the bus that will run it is known and is
+       * late finishing the run before, so there IS a time to lead with. It has
+       * to lead: `seconds_until` counts to due_at, and printing it beside the
+       * SCHEDULED time read "17:03 · in 9 minutes" — two numbers nine minutes
+       * apart on one line. They agreed only while an unstarted run had no
+       * prediction at all.
+       */
+      line.appendChild(el('span', 'watchcard__due', fmt.clock(model.due_at)));
+      line.appendChild(el('span', 'watchcard__until', untilText(model.seconds_until)));
+      box.appendChild(line);
+      box.appendChild(adhLib.badge(model.view));
+      box.appendChild(el('p', 'watchcard__detail',
+        'Scheduled ' + fmt.clock(model.scheduled_at) + ' · bus ' +
+        (model.predictor.label || model.predictor.vehicle_id) +
+        ' has not started it yet and is running ' + model.view.label + '.'));
     } else if (model.state === 'no-vehicle') {
       line.textContent = fmt.clock(model.scheduled_at) + ' · ' + untilText(model.seconds_until);
       box.appendChild(line);
@@ -640,7 +753,15 @@
         : model.state === 'canceled' ? 'Canceled. No bus is running this trip today.'
           : model.state === 'passed' ? 'Already gone.'
           : model.state === 'upcoming' ? 'Due ' + fmt.clockSpoken(model.scheduled_at) + '.'
-            : (model.detail || 'Nothing to show.'));
+            /* The predictor card prints a time and a badge, so the spoken line has
+               to carry both. Without this it fell through to "Nothing to show" on
+               the one card that had the most to say. */
+            : model.state === 'no-vehicle' && model.predictor && model.view
+              ? 'Due ' + fmt.clockSpoken(model.due_at) + ', scheduled ' +
+                fmt.clockSpoken(model.scheduled_at) + '. Bus ' +
+                (model.predictor.label || model.predictor.vehicle_id) +
+                ' has not started it yet and is running ' + model.view.label + '.'
+              : (model.detail || 'Nothing to show.'));
     var sr = el('p', 'sr-only', spoken);
     box.appendChild(sr);
 
@@ -917,6 +1038,12 @@
     vehicleForTrip: vehicleForTrip,
     isCanceled: isCanceled,
     coverageFor: coverageFor,
+    /*
+     * Exported because stopboard.js must compute a departure's due time through
+     * THIS function rather than its own copy of the arithmetic. See the note on
+     * timingFor: two producers of one value is the shape ISSUE-002 forbids.
+     */
+    timingFor: timingFor,
     tripsInBlock: tripsInBlock,
     tripStartEpoch: tripStartEpoch,
     resolve: resolve,
