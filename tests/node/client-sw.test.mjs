@@ -60,6 +60,10 @@ class Res {
   clone() {
     return new Res(this.body, { status: this.status, type: this.type, headers: this._headers })
   }
+  /* The worker answers a cache miss with Response.error() rather than an empty 200. Without
+     this the first test to reach that branch dies with "Response.error is not a function"
+     instead of on its assertion, which is how the branch stayed untested. */
+  static error() { return new Res(null, { status: 0, type: 'error' }) }
 }
 
 class Req {
@@ -222,8 +226,20 @@ describe('the shell list and what index.html actually loads', () => {
         out.add(next)
         follow(next, path.posix.dirname(next))
       }
-      const urls = /src:\s*url\(['"]([^'"]+)['"]\)/g
-      while ((i = urls.exec(css)) !== null) out.add(path.posix.join(dir, i[1]))
+      /*
+       * Every url() inside every src:, not just a url() sitting first. A real @font-face is
+       * commonly `src: local('X'), url('y.woff2') format('woff2')`, and fallback lists carry
+       * several. The old pattern required url() immediately after src: and captured only the
+       * first, so a font referenced either way was silently not required in SHELL -- and the
+       * one test written to make a missing shell entry loud stayed green while the offline
+       * board lost that font. Unquoted url(x.woff2) is legal CSS and is accepted too.
+       */
+      const decls = /src\s*:\s*([^;}]+)/g
+      let d
+      while ((d = decls.exec(css)) !== null) {
+        const urls = /url\(\s*['"]?([^'")]+)['"]?\s*\)/g
+        while ((i = urls.exec(d[1])) !== null) out.add(path.posix.join(dir, i[1]))
+      }
     }
     follow('styles.css', '.')
 
@@ -342,9 +358,16 @@ describe('activating', () => {
 })
 
 describe('the live feed, which is never cached', () => {
+  /*
+   * The api path is SERVED here, and that is load-bearing rather than tidiness. With only
+   * the shell in the table an api request 404s, cacheable() refuses it whatever the worker
+   * does, and "never has an api document in the cache" cannot fail from the isApi rule it
+   * is named for -- confirmed by stubbing isApi() to false and watching it pass.
+   */
+  const withFeed = { ...served, [new URL('api/route/4.json', WORKER).pathname]: '{"live":true}' }
   let scope
   beforeEach(async () => {
-    scope = makeScope({ files: served })
+    scope = makeScope({ files: withFeed })
     await scope.dispatch('install', {})
   })
 
@@ -356,6 +379,10 @@ describe('the live feed, which is never cached', () => {
   })
 
   it('never has an api document in the cache, even after the board has run', async () => {
+    /* The fixture MUST answer for the api path. With only SHELL entries served, the request
+       404s and cacheable() refuses it whatever the worker does -- so this assertion could
+       not fail from the isApi rule it is named for. Verified: with isApi() stubbed to false
+       it still passed; with the path served it correctly reports a cached api url. */
     await scope.dispatch('fetch', { request: new Req('api/route/4.json') })
     for (const store of scope.stores.values()) {
       for (const url of store.keys()) expect(url).not.toMatch(/\/api\//)

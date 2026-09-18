@@ -221,6 +221,91 @@ and it does not scale to six.
 **Priority:** P3
 **Depends on:** The service worker
 
+### Fingerprint the font filenames, or stop calling them immutable
+
+**What:** `client/sw.js` serves `.woff2` cache-first and never revalidates them, on the
+stated grounds that they are "content-addressed by name". They are not: they are
+`ibm-plex-sans.woff2` and friends, and both vhosts serve `/fonts/` with
+`max-age=31536000, immutable`. Swap a font under the same name and every device that
+has it keeps the old one indefinitely -- the worker's cache-first branch never asks, and
+the HTTP cache would not answer for a year either.
+
+**Why:** Not urgent, because nobody swaps a font in place; it is the claim that is wrong
+rather than the behaviour. Worth closing because it is the LAST case where the install
+would benefit from bypassing the HTTP cache -- with the names fingerprinted, the reason
+`cache: 'reload'` existed disappears entirely rather than mostly.
+
+**Also:** `fonts/plex.css` is not actually served `immutable`, whatever the `/fonts/`
+block says. `location ~* \.(js|css)$` is a REGEX and `location /fonts/` is a plain
+prefix, and a regex outranks a plain prefix, so the stylesheet gets
+`max-age=0, must-revalidate` -- measured against real nginx. That is the behaviour you
+want for a file that changes on deploy, but it is accidental, and it is the same
+precedence trap that `^~` was just added to `/api/` for. Either split the fonts rule so it
+names the woff2 only, or say in the conf that the stylesheet is deliberately excluded.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** The service worker
+
+### A worker whose install keeps failing has no way back
+
+**What:** `cache.addAll` is all-or-nothing, which is right, but a permanently failing
+install -- one shell entry 404ing after a bad deploy, say -- leaves the device on whatever
+worker it already had, forever, with `pwa.js` discarding the registration rejection. There
+is no signal anywhere: not on the board, not in `health.json`, not in the journal.
+
+**Why:** The failure is self-limiting today (network-first means the board still works
+online; only the offline floor stops updating) which is why this is P3 rather than higher.
+But it is invisible, and invisible is how the positions-feed stall lasted four hours.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** The service worker
+
+### The worker's generic branch has no bound on what it will cache
+
+**What:** Anything same-origin, not under `api/`, that answers 200 gets stored under its
+own URL. The app-path fallback answers unlimited distinct paths with the document, so the
+key space is unbounded in principle.
+
+**Why:** Hardening only. A service worker never sees another page's requests, and
+`client/urls.js` keeps every feed fetch under `api/`, so nothing reachable today drives
+it. Worth a bound if the worker ever grows a second purpose.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** The service worker
+
+### nginx pins the manifest at the origin root; everything else is path-relative
+
+**What:** `location = /manifest.webmanifest` is an exact match, so it only applies when the
+board is served from `/`. Apache's `<Files "manifest.webmanifest">` matches the basename at
+any depth. Every other part of the installability work is deliberately path-relative,
+because the board runs under a prefix in the e2e server and from `file://`.
+
+**Why:** Production serves the board at the root, so nothing is broken. It is a divergence
+between the two vhosts and a break in the "everything is relative" rule this feature
+otherwise keeps, which makes it the kind of thing that is true until somebody serves the
+board from a subdirectory.
+
+**Effort:** S
+**Priority:** P3
+
+### check_units sources the pulled library into the parent shell
+
+**What:** `check_vhost` now sources `deploy/lib/units.sh` inside a command substitution, so
+nothing it assigns can reach the caller. `check_units` still sources it at function scope.
+It defends the one name it knows about -- it snapshots `EXIT_UNIT_DRIFT` first -- but a
+pulled `units.sh` assigning `CONF_DIR` or `SRC_DIR` would redirect where it then looks for
+the stamp, since the path is computed after the source.
+
+**Why:** Pre-existing, and it requires a hostile or broken commit in the checkout the box
+already trusts and runs. Recorded because the fix is now written next to it: do what
+`check_vhost` does.
+
+**Effort:** S
+**Priority:** P3
+
 ## Infrastructure
 
 ### Re-capture the feed fixtures against a current publication
