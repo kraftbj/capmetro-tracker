@@ -95,9 +95,34 @@ cm_sha256() {
 # The generic form. cm_unit_fingerprint and cm_vhost_fingerprint are the two callers, and
 # they differ only in the list -- which is the point: one implementation of the rules above,
 # so the units and the vhosts cannot drift in how drift is decided.
+# A name this record format can actually represent.
+#
+# The stamp is `<hash>  <name>` and every consumer of it splits on whitespace -- the
+# well-formedness pattern in cm_drift ends `[^ ][^ ]*$`, and the awk lookups match on $2.
+# A name containing a space therefore cannot round-trip: it writes a line that then fails
+# its own validation, and cm_drift answers CM_DRIFT_NO_STAMP -- "there is no record" -- for
+# a file that has a record and may well have drifted. A durable, confident, wrong "cannot
+# tell", which is exactly what the four-outcome contract exists to stop.
+#
+# Quoting cannot fix that; it is the FORMAT that has no room for the name. So the list is
+# refused instead, as CM_DRIFT_NO_TOOL: not knowing, reported as not knowing. Neither of
+# the two real lists contains such a name, and this is what keeps that from becoming a
+# silent assumption.
+cm_names_ok() {
+  local f
+  for f in "$@"; do
+    case "$f" in
+      *[[:space:]]*) return 1 ;;
+      '') return 1 ;;
+    esac
+  done
+  return 0
+}
+
 cm_fingerprint() {
   local dir="$1" f hash out=""
   shift
+  cm_names_ok "$@" || return "$CM_DRIFT_NO_TOOL"
   for f in "$@"; do
     if [ -f "$dir/$f" ]; then
       hash=$(cm_sha256 "$dir/$f") || return "$CM_DRIFT_NO_TOOL"
@@ -237,7 +262,15 @@ cm_vhost_drift() { cm_drift "$1" "$2" $CM_VHOST_FILES; }
 cm_drift() {
   local deploy="$1" stamp="$2" now was f a b drifted want lines total
   shift 2
-  local files="$*"
+  cm_names_ok "$@" || return "$CM_DRIFT_NO_TOOL"
+  # The list stays as ARGUMENTS the whole way down. An earlier version of this refactor
+  # collapsed it to `local files="$*"` and then looped over an unquoted `$files`, which
+  # made half the function argument-safe and half of it word-splitting again: a name
+  # containing a space or a glob character produced a fingerprint with the right number of
+  # lines and a validation pass that counted a different number, so cm_drift returned
+  # CM_DRIFT_NO_STAMP forever -- a durable "cannot tell" about a file that had genuinely
+  # drifted, which is the precise laundering the four-outcome contract exists to forbid.
+  # Not reachable from today's two literal lists. Latent is still wrong.
   [ -f "$stamp" ] || return "$CM_DRIFT_NO_STAMP"
 
   now=$(cm_fingerprint "$deploy" "$@") || return "$CM_DRIFT_NO_TOOL"
@@ -256,13 +289,13 @@ cm_drift() {
   # literal `missing`. A looser "any non-space token" pattern accepted a record whose hash
   # fields were arbitrary text, which then compared unequal to every real hash and was
   # reported as confirmed drift: a corrupt stamp laundered into a specific accusation.
-  want=$(printf '%s\n' $files | wc -l | tr -d ' ')
+  want=$#
   lines=$(printf '%s\n' "$was" | grep -c '^\([0-9a-f]\{64\}\|missing\)  [^ ][^ ]*$' || true)
   total=$(printf '%s\n' "$was" | grep -c . || true)
   if [ "$lines" != "$want" ] || [ "$total" != "$want" ]; then
     return "$CM_DRIFT_NO_STAMP"
   fi
-  for f in $files; do
+  for f in "$@"; do
     if [ "$(printf '%s\n' "$was" | awk -v n="$f" '$2==n' | wc -l | tr -d ' ')" != "1" ]; then
       return "$CM_DRIFT_NO_STAMP"
     fi
@@ -273,7 +306,7 @@ cm_drift() {
   # "the units have changed:" followed by an empty list is a permanent failure with nothing
   # to act on.
   local drifted="$CM_DRIFT_SAME"
-  for f in $files; do
+  for f in "$@"; do
     a=$(printf '%s\n' "$now" | awk -v n="$f" '$2==n {print $1}')
     b=$(printf '%s\n' "$was" | awk -v n="$f" '$2==n {print $1}')
     if [ "$a" != "$b" ]; then

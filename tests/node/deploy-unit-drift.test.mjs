@@ -117,7 +117,7 @@ check_units ${ env.context ?? '' } || exit $?
  * cannot-tell branch, and the test proves nothing while looking green -- and they do NOT
  * hold /usr/sbin, where both nginx and apache2ctl/httpd live on the platforms this runs on.
  */
-function checkVhost({ server = null, lib = null, before = null, after = null } = {}) {
+function checkVhost({ server = null, lib = null, before = null, after = null, gitStub = null } = {}) {
 	const bin = path.join(work, 'stubbin')
 	mkdirSync(bin, { recursive: true })
 	for (const name of ['nginx', 'apache2ctl', 'httpd']) {
@@ -128,6 +128,11 @@ function checkVhost({ server = null, lib = null, before = null, after = null } =
 		execFileSync('chmod', ['+x', path.join(bin, server)])
 	}
 	if (lib !== null) writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+	rmSync(path.join(bin, 'git'), { force: true })
+	if (gitStub) {
+		writeFileSync(path.join(bin, 'git'), gitStub)
+		execFileSync('chmod', ['+x', path.join(bin, 'git')])
+	}
 	const script = `
 set -euo pipefail
 export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf" WEBROOT="${ work }/www"
@@ -135,7 +140,15 @@ export PATH="${ bin }:/usr/bin:/bin"
 ${ before ? `BEFORE="${ before }"` : '' }
 ${ after ? `AFTER="${ after }"` : '' }
 . "${ UPDATE }"
-check_vhost || exit $?
+# BARE, exactly as the four real call sites invoke it. Writing it as
+# check_vhost || exit STATUS would be WRONG here and would quietly neuter these
+# tests: bash suppresses errexit for the entire left-hand side of a || list, so
+# an abort inside the function -- the precise failure mode of a pipeline under
+# pipefail -- cannot happen in that form. Verified at a shell: with the
+# pipe-into-while restored, a bare call exits 128 and never reaches the
+# sentinel, while the || form survives and prints it. The same trap is
+# documented for check_units above.
+check_vhost
 echo "EXIT_UNIT_DRIFT_AFTER=\${EXIT_UNIT_DRIFT}"
 `
 	try {
@@ -1236,6 +1249,15 @@ describe('the deploy that carries a vhost change, on a box with no record yet', 
 		const { before, after } = repoWithVhostChange({ touchVhost: true })
 		const r = checkVhost({ server: 'nginx', before, after })
 		expect(r.code).toBe(0)
+		/*
+		 * The sentinel proves the function RETURNED rather than taking the script down with
+		 * it. The reporting path used to pipe git's output into a `while` loop, and under
+		 * `pipefail` that pipeline is check_vhost's last command while check_vhost is called
+		 * bare -- so a non-zero git (128 on an unreadable checkout) or a trailing blank line
+		 * (which makes the loop's own last command `[ -n "" ]`) killed update.sh, on the
+		 * path where the deploy had ALREADY succeeded. Both reproduced before the fix.
+		 */
+		expect(r.stdout, 'check_vhost aborted instead of returning').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
 		expect(r.stdout).toMatch(/this deploy changed the web server config/)
 		expect(r.stdout).toContain(VHOSTS[0])
 		expect(r.stdout).toMatch(/install\.sh/)
@@ -1275,5 +1297,110 @@ describe('the drift contract is written in two files and must not desynchronize'
 		const got = sh('printf "%s %s %s %s\\n" "$CM_DRIFT_SAME" "$CM_DRIFT_FOUND" ' +
 			'"$CM_DRIFT_NO_STAMP" "$CM_DRIFT_NO_TOOL"')
 		expect(got.stdout.trim()).toBe('0 1 2 3')
+	})
+})
+
+describe('a file list the record format cannot represent', () => {
+	/*
+	 * The stamp is `<hash>  <name>` and every consumer splits on whitespace: the
+	 * well-formedness pattern ends `[^ ][^ ]*$` and the lookups match awk's $2. A name
+	 * containing a space cannot round-trip -- it writes a line that fails its own
+	 * validation, and cm_drift then answers "there is no record" for a file that has one.
+	 * A durable, confident, WRONG "cannot tell", which is what the four-outcome contract
+	 * exists to prevent. Quoting does not fix it; the format has no room for the name. So
+	 * the list is refused as NO_TOOL instead: not knowing, reported as not knowing.
+	 */
+	const withNames = (names, body) => {
+		const dir = path.join(work, 'weird')
+		mkdirSync(path.join(dir, 'deploy'), { recursive: true })
+		mkdirSync(path.join(dir, 'conf'), { recursive: true })
+		for (const n of names) writeFileSync(path.join(dir, 'deploy', n), `body of ${ n }\n`)
+		return sh(body.replaceAll('<D>', `${ dir }`))
+	}
+
+	it('refuses a name with a space rather than reporting a phantom missing record', () => {
+		const r = withNames(['my conf.conf', 'apache-capmetro.conf'],
+			`cm_drift '<D>/deploy' '<D>/conf/none' 'my conf.conf' apache-capmetro.conf`)
+		expect(r.code, 'a space in a name must answer NO_TOOL (3), never NO_STAMP (2)').toBe(3)
+	})
+
+	it('refuses to fingerprint one either, rather than writing a record that cannot be read', () => {
+		const r = withNames(['my conf.conf'], `cm_fingerprint '<D>/deploy' 'my conf.conf'`)
+		expect(r.code).toBe(3)
+		expect(r.stdout.trim()).toBe('')
+	})
+
+	it('handles a glob character in a name, which quoting DOES fix', () => {
+		/*
+		 * Distinct from the space case: `a*.conf` round-trips through the format fine, and
+		 * the bug was purely that the comparison loops re-split an already-correct argument
+		 * list through `local files="$*"`. Before the fix the drifted file was not named at
+		 * all; the verdict and its explanation had come apart, which the single-comparison
+		 * rule exists to forbid.
+		 */
+		const dir = path.join(work, 'globby')
+		mkdirSync(path.join(dir, 'deploy'), { recursive: true })
+		mkdirSync(path.join(dir, 'conf'), { recursive: true })
+		writeFileSync(path.join(dir, 'deploy', 'a*.conf'), 'one\n')
+		writeFileSync(path.join(dir, 'deploy', 'aXX.conf'), 'decoy\n')
+		writeFileSync(path.join(dir, 'deploy', 'apache-capmetro.conf'), 'two\n')
+		expect(sh(`cm_write_stamp_for '${ dir }/deploy' '${ dir }/conf/s' 'a*.conf' apache-capmetro.conf`).code).toBe(0)
+		expect(sh(`cm_drift '${ dir }/deploy' '${ dir }/conf/s' 'a*.conf' apache-capmetro.conf`).code).toBe(0)
+		writeFileSync(path.join(dir, 'deploy', 'a*.conf'), 'changed\n')
+		const r = sh(`cm_drift '${ dir }/deploy' '${ dir }/conf/s' 'a*.conf' apache-capmetro.conf`)
+		expect(r.code).toBe(1)
+		expect(r.stdout.trim().split('\n')).toEqual(['a*.conf'])
+	})
+})
+
+describe('a diagnostic must never take down a deploy that already succeeded', () => {
+	it('survives git failing while it is listing the changed configs', () => {
+		/*
+		 * The exact hazard, driven rather than argued. check_vhost is called BARE at every
+		 * site -- `check_vhost`, not `check_vhost || true` -- so under `pipefail` any
+		 * pipeline that is its last command takes update.sh with it when it fails. The
+		 * reporting path used to pipe `git diff --name-only` into a `while` loop, and git
+		 * answers 128 on a checkout it cannot read. That would abort the script on the path
+		 * where the code and the schedule are ALREADY live.
+		 *
+		 * The stub says "they differ" to the --quiet probe, so the branch is entered, then
+		 * fails the --name-only call the way an unreadable checkout would. The sentinel
+		 * printed after the call is the assertion: if check_vhost aborts, it never appears.
+		 */
+		writeFileSync(path.join(work, 'conf/installed-vhost.sha256'), '')
+		rmSync(path.join(work, 'conf/installed-vhost.sha256'))
+		const gitStub = [
+			'#!/bin/sh',
+			'for a in "$@"; do',
+			'  [ "$a" = "--quiet" ] && exit 1',      // differences: enter the branch
+			'  [ "$a" = "--name-only" ] && exit 128', // then fail, as an unreadable checkout does
+			'done',
+			'exit 0',
+		].join('\n') + '\n'
+		const r = checkVhost({ server: 'nginx', before: 'aaaaaaa', after: 'bbbbbbb', gitStub })
+		expect(r.stdout, 'check_vhost aborted the script when git failed').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(r.code).toBe(0)
+	})
+
+	it('survives a blank line in the list of changed configs', () => {
+		/*
+		 * The second trigger, and the subtler one: with `[ -n "$f" ] && loud ...` as the
+		 * loop body, a trailing blank line leaves a failed test as the loop's last command,
+		 * so the loop exits 1 -- and in a pipeline under pipefail that is the whole
+		 * command's status. `printf 'a\n\n' | while ...; done; echo TAIL` never reaches
+		 * TAIL under set -euo pipefail. A here-string does not have this property.
+		 */
+		const gitStub = [
+			'#!/bin/sh',
+			'for a in "$@"; do',
+			'  [ "$a" = "--quiet" ] && exit 1',
+			'  [ "$a" = "--name-only" ] && { printf "nginx-capmetro.conf\\n\\n"; exit 0; }',
+			'done',
+			'exit 0',
+		].join('\n') + '\n'
+		const r = checkVhost({ server: 'nginx', before: 'aaaaaaa', after: 'bbbbbbb', gitStub })
+		expect(r.stdout, 'a blank line in git output aborted the script').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(r.stdout).toContain('nginx-capmetro.conf')
+		expect(r.code).toBe(0)
 	})
 })

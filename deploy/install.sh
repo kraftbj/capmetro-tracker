@@ -387,7 +387,8 @@ fi
 # vhost fingerprint" is exactly the kind of thing a dry run exists to surface, and putting
 # the DRY_RUN arm first made that branch unreachable in the only mode that can be tested
 # without root.
-if ! command -v cm_write_vhost_stamp >/dev/null 2>&1; then
+if ! command -v cm_write_vhost_stamp >/dev/null 2>&1 \
+   || ! command -v cm_vhost_stamp_path >/dev/null 2>&1; then
   warn "this source tree cannot record a vhost drift fingerprint:
      $SRC_DIR/deploy/lib/units.sh is absent or predates it. Everything else still installs;
      a later vhost change will simply deploy without a notice."
@@ -397,11 +398,21 @@ else
   VHOST_STAMP_RC=0
   cm_write_vhost_stamp "$SRC_DIR/deploy" "$CONF_DIR" || VHOST_STAMP_RC=$?
   if [ "$VHOST_STAMP_RC" != 0 ]; then
-    # A warning, not a die. The board serves correctly without this record; all that is lost
-    # is the notice on a future vhost change, and killing a working install over a missing
-    # fingerprint would be the wrong trade.
-    warn "could not write the vhost drift record ($(cm_vhost_stamp_path "$CONF_DIR")).
+    # A warning, not a die. The board serves correctly without this record; all that is
+    # lost is the notice on a future vhost change, and killing a working install over a
+    # missing fingerprint would be the wrong trade.
+    #
+    # 2 and 1 are told apart, as cm_write_stamp_for's own comment asks: a read-only /etc or
+    # a full disk is a different thing to tell somebody than a hashing tool that would not
+    # run, and folding them sends the operator to fix the wrong one.
+    if [ "$VHOST_STAMP_RC" = 2 ]; then
+      warn "could not create a temp file in $CONF_DIR (read-only filesystem, or full?), so
+     there is no vhost drift record. Everything else is installed."
+    else
+      warn "could not fingerprint the vhost sources (no sha256sum or shasum?), so there is
+     no vhost drift record at $(cm_vhost_stamp_path "$CONF_DIR").
      Everything else is installed. A later vhost change will deploy without a notice."
+    fi
   fi
 fi
 

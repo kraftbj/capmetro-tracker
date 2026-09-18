@@ -246,6 +246,7 @@ check_vhost() {
   # The two private statuses are outside cm_drift's 0..3 contract on purpose, so "the lib
   # could not be loaded" can never be read as a drift verdict.
   local drift rc=0
+  # shellcheck source=deploy/lib/units.sh
   drift=$(
     . "$lib" >/dev/null 2>&1 || exit 90
     command -v cm_vhost_drift >/dev/null 2>&1 || exit 91
@@ -288,9 +289,19 @@ check_vhost() {
       if [ "$changed" = 1 ]; then
         loud "this deploy changed the web server config, and there is no record of which"
         loud "one is installed, so the change could not be checked -- but it is real:"
-        git -C "$SRC_DIR" diff --name-only "$BEFORE" "$AFTER" -- \
-          deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null \
-          | while IFS= read -r f; do [ -n "$f" ] && loud "    $f"; done
+        # A here-string, never a pipe into `while`, for the two reasons check_units:189
+        # already learned. Under `pipefail` this pipeline is check_vhost's last command and
+        # check_vhost is called bare, so `set -e` takes update.sh down -- on the path where
+        # the deploy has ALREADY succeeded, which is the one thing a diagnostic here must
+        # never do. Both triggers are real and were reproduced at a shell: git exiting
+        # non-zero (128 on a checkout it cannot read), and a trailing blank line, which
+        # leaves `[ -n "" ]` as the loop's own last command and exits it 1.
+        local names
+        names=$(git -C "$SRC_DIR" diff --name-only "${BEFORE:-}" "${AFTER:-}" -- \
+          deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null) || names=""
+        while IFS= read -r f; do
+          [ -n "$f" ] && loud "    $f"
+        done <<< "$names"
         loud "Nothing here installs it, and health.json will read ok:true either way."
         loud "    sudo $SRC_DIR/deploy/install.sh"
         loud "prints the exact sed for this box and records the config, which also stops"
