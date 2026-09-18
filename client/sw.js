@@ -42,7 +42,7 @@
  * REMOVED file stops being served from an old cache, which is the one thing
  * network-first cannot fix by itself.
  */
-var VERSION = 'v1';
+var VERSION = 'v2';
 var CACHE = 'dillo-bus-board-' + VERSION;
 
 /*
@@ -75,6 +75,7 @@ var SHELL = [
   'allbuses.js',
   'watch.js',
   'stopboard.js',
+  'plan.js',
   'chain.js',
   'trip.js',
   'urls.js',

@@ -414,8 +414,15 @@ const server = createServer((req, res) => {
       res.end(JSON.stringify(doc))
       return
     }
-    /* Route 837 exists only in the stops set, so it needs no prefix. */
-    if (id === '837' || STOPS_SCENARIOS[scenario]) {
+    /*
+     * The stops set's own schedules. This used to fire for route 837 under ANY scenario,
+     * on the grounds that 837 existed only here -- which stopped being true when the
+     * `predictor` scenario arrived carrying a real 2026-09-17 capture of the same route
+     * and its own paired schedule. Answering 837 from the synthetic turnaround trim
+     * shadowed that pair, and the capture's tests correlated a schedule against a payload
+     * from a different day. Scenario-scoped now, so each feature gets the 837 it meant.
+     */
+    if (STOPS_SCENARIOS[scenario]) {
       const file = lookup(STOPS_DEPARTURES, id)
       if (file) {
         res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
@@ -426,9 +433,19 @@ const server = createServer((req, res) => {
   }
 
   if (rest.startsWith('api/route/')) {
-    /* The one live payload with a bus genuinely on the inbound leg of a
-     * northbound departure, which is what the turnaround card names. */
-    if (path.basename(rest, '.json') === '837') {
+    /*
+     * The one live payload with a bus genuinely on the inbound leg of a northbound
+     * departure, which is what the turnaround card names.
+     *
+     * Scoped to the stops scenarios, and that scoping is load-bearing rather than tidy.
+     * Route 837 is no longer this feature's alone: the `predictor` scenario serves a REAL
+     * capture of 837 -- the 2026-09-17 board where bus 8007 was still finishing its
+     * southbound trip -- and tests/e2e/pending-run.spec.mjs asserts against 8007 by name.
+     * Answering every 837 request with the synthetic turnaround payload shadowed it, and
+     * those tests failed looking for 8007 and finding 8021. Two features arriving at the
+     * same route from different directions; the scenario is what tells them apart.
+     */
+    if (STOPS_SCENARIOS[scenario] && path.basename(rest, '.json') === '837') {
       res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' })
       res.end(JSON.stringify(turnaroundRoute()))
       return
