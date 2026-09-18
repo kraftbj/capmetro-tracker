@@ -1,7 +1,9 @@
 # Test harness notes
 
-Everything under `tests/` except `tests/fixtures/feeds-20260819/` and
-`tests/fixtures/golden/`, which are inputs. Configuration lives at the repo root:
+Everything under `tests/` except the captured inputs, which are owned elsewhere:
+`tests/fixtures/feeds-20260819/`, `tests/fixtures/feeds-20260901-stall/`,
+`tests/fixtures/feeds-pb-differential/`, `tests/fixtures/capture-20260917-837/`
+and `tests/fixtures/golden/`. Configuration lives at the repo root:
 `phpunit.xml`, `vitest.config.mjs`, `playwright.config.mjs`.
 
 **No test touches the network.** Every input is a committed fixture, and the one
@@ -34,7 +36,16 @@ First-time setup: `npm install`, `composer install`,
 
 To browse the fixture scenarios by hand: `npm run test:e2e:server`, then open
 `http://localhost:4173/fresh/index.html`. Swap the prefix for `dead`, `torn`,
-`missing`, `future` or `empty`.
+`missing`, `future`, `empty`, `yesterday`, `chain`, `chaindead` or `predictor`.
+
+`predictor` is the only scenario whose live payload is a real capture rather than a
+mutation of the golden route 4 file, because the state it shows needs a late bus
+publishing a `next_trip` for a run whose booked time has already gone. It serves
+`tests/fixtures/capture-20260917-837/` with that capture's own schedule, and since
+the board's clock follows `generated_at`, opening
+`/predictor/index.html?route=837&stop=2112` puts you at 17:07:48 on route 837 —
+the moment the 17:03 northbound had passed its booked time with bus 8007 still
+finishing the trip before.
 
 ### Pointing the acceptance criteria at generated output
 
@@ -194,6 +205,15 @@ encodes in a `_comment`, and `MANIFEST.json` lists them all.
 | `route-4-dead-cron.json` | Silent failure 2 / criterion 8: the last-good file, 47 minutes on. |
 | `torn-route-4.json` | Section 11: a file truncated mid-write. Deliberately unparseable. |
 | `chain-800-to-4.json` | Transfer chains: two routes that share **no** stop ids and connect anyway, across a 27 m walk at Pleasant Valley. |
+
+`tests/fixtures/capture-20260917-837/` is a fourth kind again: four documents of **this
+project's own generated output**, captured off production on 2026-09-17 while a stop-board
+row was wrongly disappearing. It is read by `client-stopboard-inbound-predictor.test.mjs`
+(42 tests), by `pending-run.spec.mjs` through the `predictor` scenario above, and by
+`tests/schema/validate.py`, which validates all four files so a schema change cannot
+quietly stop being tested against real output. It is the failure itself rather than a
+reconstruction and cannot be recaptured; `tests/fixtures/README.md` says what it encodes
+and which numbers the tests depend on.
 
 Conventions: keys beginning with `_` are test metadata, never wire format.
 `_expected` holds the values an implementation must produce, so a fixture and

@@ -150,23 +150,6 @@ cancellation does not consume one of your two answers" rule.
 **Priority:** P3
 **Depends on:** None
 
-### Give capture-20260917-837 a section in the fixtures README
-
-**What:** `tests/fixtures/README.md` documents every fixture directory with a prose section
-explaining what it encodes and why it must not be casually regenerated.
-`capture-20260917-837/` has only its `MANIFEST.json`.
-
-**Why:** The README is where someone looks before re-capturing something, and the 837 capture
-has the same "do not regenerate casually" property as the others: 32 client tests read its
-exact adherence numbers (820 and 681), its trip ids, and the fact that bus 8007 is graded
-`high` confidence. A re-capture that loses any of those turns assertions vacuous rather than
-red — which is why the invariant block in
-`tests/node/client-stopboard-inbound-predictor.test.mjs` exists.
-
-**Effort:** S
-**Priority:** P3
-**Depends on:** None
-
 ### Finish the test coverage on the client panels
 
 **What:** The ship coverage audit on 2026-08-19 put the time-axis branch at about 30% of
@@ -374,6 +357,28 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### Give capture-20260917-837 a section in the fixtures README
+
+**What:** `tests/fixtures/README.md` documents every fixture directory with a prose section
+explaining what it encodes and why it must not be casually regenerated.
+`capture-20260917-837/` had only its `MANIFEST.json`.
+
+**Why:** The README is where someone looks before re-capturing something, and the 837 capture
+has the same "do not regenerate casually" property as the others: the tests read its exact
+adherence numbers (820 and 681), its trip ids, and the fact that bus 8007's continuation is
+graded `high` confidence. A re-capture that loses any of those turns assertions vacuous rather
+than red — which is why the invariant block in
+`tests/node/client-stopboard-inbound-predictor.test.mjs` exists.
+
+**How it was closed:** A section following the same shape as the other captures: what it
+encodes, a file-by-file table with each snapshot's clock, which tests depend on which numbers,
+and the PII statement. `tests/NOTES.md` gained the matching pointers — the `predictor` e2e
+scenario and the four files `tests/schema/validate.py` now validates.
+
+**Effort:** S
+**Priority:** P3
+**Completed:** v0.6.1.0 (2026-09-18)
 
 ### Fall back to the protobuf positions feed when the JSON one stalls
 
