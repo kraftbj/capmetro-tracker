@@ -363,6 +363,57 @@ variation on it.
 - **"Now" is `generated_at`.** The client never uses the device clock to judge
   freshness; every age comes from `staleness.oldest_feed_age_s`.
 
+- **A departure's due time has exactly one producer: `watch.timingFor()`.** The stop board
+  and the saved cards both need it and both used to compute it inline from the same three
+  lines, which is the shape CLAUDE.md forbids after ISSUE-002 — here the first symptom would
+  be the two panels disagreeing about when one departure is due, on one screen. Both now call
+  `timingFor`, and it is exported for that reason rather than for testing.
+
+  It also answers the question the inline version could not. Both callers looked the vehicle
+  up by THIS trip's id, so a run nobody had started had no lateness, no predicted time, and
+  `due_at` fell back to the printed schedule; the stop board then dropped the row for being in
+  the past and a saved card called it `passed`. `timingFor` falls back to the bus that is
+  **inbound** to run it, whose own deviation is the best available estimate of how late the run
+  will begin. Route 837 on 2026-09-17 is the case: the 17:03 northbound was invisible from
+  17:04:30 until bus 8007 took it over at 17:13:56, while a rider at 5th/Guadalupe was shown
+  the 17:33. Measured against that capture, the extrapolation was 67 seconds out.
+
+  Only `coverage.runs_ahead === 1` is trusted — the bus's own published `next_trip`. Further
+  down a block all `coverageFor` has is the weaker block-mate match, and a lateness measured
+  two or three runs back says little about a departure half an hour out with layovers in
+  between; those stay unpredicted rather than confidently wrong. A canceled trip is never
+  predicted for at all, even when a bus still names it in `next_trip`, because a canceled row
+  leads with `due_at` and moving that time moves the one number a rider uses to recognize
+  which run was canceled. A successor with no usable deviation of its own (`in_service`,
+  adherence `unknown`) reports no predictor and no view, so the row falls back to the coverage
+  wording instead of printing "running undefined".
+
+  The row names the bus it borrowed the number from, and hedges when it has to. §4 of the API
+  contract lets a `low` continuation be said hedged or not at all, and here the grade governs
+  a clock, so a `low` one renders "likely becomes this run … the feed does not confirm this"
+  with `.nextbus__bus--hedged`'s dashed edge, in the spoken line too. Dropping the low-graded
+  rows was considered and rejected: 20.4% of them carry that grade, and refusing them puts a
+  fifth of these runs back on a time that has already passed.
+
+- **`CANCELED_KEEP_S` is ten minutes, and deliberately not `OVERDUE_KEEP_S`.** A canceled trip
+  has no bus and usually nothing on its block, so `coverageFor` reads it as `overdue` and it
+  inherited the thirty-minute window. That was never a decision: `overdue` means "due, nothing
+  running it, and CapMetro has NOT announced a cancellation", the warning that fires in the
+  silence *before* an announcement, and `departureRow` renders `canceled` first so the overdue
+  wording never appeared on these rows anyway. Route 837 stacked three of them at
+  5th/Guadalupe, the oldest twenty-seven minutes gone, above the two buses actually coming.
+  Both windows are exported so the tests assert against the constants rather than restating
+  the numbers.
+
+- **A block's trips are indexed once per departures document, not filtered per row.**
+  `tripsInBlock` re-filtered and re-sorted all 194 of route 837's trips on each of the 160
+  calls one stop panel makes, through `coverageFor` and `runsAhead` — 83% of the work in
+  drawing a panel. The index is memoized on the document's own identity, which is sound
+  because a departures document is immutable once fetched and `app.js` replaces it wholesale
+  when the service day rolls, and it is held beside the document rather than on it so nothing
+  is added to a payload that also gets schema-validated. Callers still get a fresh array.
+  Measured across 273 real stop panels: 1041ms to 162ms, with zero output differences.
+
 - **A transfer is a PAIR of stops within a short walk, not a shared stop id.**
   `chain.js` finds connections geometrically because on this feed the headline
   example cannot be found any other way: routes 800 and 4 share **zero** stop ids

@@ -508,6 +508,57 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   took it, and the saved view says so in words — the announcement alone goes to a
   screen-reader-only region and leaves a sighted reader with no sign at all.
 
+## [0.6.1.0] - 2026-09-18
+
+### Fixed
+
+- **A bus you are waiting for no longer disappears from the stop board while it is
+  still on its way.** Route 837 on 2026-09-17: the 17:03 northbound was booked to be
+  run by bus 8007, which was fourteen minutes late finishing its southbound trip and
+  did not take the northbound run over until 17:13:56. From 17:04:30 — its time, plus
+  the ninety-second grace — until the handover, the board did not list it at all. A
+  rider at 5th/Guadalupe was shown the 17:33 as their next bus while their actual bus
+  was ten minutes away.
+
+  Nothing upstream was wrong. The feed was fresh, the trip was in the schedule and was
+  not canceled, and the payload already named the bus that would run it. The board
+  timed a departure only from a bus already ON that trip, so a run nobody had started
+  had no predicted time, fell back to its printed time, and was dropped for being in
+  the past. The one exemption was for a run with nothing on its block at all — the
+  opposite case from this one, where the bus is definitely coming.
+
+  A pending run is now timed from the bus that is inbound to run it, so it stays on the
+  board and says when it will really leave: "5:16p, in 9 minutes, scheduled 5:03p, bus
+  8007 becomes this run, running very late". Measured against the capture, the estimate
+  landed within about a minute of the real departure. Only the bus's own published next
+  run is trusted; further down a block, where the feed says less, the board says less.
+
+- **Saved trips stop calling themselves gone while the bus is still coming.** The same
+  fault, on the card that matters most: a saved 17:03 counted down from its booked time
+  and went to "Gone" at 17:18, two minutes after the bus actually pulled out. Both
+  panels now read one answer, so they cannot drift apart about one departure.
+
+- **Cancellations clear off the board instead of stacking up.** A canceled trip has no
+  bus, which read to the board as "due and nothing running it" — the warning meant for a
+  no-show the agency has NOT announced, kept on screen for half an hour. Route 837 had
+  three stacked at 5th/Guadalupe, the oldest twenty-seven minutes gone, above the two
+  buses actually coming. An announced cancellation now stays ten minutes: long enough to
+  answer "why did nothing come", short enough to stop being furniture.
+
+### Changed
+
+- **A continuation the feed does not confirm is now marked as such.** Where the board
+  derives a departure time from a bus's next run, and that chaining is only graded
+  `low`, the row says "likely becomes this run … the feed does not confirm this" and
+  carries a dashed edge, rather than stating it flat. One in five of these rows carries
+  that grade. The time is still shown, because a low grade says how confident the
+  chaining is, not whether the bus exists.
+
+- **The stop board draws about six times faster.** Reading a block's trips re-sorted the
+  whole service day on every row, which was 83% of the work in drawing one stop's
+  panel. It is indexed once per schedule now: across 273 real stop panels, 1041ms to
+  162ms, with no change to a single rendered row.
+
 ## [0.6.0.0] - 2026-08-25
 
 ### Added

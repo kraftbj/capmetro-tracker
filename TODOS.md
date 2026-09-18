@@ -74,6 +74,82 @@ fix and the same acronym allowlist, applied wherever a route long_name is shorte
 **Priority:** P3
 **Depends on:** None
 
+### Decide whether a bus whose next run is canceled should chain past it
+
+**What:** `coverageFor` attaches a bus to the trip it publishes in `block.next_trip`, and
+it does that even when that trip has since been canceled. The bus's real next work is then
+the trip AFTER the canceled one, which gets only the weaker block-mate match and so never
+earns a predicted time. Open question: should the claimant walk forward past canceled
+successors?
+
+**Why:** Not acted on, because the evidence does not yet support it. A sweep of all 71 live
+routes on 2026-09-17 at 17:28 found 46 cancellations, and 45 of them sat on a block with no
+bus reporting at all — a block nobody is operating, where there is no bus to chain. Exactly
+one had a bus on its block: route 800 bus 8010, `very_late` by 856s, still claiming the
+canceled 17:50 with the 19:00 next on its block. One case is not a pattern, and the likeliest
+reading of that one is a stale `next_trip` rather than a reassignment, since 8010 was 14
+minutes late against a run 22 minutes out with a ~100 minute block gap ahead of it.
+
+**Context:** Raised while fixing the inbound-predictor bug — the thought was that an agency
+might cancel a run so a late bus can pick up a later one, which would make a canceled
+successor a routine thing to chain through rather than an anomaly. The data above says
+cancellations here are mostly missing buses, not recovery moves, but that is one snapshot on
+one afternoon and peak disruption may look different. Worth re-running the sweep during a
+real incident before building anything. The sweep script shape is in the investigation notes
+for `.local/captures/837-nb-inbound-drop-20260917/`.
+
+`timingFor` already refuses to predict for a canceled trip at all, so the current behavior
+is conservative rather than wrong: the canceled row keeps the time it was canceled from, and
+the run after it shows "no bus reporting yet" instead of a made-up time.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** A capture taken while cancellations are actually being used to recover
+
+### chain.js times a leg from the timetable when its bus has not started
+
+**What:** `client/chain.js` is a third producer of "when is this departure due", beside the
+stop board and the saved cards, and it has the blind spot those two just lost. A leg whose
+bus has not started gets `lateness: null` (`chain.js:676`) and `predicted_board_at` falls
+back to the booked time (`chain.js:775`), so a transfer is graded against a timetable while
+the bus that will run it is knowably late.
+
+**Why:** Not folded into the 0.6.1.0 fix, deliberately. `timingFor` takes one `scheduledAt`
+and returns one time; a chain leg carries a `board_at`/`alight_at` pair and feeds
+transfer-slack arithmetic, so this is a different shape, not a fourth call site. It also
+changes how connections are graded, which needs its own differential over a chain corpus
+before anyone trusts it — the 0.6.1.0 differential covered stop-board rows only.
+
+**Context:** Found in the pre-landing checklist pass while tracing consumers of the new row
+model. The three-way split is the shape CLAUDE.md warns about after ISSUE-002; two of the
+three now share `watch.timingFor`, and this is the one left out.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** A chain corpus differential, the way the stop board got one
+
+### A mass cancellation can set how long the stop board panel is
+
+**What:** `upcoming()` caps the list at `count` LIVE departures, and canceled or overdue rows
+ride along without consuming a slot (`client/stopboard.js`, the `live < want` loop). If every
+remaining row at a stop is canceled, nothing increments `live` and the panel renders the whole
+rest of the service day — about 97 rows at route 837's busiest stop.
+
+**Why:** Degraded UI, not resource exhaustion, and it predates 0.6.1.0 — that release only
+changed WHICH canceled rows reach the loop, and lowered the exposure on balance (announced
+cancellations dropped from a 30-minute window to 10). Worth a bound anyway, because the set is
+upstream-controlled: `isCanceled` reads `schedule.canceled_trips`, rebuilt from CapMetro's
+trip updates every cycle.
+
+**Context:** Raised by the security pass on the 0.6.1.0 review at medium confidence, with the
+97-row worst case measured against `tests/fixtures/capture-20260917-837/`. A cap of
+`want + MAX_RIDE_ALONG` on total pushed rows would close it without changing the "a
+cancellation does not consume one of your two answers" rule.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** None
+
 ### Finish the test coverage on the client panels
 
 **What:** The ship coverage audit on 2026-08-19 put the time-axis branch at about 30% of
@@ -281,6 +357,28 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### Give capture-20260917-837 a section in the fixtures README
+
+**What:** `tests/fixtures/README.md` documents every fixture directory with a prose section
+explaining what it encodes and why it must not be casually regenerated.
+`capture-20260917-837/` had only its `MANIFEST.json`.
+
+**Why:** The README is where someone looks before re-capturing something, and the 837 capture
+has the same "do not regenerate casually" property as the others: the tests read its exact
+adherence numbers (820 and 681), its trip ids, and the fact that bus 8007's continuation is
+graded `high` confidence. A re-capture that loses any of those turns assertions vacuous rather
+than red — which is why the invariant block in
+`tests/node/client-stopboard-inbound-predictor.test.mjs` exists.
+
+**How it was closed:** A section following the same shape as the other captures: what it
+encodes, a file-by-file table with each snapshot's clock, which tests depend on which numbers,
+and the PII statement. `tests/NOTES.md` gained the matching pointers — the `predictor` e2e
+scenario and the four files `tests/schema/validate.py` now validates.
+
+**Effort:** S
+**Priority:** P3
+**Completed:** v0.6.1.0 (2026-09-18)
 
 ### Fall back to the protobuf positions feed when the JSON one stalls
 

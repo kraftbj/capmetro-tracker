@@ -112,3 +112,41 @@ and the other did not.
 
 **No PII.** Trip updates carry trip, stop and vehicle identifiers and nothing about a person;
 verified by key inventory over all 2,299 entities before committing.
+
+## `capture-20260917-837/`
+
+**This project's own generated output, not a CapMetro feed.** Four `/api/` documents pulled off
+production on 2026-09-17 while a bug was happening, plus `MANIFEST.json`. Route 837, feed version
+`260826_0956`, service date 20260917.
+
+**What it encodes.** Trip `3012264_24429`, the 17:03 northbound from stop 2112 (5th/Guadalupe),
+was booked to be run by bus 8007, which was 820s late finishing its southbound run and did not
+take the northbound over until 17:13:56. Between 17:04:30 — its booked time plus the 90s grace —
+and the handover, the stop board listed nothing for it, and a rider at that stop was shown the
+17:33 as their next bus. Nothing upstream was wrong: `health.json` reported `ok`,
+`positions_source: json`, `oldest_feed_age_s` 47 and `schedule_state: current`. The board had
+every number it needed and threw the row away.
+
+| File | Clock | What it holds |
+|---|---|---|
+| `departures-837.json` | — | The service day's schedule, unchanged all day; `service_day_start_epoch` 1789621200. |
+| `route-837-pending.json` | 17:07:48 | The reported moment. 8007 is on the southbound run, `very_late` by 820s, publishing `block.next_trip.trip_id == 3012264_24429` at `confidence: high`. Nothing is on the northbound run. |
+| `route-837-handover.json` | 17:13:56 | 8007 has taken the run over, `very_late` by 681s. The row reappears on its own here, which is what made the bug look self-healing. |
+| `route-837-canceled-stack.json` | 17:18:56 | Seven cancellations on the route, three of them stacked at stop 2112 northbound with the oldest 27 minutes gone. What `CANCELED_KEEP_S` is measured against. |
+
+**Do not regenerate these files casually.** This is the failure itself, captured live on request
+before the state resolved, so there is no recapturing it. 42 tests in
+`tests/node/client-stopboard-inbound-predictor.test.mjs` read its exact adherence numbers (820
+and 681), its trip ids, and 8007's `high` continuation grade; a re-capture that loses any of
+those makes those assertions vacuous rather than red, which is why that file opens with a block
+asserting the capture still says what the rest of it assumes. `tests/e2e/pending-run.spec.mjs`
+drives the same payloads through the real page as the `predictor` scenario, and
+`tests/schema/validate.py` validates all four against the contract.
+
+**It also records that the prediction is worth making.** `MANIFEST.json` carries the arithmetic:
+at 17:12:36 the extrapolation from 8007 said 17:15:28, and 8007 took the run at 17:13:56 running
+681s late, i.e. 17:14:21 at the origin — 67 seconds out, against a row that was not on the board
+at all.
+
+**No PII.** Generated API output: vehicle ids, trip ids, stop names and times. The staff-identity
+problem described at the top of this file is confined to `feeds-20260819/servicealerts.json`.
