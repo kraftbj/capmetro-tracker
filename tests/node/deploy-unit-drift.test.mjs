@@ -27,10 +27,23 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 const REPO = new URL('../../', import.meta.url).pathname
 const LIB = path.join(REPO, 'deploy/lib/units.sh')
 const UPDATE = path.join(REPO, 'deploy/update.sh')
-/* The merge base: deploy/lib/units.sh as it stood before this branch touched it, which is
-   the genuine "older tree" an --src-from rsync can leave behind. */
-const BASE = execFileSync('git', ['merge-base', 'origin/trunk', 'HEAD'],
-	{ cwd: REPO, encoding: 'utf8' }).trim()
+/*
+ * deploy/lib/units.sh as it stood BEFORE the vhost helpers existed -- the genuine "older
+ * tree" an `--src-from` rsync can leave behind.
+ *
+ * Derived from history, not from the branch position. This was
+ * `git merge-base origin/trunk HEAD`, which is the pre-branch commit while the work is on a
+ * branch and becomes trunk itself the moment that branch merges -- so the fixture silently
+ * inverted into the CURRENT file and the test failed on trunk within minutes of landing.
+ * Caught only because the guard below asserts the fixture actually lacks the helper.
+ *
+ * Asking history "which commit introduced this function, and what did the file look like
+ * one commit earlier" is stable under merging, rebasing onto trunk, and further vhost work.
+ */
+const VHOST_ERA = execFileSync('git',
+	['log', '-S', 'cm_write_vhost_stamp', '--format=%H', '--reverse', '--', 'deploy/lib/units.sh'],
+	{ cwd: REPO, encoding: 'utf8' }).trim().split('\n')[0]
+const BASE = `${ VHOST_ERA }^`
 
 /*
  * The unit list is read out of units.sh, never restated here. units.sh's own reason for
@@ -1032,7 +1045,9 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		 */
 		const older = execFileSync('git', ['show', `${ BASE }:deploy/lib/units.sh`],
 			{ cwd: REPO, encoding: 'utf8' })
-		expect(older, 'the base copy already has the vhost helper; pick an older base')
+		expect(older,
+			'the pre-vhost fixture still contains cm_write_vhost_stamp -- history search found the\n'
+			+ 'wrong commit, which means this test is no longer reading a genuinely older library')
 			.not.toMatch(/cm_write_vhost_stamp/)
 		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), older)
 		const r = runInstall()
