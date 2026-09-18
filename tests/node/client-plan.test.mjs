@@ -979,20 +979,38 @@ describe('resolving a stop against the schedule and the live feed', () => {
     expect(m.departures[0].at_stop).toBe(false)
   })
 
-  t('leads with the lateness the feed reports and never derives one for the outbound trip', (p) => {
+  t('times the outbound trip from the inbound bus, and hedges it', (p) => {
     const out = outboundAt(PAIRS[0].outbound_departure_s)
     const inb = inboundAt(PAIRS[0].inbound_arrival_s)
     const route = routeWith(bus({ id: '2867', trip: inb, seconds: 540, nextTripId: out.id }))
     const first = p.resolve(AT_TURNAROUND, DEP, route, NOW).departures[0]
     /*
-     * The inbound bus is nine minutes late, so this departure will almost
-     * certainly leave late too. The board does not say by how much, because it
-     * would be inventing a number with a plausible face. Both facts are printed;
-     * the subtraction is the reader's.
+     * This assertion used to be the opposite, and the reversal is deliberate.
+     *
+     * It read: the board does not say by how much, because a predicted time derived from
+     * another trip's lateness is an invention with a plausible face; both facts are
+     * printed and the subtraction is the reader's. v0.6.1.0 settled that the other way for
+     * the whole board, after a rider at 5th/Guadalupe was shown the 17:33 as their next bus
+     * while their actual bus was ten minutes out -- the pending run had no predicted time,
+     * so the past-time filter dropped it. The timing now lives in stopboard.upcoming(),
+     * which is where this file gets its departures, so the number arrives here whether this
+     * view wants it or not. Printing the booked time here while /route printed the
+     * predicted one would be one departure wearing two times on two screens of one board.
+     *
+     * What carries the uncertainty instead is the hedge, and there is one of it.
      */
     expect(first.inbound.view.seconds).toBe(540)
-    expect(first.predicted_at).toBeNull()
-    expect(first.due_at).toBe(first.scheduled_at)
+    expect(first.predicted_at).toBe(first.scheduled_at + 540)
+    expect(first.due_at).toBe(first.predicted_at)
+    /*
+     * And said as FACT here, which is the other half of the rule working. This fixture's
+     * block carries `confidence: 'high'` and a next_trip pointing at this very trip, so the
+     * feed has confirmed the continuation and the copy does not hedge. The hedge is driven
+     * by what the feed actually says, not applied to every derived time -- the
+     * schedule-only fallback above is the case that gets it.
+     */
+    expect(first.inbound.confirmed).toBe(true)
+    expect(p.boardingText(first, { departures: [first] })).not.toContain('likely')
   })
 })
 
@@ -1016,9 +1034,23 @@ describe('a late bus has not gone', () => {
     expect(m.departures[0].scheduled_at - START).toBe(55500)
   })
 
-  t('drops one that is properly gone rather than leaving a stale card at the top', (p) => {
-    const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + PAIRS[1].outbound_departure_s)
-    expect(m.departures[0].scheduled_at - START).toBe(PAIRS[1].outbound_departure_s)
+  t('keeps one that is overdue and drops one that is properly gone', (p) => {
+    /*
+     * Also reversed by v0.6.1.0, and for the reason the whole retention rule exists: a
+     * departure whose booked time has passed and whose bus has not been is not gone, it is
+     * LATE, and dropping it tells a reader their bus already left. A kid waited at a stop
+     * for a bus that was never coming while the board said "no bus reporting yet".
+     *
+     * So the earlier pair is still at the top sixteen minutes after its booked time, and
+     * the boundary is what makes that a rule rather than a leak: half an hour later it is
+     * gone, and the next departure leads.
+     */
+    const overdue = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + PAIRS[1].outbound_departure_s)
+    expect(overdue.departures[0].scheduled_at - START).toBe(PAIRS[0].outbound_departure_s)
+
+    /* Well past the retention window: now it really has gone. */
+    const gone = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, START + PAIRS[0].outbound_departure_s + 40 * 60)
+    expect(gone.departures[0].scheduled_at - START).not.toBe(PAIRS[0].outbound_departure_s)
   })
 })
 

@@ -65,13 +65,27 @@
  * reporting yet". This file adds the turnaround, the window and the link to that,
  * and restates none of it.
  *
- * WHAT IS DELIBERATELY NOT DONE: when the inbound bus is nine minutes late, the
- * outbound departure it becomes will almost certainly leave late too. This file
- * does not compute that number. The board's rule is that nothing on it is
- * invented, and a predicted departure derived from another trip's lateness is an
- * invention with a plausible face. Both facts are printed next to each other
- * instead, and the arithmetic — which is one subtraction — is left to a reader who
- * can see where the number came from.
+ * WHAT THIS FILE USED TO REFUSE, AND NO LONGER DOES.
+ *
+ * It said here that when the inbound bus is nine minutes late, this file does not
+ * compute what that makes the outbound departure — that a predicted time derived
+ * from another trip's lateness is an invention with a plausible face, so both
+ * facts are printed and the subtraction is left to the reader.
+ *
+ * v0.6.1.0 settled that question the other way, for the whole board rather than
+ * for this view. A route 837 rider at 5th/Guadalupe was shown the 17:33 as their
+ * next bus while their actual bus was ten minutes out, because the 17:03 had no
+ * predicted time and the past-time filter dropped it. The fix times a pending run
+ * as its booked time plus the deviation of the bus that will run it, measured
+ * against a live capture at 67 seconds of error, and it lives in
+ * stopboard.upcoming() — which is where THIS file gets its departures.
+ *
+ * So the refusal above was not just overtaken, it was unenforceable: the number
+ * arrives on the model whether this file wants it or not. Printing the booked time
+ * here while /route printed the predicted one would have been the same departure
+ * wearing two different times on two screens of one board, which is worse than
+ * either answer. The hedge is what carries the uncertainty now, and there is
+ * exactly one of it — see `confirmed` below.
  *
  * WHY THE LINK IS A FRAGMENT, AND WHAT THAT DOES AND DOES NOT BUY
  *
@@ -679,7 +693,27 @@
      */
     var feeder = vehicle ? null : vehicleFeeding(route, trip.id);
     var confidence = feeder && feeder.block ? feeder.block.confidence : null;
-    var confirmed = !!feeder && confidence === 'high';
+    /*
+     * ONE hedge, and when stopboard has spoken it is stopboard's.
+     *
+     * `d.predictor` is the same vehicle this file's `vehicleFeeding` finds — both are
+     * the feed's own block.next_trip — and `d.predictor_hedged` is the exact inverse of
+     * the judgement below. Computing it twice meant one departure could be called a
+     * likelihood on /stops and a fact on /route, from the same feed, in the same second.
+     * Deferring keeps the two views saying one thing.
+     *
+     * Deferred only when the two are talking about the SAME BUS. stopboard reads the
+     * hedge off the block's confidence; this file additionally requires the feed's
+     * next_trip to point at THIS trip, which is a stricter question and the one the
+     * turnaround narrative asks. A vehicle whose next_trip points somewhere else can still
+     * reach stopboard as a predictor by block order, and calling that feed-confirmed here
+     * would state as fact a continuation the feed never made. So: same bus, stopboard's
+     * answer; anything else, including the schedule-only fallback where only a block_id
+     * links the leg to our departure, is judged locally and hedges.
+     */
+    var confirmed = (d.predictor && feeder && d.predictor.vehicle_id === feeder.vehicle_id)
+      ? !d.predictor_hedged
+      : (!!feeder && confidence === 'high');
     if (!feeder && !vehicle && leg) feeder = W.vehicleForTrip(route, leg.trip.id);
 
     var inbound = null;
