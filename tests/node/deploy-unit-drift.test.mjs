@@ -18,7 +18,7 @@
  * directly; and the deploy itself is driven end to end against a real git repo with stubbed
  * id/chown/runuser/php, which is the only way to prove the check is actually WIRED IN.
  */
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -117,7 +117,7 @@ check_units ${ env.context ?? '' } || exit $?
  * cannot-tell branch, and the test proves nothing while looking green -- and they do NOT
  * hold /usr/sbin, where both nginx and apache2ctl/httpd live on the platforms this runs on.
  */
-function checkVhost({ server = null, lib = null, before = null, after = null, gitStub = null } = {}) {
+function checkVhost({ server = null, lib = null, before = null, after = null, gitStub = null, context = '' } = {}) {
 	const bin = path.join(work, 'stubbin')
 	mkdirSync(bin, { recursive: true })
 	for (const name of ['nginx', 'apache2ctl', 'httpd']) {
@@ -148,7 +148,7 @@ ${ after ? `AFTER="${ after }"` : '' }
 # pipe-into-while restored, a bare call exits 128 and never reaches the
 # sentinel, while the || form survives and prints it. The same trap is
 # documented for check_units above.
-check_vhost
+check_vhost ${ context }
 echo "EXIT_UNIT_DRIFT_AFTER=\${EXIT_UNIT_DRIFT}"
 `
 	try {
@@ -937,12 +937,16 @@ export PATH="${ bin }:$PATH"
 bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
   ${ extraArgs.map((a) => `'${ a }'`).join(' ') }
 `
-		try {
-			return { code: 0, out: execFileSync('bash', ['-c', script], {
-				cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ] }) }
-		} catch (e) {
-			return { code: e.status, out: (e.stdout || '') + (e.stderr || '') }
-		}
+		/*
+		 * stderr is merged on the SUCCESS path too, not only in the catch. execFileSync
+		 * returns stdout ALONE, and install.sh's warn() is `printf ... >&2` -- as is bash's
+		 * own "command not found". So every `.not.toMatch(...)` against a passing dry run
+		 * was checking a string that could not contain what it forbade. Proven by injecting
+		 * both forbidden strings and two real command-not-founds into the dry-run arm:
+		 * 84 of 84 still passed.
+		 */
+		const r = spawnSync('bash', ['-c', script], { cwd: work, encoding: 'utf8' })
+		return { code: r.status ?? 1, out: (r.stdout || '') + (r.stderr || '') }
 	}
 
 	it('runs to completion without aborting', () => {
@@ -1402,5 +1406,46 @@ describe('a diagnostic must never take down a deploy that already succeeded', ()
 		expect(r.stdout, 'a blank line in git output aborted the script').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
 		expect(r.stdout).toContain('nginx-capmetro.conf')
 		expect(r.code).toBe(0)
+	})
+})
+
+describe('after a rollback, the notice must not describe a change that is gone', () => {
+	function repoWithVhostChange({ touchVhost }) {
+		const src = path.join(work, 'src')
+		const git = (...args) => execFileSync('git', args, { cwd: src, encoding: 'utf8' })
+		git('init', '-q')
+		git('config', 'user.email', 't@example.test')
+		git('config', 'user.name', 'test')
+		git('add', '-A')
+		git('commit', '-qm', 'before')
+		const before = git('rev-parse', 'HEAD').trim()
+		if (touchVhost) editVhost(VHOSTS[0], "add_header X-Test 1;\n")
+		git('add', '-A')
+		git('commit', '-qm', 'after')
+		return { before, after: git('rev-parse', 'HEAD').trim() }
+	}
+
+	it('says nothing about the pulled range once the checkout has been reset', () => {
+		/*
+		 * The rc=2 branch reasons about what THIS DEPLOY changed. On the rollback path
+		 * `git reset --hard "$BEFORE"` has already put the checkout back -- but both commit
+		 * objects still exist, so `git diff BEFORE AFTER` still answers "the vhost changed"
+		 * and the branch would announce a change that is no longer in the tree, then send
+		 * the operator to install.sh. install.sh would record, and tell them to install,
+		 * the OLD vhost as if it were the new one.
+		 *
+		 * check_units carries a context argument for exactly this reason, seven lines after
+		 * its own reset. check_vhost was written without one.
+		 */
+		const { before, after } = repoWithVhostChange({ touchVhost: true })
+		const deployed = checkVhost({ server: 'nginx', before, after })
+		expect(deployed.stdout, 'the deployed path should still announce it')
+			.toMatch(/this deploy changed the web server config/)
+
+		const rolled = checkVhost({ server: 'nginx', before, after, context: 'rolled-back' })
+		expect(rolled.stdout, 'announced a vhost change that the rollback removed')
+			.not.toMatch(/this deploy changed the web server config/)
+		expect(rolled.stdout, 'check_vhost aborted on the rollback path').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(rolled.code).toBe(0)
 	})
 })

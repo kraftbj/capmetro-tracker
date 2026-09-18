@@ -227,7 +227,11 @@ check_units() {
 #
 # Never fatal, for the same reason those arms are not: an absent stamp is the expected state
 # of every box installed before this existed, including this one.
+# $1 is the caller's context, exactly as check_units takes it: `deployed` (the code and the
+# schedule went live) or `rolled-back` (they did not). It decides which sentences are TRUE,
+# which is not decoration -- see the rc=2 branch.
 check_vhost() {
+  local context="${1:-deployed}"
   local lib="$SRC_DIR/deploy/lib/units.sh"
   [ -f "$lib" ] || return 0
 
@@ -281,8 +285,17 @@ check_vhost() {
       # sourceable and the tests call it directly, where BEFORE and AFTER are simply not
       # set -- a bare `$BEFORE` under `set -u` aborts the function there, which is the
       # not-fatal contract broken by the defensive fix meant to protect it.
+      # Not after a rollback. This branch reasons about the PULLED RANGE -- "this deploy
+      # changed a vhost" -- and `git reset --hard "$BEFORE"` has just put the checkout back,
+      # while both commit objects still exist so the diff still answers 1. It would announce
+      # a change that is no longer in the tree and send the operator to install.sh, which
+      # would then record, and tell them to install, the OLD vhost as though it were the new
+      # one. check_units takes a context for this same reason, seven lines after its own
+      # reset. The rc=1 branch below is fine on that path: it fingerprints whatever is
+      # actually checked out.
       local changed=0
-      if [ -n "${BEFORE:-}" ] && [ -n "${AFTER:-}" ] && [ "${BEFORE:-}" != "${AFTER:-}" ]; then
+      if [ "$context" = deployed ] \
+         && [ -n "${BEFORE:-}" ] && [ -n "${AFTER:-}" ] && [ "${BEFORE:-}" != "${AFTER:-}" ]; then
         git -C "$SRC_DIR" diff --quiet "${BEFORE:-}" "${AFTER:-}" -- \
           deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null || changed=$?
       fi
@@ -310,7 +323,18 @@ check_vhost() {
       fi
       return 0
       ;;
-    *) return 0 ;;   # 3 cannot hash, 90/91 lib unusable -- check_units explains those
+    *)
+      # 3 cannot hash; 90/91 the lib would not load or predates the vhost helpers.
+      #
+      # Silent, and NOT because "check_units explains it" -- it does not. check_units probes
+      # for cm_systemd_live, cm_unit_drift and cm_unit_stamp_path, never for cm_vhost_drift,
+      # so against the pre-branch units.sh (the rollback path, or any older --src-from tree)
+      # it finds all three, reports nothing, and this returns 91 in silence: vhost checking
+      # is simply off and nothing says so. That is the right behaviour -- never fatal, and
+      # the alternative is a line on every run of every box that predates the feature -- but
+      # the reason had to stop being a claim about another function that is not true.
+      return 0
+      ;;
   esac
 
   [ -n "$drift" ] || return 0   # never an accusation with nothing in it
@@ -436,7 +460,7 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   loud "$AFTER is broken; fix it before the next update runs"
   # Reported but not allowed to change the exit code: a broken commit is the headline and
   # a stale unit must not read as the reason the rollback happened.
-  check_vhost
+  check_vhost rolled-back
   check_units rolled-back || true
   exit 1
 fi
@@ -448,6 +472,6 @@ loud "rollback to $BEFORE ALSO fails to generate; this is not a code problem"
 loud "the last good JSON is still in $WEBROOT and its staleness is climbing"
 # Cheap, and occasionally the answer: a generator that cannot start on either commit may be
 # looking for a config path a newer unit moved. Reported, never allowed to change the verdict.
-check_vhost
+check_vhost rolled-back
 check_units rolled-back || true
 exit 1

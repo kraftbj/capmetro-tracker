@@ -65,8 +65,11 @@ function locationBlocks(conf) {
 function apacheBlock(conf, open) {
 	const i = conf.indexOf(open)
 	if (i === -1) return null
-	const close = open.startsWith('<Files ') && !open.startsWith('<FilesMatch') ? '</Files>' : '</FilesMatch>'
-	const j = conf.indexOf(close, i)
+	/* Closer derived from the tag name itself. Hardcoding the Files/FilesMatch pair meant
+	   adding a <Location> block silently sliced to the wrong terminator. */
+	const tag = open.match(/^<([A-Za-z]+)/)
+	if (!tag) return null
+	const j = conf.indexOf(`</${ tag[1] }>`, i)
 	return j === -1 ? null : conf.slice(i, j)
 }
 
@@ -316,11 +319,28 @@ describe('the vhosts let the board be installed', () => {
     /* Apache says the same thing with FilesMatch rather than location. Sliced to the block,
        not scanned across the file: a lazy `[\s\S]*?` finds the first matching directive
        AFTER the opening tag, which can belong to a later block entirely. */
-    const jsBlock = apacheBlock(apache, '<FilesMatch "\\.(js|css)$">')
-    expect(jsBlock, 'apache has no js|css FilesMatch block').not.toBeNull()
-    expect(jsBlock, 'apache serves js/css in a way the worker install could freeze')
-      .toMatch(revalidates.source.replace('Cache-Control', 'Header always set Cache-Control')
-        ? /Header always set Cache-Control "public, max-age=0, must-revalidate"/ : revalidates)
+    /*
+     * Apache, EVERY block the install's correctness rests on -- not just js/css. The first
+     * version checked only the js|css FilesMatch, so pinning Apache's index.html for a year
+     * was invisible: the board's one HTML document, frozen in every browser's cache, with
+     * this test's own comment claiming it covered "the scripts or the document".
+     *
+     * It also carried a ternary whose condition was String.replace(...), which always
+     * returns a non-empty string -- always truthy, so the alternative arm was dead code
+     * wearing the shape of a choice.
+     */
+    const apacheRevalidate =
+      /Header always set Cache-Control "(no-cache|public, max-age=0, must-revalidate)"/
+    for (const [label, open] of [
+      ['the document', '<Location "/index.html">'],
+      ['js/css', '<FilesMatch "\\.(js|css)$">'],
+      ['the manifest', '<Files "manifest.webmanifest">'],
+    ]) {
+      const body = apacheBlock(apache, open)
+      expect(body, `apache has no ${ label } block (${ open })`).not.toBeNull()
+      expect(body, `apache serves ${ label } in a way the worker install could freeze`)
+        .toMatch(apacheRevalidate)
+    }
   })
 
   it('does not let the manifest or the worker script cache past a deploy', () => {

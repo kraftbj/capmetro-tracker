@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { ROOT } from './helpers/optional.mjs'
+import zlib from 'node:zlib'
 import { PALETTE, ICONS, render, encodePng, encodeIco, favicon } from '../../client/icons/regenerate.js'
 
 const CLIENT = path.join(ROOT, 'client')
@@ -347,5 +348,91 @@ describe('the committed icons are what the generator draws', () => {
   it('draws favicon.svg exactly as committed', () => {
     const committed = readFileSync(path.join(CLIENT, 'favicon.svg'), 'utf8')
     expect(favicon()).toBe(committed)
+  })
+})
+
+describe('the encoder above 256 colours, which no committed icon reaches', () => {
+  /*
+   * encodePng indexes when it can and falls back to RGBA when it cannot. The five icons
+   * land at 61-103 distinct colours, so neither the boundary nor the fallback is exercised
+   * by anything else in this suite -- mutating the bail-out from 256 to 255 leaves it
+   * entirely green.
+   *
+   * The harmless direction is a needless fallback. The dangerous one is off by one the
+   * other way: a 257th colour accepted into the palette writes index 256 into a Uint8Array,
+   * which truncates to 0, and emits a PLTE of 257 entries. That is an invalid PNG carrying
+   * silently wrong pixels -- the exact failure the byte-equality tests above cannot see,
+   * because the generator would produce the same wrong bytes twice.
+   */
+  const synthetic = (colours) => {
+    /* A square big enough to hold `colours` distinct RGBA values, one per pixel. */
+    const n = Math.ceil(Math.sqrt(colours))
+    const px = new Uint8Array(n * n * 4)
+    for (let i = 0; i < n * n; i++) {
+      const c = i % colours
+      px[i * 4] = c & 0xff
+      px[i * 4 + 1] = (c >> 8) & 0xff
+      px[i * 4 + 2] = 0x40
+      px[i * 4 + 3] = 255
+    }
+    return { n, px }
+  }
+
+  /** IHDR colour type, read back off the encoded bytes. */
+  const colourType = (buf) => buf[25]
+  const chunks = (buf) => {
+    const out = []
+    let i = 8
+    while (i < buf.length) {
+      const len = buf.readUInt32BE(i)
+      out.push(buf.toString('ascii', i + 4, i + 8))
+      i += 12 + len
+    }
+    return out
+  }
+
+  it('indexes at exactly 256 colours, the most an 8-bit index can address', () => {
+    const png = Buffer.from(encodePng(synthetic(256)))
+    expect(colourType(png), '256 distinct colours must still index').toBe(3)
+    const plte = chunks(png).filter((c) => c === 'PLTE')
+    expect(plte).toHaveLength(1)
+  })
+
+  it('falls back to RGBA at 257, rather than writing an index it cannot store', () => {
+    const png = Buffer.from(encodePng(synthetic(257)))
+    expect(colourType(png), '257 distinct colours must fall back to RGBA').toBe(6)
+    expect(chunks(png), 'an RGBA png must carry no palette').not.toContain('PLTE')
+  })
+
+  it('round-trips the fallback losslessly, so the escape hatch is not a trapdoor', () => {
+    const src = synthetic(257)
+    const png = Buffer.from(encodePng(src))
+    /* Inflate the IDAT and undo filter 1 (Sub), which is what the RGBA path writes. */
+    const raw = zlib.inflateSync(Buffer.concat(
+      (() => {
+        const parts = []
+        let i = 8
+        while (i < png.length) {
+          const len = png.readUInt32BE(i)
+          if (png.toString('ascii', i + 4, i + 8) === 'IDAT') parts.push(png.slice(i + 8, i + 8 + len))
+          i += 12 + len
+        }
+        return parts
+      })(),
+    ))
+    const n = src.n
+    const stride = n * 4
+    const got = Buffer.alloc(stride * n)
+    let p = 0
+    for (let y = 0; y < n; y++) {
+      expect(raw[p], 'the RGBA path must use filter 1').toBe(1)
+      p++
+      for (let x = 0; x < stride; x++) {
+        const left = x >= 4 ? got[y * stride + x - 4] : 0
+        got[y * stride + x] = (raw[p + x] + left) & 0xff
+      }
+      p += stride
+    }
+    expect(Buffer.compare(got, Buffer.from(src.px)), 'the RGBA fallback lost pixels').toBe(0)
   })
 })
