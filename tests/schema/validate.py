@@ -92,7 +92,7 @@ def main() -> int:
     doc = json.loads(golden.read_text())
     validate("the committed route 4 golden output", doc, "route-state.schema.json", store, reg)
 
-    # The 2026-09-17 route 837 capture. Four real payloads that 27 client tests
+    # The 2026-09-17 route 837 capture. Four real payloads that the client suite
     # treat as ground truth, so they have to keep matching the contract they were
     # generated against — an unvalidated fixture is how a schema change quietly
     # stops being tested against real output.
