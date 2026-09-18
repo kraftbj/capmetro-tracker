@@ -140,6 +140,25 @@ Expectations:
   could rewrite is a check it could switch off. A box that has never run an
   `install.sh` carrying this feature has no record; `update.sh` says so once per run
   and carries on, because "cannot tell" is not "drifted".
+- `update.sh` does not install the **vhost** either, and now says so when it matters.
+  It fingerprints `deploy/nginx-capmetro.conf` and `deploy/apache-capmetro.conf` the
+  same way it fingerprints the units, against
+  `/etc/capmetro/installed-vhost.sha256` — a second record, written by `install.sh`,
+  kept separate because the two are installed by different remedies at different
+  times and one file would be rewritten wholesale by whichever ran last.
+  Unlike unit drift this **never changes the exit code**: 3 keeps meaning
+  specifically "the committed systemd units are not the ones installed", one
+  condition with one remedy, and a vhost needs a different one. The notice goes to
+  stdout and therefore to the journal. A box with no record — every box installed
+  before this — stays silent, except on the one deploy whose own pulled range
+  changed a vhost, which is the case that would otherwise land unannounced.
+  Why it earns a bullet at all: a stale timer fires at the wrong hour and the board
+  still renders, while a stale vhost can refuse `manifest.webmanifest` and `sw.js`
+  outright — not installable, no offline board, nothing on screen, and
+  `health.json` still `ok:true`, so the documented post-deploy health check cannot
+  see it. Installing one is a `sed` plus a reload, and on a TLS box the installed
+  file is not the committed one because certbot rewrote it, so diff before
+  overwriting rather than copying over the top.
 - `/etc/capmetro/config.php` is never overwritten by the installer. It carries
   the watch list, which is the one file on the box describing somebody's routine.
 - The GTFS Action is still required and is also the delivery mechanism: it
