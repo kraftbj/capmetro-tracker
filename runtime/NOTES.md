@@ -25,7 +25,6 @@ contract wins and this document is a bug.
 | `lib/shards.php` | Shard reader. Reads files; no other side effects. |
 | `lib/fetch.php` | HTTP with gzip, plus a file reader for the offline path. |
 | `lib/write.php` | `flock`, atomic write. |
-| `tools/make-shards.php` | **Stopgap** shard builder from a GTFS extract. See "Shard format". |
 | `config.example.php` | Production config template. |
 | `config.fixture.php` | Offline development config. |
 
@@ -38,10 +37,13 @@ already declared inside each file.
 ### Offline, against the committed fixtures (no network)
 
 ```
-php runtime/tools/make-shards.php --gtfs=/path/to/gtfs --out=.local/shards
 php runtime/generate-api.php --config=runtime/config.fixture.php \
     --fixtures=tests/fixtures/feeds-20260819
 ```
+
+No shard-building step: `config.fixture.php` points `shard_dir` at the frozen
+`tests/fixtures/shards-260818_1456` snapshot the capture was taken from, and says why it is
+not `data/`.
 
 Output lands in `.local/webroot/api/`. `--now=EPOCH` pins the clock, which is how the
 staleness path is exercised without waiting.
@@ -86,7 +88,8 @@ survival argument is that there is nothing to restart after a reboot.
 
 ### What it needs
 
-- `shard_dir` readable, containing `index.json` and `route-*.json`.
+- `shard_dir` readable, containing `manifest.json`, `calendar.json`, `stops.json` and
+  `routes/{id}/`. `lib/shards.php` has the layout in its header.
 - `webroot` writable by the cron user. Files are written to `{webroot}/api/`.
 - `state_dir` writable. Holds `cron.lock` and `state.json` (`cron_last_success_at`). Do not
   serve this directory.
@@ -102,75 +105,12 @@ long as it revalidates.
 
 ## Shard format
 
-**This is the interface with `build/`, which does not exist yet.** `tools/make-shards.php`
-is a stopgap so the runtime could be developed and verified offline; it is also the
-executable specification of the format. When `build/shards.js` lands it must emit these
-files. If it emits something different, change `lib/shards.php` and this section together.
-
-### `index.json`
-
-```jsonc
-{
-  "schema": 1,
-  "feed_version": "260818_1456",
-  "built_at": 1787155004,             // epoch, when the shards were generated
-  "feed_start_date": "20260818",      // from feed_info.txt; drives schedule_age_days
-  "feed_end_date": "20270109",        // becomes health.gtfs.valid_until
-  "routes": { "4": { "short_name": "4", "long_name": "4-7th Street" } },
-  "calendar": { "3-172": ["20260819"] }   // exception_type 1 only; the feed has no calendar.txt
-}
-```
-
-### `route-{id}.json`
-
-```jsonc
-{
-  "schema": 1,
-  "feed_version": "260818_1456",
-  "route": { "id": "4", "short_name": "4", "long_name": "4-7th Street",
-             "directions": [ { "id": 0, "headsign": "4 Mopac WB" } ] },
-  "stops": { "6243": { "name": "Campbell/5th",              // shortened per section 7
-                       "name_full": "504 Campbell/5th",
-                       "lat": 30.26, "lon": -97.73 } },
-  "patterns": { "p6": { "direction_id": 0, "trip_count": 268,
-                        "is_baseline": true, "is_special": false,
-                        "stop_ids": ["1368", "..."],
-                        "adds": [], "skips": [] } },
-  "baseline_pattern": { "0": "p6", "1": "p2" },
-  "timepoint_stops": { "0": ["1368", "5937", "6243"] },     // baseline stops with timepoint=1
-  "trips": { "3014700_15472": { "service_id": "3-172", "direction_id": 0,
-                                "headsign": "4 Mopac WB", "block_id": "1010",
-                                "pattern": "p4",
-                                "start_time": "08:15:00", "end_time": "08:42:00",
-                                "block_confidence": "low",
-                                "next_trip": { "trip_id": "3014765_15065",
-                                               "direction_id": 1,
-                                               "start_time": "08:59:00",
-                                               "start_stop_id": "1977",
-                                               "start_stop_name": "Veterans/Atlanta",
-                                               "is_direction_flip": true } } },
-  "service_ids": ["1-172", "2-172", "..."]
-}
-```
-
-Pattern ids are prefixed `p` so the map never serializes as a JSON array. Every map in
-every shard must be a JSON object, including `stops`, `trips` and `calendar`.
-
-### `route-{id}.times.json`
-
-```jsonc
-{ "schema": 1, "trips": { "3014700_15472": [29700, 29764, 29832, ...] } }
-```
-
-Seconds since service-day midnight, one entry per stop, **positional against the trip's
-pattern `stop_ids`**. Verified against the whole feed before choosing this shape: all
-24,295 trips number their stops 1..N contiguously, and all 244 patterns have an identical
-sequence layout and an identical timepoint layout across every trip that shares them.
-`arrival_time` equals `departure_time` on all 841,087 rows, so only one is stored.
-
-Splitting times into their own file is what keeps the job cheap: a run parses
-`route-{id}.times.json` only for routes that have a bus or a watch, and frees each route
-before loading the next. Whole-fleet peak memory is 32 MB.
+`build/` owns it and `build/NOTES.md` documents it; `lib/shards.php`'s header carries the
+reader's view of the same layout, including which file is loaded per route and which is
+loaded once. This section used to specify `index.json`, `route-{id}.json` and
+`route-{id}.times.json`, the output of a `tools/make-shards.php` stopgap that let the runtime
+be built before `build/` existed. Both the stopgap and that layout are gone; anything still
+describing them is a fossil.
 
 ## Decisions
 
@@ -280,9 +220,6 @@ Written here rather than edited into files this task does not own.
   says the same. Both criteria were verified against synthetic mutations of the real feeds;
   the test suite needs those fixtures committed. What to mutate is in the "Verified" section
   below.
-
-- **`build/`** owns shard generation. `tools/make-shards.php` should be deleted once
-  `build/shards.js` emits the format above.
 
 ## Verified
 

@@ -1121,8 +1121,14 @@
      * timingFor: two producers of one value is the shape ISSUE-002 forbids.
      */
     timingFor: timingFor,
+    /*
+     * Read by the block-index tests, which pin the memo's two load-bearing
+     * properties: that a second departures document is not served the first
+     * one's index, and that a caller cannot corrupt the cache through the array
+     * it is handed. trunk unexported this in the dead-code pass, correctly --
+     * it had no reader there. It has four now.
+     */
     tripsInBlock: tripsInBlock,
-    tripStartEpoch: tripStartEpoch,
     resolve: resolve,
     untilText: untilText,
     sortModels: sortModels,

@@ -635,7 +635,6 @@
     predictionFor: predictionFor,
     metersBetween: metersBetween,
     canAsk: canAsk,
-    geoErrorText: geoErrorText,
     countdown: countdown,
     countdownSpoken: countdownSpoken,
     walk: walk,

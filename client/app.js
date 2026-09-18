@@ -2443,7 +2443,6 @@
     state: state,
     load: load,
     selectView: selectView,
-    matchesFilter: matchesFilter,
     /*
      * Both take their inputs explicitly so the suite can assert the rule without
      * a running board: currentServiceDate(s) reads the state it is handed, and
@@ -2457,8 +2456,6 @@
     /* Exported for the suite alone: the generation guard is only observable by
      * letting an abandoned request answer, which needs a fetch under test
      * control. Nothing in the client calls it through here. */
-    loadDepartures: loadDepartures,
-    FAVOURITES: FAVOURITES,
-    SUPPORTED_SCHEMA: SUPPORTED_SCHEMA
+    loadDepartures: loadDepartures
   };
 })(window);

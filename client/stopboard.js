@@ -581,7 +581,6 @@
        badge-versus-time contradiction lived here, not in upcoming(). */
     departureRow: departureRow,
     nextAtStop: nextAtStop,
-    stopMeta: stopMeta,
     render: render
   };
 })(window);

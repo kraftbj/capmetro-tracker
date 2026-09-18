@@ -743,8 +743,6 @@
 
   global.CMB.allbuses = {
     render: render,
-    summarize: summarize,
-    partition: partition,
-    groupByRoute: groupByRoute
+    summarize: summarize
   };
 })(window);

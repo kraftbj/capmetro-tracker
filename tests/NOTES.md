@@ -54,7 +54,7 @@ to produce some first:
 
 ```
 php runtime/generate-api.php --fixtures=tests/fixtures/feeds-20260819 \
-    --shards=.local/shards --out=.local/test-webroot --now=1787152239
+    --config=runtime/config.fixture.php --out=.local/test-webroot --now=1787152239
 ```
 
 and, if that succeeds, exports `CAPMETRO_WEBROOT` so the criteria bind to it.
@@ -85,13 +85,22 @@ Two standing consequences:
 
 ## Skipped, and why
 
+Measured under `npm test`, which is the entry point these counts describe:
+`run-all.sh` generates a webroot from the committed fixtures first, so the suites
+that need real generated output bind rather than stand down. Run `vitest` or
+`phpunit` on their own, with no `CAPMETRO_WEBROOT`, and every case that needs
+generated output skips instead — each one naming the missing webroot, not a
+missing feature. The count is deliberately not written down here: it moves
+whenever a case is added, and a stale number in this file is worse than none,
+since this table is the record.
+
 | Suite | What skips | Why |
 |---|---|---|
-| Node | 11 tests in `build-time.test.mjs` | The build job resolves a service clock to an epoch inside the shard emitter, not through a named export. They bind the moment `build/lib/time.mjs` exports `serviceClockToEpoch(serviceDate, clock)`. The same arithmetic is fully covered on the runtime side by `tests/php/ServiceClockTest.php`, which runs today. |
-| PHP | All of `WatchResolutionTest`'s resolution cases, and most of `ShardFreshnessTest` | They read schedule shards from `.local/shards`. The shard layout is migrating: `runtime/lib/shards.php` now expects `manifest.json` / `calendar.json` / `stops.json`, and the shards on disk are the older `index.json` / `route-{id}.json`. Each test skips with that message rather than failing. They passed against the older layout, including criterion 9 end to end. |
-| PHP | `ShardFreshnessTest::testTheRuntimeJobRaisesAnAlarmWhenTheUnmatchedTripRateIsHigh` | No aggregate metric exists yet. See "For the runtime lane" below. |
-| PHP | Two `PrivacyTest` cases | They scan generated files and webroot logs, which exist only after a run. |
-| Node | 11 acceptance-criteria cases | They need generated output. See above. |
+| Node | `trip-corpus`, `publishes no arrival time anywhere when adherence is suppressed` | No route in the 2026-08-19 capture has `suppress_adherence` true. The rule itself runs in `StalenessTest` and `client-staleness.test.mjs`. |
+| Node | acceptance criterion 3, `names the added and skipped stops on any vehicle actually running one` | Route 4's special trips run at 08:15 and 16:15 and the capture is from 10:10, so no bus is on one. The other three cases of criterion 3 run. |
+| Node | acceptance criterion 8, `holds for every generated route file when feed ages are forced past 600s` | The generated output is fresh. Binds against a webroot regenerated with feed timestamps pushed past 600s. |
+| PHP | `GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` | Needs `tests/fixtures/feeds-pb-differential/`, a capture taken while both of CapMetro's positions publications are healthy. CLAUDE.md explains why unit tests against the spec are not a substitute. |
+| PHP | `UpstreamTest::testReadsTheLiveUpstreamFeedVersionWithThreeRangeRequests` | Reaches the live upstream zip. The suite is offline by design, so this one skips wherever the network does not answer. |
 | End to end | `marks a closed stop as not served wherever it appears on the ladder` | The page does not expose the payload it rendered, and no ladder row carries its `stop_id`, so the assertion has nothing to read. Two ways to unblock: put `data-stop-id` on ladder rows, or keep the parsed document on `window.CMB.lastRoute`. Either one turns this into a real test of silent failure 4 at the DOM level; the payload-level version already runs in `AlertParserTest`. |
 
 ---
@@ -100,17 +109,9 @@ Two standing consequences:
 
 **For the runtime lane.**
 
-1. *No aggregate unmatched-trip metric.* Silent failure 1 is a shard set that
-   stops matching after a GTFS reset. Each vehicle individually reports
-   `adherence.reason: "trip_not_in_schedule"`, which is correct, but nothing
-   counts them and nothing reaches `health.json`. A total mismatch is therefore
-   still invisible to an uptime check: every bus shows an unknown lateness
-   forever and `ok` stays `true`. A function such as
-   `cm_unmatched_trip_rate($shard, $liveTripIds)` plus an entry in
-   `health.errors` above roughly 20% would close it.
-   `tests/php/ShardFreshnessTest.php` is written against that name and skips
-   until it exists. The two tests either side of it do run, and would catch the
-   failure against the committed shards.
+1. ~~*No aggregate unmatched-trip metric.*~~ Closed. `cm_unmatched_trip_rate()`
+   lives in `runtime/lib/shards.php`, `generate-api.php` calls it, and
+   `ShardFreshnessTest` runs against it rather than skipping.
 
 2. *`staleness.oldest_feed_age_s` in the golden fixture is 43, but the alerts
    feed in the same file is 100 seconds old.* The reference generator weighed
@@ -158,19 +159,19 @@ looked for, so a rename shows up as a skip rather than a mystery.
 | `cm_stop_service_status` | `runtime/lib/stopstatus.php` | bound |
 | `cm_staleness`, `cm_build_health` | `runtime/lib/staleness.php`, `runtime/lib/health.php` | bound |
 | `cm_atomic_write`, `cm_atomic_write_json`, `cm_acquire_lock`, `cm_release_lock` | `runtime/lib/write.php` | bound |
-| `cm_watch_id`, `cm_watch_resolve` | `runtime/lib/watch.php` | bound; resolution needs shards |
-| `cm_shard_index`, `cm_shard_route`, `cm_shard_times`, `cm_shard_active_services` | `runtime/lib/shards.php` | bound; layout migrating |
-| `cm_unmatched_trip_rate` | not written | skipped |
+| `cm_watch_id`, `cm_watch_resolve` | `runtime/lib/watch.php` | bound |
+| `cm_shard_index`, `cm_shard_route`, `cm_shard_times`, `cm_shard_active_services` | `runtime/lib/shards.php` | bound |
+| `cm_unmatched_trip_rate` | `runtime/lib/shards.php` | bound |
 | `shortenStopName`, `buildBlockChains`, `buildCalendar`, `secondsToClock`, `feedVersionToEpoch` | `build/lib/*.mjs` | bound |
-| `serviceClockToEpoch` | `build/lib/time.mjs` | not exported; skipped |
+| `serviceClockToEpoch` | `build/lib/time.mjs` | bound |
 | `window.CMB.adherence`, `window.CMB.states`, `window.CMB.fmt` | `client/*.js` | bound |
-| Shards at `.local/shards`, generated webroot at `$CAPMETRO_WEBROOT` or `webroot/` | — | both optional |
+| Shards via `runtime/config.fixture.php` (`tests/fixtures/shards-260818_1456`), generated webroot at `$CAPMETRO_WEBROOT` or `webroot/` | — | both optional |
 
 Two structural assumptions worth stating:
 
 - **`runtime/lib/*.php` is pure and safe to `require`.** `tests/php/bootstrap.php`
-  loads that directory and nothing else. `runtime/generate-api.php` and
-  `runtime/tools/*` execute on include, so they are deliberately not loaded.
+  loads that directory and nothing else. `runtime/generate-api.php`
+  executes on include, so it is deliberately not loaded.
   Anything that needs a unit test belongs in a library file.
 - **`client/*.js` are classic scripts attaching to `window.CMB`.**
   `tests/node/helpers/client.mjs` evaluates them in a `vm` context with a
@@ -258,7 +259,7 @@ with the deeper unit coverage cross-referenced here.
 | 4 | runs today against the golden output; `build-blocks.test.mjs` covers the grading |
 | 5 | the realtime `SKIPPED` prediction for stop 1222 is asserted against the real feed today |
 | 6 | `AlertParserTest`, `StopServiceStatusTest` |
-| 7 | `tests/php/PrivacyTest.php` and `tests/schema/validate.py` both scan for the PII **keys and the real values**, because renaming `userFullname` to `filed_by` would still leak |
+| 7 | `acceptance-criteria.test.mjs` scans every generated file for the PII **keys and the real values**, reading both out of the upstream fixture, because renaming `userFullname` to `filed_by` would still leak. `AlertParserTest` covers the ingest allowlist directly, and asserts the fixture still carries the identifiers the parser exists to strip |
 | 8 | `StalenessTest`, `client-staleness.test.mjs`, `board.spec.mjs` |
-| 9 | `WatchResolutionTest` — the hash runs today; resolution ran green against the previous shard layout |
+| 9 | `WatchResolutionTest` — hash and resolution both run against the committed `tests/fixtures/shards-260818_1456` snapshot |
 | 10 | `StopNameTest`, `build-stops.test.mjs`. "Mid-word" is judged against the name a label came from, not by pattern-matching the label alone — `Pleasant Valley at…` is correct and `San Jacin…` is not, and no regex over the output alone can tell them apart |

@@ -52,11 +52,11 @@ import {
 import { haversineMeters } from './geo.mjs';
 import { secondsToClock } from './time.mjs';
 
-const KEY_SEP = '\u001f';
-
 /*
- * The §4 grade as a pure function, so the rule has exactly one implementation and can be
- * exercised directly.
+ * Why §4 would refuse to grade one handoff `high`. An empty list is the `high` verdict; each
+ * reason is a condition that failed. Returning the reasons rather than the grade is what lets
+ * buildBlockChains add `block_spans_multiple_routes`, which is a property of the chain and not
+ * of this pair, without a second copy of the per-pair rule.
  *
  *   { block_id, predecessor: { route_id, last_stop_id, last_stop_lat, last_stop_lon, end_epoch },
  *     successor:  { route_id, first_stop_id, first_stop_lat, first_stop_lon, start_epoch } | null }
@@ -99,11 +99,6 @@ export function continuationReasons( { block_id: blockId, predecessor, successor
 	}
 
 	return reasons.sort();
-}
-
-/* api-contract.md §4: `high` only when every condition holds. */
-export function blockConfidence( continuation ) {
-	return continuationReasons( continuation ).length === 0 ? 'high' : 'low';
 }
 
 export function buildBlockChains( { trips, stops, calendarDates } ) {
