@@ -1,0 +1,51 @@
+{
+  "name": "Dillo Bus Board",
+  "short_name": "Bus Board",
+  "description": "Live CapMetro bus positions and schedule adherence for one route, on a phone.",
+  "lang": "en-US",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "categories": ["travel", "navigation", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Every bus in the system",
+      "short_name": "All buses",
+      "url": "buses"
+    },
+    {
+      "name": "Saved trips",
+      "short_name": "Saved",
+      "url": "saved"
+    }
+  ]
+}

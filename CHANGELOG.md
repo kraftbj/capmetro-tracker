@@ -107,7 +107,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
     over the whole input space, rather than only through a fully built chain.
 
     22 tests had been passing an empty routes map, which is what let this stay
-    hidden: the suite had normalised "no live evidence" as the ordinary grading
+    hidden: the suite had normalized "no live evidence" as the ordinary grading
     fixture. Each now says which state it means — a live feed with no bus, which
     the timetable may legitimately stand in for, or nothing loaded, which refuses.
 
@@ -183,6 +183,99 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   - **A schedule the editor could not load was a dead end** for the life of the
     tab: no error, no retry, no way forward, and guaranteed for every route on a
     `file://` board.
+
+- **Installable on a phone, and it opens with no signal.** A web app manifest, a
+  set of icons cut from the board's own palette, the Apple meta tags iOS reads
+  instead of the manifest, and a service worker. Added to a home screen the board
+  runs without browser chrome, in its own task, at its own color.
+
+  The worker exists for one reason: to make the board OPEN at a bus stop with one
+  bar. It caches the document, the scripts, the stylesheet, the fonts and the
+  bundled fixture — and it **never touches `/api/`**, not even to look. Those
+  documents are regenerated every 60 seconds and a cache in front of them is the
+  board showing where the buses were the last time the phone had signal, with
+  nothing on screen saying so. Offline, the feed fetch fails exactly as it does
+  today, `app.js` falls back to the committed fixture, and the reader gets the
+  **Sample data** banner that already exists. There is no new offline screen
+  because the board already has an honest one.
+
+  Everything else is network-first rather than cache-first, which is the deploy
+  story: `update.sh` rsyncs new client files and restarts nothing, so a
+  cache-first worker would serve the previous release until somebody remembered
+  to bump a version string. New code lands on the next load exactly as it does
+  without a worker; the cache is a floor, not a ceiling. Fonts are the one
+  exception — immutable for a year in both vhosts, and 70 KB of not-refetching.
+
+  Three things had to change outside the client. Both vhosts now name
+  `manifest-src 'self'` and `worker-src 'self'`: this origin's policy starts at
+  `default-src 'none'`, both directives fall back to it, and without them a
+  perfect manifest and a perfect worker are both refused — no install prompt, no
+  offline board, one console line each and nothing wrong on screen. Both vhosts
+  also declare `application/manifest+json` for `.webmanifest`, which neither
+  nginx nor Apache ships a mapping for; served as octet-stream under `nosniff`,
+  Safari refuses the manifest. And `styles.css` pads for `safe-area-inset-*`,
+  because standalone mode has no browser chrome to absorb a notch and the
+  viewport meta has said `viewport-fit=cover` all along.
+
+  **This needs a one-time vhost change**, and unlike the last one there is
+  nothing on screen to tell you it was skipped. `update.sh` delivers the client
+  and deliberately does not install vhosts; only `install.sh` prints them. Until
+  the new conf is installed by hand and the server reloaded, the board is served
+  against the OLD policy, `default-src 'none'` refuses both
+  `manifest.webmanifest` and `sw.js`, and the result is a board that is not
+  installable and does not open offline — with `health.json` still reading
+  `ok:true`, every test in the repo green, and one console line per refusal as
+  the only evidence anywhere:
+
+      sudo cp /srv/capmetro/src/deploy/nginx-capmetro.conf \
+        /etc/nginx/sites-available/capmetro
+      sudo nginx -t && sudo systemctl reload nginx
+
+  From the next deploy onward you will be told. `update.sh` now fingerprints
+  both vhosts the way it already fingerprints the systemd units, and names them
+  when the committed config has moved on from what `install.sh` last recorded,
+  with the copy-and-reload for whichever server is installed. It does NOT change
+  the exit code: 3 keeps meaning specifically "the committed systemd units are
+  not the ones installed, run install.sh", because that is one condition with
+  one remedy and a vhost needs a different one. The notice goes to stdout and
+  therefore to the journal on every run.
+
+  On a box with no record yet -- every box installed before this, including the
+  live one -- it says nothing rather than nagging four times a day, and the
+  record is written the next time `install.sh` runs.
+
+  Every URL in the manifest and every `href` added to `index.html` is relative,
+  for the reason the `<base>` bootstrap exists: the board reads its own directory
+  out of the path, and `tests/e2e/server.mjs` serves the whole client under a
+  scenario prefix. An absolute `/manifest.webmanifest` passes every unit test and
+  404s under the fixture server. The manifest has no `id` for the same reason and
+  it cannot be fixed the same way — `id` resolves against the origin, not the
+  manifest, so there is no prefix-safe spelling of it. Omitted, it defaults to
+  `start_url`, which is correct everywhere.
+
+  The icons are generated rather than committed as five files nobody can
+  re-derive: `node client/icons/regenerate.js` cuts every PNG, the SVG favicon
+  and the `.ico` from node's own zlib and eighty lines of arithmetic, so they can
+  be recut from `tokens.css` by anybody with node installed. The mark is the
+  board's own string-line — a spine with three dots placed by how late each bus
+  is, in the same `--adh-early`/`--adh-ontime`/`--adh-late` hexes the board uses.
+  A test pins those hexes to `tokens.css`, so a repalette cannot leave the old
+  colors on somebody's home screen, where they are not next to the board and
+  nobody would notice.
+
+  The service worker is **driven rather than read** by its tests: it is evaluated
+  against a fake `ServiceWorkerGlobalScope` and dispatched real install, activate
+  and fetch events, because a text assertion passes for a worker that checks
+  `isApi` and then ignores the answer. Its shell list is hand-written — the file
+  is shipped verbatim and there is no build step — and derived independently in
+  the test from the tags in `index.html`, the `@import` chain in the CSS and the
+  manifest's own icons, so a script added to the page without being added to the
+  shell fails there instead of opening offline with one namespace missing. The
+  browser suite covers the three things only a browser can see: that the manifest
+  and icons are served at the right type under the prefix, that the worker's
+  scope follows the prefix rather than claiming the origin root, and that with
+  the network off a never-visited `/trip/7/2641` still opens while
+  `api/route/4.json` still fails.
 
 ### Fixed
 

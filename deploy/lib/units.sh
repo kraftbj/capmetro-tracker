@@ -30,6 +30,27 @@
 
 CM_UNIT_FILES='capmetro-generate.service capmetro-generate.timer capmetro-update.service capmetro-update.timer'
 
+# The web server config, which has the same shape of problem as the units and had none of the
+# machinery. install.sh PRINTS these and never installs them, and update.sh does not touch
+# them at all, so a committed change to either sits in the checkout doing nothing until
+# somebody copies it by hand and reloads.
+#
+# The consequence is worse than a stale unit, which is why this exists: a stale timer fires at
+# the wrong hour and the board still renders, while a stale vhost can refuse the manifest and
+# the service worker outright -- no install prompt, no offline board, health.json still
+# ok:true, and every test in the repo green. That is the failure mode this whole deployment is
+# organized around not having.
+#
+# Fingerprinted the same way and for the same reason as the units: these two files carry
+# @WEBROOT@ and @DOMAIN@ placeholders that install.sh substitutes, so what is in
+# /etc/nginx/sites-available never equals what is in deploy/ and a diff of the two reports
+# drift on a current box. Hashing the SOURCE answers the question actually being asked --
+# have the committed configs changed since anyone last ran install.sh?
+#
+# Same trade as the units, stated for the same reason: a vhost hand-edited in /etc is
+# invisible to this.
+CM_VHOST_FILES='nginx-capmetro.conf apache-capmetro.conf'
+
 # cm_unit_drift's four answers, named. The numbers are local to this function and mean
 # nothing outside it -- in particular update.sh's EXIT_UNIT_DRIFT is also 3 and is the
 # OPPOSITE kind of answer (a confirmed difference, not an inability to tell). Same numeral,
@@ -69,9 +90,40 @@ cm_sha256() {
 # Returns CM_DRIFT_NO_TOOL without printing anything when a hash cannot be computed, so a box
 # that cannot answer says so rather than emitting a fingerprint that compares equal to
 # everything.
-cm_unit_fingerprint() {
+# cm_fingerprint <dir> <file>...
+#
+# The generic form. cm_unit_fingerprint and cm_vhost_fingerprint are the two callers, and
+# they differ only in the list -- which is the point: one implementation of the rules above,
+# so the units and the vhosts cannot drift in how drift is decided.
+# A name this record format can actually represent.
+#
+# The stamp is `<hash>  <name>` and every consumer of it splits on whitespace -- the
+# well-formedness pattern in cm_drift ends `[^ ][^ ]*$`, and the awk lookups match on $2.
+# A name containing a space therefore cannot round-trip: it writes a line that then fails
+# its own validation, and cm_drift answers CM_DRIFT_NO_STAMP -- "there is no record" -- for
+# a file that has a record and may well have drifted. A durable, confident, wrong "cannot
+# tell", which is exactly what the four-outcome contract exists to stop.
+#
+# Quoting cannot fix that; it is the FORMAT that has no room for the name. So the list is
+# refused instead, as CM_DRIFT_NO_TOOL: not knowing, reported as not knowing. Neither of
+# the two real lists contains such a name, and this is what keeps that from becoming a
+# silent assumption.
+cm_names_ok() {
+  local f
+  for f in "$@"; do
+    case "$f" in
+      *[[:space:]]*) return 1 ;;
+      '') return 1 ;;
+    esac
+  done
+  return 0
+}
+
+cm_fingerprint() {
   local dir="$1" f hash out=""
-  for f in $CM_UNIT_FILES; do
+  shift
+  cm_names_ok "$@" || return "$CM_DRIFT_NO_TOOL"
+  for f in "$@"; do
     if [ -f "$dir/$f" ]; then
       hash=$(cm_sha256 "$dir/$f") || return "$CM_DRIFT_NO_TOOL"
       out="$out$hash  $f
@@ -83,6 +135,11 @@ cm_unit_fingerprint() {
   done
   printf '%s' "$out"
 }
+
+# shellcheck disable=SC2086  # the lists are space-separated words on purpose
+cm_unit_fingerprint() { cm_fingerprint "$1" $CM_UNIT_FILES; }
+# shellcheck disable=SC2086
+cm_vhost_fingerprint() { cm_fingerprint "$1" $CM_VHOST_FILES; }
 
 # Is systemd actually running here, such that this deployment's units are its business?
 #
@@ -120,6 +177,16 @@ cm_unit_stamp_path() {
   printf '%s/installed-units.sha256\n' "${1%/}"
 }
 
+# cm_vhost_stamp_path <conf-dir>
+#
+# A separate record rather than more lines in the units one. They are written at different
+# times by different remedies -- install.sh rewrites the units, a hand `cp` plus a reload
+# installs a vhost -- and a single file would have to be rewritten wholesale by whichever ran
+# last, losing the other's answer.
+cm_vhost_stamp_path() {
+  printf '%s/installed-vhost.sha256\n' "${1%/}"
+}
+
 # cm_write_stamp <deploy-dir> <conf-dir>
 #
 # Records the fingerprint of <deploy-dir>'s units into <conf-dir>, leaving any existing
@@ -138,10 +205,26 @@ cm_unit_stamp_path() {
 # and three review rounds running flagged that the write side of this feature was asserted
 # only by pattern-matching install.sh's own source text.
 cm_write_stamp() {
-  local deploy="$1" conf="$2" stamp tmp
-  stamp="$(cm_unit_stamp_path "$conf")"
+  local deploy="$1" conf="$2"
+  # shellcheck disable=SC2086
+  cm_write_stamp_for "$deploy" "$(cm_unit_stamp_path "$conf")" $CM_UNIT_FILES
+}
+
+# cm_write_vhost_stamp <deploy-dir> <conf-dir>
+cm_write_vhost_stamp() {
+  local deploy="$1" conf="$2"
+  # shellcheck disable=SC2086
+  cm_write_stamp_for "$deploy" "$(cm_vhost_stamp_path "$conf")" $CM_VHOST_FILES
+}
+
+# cm_write_stamp_for <deploy-dir> <stamp-path> <file>...
+#
+# The generic form, carrying every rule described above.
+cm_write_stamp_for() {
+  local deploy="$1" stamp="$2" tmp
+  shift 2
   tmp="$(mktemp "${stamp}.XXXXXX")" || return 2
-  if cm_unit_fingerprint "$deploy" > "$tmp"; then
+  if cm_fingerprint "$deploy" "$@" > "$tmp"; then
     # The chmod and the mv ARE the write, so their status is the function's answer. Returning
     # 0 unconditionally after them reported a successful record to install.sh when the rename
     # had failed -- no stamp on disk, a temp file left in /etc/capmetro, and an install that
@@ -168,11 +251,29 @@ cm_write_stamp() {
 # same call for the same reason: a probe that could not answer reports nothing and never
 # reports a mismatch it is not sure of. Collapsing "I cannot tell" into "unchanged" would
 # report a clean bill of health for precisely the state this file exists to catch.
-cm_unit_drift() {
+# shellcheck disable=SC2086
+cm_unit_drift() { cm_drift "$1" "$2" $CM_UNIT_FILES; }
+# shellcheck disable=SC2086
+cm_vhost_drift() { cm_drift "$1" "$2" $CM_VHOST_FILES; }
+
+# cm_drift <deploy-dir> <stamp-file> <file>...
+#
+# The generic form, carrying the four-outcome contract described above.
+cm_drift() {
   local deploy="$1" stamp="$2" now was f a b drifted want lines total
+  shift 2
+  cm_names_ok "$@" || return "$CM_DRIFT_NO_TOOL"
+  # The list stays as ARGUMENTS the whole way down. An earlier version of this refactor
+  # collapsed it to `local files="$*"` and then looped over an unquoted `$files`, which
+  # made half the function argument-safe and half of it word-splitting again: a name
+  # containing a space or a glob character produced a fingerprint with the right number of
+  # lines and a validation pass that counted a different number, so cm_drift returned
+  # CM_DRIFT_NO_STAMP forever -- a durable "cannot tell" about a file that had genuinely
+  # drifted, which is the precise laundering the four-outcome contract exists to forbid.
+  # Not reachable from today's two literal lists. Latent is still wrong.
   [ -f "$stamp" ] || return "$CM_DRIFT_NO_STAMP"
 
-  now=$(cm_unit_fingerprint "$deploy") || return "$CM_DRIFT_NO_TOOL"
+  now=$(cm_fingerprint "$deploy" "$@") || return "$CM_DRIFT_NO_TOOL"
   was=$(cat "$stamp") || return "$CM_DRIFT_NO_STAMP"
 
   # The stamp has to actually parse before it can be believed. A zero-byte, truncated or
@@ -188,13 +289,13 @@ cm_unit_drift() {
   # literal `missing`. A looser "any non-space token" pattern accepted a record whose hash
   # fields were arbitrary text, which then compared unequal to every real hash and was
   # reported as confirmed drift: a corrupt stamp laundered into a specific accusation.
-  want=$(printf '%s\n' $CM_UNIT_FILES | wc -l | tr -d ' ')
+  want=$#
   lines=$(printf '%s\n' "$was" | grep -c '^\([0-9a-f]\{64\}\|missing\)  [^ ][^ ]*$' || true)
   total=$(printf '%s\n' "$was" | grep -c . || true)
   if [ "$lines" != "$want" ] || [ "$total" != "$want" ]; then
     return "$CM_DRIFT_NO_STAMP"
   fi
-  for f in $CM_UNIT_FILES; do
+  for f in "$@"; do
     if [ "$(printf '%s\n' "$was" | awk -v n="$f" '$2==n' | wc -l | tr -d ' ')" != "1" ]; then
       return "$CM_DRIFT_NO_STAMP"
     fi
@@ -205,7 +306,7 @@ cm_unit_drift() {
   # "the units have changed:" followed by an empty list is a permanent failure with nothing
   # to act on.
   local drifted="$CM_DRIFT_SAME"
-  for f in $CM_UNIT_FILES; do
+  for f in "$@"; do
     a=$(printf '%s\n' "$now" | awk -v n="$f" '$2==n {print $1}')
     b=$(printf '%s\n' "$was" | awk -v n="$f" '$2==n {print $1}')
     if [ "$a" != "$b" ]; then

@@ -50,6 +50,36 @@
 <title>Dillo Bus Board</title>
 
 <!--
+  Installed on a phone, this is a home-screen app.
+
+  Every href here is RELATIVE, and has to stay that way. The <base> bootstrap
+  above has already pointed the document at the directory the board is served
+  from, so these resolve to /manifest.webmanifest in production and to
+  /fresh/manifest.webmanifest under tests/e2e/server.mjs. An absolute /path
+  would 404 under the fixture server and, on file://, would address the root of
+  the filesystem.
+
+  The manifest is fetched under CSP `manifest-src`, which falls back to
+  `default-src` -- and default-src here is 'none'. Both vhosts name manifest-src
+  explicitly for that reason; without it the browser refuses the manifest and
+  the board is simply not installable, with one line in the console.
+
+  iOS reads none of the manifest's icons and only the apple- meta below.
+  `status-bar-style: black` rather than `black-translucent`: translucent puts
+  the board under the notch, and styles.css only pads for the safe area, it does
+  not lay out around it.
+-->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="application-name" content="Dillo Bus Board">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Bus Board">
+
+<!--
   Static, no build step, no framework. Open this file from disk and it runs
   against the committed golden fixture; serve it next to /api/route/*.json and
   it runs against the live feed instead.
@@ -89,6 +119,10 @@
 <script src="chain.js"></script>
 <script src="trip.js"></script>
 <script src="urls.js"></script>
+<!-- Registers sw.js, so the board opens with no signal. Before app.js only
+     because app.js must stay last: it is the one script that runs rather than
+     defines. pwa.js defines nothing and waits for `load` regardless. -->
+<script src="pwa.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

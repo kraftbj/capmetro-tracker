@@ -191,6 +191,179 @@ continues past the edge. The second is better and needs a test either way.
 **Priority:** P2
 **Depends on:** None
 
+### Decide whether the departures document belongs in the offline cache
+
+**What:** The service worker refuses to cache anything under an `api/` segment,
+which includes `api/departures/{id}.json`. Offline, the board therefore opens on
+the bundled route 4 fixture and the trip view has no scheduled stop times for any
+other route.
+
+**Why:** Installing the board on a home screen is an invitation to open it with no
+signal, and "when is this bus scheduled at my stop" is a question a schedule can
+answer without a feed. Route 4 is the only route that answers it today.
+
+**Context:** The blanket `api/` rule is deliberate and should not be relaxed
+casually — it is what guarantees `api/route/{id}.json` can never be served stale,
+and a rule with one exception in it is a rule somebody will add a second exception
+to. But the departures document is genuinely not a live one: both vhosts already
+serve it `public, max-age=21600` because it turns over only when `service_date` or
+`feed_version` changes, and the client is already required to union its
+`trips[].canceled` with the live payload rather than trusting it. So a
+cache-with-a-service-date-check for that one path is defensible in a way that
+caching the route payload never is. What has to be designed first is the eviction:
+the client already has schedule-expiry logic for exactly this
+(`tests/e2e/schedule-eviction.spec.mjs`), and a worker cache that outlives it would
+reintroduce the bug that suite was written for. The cheaper alternative is to
+bundle a second route's schedule the way route 4's is bundled — 58 KB per route,
+and it does not scale to six.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** The service worker
+
+### Fingerprint the font filenames, or stop calling them immutable
+
+**What:** `client/sw.js` serves `.woff2` cache-first and never revalidates them, on the
+stated grounds that they are "content-addressed by name". They are not: they are
+`ibm-plex-sans.woff2` and friends, and both vhosts serve `/fonts/` with
+`max-age=31536000, immutable`. Swap a font under the same name and every device that
+has it keeps the old one indefinitely -- the worker's cache-first branch never asks, and
+the HTTP cache would not answer for a year either.
+
+**Why:** Not urgent, because nobody swaps a font in place; it is the claim that is wrong
+rather than the behavior. Worth closing because it is the LAST case where the install
+would benefit from bypassing the HTTP cache -- with the names fingerprinted, the reason
+`cache: 'reload'` existed disappears entirely rather than mostly.
+
+**Also:** `fonts/plex.css` is not actually served `immutable`, whatever the `/fonts/`
+block says. `location ~* \.(js|css)$` is a REGEX and `location /fonts/` is a plain
+prefix, and a regex outranks a plain prefix, so the stylesheet gets
+`max-age=0, must-revalidate` -- measured against real nginx. That is the behavior you
+want for a file that changes on deploy, but it is accidental, and it is the same
+precedence trap that `^~` was just added to `/api/` for. Either split the fonts rule so it
+names the woff2 only, or say in the conf that the stylesheet is deliberately excluded.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** The service worker
+
+### A worker whose install keeps failing has no way back
+
+**What:** `cache.addAll` is all-or-nothing, which is right, but a permanently failing
+install -- one shell entry 404ing after a bad deploy, say -- leaves the device on whatever
+worker it already had, forever, with `pwa.js` discarding the registration rejection. There
+is no signal anywhere: not on the board, not in `health.json`, not in the journal.
+
+**Why:** The failure is self-limiting today (network-first means the board still works
+online; only the offline floor stops updating) which is why this is P3 rather than higher.
+But it is invisible, and invisible is how the positions-feed stall lasted four hours.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** The service worker
+
+### The worker's generic branch has no bound on what it will cache
+
+**What:** Anything same-origin, not under `api/`, that answers 200 gets stored under its
+own URL. The app-path fallback answers unlimited distinct paths with the document, so the
+key space is unbounded in principle.
+
+**Why:** Hardening only. A service worker never sees another page's requests, and
+`client/urls.js` keeps every feed fetch under `api/`, so nothing reachable today drives
+it. Worth a bound if the worker ever grows a second purpose.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** The service worker
+
+### nginx pins the manifest at the origin root; everything else is path-relative
+
+**What:** `location = /manifest.webmanifest` is an exact match, so it only applies when the
+board is served from `/`. Apache's `<Files "manifest.webmanifest">` matches the basename at
+any depth. Every other part of the installability work is deliberately path-relative,
+because the board runs under a prefix in the e2e server and from `file://`.
+
+**Why:** Production serves the board at the root, so nothing is broken. It is a divergence
+between the two vhosts and a break in the "everything is relative" rule this feature
+otherwise keeps, which makes it the kind of thing that is true until somebody serves the
+board from a subdirectory.
+
+**Effort:** S
+**Priority:** P3
+
+### check_units sources the pulled library into the parent shell
+
+**What:** `check_vhost` now sources `deploy/lib/units.sh` inside a command substitution, so
+nothing it assigns can reach the caller. `check_units` still sources it at function scope.
+It defends the one name it knows about -- it snapshots `EXIT_UNIT_DRIFT` first -- but a
+pulled `units.sh` assigning `CONF_DIR` or `SRC_DIR` would redirect where it then looks for
+the stamp, since the path is computed after the source.
+
+**Why:** Pre-existing, and it requires a hostile or broken commit in the checkout the box
+already trusts and runs. Recorded because the fix is now written next to it: do what
+`check_vhost` does.
+
+**Effort:** S
+**Priority:** P3
+
+### Drive a deploy where a unit and a vhost drift together
+
+**What:** `check_vhost` runs before `check_units` at all four call sites, because check_units
+exits 3 through `|| exit $?` and a check placed after it would never run on the one deploy
+that changed both. That ordering is asserted only by a regex over update.sh's source text --
+in a file whose own header says "EVERYTHING HERE EXECUTES THE REAL SHELL". The end-to-end
+tests that drive a real `update.sh` only ever drift a unit file, never a vhost.
+
+**Why:** The regex does fail when the calls are swapped, so it is not a test that cannot
+fail -- it is the one place in that file working below its stated bar, and the hazard it
+describes (check_vhost silently never running) has no behavioral coverage at all.
+
+**How:** Add one case to the "wired into the deploy" describe that drifts a unit file AND a
+vhost file in the same commit, runs update.sh for real, and asserts both the vhost notice and
+the unit report appear in one run, with exit 3.
+
+**Effort:** S
+**Priority:** P3
+
+### Give a name the record cannot represent its own drift status
+
+**What:** `cm_names_ok` refuses a file list carrying a name with whitespace, returning
+`CM_DRIFT_NO_TOOL` -- because the record is `<hash>  <name>` and every consumer splits on it,
+so such a name cannot round-trip. That is the right refusal. But NO_TOOL now carries three
+distinct causes: no hashing tool, an unreadable file, and an unrepresentable name. Both
+consumers' messages were widened to say so, which is honest but vague.
+
+**Why:** The comment in `check_units` that the messages were modelled on argues exactly this
+point -- naming the wrong cause "sends someone to install a package they already have". A
+fourth status (`CM_DRIFT_BAD_NAME=4`) would let each message name one thing. Deferred because
+the contract's four values are now pinned by a test and by literals in `update.sh`, so
+widening it is a coordinated change across three files for a condition that cannot occur
+without editing a constant in this same repo.
+
+**Effort:** S
+**Priority:** P3
+
+### chains.spec.mjs's request-count test samples a counter mid-flight
+
+**What:** `an out-of-date schedule is re-asked for once, not on every paint` takes
+`settled = hits()` the moment `.chaincard` becomes visible, then asserts at most one further
+request in the next 3 seconds. Requests already in flight at that sampling instant are not
+yet counted, so they land inside the window and read as new ones.
+
+**Why now:** measured 2 failures in 11 full `npm test` runs on this branch (~18%), against 0
+in 3 playwright-only runs and 26/26 for the spec in isolation. It only fails when all four
+runners are loading the machine. It is a pre-existing test this branch does not touch -- but
+this branch does register a service worker in every e2e scenario, whose install fetches 34
+shell entries on `load`, and that is new contention landing on exactly the gap the test is
+sensitive to. Suspected contributor, not proven cause.
+
+**How:** sample `settled` after the network has gone quiet rather than at first paint --
+`page.waitForLoadState('networkidle')` before reading the counter, or assert on requests made
+strictly after a marker rather than on a delta across a sampling boundary.
+
+**Effort:** S
+**Priority:** P3
+
 ## Infrastructure
 
 ### Re-capture the feed fixtures against a current publication
@@ -338,13 +511,13 @@ with the first shard set committed.
 
 ### Write a real DESIGN.md via /design-consultation
 
-**What:** The plan carries a minimum-viable token set (six semantic colours with
+**What:** The plan carries a minimum-viable token set (six semantic colors with
 measured contrast, plus glyphs) inside `docs/designs/capmetro-dispatch-board.md`.
 Replace it with an actual design system.
 
 **Why:** `/plan-design-review` scored this 2/10 because no DESIGN.md exists. Every
 future decision — spacing scale, type ramp, component vocabulary, elevation, focus
-rings — gets made ad hoc and inconsistently. The token set covers colour and nothing
+rings — gets made ad hoc and inconsistently. The token set covers color and nothing
 else.
 
 **Context:** Decided during `/plan-design-review` on 2026-08-19. Best done now
@@ -461,7 +634,7 @@ Three things worth recording:
 - **The chooser is now one implementation with two names.** `cm_feed_choose()` holds the logic;
   `cm_positions_choose()` and `cm_trip_updates_choose()` are wrappers. Four failure branches, a
   threshold, a tie rule and a two-channel error report were not worth having twice — CLAUDE.md
-  already records what a duplicated behaviour cost here once, in the stop-names pair.
+  already records what a duplicated behavior cost here once, in the stop-names pair.
 
 **Effort:** M
 **Priority:** P2

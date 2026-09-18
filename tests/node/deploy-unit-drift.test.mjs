@@ -18,7 +18,7 @@
  * directly; and the deploy itself is driven end to end against a real git repo with stubbed
  * id/chown/runuser/php, which is the only way to prove the check is actually WIRED IN.
  */
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -27,6 +27,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 const REPO = new URL('../../', import.meta.url).pathname
 const LIB = path.join(REPO, 'deploy/lib/units.sh')
 const UPDATE = path.join(REPO, 'deploy/update.sh')
+/* The merge base: deploy/lib/units.sh as it stood before this branch touched it, which is
+   the genuine "older tree" an --src-from rsync can leave behind. */
+const BASE = execFileSync('git', ['merge-base', 'origin/trunk', 'HEAD'],
+	{ cwd: REPO, encoding: 'utf8' }).trim()
 
 /*
  * The unit list is read out of units.sh, never restated here. units.sh's own reason for
@@ -34,6 +38,9 @@ const UPDATE = path.join(REPO, 'deploy/update.sh')
  * hardcoded array in the test would have been exactly that third place.
  */
 const UNITS = execFileSync('bash', ['-c', `. "${ LIB }"; printf '%s\\n' $CM_UNIT_FILES`], { encoding: 'utf8' })
+	.trim().split('\n')
+/* Same rule: read from units.sh, never restated here. */
+const VHOSTS = execFileSync('bash', ['-c', `. "${ LIB }"; printf '%s\\n' $CM_VHOST_FILES`], { encoding: 'utf8' })
 	.trim().split('\n')
 
 let work
@@ -44,6 +51,7 @@ beforeEach(() => {
 	mkdirSync(path.join(work, 'src/deploy/lib'), { recursive: true })
 	mkdirSync(path.join(work, 'conf'))
 	for (const u of UNITS) writeFileSync(path.join(work, 'src/deploy', u), `[Unit]\nDescription=${ u }\n`)
+	for (const v of VHOSTS) writeFileSync(path.join(work, 'src/deploy', v), `# ${ v }\nroot @WEBROOT@;\n`)
 	writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), readFileSync(LIB))
 })
 afterEach(() => rmSync(work, { recursive: true, force: true }))
@@ -95,7 +103,67 @@ check_units ${ env.context ?? '' } || exit $?
 	}
 }
 
+/**
+ * Calls the REAL check_vhost out of the real update.sh. No systemd overrides: a box on cron
+ * still serves the board over HTTP, so this check deliberately does not gate on systemd.
+ *
+ * `server` puts a stub `nginx` or `apache2ctl` on PATH, because check_vhost decides which
+ * remedy to print by probing for them, and the answer has to be controlled rather than
+ * inherited: macOS ships /usr/sbin/httpd, so a developer's real PATH silently makes every
+ * box "an apache box" and the which-file-drifted test passes for the wrong reason.
+ *
+ * PATH is therefore the stub dir plus /usr/bin and /bin only. Those hold sha256sum or
+ * shasum -- without a hasher cm_sha256 cannot answer, the check correctly takes its
+ * cannot-tell branch, and the test proves nothing while looking green -- and they do NOT
+ * hold /usr/sbin, where both nginx and apache2ctl/httpd live on the platforms this runs on.
+ */
+function checkVhost({ server = null, lib = null, before = null, after = null, gitStub = null, context = '' } = {}) {
+	const bin = path.join(work, 'stubbin')
+	mkdirSync(bin, { recursive: true })
+	for (const name of ['nginx', 'apache2ctl', 'httpd']) {
+		rmSync(path.join(bin, name), { force: true })
+	}
+	if (server) {
+		writeFileSync(path.join(bin, server), '#!/bin/sh\nexit 0\n')
+		execFileSync('chmod', ['+x', path.join(bin, server)])
+	}
+	if (lib !== null) writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
+	rmSync(path.join(bin, 'git'), { force: true })
+	if (gitStub) {
+		writeFileSync(path.join(bin, 'git'), gitStub)
+		execFileSync('chmod', ['+x', path.join(bin, 'git')])
+	}
+	const script = `
+set -euo pipefail
+export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf" WEBROOT="${ work }/www"
+export PATH="${ bin }:/usr/bin:/bin"
+${ before ? `BEFORE="${ before }"` : '' }
+${ after ? `AFTER="${ after }"` : '' }
+. "${ UPDATE }"
+# BARE, exactly as the four real call sites invoke it. Writing it as
+# check_vhost || exit STATUS would be WRONG here and would quietly neuter these
+# tests: bash suppresses errexit for the entire left-hand side of a || list, so
+# an abort inside the function -- the precise failure mode of a pipeline under
+# pipefail -- cannot happen in that form. Verified at a shell: with the
+# pipe-into-while restored, a bare call exits 128 and never reaches the
+# sentinel, while the || form survives and prints it. The same trap is
+# documented for check_units above.
+check_vhost ${ context }
+echo "EXIT_UNIT_DRIFT_AFTER=\${EXIT_UNIT_DRIFT}"
+`
+	try {
+		const stdout = execFileSync('bash', ['-c', script], {
+			cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ],
+		})
+		return { code: 0, stdout }
+	} catch (e) {
+		return { code: e.status, stdout: (e.stdout || '') + (e.stderr || '') }
+	}
+}
+
 const writeStamp = () => sh('cm_unit_fingerprint src/deploy > conf/installed-units.sha256')
+const writeVhostStamp = () => sh('cm_vhost_fingerprint src/deploy > conf/installed-vhost.sha256')
+const editVhost = (v, body = 'changed\n') => writeFileSync(path.join(work, 'src/deploy', v), body)
 const editUnit = (u, body = 'changed\n') => writeFileSync(path.join(work, 'src/deploy', u), body)
 
 describe('the fingerprint answers whether the committed units have moved', () => {
@@ -869,12 +937,16 @@ export PATH="${ bin }:$PATH"
 bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
   ${ extraArgs.map((a) => `'${ a }'`).join(' ') }
 `
-		try {
-			return { code: 0, out: execFileSync('bash', ['-c', script], {
-				cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ] }) }
-		} catch (e) {
-			return { code: e.status, out: (e.stdout || '') + (e.stderr || '') }
-		}
+		/*
+		 * stderr is merged on the SUCCESS path too, not only in the catch. execFileSync
+		 * returns stdout ALONE, and install.sh's warn() is `printf ... >&2` -- as is bash's
+		 * own "command not found". So every `.not.toMatch(...)` against a passing dry run
+		 * was checking a string that could not contain what it forbade. Proven by injecting
+		 * both forbidden strings and two real command-not-founds into the dry-run arm:
+		 * 84 of 84 still passed.
+		 */
+		const r = spawnSync('bash', ['-c', script], { cwd: work, encoding: 'utf8' })
+		return { code: r.status ?? 1, out: (r.stdout || '') + (r.stderr || '') }
 	}
 
 	it('runs to completion without aborting', () => {
@@ -909,8 +981,513 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	})
 
 	it('changes nothing on disk', () => {
+		/*
+		 * Weak on its own and kept for what it does cover: CONF_DIR is hardcoded at the top
+		 * of install.sh with no flag and no env fallback, so work/conf is a directory the
+		 * script never touches and this passes regardless of what it writes. The real
+		 * assertion is the one below, which watches what the script SAYS it is doing.
+		 */
 		const before = readdirSync(path.join(work, 'conf'))
 		runInstall()
 		expect(readdirSync(path.join(work, 'conf'))).toEqual(before)
+	})
+
+	it('does not write the vhost drift record under --dry-run', () => {
+		/*
+		 * The units stamp write has always been inside `if [ "$DRY_RUN" = 0 ]`; the vhost
+		 * one was added outside it, so `--dry-run` -- a mode whose whole promise is that it
+		 * changes nothing -- wrote /etc/capmetro/installed-vhost.sha256 recording the
+		 * COMMITTED vhosts as installed. Every later update.sh then reported no drift for a
+		 * vhost that had never been applied: "cannot tell" laundered into a durable false
+		 * "clean", which is the one outcome the NO_STAMP / NO_TOOL split exists to prevent.
+		 *
+		 * Asserted on the announced action rather than on the file, because CONF_DIR is not
+		 * redirectable and /etc/capmetro is not this test's to write.
+		 */
+		const r = runInstall()
+		expect(r.out, 'dry run did not announce the vhost record as a would-run')
+			.toMatch(/would run: record the vhost drift fingerprint/)
+		expect(r.out, 'dry run reported actually writing the record')
+			.not.toMatch(/could not write the vhost drift record/)
+	})
+
+	it('survives a pulled units.sh that predates the vhost helper', () => {
+		/*
+		 * What this DOES prove: a dry run against a tree carrying the pre-branch units.sh
+		 * completes, exits 0, and prints no shell error.
+		 *
+		 * What it does NOT prove, stated here rather than implied: that install.sh guards
+		 * the helper on `command -v cm_write_vhost_stamp` rather than on the file existing.
+		 * Verified by mutation -- reverting that guard to `[ -r .../units.sh ]` leaves this
+		 * green -- because under --dry-run the DRY_RUN arm answers before the call is ever
+		 * reached, and the real path needs root and a real /etc/capmetro. The guard is still
+		 * written the strict way, for the reason the units block gives twelve lines up: the
+		 * file existing is not the question being asked. It is simply unverified here.
+		 */
+		/*
+		 * The REAL older file out of git, not a synthetic one. Deleting the function's first
+		 * line by regex leaves an orphan body, which is a syntax error rather than an old
+		 * library -- `.` then fails and install.sh aborts under set -euo pipefail, which is
+		 * a different bug being tested by accident.
+		 */
+		const older = execFileSync('git', ['show', `${ BASE }:deploy/lib/units.sh`],
+			{ cwd: REPO, encoding: 'utf8' })
+		expect(older, 'the base copy already has the vhost helper; pick an older base')
+			.not.toMatch(/cm_write_vhost_stamp/)
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), older)
+		const r = runInstall()
+		expect(r.code).toBe(0)
+		expect(r.out).not.toMatch(/command not found/)
+		expect(r.out).not.toMatch(/vhost drift record \(\)/)
+	})
+})
+
+/*
+ * The vhosts have the same shape of problem as the units and, until this, none of the
+ * machinery. install.sh PRINTS them and never installs them; update.sh does not touch them.
+ * So a committed change to either sat in the checkout doing nothing, silently.
+ *
+ * The consequence is worse than a stale unit, which is why it is worth detecting: a stale
+ * timer fires at the wrong hour and the board still renders, while a stale vhost can refuse
+ * manifest.webmanifest and sw.js outright -- not installable, no offline board, nothing on
+ * screen, and health.json still ok:true so the documented health check cannot see it.
+ */
+describe('the same question, asked about the web server config', () => {
+	it('reports no drift when nothing has changed', () => {
+		writeVhostStamp()
+		expect(sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256').code).toBe(0)
+	})
+
+	it('names the vhost that changed, and only that one', () => {
+		writeVhostStamp()
+		editVhost(VHOSTS[0], "add_header Content-Security-Policy \"default-src 'none'\";\n")
+		const r = sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256')
+		expect(r.code).toBe(1)
+		expect(r.stdout.trim().split('\n')).toEqual([ VHOSTS[0] ])
+	})
+
+	it('keeps its own record, so installing units does not erase the vhost answer', () => {
+		/*
+		 * Two stamps rather than more lines in one, because the two are written by different
+		 * remedies at different times -- install.sh rewrites the units, a hand cp plus a
+		 * reload installs a vhost -- and a single file would be rewritten wholesale by
+		 * whichever ran last, losing the other's answer.
+		 */
+		writeStamp()
+		writeVhostStamp()
+		expect(sh('cm_unit_stamp_path conf').stdout.trim()).toBe('conf/installed-units.sha256')
+		expect(sh('cm_vhost_stamp_path conf').stdout.trim()).toBe('conf/installed-vhost.sha256')
+		editVhost(VHOSTS[0])
+		/* The vhost moved; the units did not. Each answer is its own. */
+		expect(sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256').code).toBe(1)
+		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(0)
+	})
+
+	it('treats a deleted vhost as drift rather than as agreement', () => {
+		writeVhostStamp()
+		rmSync(path.join(work, 'src/deploy', VHOSTS[0]))
+		const r = sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256')
+		expect(r.code).toBe(1)
+		expect(r.stdout.trim().split('\n')).toEqual([ VHOSTS[0] ])
+	})
+
+	it('separates "no record" (2) from "no change" (0)', () => {
+		expect(sh('cm_vhost_drift src/deploy conf/nothing-here').code).toBe(2)
+	})
+
+	it('refuses to fingerprint at all when no hashing tool exists', () => {
+		const r = sh('cm_sha256() { return 3; }\ncm_vhost_fingerprint src/deploy')
+		expect(r.code).toBe(3)
+		expect(r.stdout.trim()).toBe('')
+	})
+})
+
+describe('update.sh actually reports vhost drift, and does not change its exit code', () => {
+	it('says nothing when the configs agree', () => {
+		writeVhostStamp()
+		const r = checkVhost()
+		expect(r.code).toBe(0)
+		expect(r.stdout).not.toMatch(/web server config/)
+	})
+
+	it('names the drifted config and the remedy', () => {
+		writeVhostStamp()
+		editVhost(VHOSTS[0])
+		const r = checkVhost({ server: 'nginx' })
+		expect(r.stdout).toMatch(/web server config in the checkout has changed/)
+		expect(r.stdout).toContain(VHOSTS[0])
+		/* The symptom, because there is none on screen and health.json cannot show it. */
+		expect(r.stdout).toMatch(/ok:true/)
+	})
+
+	it('returns 0 even on confirmed drift, so exit 3 keeps meaning the units', () => {
+		/*
+		 * 3 is documented in CLAUDE.md, and only there -- install.sh never names the
+		 * exit code -- as "the committed SYSTEMD
+		 * UNITS are not the ones installed, run install.sh" -- one condition, one remedy.
+		 * A vhost needs a different remedy, and widening 3 to "some config is stale" would
+		 * make the number ambiguous for whatever eventually reads it, which is the mistake
+		 * EXIT_UNIT_DRIFT was split away from 1 to avoid.
+		 */
+		writeVhostStamp()
+		editVhost(VHOSTS[0])
+		editVhost(VHOSTS[1])
+		expect(checkVhost({ server: 'nginx' }).code).toBe(0)
+	})
+
+	it('says nothing at all on a box with no record, rather than nagging every run', () => {
+		/*
+		 * The expected state of every box installed before this existed, including the live
+		 * one. check_units already explains a missing stamp in its own words; repeating it
+		 * about the vhosts would be noise on every run forever.
+		 */
+		const r = checkVhost()
+		expect(r.code).toBe(0)
+		expect(r.stdout).not.toMatch(/web server config/)
+	})
+
+	it('is wired into update.sh ahead of the units check, so exit 3 cannot swallow it', () => {
+		/*
+		 * check_units exits 3 through `|| exit $?` at its call sites. A check_vhost called
+		 * after it would never run on precisely the deploy that changed both.
+		 */
+		const src = readFileSync(UPDATE, 'utf8')
+		/* Call sites only. `check_units() {` matches a bare name regex too, and the
+		   definitions appear before every call, so including them made the first "call"
+		   a definition and the assertion nonsense. */
+		const calls = [...src.matchAll(/^\s*check_(vhost|units)(?!\s*\()\b.*$/gm)].map((m) => m[1])
+		expect(calls.length, 'no check_ call sites found').toBeGreaterThan(0)
+		/* Every units call is immediately preceded by a vhost call. */
+		calls.forEach((name, i) => {
+			if (name === 'units') expect(calls[i - 1], `check_units call ${ i } has no check_vhost before it`).toBe('vhost')
+		})
+	})
+})
+
+/*
+ * Three bugs an adversarial pass found in check_vhost itself, after it was written. Each one
+ * is the kind that only shows up on the box: unattended, as root, once, at 04:00.
+ */
+describe('the vhost notice cannot take the board down or lie about which file moved', () => {
+	it('never prints a copy-paste cp of a config that still has placeholders in it', () => {
+		/*
+		 * deploy/*-capmetro.conf ship with @DOMAIN@ and @WEBROOT@ unsubstituted, and nginx
+		 * takes both as literals: `nginx -t` on that file reports "test is successful", the
+		 * reload succeeds, and every URL including /api/health.json then 404s -- with the
+		 * working config already overwritten and no copy of it. Verified against real nginx
+		 * in a container. So the remedy points at install.sh, which prints the correct sed
+		 * for this box, rather than at a cp that config-tests clean and serves nothing.
+		 */
+		writeVhostStamp()
+		editVhost(VHOSTS[0])
+		const r = checkVhost({ server: 'nginx' })
+		expect(r.stdout).not.toMatch(/\bcp\b.*capmetro\.conf/)
+		expect(r.stdout).not.toMatch(/sites-available/)
+		expect(r.stdout).toMatch(/install\.sh/)
+	})
+
+	it('does not tell an nginx box to reload the apache config that drifted', () => {
+		/*
+		 * The remedy used to be chosen by which server is INSTALLED and the drift list is
+		 * per FILE, so a box running nginx, with only apache-capmetro.conf changed, was told
+		 * its config was stale and pointed at the nginx vhost, which had not moved. That is
+		 * the mismatched accusation the empty-list guard exists to prevent, arriving by a
+		 * different route.
+		 */
+		writeVhostStamp()
+		editVhost(VHOSTS.find((v) => v.startsWith('apache')))
+		const r = checkVhost({ server: 'nginx' })
+		expect(r.stdout).toMatch(/nothing to do here/)
+		/* The REMEDY must not be printed. "install.sh" on its own appears in the headline
+		   ("since install.sh last ran"), so matching the bare name asserts nothing. */
+		expect(r.stdout).not.toMatch(/sudo .*install\.sh/)
+		expect(r.stdout).not.toMatch(/still serving the OLD one/)
+	})
+
+	it('cannot be used to zero the unit-drift exit code from the pulled library', () => {
+		/*
+		 * check_units snapshots EXIT_UNIT_DRIFT before its own source, because a units.sh
+		 * that assigned that name would silently zero its verdict. That defense only held
+		 * while its source was the first in the shell -- and check_vhost now runs before it
+		 * at every call site. Sourcing at function scope here would have reopened the hole
+		 * from outside the function that closed it, so check_vhost sources inside a command
+		 * substitution and nothing the lib assigns reaches this shell.
+		 */
+		const hostile = readFileSync(LIB, 'utf8') + '\nEXIT_UNIT_DRIFT=0\n'
+		writeVhostStamp()
+		const r = checkVhost({ server: 'nginx', lib: hostile })
+		expect(r.stdout).toMatch(/EXIT_UNIT_DRIFT_AFTER=3/)
+	})
+})
+
+describe('the deploy that carries a vhost change, on a box with no record yet', () => {
+	/*
+	 * The case the detector was written for, and the one it originally could not announce.
+	 *
+	 * The vhost stamp is written only by install.sh; update.sh never runs install.sh. So on
+	 * the first deploy carrying this feature there is no record, and the no-record branch is
+	 * silent on the stated grounds that "check_units has already explained a missing stamp".
+	 * That premise fails exactly when a deploy changes a vhost and NO unit file -- which is
+	 * what the branch introducing vhost detection does -- because check_units then finds its
+	 * own stamp intact, returns 0 silently, and nobody is ever told to run install.sh.
+	 *
+	 * Result without this: code and client land, the vhost does not, both checks say
+	 * nothing, exit 0, health.json ok:true, and the board is quietly not installable.
+	 */
+	function repoWithVhostChange({ touchVhost }) {
+		const src = path.join(work, 'src')
+		const git = (...args) => execFileSync('git', args, { cwd: src, encoding: 'utf8' })
+		git('init', '-q')
+		git('config', 'user.email', 't@example.test')
+		git('config', 'user.name', 'test')
+		git('add', '-A')
+		git('commit', '-qm', 'before')
+		const before = git('rev-parse', 'HEAD').trim()
+		if (touchVhost) editVhost(VHOSTS[0], "add_header X-Test 1;\n")
+		else writeFileSync(path.join(src, 'deploy', 'something-else.txt'), 'unrelated\n')
+		git('add', '-A')
+		git('commit', '-qm', 'after')
+		return { before, after: git('rev-parse', 'HEAD').trim() }
+	}
+
+	it('says so when this deploy changed a vhost and nothing has ever recorded one', () => {
+		const { before, after } = repoWithVhostChange({ touchVhost: true })
+		const r = checkVhost({ server: 'nginx', before, after })
+		expect(r.code).toBe(0)
+		/*
+		 * The sentinel proves the function RETURNED rather than taking the script down with
+		 * it. The reporting path used to pipe git's output into a `while` loop, and under
+		 * `pipefail` that pipeline is check_vhost's last command while check_vhost is called
+		 * bare -- so a non-zero git (128 on an unreadable checkout) or a trailing blank line
+		 * (which makes the loop's own last command `[ -n "" ]`) killed update.sh, on the
+		 * path where the deploy had ALREADY succeeded. Both reproduced before the fix.
+		 */
+		expect(r.stdout, 'check_vhost aborted instead of returning').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(r.stdout).toMatch(/this deploy changed the web server config/)
+		expect(r.stdout).toContain(VHOSTS[0])
+		expect(r.stdout).toMatch(/install\.sh/)
+		/* certbot rewrites the installed nginx block, so a plain copy destroys the TLS
+		   config even with the placeholders filled. Never print a bare cp. */
+		expect(r.stdout).toMatch(/certbot/)
+		expect(r.stdout).not.toMatch(/sudo cp /)
+	})
+
+	it('stays quiet when the deploy changed no vhost, so it is not wallpaper', () => {
+		const { before, after } = repoWithVhostChange({ touchVhost: false })
+		const r = checkVhost({ server: 'nginx', before, after })
+		expect(r.stdout).not.toMatch(/web server config/)
+	})
+
+	it('stays quiet when git cannot answer, rather than nagging forever', () => {
+		/*
+		 * git exits 129 in a directory that is not a repository, and `! git diff --quiet`
+		 * turns that into "the vhost changed" -- so a checkout git could not read would
+		 * print this on every single run. The status is read explicitly; only 1 counts.
+		 */
+		const r = checkVhost({ server: 'nginx', before: 'deadbee', after: 'f00ba12' })
+		expect(r.stdout).not.toMatch(/this deploy changed the web server config/)
+	})
+})
+
+describe('the drift contract is written in two files and must not desynchronize', () => {
+	it('keeps CM_DRIFT_* at the numbers update.sh compares against', () => {
+		/*
+		 * check_vhost reads cm_drift's status with literals rather than the CM_DRIFT_*
+		 * constants, on purpose: those constants come from the pulled library, and reading
+		 * them from the code under inspection is the same class of hole as letting it
+		 * reassign EXIT_UNIT_DRIFT -- a units.sh with CM_DRIFT_FOUND=0 would make "they
+		 * agree" and "they differ" the same answer. The cost of literals is that the
+		 * contract now lives in two files, so it is pinned here.
+		 */
+		const got = sh('printf "%s %s %s %s\\n" "$CM_DRIFT_SAME" "$CM_DRIFT_FOUND" ' +
+			'"$CM_DRIFT_NO_STAMP" "$CM_DRIFT_NO_TOOL"')
+		expect(got.stdout.trim()).toBe('0 1 2 3')
+	})
+})
+
+describe('a file list the record format cannot represent', () => {
+	/*
+	 * The stamp is `<hash>  <name>` and every consumer splits on whitespace: the
+	 * well-formedness pattern ends `[^ ][^ ]*$` and the lookups match awk's $2. A name
+	 * containing a space cannot round-trip -- it writes a line that fails its own
+	 * validation, and cm_drift then answers "there is no record" for a file that has one.
+	 * A durable, confident, WRONG "cannot tell", which is what the four-outcome contract
+	 * exists to prevent. Quoting does not fix it; the format has no room for the name. So
+	 * the list is refused as NO_TOOL instead: not knowing, reported as not knowing.
+	 */
+	const withNames = (names, body) => {
+		const dir = path.join(work, 'weird')
+		mkdirSync(path.join(dir, 'deploy'), { recursive: true })
+		mkdirSync(path.join(dir, 'conf'), { recursive: true })
+		for (const n of names) writeFileSync(path.join(dir, 'deploy', n), `body of ${ n }\n`)
+		return sh(body.replaceAll('<D>', `${ dir }`))
+	}
+
+	it('refuses a name with a space rather than reporting a phantom missing record', () => {
+		const r = withNames(['my conf.conf', 'apache-capmetro.conf'],
+			`cm_drift '<D>/deploy' '<D>/conf/none' 'my conf.conf' apache-capmetro.conf`)
+		expect(r.code, 'a space in a name must answer NO_TOOL (3), never NO_STAMP (2)').toBe(3)
+	})
+
+	it('refuses to fingerprint one either, rather than writing a record that cannot be read', () => {
+		const r = withNames(['my conf.conf'], `cm_fingerprint '<D>/deploy' 'my conf.conf'`)
+		expect(r.code).toBe(3)
+		expect(r.stdout.trim()).toBe('')
+	})
+
+	it('handles a glob character in a name, which quoting DOES fix', () => {
+		/*
+		 * Distinct from the space case: `a*.conf` round-trips through the format fine, and
+		 * the bug was purely that the comparison loops re-split an already-correct argument
+		 * list through `local files="$*"`. Before the fix the drifted file was not named at
+		 * all; the verdict and its explanation had come apart, which the single-comparison
+		 * rule exists to forbid.
+		 */
+		const dir = path.join(work, 'globby')
+		mkdirSync(path.join(dir, 'deploy'), { recursive: true })
+		mkdirSync(path.join(dir, 'conf'), { recursive: true })
+		writeFileSync(path.join(dir, 'deploy', 'a*.conf'), 'one\n')
+		writeFileSync(path.join(dir, 'deploy', 'aXX.conf'), 'decoy\n')
+		writeFileSync(path.join(dir, 'deploy', 'apache-capmetro.conf'), 'two\n')
+		expect(sh(`cm_write_stamp_for '${ dir }/deploy' '${ dir }/conf/s' 'a*.conf' apache-capmetro.conf`).code).toBe(0)
+		expect(sh(`cm_drift '${ dir }/deploy' '${ dir }/conf/s' 'a*.conf' apache-capmetro.conf`).code).toBe(0)
+		writeFileSync(path.join(dir, 'deploy', 'a*.conf'), 'changed\n')
+		const r = sh(`cm_drift '${ dir }/deploy' '${ dir }/conf/s' 'a*.conf' apache-capmetro.conf`)
+		expect(r.code).toBe(1)
+		expect(r.stdout.trim().split('\n')).toEqual(['a*.conf'])
+	})
+})
+
+describe('a diagnostic must never take down a deploy that already succeeded', () => {
+	it('survives git failing while it is listing the changed configs', () => {
+		/*
+		 * The exact hazard, driven rather than argued. check_vhost is called BARE at every
+		 * site -- `check_vhost`, not `check_vhost || true` -- so under `pipefail` any
+		 * pipeline that is its last command takes update.sh with it when it fails. The
+		 * reporting path used to pipe `git diff --name-only` into a `while` loop, and git
+		 * answers 128 on a checkout it cannot read. That would abort the script on the path
+		 * where the code and the schedule are ALREADY live.
+		 *
+		 * The stub says "they differ" to the --quiet probe, so the branch is entered, then
+		 * fails the --name-only call the way an unreadable checkout would. The sentinel
+		 * printed after the call is the assertion: if check_vhost aborts, it never appears.
+		 */
+		writeFileSync(path.join(work, 'conf/installed-vhost.sha256'), '')
+		rmSync(path.join(work, 'conf/installed-vhost.sha256'))
+		const gitStub = [
+			'#!/bin/sh',
+			'for a in "$@"; do',
+			'  [ "$a" = "--quiet" ] && exit 1',      // differences: enter the branch
+			'  [ "$a" = "--name-only" ] && exit 128', // then fail, as an unreadable checkout does
+			'done',
+			'exit 0',
+		].join('\n') + '\n'
+		const r = checkVhost({ server: 'nginx', before: 'aaaaaaa', after: 'bbbbbbb', gitStub })
+		expect(r.stdout, 'check_vhost aborted the script when git failed').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(r.code).toBe(0)
+	})
+
+	it('survives a blank line in the list of changed configs', () => {
+		/*
+		 * The second trigger, and the subtler one: with `[ -n "$f" ] && loud ...` as the
+		 * loop body, a trailing blank line leaves a failed test as the loop's last command,
+		 * so the loop exits 1 -- and in a pipeline under pipefail that is the whole
+		 * command's status. `printf 'a\n\n' | while ...; done; echo TAIL` never reaches
+		 * TAIL under set -euo pipefail. A here-string does not have this property.
+		 */
+		const gitStub = [
+			'#!/bin/sh',
+			'for a in "$@"; do',
+			'  [ "$a" = "--quiet" ] && exit 1',
+			'  [ "$a" = "--name-only" ] && { printf "nginx-capmetro.conf\\n\\n"; exit 0; }',
+			'done',
+			'exit 0',
+		].join('\n') + '\n'
+		const r = checkVhost({ server: 'nginx', before: 'aaaaaaa', after: 'bbbbbbb', gitStub })
+		expect(r.stdout, 'a blank line in git output aborted the script').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(r.stdout).toContain('nginx-capmetro.conf')
+		expect(r.code).toBe(0)
+	})
+})
+
+describe('after a rollback, the notice must not describe a change that is gone', () => {
+	function repoWithVhostChange({ touchVhost }) {
+		const src = path.join(work, 'src')
+		const git = (...args) => execFileSync('git', args, { cwd: src, encoding: 'utf8' })
+		git('init', '-q')
+		git('config', 'user.email', 't@example.test')
+		git('config', 'user.name', 'test')
+		git('add', '-A')
+		git('commit', '-qm', 'before')
+		const before = git('rev-parse', 'HEAD').trim()
+		if (touchVhost) editVhost(VHOSTS[0], "add_header X-Test 1;\n")
+		git('add', '-A')
+		git('commit', '-qm', 'after')
+		return { before, after: git('rev-parse', 'HEAD').trim() }
+	}
+
+	it('says nothing about the pulled range once the checkout has been reset', () => {
+		/*
+		 * The rc=2 branch reasons about what THIS DEPLOY changed. On the rollback path
+		 * `git reset --hard "$BEFORE"` has already put the checkout back -- but both commit
+		 * objects still exist, so `git diff BEFORE AFTER` still answers "the vhost changed"
+		 * and the branch would announce a change that is no longer in the tree, then send
+		 * the operator to install.sh. install.sh would record, and tell them to install,
+		 * the OLD vhost as if it were the new one.
+		 *
+		 * check_units carries a context argument for exactly this reason, seven lines after
+		 * its own reset. check_vhost was written without one.
+		 */
+		const { before, after } = repoWithVhostChange({ touchVhost: true })
+		const deployed = checkVhost({ server: 'nginx', before, after })
+		expect(deployed.stdout, 'the deployed path should still announce it')
+			.toMatch(/this deploy changed the web server config/)
+
+		const rolled = checkVhost({ server: 'nginx', before, after, context: 'rolled-back' })
+		expect(rolled.stdout, 'announced a vhost change that the rollback removed')
+			.not.toMatch(/this deploy changed the web server config/)
+		expect(rolled.stdout, 'check_vhost aborted on the rollback path').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
+		expect(rolled.code).toBe(0)
+	})
+})
+
+describe('the guards that only matter when the record is already wrong', () => {
+	it('rejects a stamp naming the same file twice, instead of accusing the other one', () => {
+		/*
+		 * The duplicate-name guard. A record carrying two lines for nginx-capmetro.conf and
+		 * none for apache-capmetro.conf passes both count checks -- the right number of
+		 * well-formed lines, the right total -- so without this guard apache has no recorded
+		 * hash, compares unequal to itself, and is reported as drifted. A confident,
+		 * specific, false accusation about a file nobody touched, which is precisely what
+		 * the four-outcome contract exists to forbid. Deleting the guard left all 90 tests
+		 * green before this.
+		 */
+		writeVhostStamp()
+		const stamp = path.join(work, 'conf/installed-vhost.sha256')
+		const lines = readFileSync(stamp, 'utf8').trim().split('\n')
+		expect(lines).toHaveLength(2)
+		/* Same count, same shape, one name twice. */
+		const hash = lines[0].split(/\s+/)[0]
+		writeFileSync(stamp, `${ hash }  ${ VHOSTS[0] }\n${ hash }  ${ VHOSTS[0] }\n`)
+		const r = sh(`cm_vhost_drift '${ work }/src/deploy' '${ stamp }' ${ VHOSTS.join(' ') }`)
+		expect(r.code, 'a duplicated name must be NO_STAMP (2), never a drift verdict').toBe(2)
+		expect(r.stdout.trim(), 'it named a file as drifted on a corrupt record').toBe('')
+	})
+
+	it('refuses to hash at all when neither hashing tool exists', () => {
+		/*
+		 * cm_sha256's last arm, which no test reached: every other test either stubs
+		 * cm_sha256 itself or shadows sha256sum/shasum as a shell FUNCTION -- and
+		 * `command -v` finds a function, so the real "neither binary is installed" path
+		 * never ran. Replacing its return with a literal placeholder hash left all 90 tests
+		 * green, which is the anti-pattern its own comment forbids in as many words: a
+		 * stand-in makes every file compare equal to every other, so drift reads clean
+		 * forever.
+		 *
+		 * PATH is emptied rather than the tools stubbed, so the absence is real.
+		 */
+		const r = sh(`PATH= cm_fingerprint '${ work }/src/deploy' ${ VHOSTS.join(' ') }`)
+		expect(r.code, 'no hashing tool must be NO_TOOL (3)').toBe(3)
+		expect(r.stdout.trim(), 'it emitted a fingerprint with no way to compute one').toBe('')
 	})
 })

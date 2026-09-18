@@ -363,6 +363,62 @@ else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
 
+# The record update.sh compares against, so a LATER committed change to either vhost gets
+# noticed instead of sitting in the checkout doing nothing.
+#
+# Written whether or not the operator actually runs the commands above, and that is the
+# honest reading of what it records: "these are the configs as of the last install.sh", which
+# is the same thing the unit stamp records. It cannot know whether the sed-and-reload
+# happened. What it turns into a detectable event is the case that actually bites -- a vhost
+# change landing in a later deploy with nothing to announce it.
+#
+# Not inside the systemd branch above: a box on cron still serves the board over HTTP.
+# `--dry-run` must not write it. The units stamp is already inside a DRY_RUN guard and this
+# was not, so a mode whose whole promise is "changes nothing" recorded the COMMITTED vhosts
+# as installed -- and every later update.sh then reported no drift for a vhost that had
+# never been applied. That is "cannot tell" laundered into a durable false "clean", which is
+# the one outcome the CM_DRIFT_NO_STAMP / NO_TOOL split exists to prevent.
+#
+# Guarded on the FUNCTION, not on the file, for the reason the units block gives twelve
+# lines up: a source tree carrying an older units.sh has the file and not the function, and
+# calling it anyway is a command-not-found -- which would then be evaluated a second time
+# inside the warning below, printing an empty path next to a raw shell error.
+# The function check comes FIRST so a dry run reports it too: "this tree cannot record the
+# vhost fingerprint" is exactly the kind of thing a dry run exists to surface, and putting
+# the DRY_RUN arm first made that branch unreachable in the only mode that can be tested
+# without root.
+if ! command -v cm_write_vhost_stamp >/dev/null 2>&1 \
+   || ! command -v cm_vhost_stamp_path >/dev/null 2>&1; then
+  warn "this source tree cannot record a vhost drift fingerprint:
+     $SRC_DIR/deploy/lib/units.sh is absent or predates it. Everything else still installs;
+     a later vhost change will simply deploy without a notice."
+elif [ "$DRY_RUN" = 1 ]; then
+  printf '   would run: record the vhost drift fingerprint in %s\n' "$CONF_DIR"
+else
+  VHOST_STAMP_RC=0
+  cm_write_vhost_stamp "$SRC_DIR/deploy" "$CONF_DIR" || VHOST_STAMP_RC=$?
+  if [ "$VHOST_STAMP_RC" != 0 ]; then
+    # A warning, not a die. The board serves correctly without this record; all that is
+    # lost is the notice on a future vhost change, and killing a working install over a
+    # missing fingerprint would be the wrong trade.
+    #
+    # 2 and 1 are told apart, as cm_write_stamp_for's own comment asks: a read-only /etc or
+    # a full disk is a different thing to tell somebody than a hashing tool that would not
+    # run, and folding them sends the operator to fix the wrong one.
+    if [ "$VHOST_STAMP_RC" = 2 ]; then
+      warn "could not create a temp file in $CONF_DIR (read-only filesystem, or full?), so
+     there is no vhost drift record. Everything else is installed."
+    else
+      warn "could not fingerprint the vhost sources, so there is no drift record at
+     $(cm_vhost_stamp_path "$CONF_DIR"). Either no sha256sum or shasum is installed, a
+     source file could not be read, or the list holds a name the record format cannot
+     represent -- CM_DRIFT_NO_TOOL covers all three and does not say which, so check the
+     cheap one first. Everything else is installed; a later vhost change will deploy
+     without a notice."
+    fi
+  fi
+fi
+
 echo
 say "done"
 printf '  source      %s (%s)\n' "$SRC_DIR" "$BRANCH"

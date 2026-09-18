@@ -158,7 +158,8 @@ check_units() {
       # that exists and could not be read, and asserting the wrong cause sends someone to
       # install a package they already have.
       loud "cannot fingerprint the systemd units, so they were not checked"
-      loud "no sha256sum or shasum, or a unit file could not be read. Nothing else is wrong."
+      loud "no sha256sum or shasum, a unit file could not be read, or the list holds a name"
+      loud "this record format cannot represent. Nothing else is wrong."
       return 0
       ;;
     "${CM_DRIFT_FOUND:-1}") ;;
@@ -202,6 +203,192 @@ check_units() {
 }
 
 # ---------------------------------------------------------------------------
+# web server config drift
+# ---------------------------------------------------------------------------
+
+# Same question as check_units, asked about the two vhosts, and the answer is a NOTICE rather
+# than an exit status.
+#
+# Why it exists: install.sh prints the vhost and never installs it, and this script does not
+# touch it either, so a committed change to deploy/nginx-capmetro.conf or
+# deploy/apache-capmetro.conf lands in the checkout and does nothing at all until somebody
+# copies it by hand and reloads. Until now nothing said so. That matters more than a stale
+# unit, not less: a stale timer fires at the wrong hour and the board still renders, while a
+# stale vhost can refuse the manifest and the service worker outright -- no install prompt,
+# no offline board, and health.json still ok:true, so the documented post-deploy health check
+# cannot see it either.
+#
+# Why it does NOT change the exit code. 3 is documented in CLAUDE.md -- there and nowhere
+# else; install.sh discusses drift at length but never names the exit code -- as "deployed,
+# but the committed SYSTEMD UNITS are not the ones installed, so run install.sh" -- a specific condition with a specific remedy. A vhost needs a different
+# remedy, and widening 3 to mean "some config is stale" would make the one number ambiguous
+# for whatever eventually reads it, which is the exact mistake EXIT_UNIT_DRIFT was split from
+# 1 to avoid. The notice goes to stdout and therefore to the journal on every run, which is
+# the same visibility the not-knowing arms of check_units settle for.
+#
+# Never fatal, for the same reason those arms are not: an absent stamp is the expected state
+# of every box installed before this existed, including this one.
+# $1 is the caller's context, exactly as check_units takes it: `deployed` (the code and the
+# schedule went live) or `rolled-back` (they did not). It decides which sentences are TRUE,
+# which is not decoration -- see the rc=2 branch.
+check_vhost() {
+  local context="${1:-deployed}"
+  local lib="$SRC_DIR/deploy/lib/units.sh"
+  [ -f "$lib" ] || return 0
+
+  # SOURCED IN A SUBSHELL, and that is the whole reason this is written as a command
+  # substitution rather than the obvious `. "$lib"` at function scope.
+  #
+  # check_units takes `local exit_drift="$EXIT_UNIT_DRIFT"` before its own source, because a
+  # pulled units.sh that assigned that name would zero its verdict -- its comment calls that
+  # the third variant of the same bug. That defense only holds while check_units' source is
+  # the FIRST one in the shell. This function runs immediately before it at every call site,
+  # so sourcing here would have moved the attack surface in front of the snapshot and
+  # reopened the hole from the outside. Inside `$( )` nothing units.sh assigns, defines or
+  # exports can reach the parent shell at all, which closes it for good rather than by
+  # ordering.
+  #
+  # The two private statuses are outside cm_drift's 0..3 contract on purpose, so "the lib
+  # could not be loaded" can never be read as a drift verdict.
+  local drift rc=0
+  # shellcheck source=deploy/lib/units.sh
+  drift=$(
+    . "$lib" >/dev/null 2>&1 || exit 90
+    command -v cm_vhost_drift >/dev/null 2>&1 || exit 91
+    command -v cm_vhost_stamp_path >/dev/null 2>&1 || exit 91
+    cm_vhost_drift "$SRC_DIR/deploy" "$(cm_vhost_stamp_path "$CONF_DIR")"
+  ) || rc=$?
+
+  # Compared against literals, not against CM_DRIFT_*: those constants live in the lib, which
+  # is now deliberately out of reach. The numbers are cm_drift's published contract and are
+  # named here so the arms stay readable.
+  case "$rc" in
+    0) return 0 ;;   # the configs agree
+    1) ;;            # confirmed drift, names on stdout
+    2)
+      # No record. Normally silent: it is the state of every box installed before this
+      # existed, and nagging four times a day for a condition no amount of re-running
+      # clears is how a notice becomes wallpaper.
+      #
+      # With one exception, which is the case that actually matters. The justification for
+      # staying quiet was "check_units has already explained a missing stamp" -- and that
+      # fails precisely when a deploy changes a vhost and no unit, because then check_units
+      # finds its own stamp intact, returns 0 silently, and nobody is ever told to run
+      # install.sh. That is this very branch: it changes both vhosts and no unit file, so
+      # the first deploy carrying vhost detection could not have announced itself.
+      #
+      # So: if THIS deploy changed a vhost and there is no record, say so once.
+      # Exactly 1, never `! git ... --quiet`. git answers 0 for "no differences" and 1 for
+      # "differences", but 128 for "not a repository" and other failures -- and `!` turns
+      # every one of those into "the vhost changed", so a checkout git could not read would
+      # print this notice on every run forever.
+      # The revision guard runs FIRST, and every expansion is `${X:-}`. check_vhost is
+      # sourceable and the tests call it directly, where BEFORE and AFTER are simply not
+      # set -- a bare `$BEFORE` under `set -u` aborts the function there, which is the
+      # not-fatal contract broken by the defensive fix meant to protect it.
+      # Not after a rollback. This branch reasons about the PULLED RANGE -- "this deploy
+      # changed a vhost" -- and `git reset --hard "$BEFORE"` has just put the checkout back,
+      # while both commit objects still exist so the diff still answers 1. It would announce
+      # a change that is no longer in the tree and send the operator to install.sh, which
+      # would then record, and tell them to install, the OLD vhost as though it were the new
+      # one. check_units takes a context for this same reason, seven lines after its own
+      # reset. The rc=1 branch below is fine on that path: it fingerprints whatever is
+      # actually checked out.
+      # `f` is declared HERE, not only in the rc=1 loop below: this branch returns before
+      # ever reaching that declaration, so its own read loop was assigning a GLOBAL. update.sh
+      # is sourceable -- the tests source it and call these functions directly -- so a global
+      # leaking out of a diagnostic is a name a later function could read without knowing
+      # where it came from.
+      local changed=0 f
+      if [ "$context" = deployed ] \
+         && [ -n "${BEFORE:-}" ] && [ -n "${AFTER:-}" ] && [ "${BEFORE:-}" != "${AFTER:-}" ]; then
+        git -C "$SRC_DIR" diff --quiet "${BEFORE:-}" "${AFTER:-}" -- \
+          deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null || changed=$?
+      fi
+      if [ "$changed" = 1 ]; then
+        loud "this deploy changed the web server config, and there is no record of which"
+        loud "one is installed, so the change could not be checked -- but it is real:"
+        # A here-string, never a pipe into `while`, for the two reasons check_units:189
+        # already learned. Under `pipefail` this pipeline is check_vhost's last command and
+        # check_vhost is called bare, so `set -e` takes update.sh down -- on the path where
+        # the deploy has ALREADY succeeded, which is the one thing a diagnostic here must
+        # never do. Both triggers are real and were reproduced at a shell: git exiting
+        # non-zero (128 on a checkout it cannot read), and a trailing blank line, which
+        # leaves `[ -n "" ]` as the loop's own last command and exits it 1.
+        local names
+        names=$(git -C "$SRC_DIR" diff --name-only "${BEFORE:-}" "${AFTER:-}" -- \
+          deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null) || names=""
+        while IFS= read -r f; do
+          [ -n "$f" ] && loud "    $f"
+        done <<< "$names"
+        loud "Nothing here installs it, and health.json will read ok:true either way."
+        loud "    sudo $SRC_DIR/deploy/install.sh"
+        loud "prints the exact sed for this box and records the config, which also stops"
+        loud "this message. The installed vhost may have been rewritten by certbot, so"
+        loud "diff it before overwriting rather than copying the committed file over it."
+      fi
+      return 0
+      ;;
+    *)
+      # 3 cannot hash; 90/91 the lib would not load or predates the vhost helpers.
+      #
+      # Silent, and NOT because "check_units explains it" -- it does not. check_units probes
+      # for cm_systemd_live, cm_unit_drift and cm_unit_stamp_path, never for cm_vhost_drift,
+      # so against the pre-branch units.sh (the rollback path, or any older --src-from tree)
+      # it finds all three, reports nothing, and this returns 91 in silence: vhost checking
+      # is simply off and nothing says so. That is the right behavior -- never fatal, and
+      # the alternative is a line on every run of every box that predates the feature -- but
+      # the reason had to stop being a claim about another function that is not true.
+      return 0
+      ;;
+  esac
+
+  [ -n "$drift" ] || return 0   # never an accusation with nothing in it
+
+  loud "the web server config in the checkout has changed since install.sh last ran:"
+  local f nginx_drifted="" apache_drifted=""
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    loud "    $f"
+    case "$f" in
+      nginx-*) nginx_drifted=1 ;;
+      apache-*) apache_drifted=1 ;;
+    esac
+  done <<< "$drift"
+
+  # Which SERVER this box runs, and which FILE actually moved, are two different questions,
+  # and answering the second with the first told an nginx box to reload apache. Only speak
+  # about a file that is in the list above.
+  local mine=""
+  if command -v nginx >/dev/null 2>&1 && [ -n "$nginx_drifted" ]; then mine=1; fi
+  if { command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; } \
+     && [ -n "$apache_drifted" ]; then mine=1; fi
+
+  if [ -z "$mine" ]; then
+    loud "none of those is the config this box serves from, so there is nothing to do here."
+    return 0
+  fi
+
+  loud "the box is still serving the OLD one. Nothing here installs it."
+  loud "A stale vhost can refuse the manifest and the service worker with nothing on screen"
+  loud "to say so, and health.json still reads ok:true, so this will not show up anywhere else."
+  # DELIBERATELY NOT a copy-paste `cp`. These files ship with @DOMAIN@ and @WEBROOT@ still in
+  # them, and nginx accepts both as literals: `nginx -t` on an unsubstituted config reports
+  # "test is successful", the reload succeeds, and every URL including /api/health.json then
+  # 404s -- with the working config already overwritten. Verified against real nginx. A
+  # remedy that can take the board down is worse than one extra command to run, and this
+  # function does not know $DOMAIN anyway.
+  loud "Run install.sh: it prints the exact sed for this box, with the placeholders filled."
+  loud "    sudo $SRC_DIR/deploy/install.sh"
+  loud "It also re-records the config, which is what stops this repeating every run."
+  # Not just the placeholders. nginx-capmetro.conf says certbot rewrites the installed block
+  # to add the 443 server and the redirect, so on a TLS box -- which production is -- the
+  # installed file is not the committed one and copying over it destroys the cert config.
+  loud "The installed vhost has been rewritten by certbot, so diff it before overwriting."
+  return 0
+}
+
+# ---------------------------------------------------------------------------
 # Everything above is definitions; everything below deploys. Sourcing this file gets the
 # definitions and nothing else, which is what lets the tests call check_units for real
 # rather than grepping this file for the string "check_units" -- a regex cannot tell a live
@@ -236,13 +423,14 @@ if [ "$BEFORE" = "$AFTER" ]; then
   # Checked even here, and this is the case that matters most. Drift persists across runs:
   # the commit that changed a unit lands once, and every run after it reports "nothing to
   # do" while the box quietly stays on the old unit forever.
+  check_vhost
   check_units || exit $?
   exit 0
 fi
 say "$BEFORE -> $AFTER"
 
 # --delete is deliberately absent: api/ lives in the webroot and belongs to the
-# cron, not to the client. Deleting what rsync does not recognise would wipe it.
+# cron, not to the client. Deleting what rsync does not recognize would wipe it.
 say "republishing the client"
 rsync -a --exclude 'NOTES.md' "$SRC_DIR/client/" "$WEBROOT/"
 chown -R "$RUN_USER:$RUN_USER" "$WEBROOT"
@@ -256,6 +444,7 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   # Last, and non-fatal to the deploy itself: the code and the schedule are already live by
   # this point. A unit change that has not been applied is worth a failed unit and a red
   # `systemctl status`, but not worth withholding a schedule the board needs today.
+  check_vhost
   check_units || exit $?
   exit 0
 fi
@@ -277,16 +466,18 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   loud "$AFTER is broken; fix it before the next update runs"
   # Reported but not allowed to change the exit code: a broken commit is the headline and
   # a stale unit must not read as the reason the rollback happened.
+  check_vhost rolled-back
   check_units rolled-back || true
   exit 1
 fi
 
 # Both commits fail, so the cause is not the code: a feed is down, the shards
 # are gone, the disk is full. The atomic writes mean the last good JSON is
-# still being served and ageing visibly, which is the designed behaviour.
+# still being served and ageing visibly, which is the designed behavior.
 loud "rollback to $BEFORE ALSO fails to generate; this is not a code problem"
 loud "the last good JSON is still in $WEBROOT and its staleness is climbing"
 # Cheap, and occasionally the answer: a generator that cannot start on either commit may be
 # looking for a config path a newer unit moved. Reported, never allowed to change the verdict.
+check_vhost rolled-back
 check_units rolled-back || true
 exit 1
