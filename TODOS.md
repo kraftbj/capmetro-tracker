@@ -106,6 +106,67 @@ the run after it shows "no bus reporting yet" instead of a made-up time.
 **Priority:** P3
 **Depends on:** A capture taken while cancellations are actually being used to recover
 
+### chain.js times a leg from the timetable when its bus has not started
+
+**What:** `client/chain.js` is a third producer of "when is this departure due", beside the
+stop board and the saved cards, and it has the blind spot those two just lost. A leg whose
+bus has not started gets `lateness: null` (`chain.js:676`) and `predicted_board_at` falls
+back to the booked time (`chain.js:775`), so a transfer is graded against a timetable while
+the bus that will run it is knowably late.
+
+**Why:** Not folded into the 0.6.1.0 fix, deliberately. `timingFor` takes one `scheduledAt`
+and returns one time; a chain leg carries a `board_at`/`alight_at` pair and feeds
+transfer-slack arithmetic, so this is a different shape, not a fourth call site. It also
+changes how connections are graded, which needs its own differential over a chain corpus
+before anyone trusts it — the 0.6.1.0 differential covered stop-board rows only.
+
+**Context:** Found in the pre-landing checklist pass while tracing consumers of the new row
+model. The three-way split is the shape CLAUDE.md warns about after ISSUE-002; two of the
+three now share `watch.timingFor`, and this is the one left out.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** A chain corpus differential, the way the stop board got one
+
+### A mass cancellation can set how long the stop board panel is
+
+**What:** `upcoming()` caps the list at `count` LIVE departures, and canceled or overdue rows
+ride along without consuming a slot (`client/stopboard.js`, the `live < want` loop). If every
+remaining row at a stop is canceled, nothing increments `live` and the panel renders the whole
+rest of the service day — about 97 rows at route 837's busiest stop.
+
+**Why:** Degraded UI, not resource exhaustion, and it predates 0.6.1.0 — that release only
+changed WHICH canceled rows reach the loop, and lowered the exposure on balance (announced
+cancellations dropped from a 30-minute window to 10). Worth a bound anyway, because the set is
+upstream-controlled: `isCanceled` reads `schedule.canceled_trips`, rebuilt from CapMetro's
+trip updates every cycle.
+
+**Context:** Raised by the security pass on the 0.6.1.0 review at medium confidence, with the
+97-row worst case measured against `tests/fixtures/capture-20260917-837/`. A cap of
+`want + MAX_RIDE_ALONG` on total pushed rows would close it without changing the "a
+cancellation does not consume one of your two answers" rule.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** None
+
+### Give capture-20260917-837 a section in the fixtures README
+
+**What:** `tests/fixtures/README.md` documents every fixture directory with a prose section
+explaining what it encodes and why it must not be casually regenerated.
+`capture-20260917-837/` has only its `MANIFEST.json`.
+
+**Why:** The README is where someone looks before re-capturing something, and the 837 capture
+has the same "do not regenerate casually" property as the others: 32 client tests read its
+exact adherence numbers (820 and 681), its trip ids, and the fact that bus 8007 is graded
+`high` confidence. A re-capture that loses any of those turns assertions vacuous rather than
+red — which is why the invariant block in
+`tests/node/client-stopboard-inbound-predictor.test.mjs` exists.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** None
+
 ### Finish the test coverage on the client panels
 
 **What:** The ship coverage audit on 2026-08-19 put the time-axis branch at about 30% of
