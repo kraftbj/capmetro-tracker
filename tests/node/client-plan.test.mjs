@@ -362,12 +362,12 @@ describe('a canceled trip is never mistaken for one that has not started', () =>
   })
 })
 
-describe('a cancelled inbound leg is not a bus that has not started yet', () => {
+describe('a canceled inbound leg is not a bus that has not started yet', () => {
   const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
 
   /*
    * The real capture only cancels whole blocks, so both legs go together and the
-   * outbound is cancelled before this reasoning is reached. One leg of a block
+   * outbound is canceled before this reasoning is reached. One leg of a block
    * called off on its own is possible and is what this covers, so the fixture is
    * edited rather than pretended into existence.
    */
@@ -386,7 +386,7 @@ describe('a cancelled inbound leg is not a bus that has not started yet', () => 
     return dep.trips[row[1]]
   }
 
-  t('says the leg is cancelled instead of "no bus is reporting on that trip yet"', (p) => {
+  t('says the leg is canceled instead of "no bus is reporting on that trip yet"', (p) => {
     const { dep, pair } = withCanceledLeg()
     const now = dep.service_day_start_epoch + pair.outbound_departure_s - 600
     const m = p.resolve(AT_837, dep, EMPTY_ROUTE, now)
@@ -404,7 +404,7 @@ describe('a cancelled inbound leg is not a bus that has not started yet', () => 
     expect(said).not.toMatch(/the the/i)
   })
 
-  t('still names which leg it was, so the reader can tell what was cancelled', (p) => {
+  t('still names which leg it was, so the reader can tell what was canceled', (p) => {
     const { dep, pair } = withCanceledLeg()
     const now = dep.service_day_start_epoch + pair.outbound_departure_s - 600
     const m = p.resolve(AT_837, dep, EMPTY_ROUTE, now)
@@ -414,7 +414,7 @@ describe('a cancelled inbound leg is not a bus that has not started yet', () => 
     expect(p.boardingText(d, m)).toMatch(/The \d{1,2}:\d{2}[ap] SB that would bring this bus in/)
   })
 
-  t('sees a leg cancelled after the page loaded, not only one in the cached copy', (p) => {
+  t('sees a leg canceled after the page loaded, not only one in the cached copy', (p) => {
     /*
      * The cached departures document cannot carry a cancellation announced since
      * the tab was opened; `route.schedule.canceled_trips` is rebuilt every 60
@@ -674,7 +674,7 @@ describe('what a screen reader is told', () => {
     textDeep(all(p.render(client.document.createElement('div'), [model], {}), 'sr-only')[0])
 
   t('names the cancellation AND the bus that is actually coming', (p) => {
-    /* Five minutes before the cancelled 10:13, so it is the first entry on the
+    /* Five minutes before the canceled 10:13, so it is the first entry on the
      * card. The summary used to stop there — the half of the message that sends
      * somebody home — while the card listed two running departures below it. */
     const now = DEP837.service_day_start_epoch + 10 * 3600 + 5 * 60
@@ -689,7 +689,7 @@ describe('what a screen reader is told', () => {
 
   t('says so plainly when the cancellation is all there is left', (p) => {
     const dep = fixture('departures-837-turnaround-canceled.json')
-    /* Keep only the cancelled departure in the boarding direction. */
+    /* Keep only the canceled departure in the boarding direction. */
     const canceledS = dep._expected.canceled_departure_s[0]
     dep.departures['2112'] = dep.departures['2112'].filter(
       ([s, i]) => dep.trips[i].direction_id === 0 || s === canceledS,
@@ -698,7 +698,7 @@ describe('what a screen reader is told', () => {
     expect(spokenOf(p, m)).toContain('Nothing else is running at this stop today')
   })
 
-  t('leads with the next bus when nothing is cancelled', (p) => {
+  t('leads with the next bus when nothing is canceled', (p) => {
     const m = p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW)
     expect(spokenOf(p, m)).toContain('Next bus due')
   })
@@ -762,9 +762,11 @@ describe('a continuation the feed has not confirmed is said as one', () => {
     adherence: { state: 'late', seconds: 200, glyph: 'up-triangle', reason: null },
   })
 
-  t('every 837 block in the real capture is low confidence, which is why this matters', () => {
-    /* Not a hypothetical branch: it is the ordinary case on one of the three
-     * turnarounds this feature shipped for. */
+  t('the 837 fixture carries the pairs the hedge is exercised against', () => {
+    /* The fixture holds `confidence: low` deliberately, for the routes still
+     * reporting it. It is no longer what the real 2026-08-19 capture carries —
+     * the block-chaining fix moved 2,791 continuations to `high`, 837's twelve
+     * among them — so this asserts the fixture, which is all it ever checked. */
     expect(DEP837._expected.pairs.length).toBeGreaterThan(0)
   })
 
@@ -804,6 +806,32 @@ describe('a continuation the feed has not confirmed is said as one', () => {
     const node = p.render(client.document.createElement('div'), [m], {})
     expect(textDeep(node)).toContain('has not confirmed which bus')
     expect(all(node, 'stopcard__caveat')).toHaveLength(1)
+  })
+
+  /*
+   * THE TWO VIEWS READ ONE RULE, OR THEY DISAGREE ABOUT ONE BUS.
+   *
+   * watch.js nulls a predictor whose claimant has no usable deviation — the
+   * documented bus-2817 shape — so /route stops calling it a predictor and falls
+   * to its coverage wording. This file's own matcher had no such filter, so it
+   * still found the bus and, on a high grade, stated the continuation as FACT
+   * while /route was hedging it. Same feed, same second, same vehicle, two
+   * answers. Both now ask W.continuationHedged and cannot come apart.
+   */
+  t('agrees with the route board about a bus whose deviation is unusable', (p, cmb) => {
+    const pair = pairFor()
+    const out = tripAt837(pair.outbound_departure_s, 1)
+    const inb = tripAt837(pair.inbound_arrival_s, 0)
+    const v = bus837('high', out.id, inb)
+    v.adherence = { state: 'unknown', seconds: null, glyph: 'question', reason: 'no_trip_update' }
+    const route = { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [v] }
+
+    const m = p.resolve(AT_837, DEP837, route, NOW837)
+    const d = m.departures.find((x) => x.inbound && x.inbound.vehicle)
+    /* The premise: /route declined to make it a predictor, which is the state
+     * that used to let this file answer on its own. */
+    expect(d.predictor, 'no predictor, so the old local branch is what ran').toBeNull()
+    expect(d.inbound.confirmed).toBe(!cmb.watch.continuationHedged(v, d.trip.id))
   })
 
   t('hedges the schedule-only fallback too, since the feed confirmed nothing there', (p) => {
@@ -1153,5 +1181,129 @@ describe('what the cards actually say', () => {
     const node = p.render(host(), p.sortModels([m]), {})
     expect(textDeep(node)).toContain('Later today')
     expect(all(node, 'stopcard--later')).toHaveLength(1)
+  })
+})
+
+
+/* ------------------------------------------------------------------------- */
+
+describe('the two matchers that find the inbound bus have to agree', () => {
+  const PAIR = PAIRS[0]
+  const OUT = outboundAt(PAIR.outbound_departure_s)
+  const LEG = inboundAt(PAIR.inbound_arrival_s)
+  /* A leg on a DIFFERENT block, so it is not the one inboundLeg picks for OUT. */
+  const OTHER_LEG = inboundAt(PAIRS[1].inbound_arrival_s)
+
+  /*
+   * `leg` is the schedule's answer (same block, other direction, latest arrival
+   * before ours) and `feeder` is the feed's (whichever vehicle says next_trip is
+   * our trip). They are normally the same trip and nothing checked it, so when
+   * they were not, the card named a trip the bus is not on and timed the
+   * departure as that trip's schedule plus a deviation measured on another.
+   */
+  t('does not name the scheduled leg when the feed puts the bus on a different trip', (p) => {
+    const route = routeWith(
+      bus({ id: 'B1', trip: OTHER_LEG, seconds: 600, nextTripId: OUT.id }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.vehicle.vehicle_id, 'the bus is still the answer').toBe('B1')
+    expect(d.inbound.trip, 'a leg the bus is not on must not be named').toBeNull()
+    /* And with no leg there is no scheduled arrival to add a deviation to, so
+     * there is no ETA to print — which is the number that was wrong. */
+    expect(d.inbound.due_at).toBeNull()
+
+    const said = p.boardingText(d, m)
+    expect(said).not.toContain('brings it in on')
+    expect(said).toContain('finishing another one first')
+  })
+
+  t('still names the leg when the feed puts the bus on exactly that trip', (p) => {
+    const route = routeWith(
+      bus({ id: 'B1', trip: LEG, seconds: 600, nextTripId: OUT.id }))
+    const m = p.resolve(AT_TURNAROUND, DEP, route, NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.trip.id).toBe(LEG.id)
+    expect(d.inbound.due_at).toBe(START + PAIR.inbound_arrival_s + 600)
+    expect(p.boardingText(d, m)).toContain('brings it in on')
+  })
+
+  /*
+   * "Same block" alone is not a layover. Without a bound the search reaches back
+   * across an interline — a block that touches this stop in the other direction
+   * in the morning, goes away onto another route, and returns in the afternoon —
+   * and names a leg hours old under the departure a reader is waiting for.
+   */
+  t('refuses an inbound leg further back than a layover can be', (p, cmb) => {
+    const gap = cmb.watch.INTERLINE_GAP_S
+    const arrival = PAIR.outbound_departure_s
+
+    expect(p.inboundLeg(DEP, TURN, 1, OUT, arrival).trip.id).toBe(LEG.id)
+    /* Same leg, same block, asked for by a departure far enough later that the
+     * block was plausibly somewhere else in between. */
+    expect(p.inboundLeg(DEP, TURN, 1, OUT, PAIR.inbound_arrival_s + gap + 1)).toBeNull()
+    expect(p.inboundLeg(DEP, TURN, 1, OUT, PAIR.inbound_arrival_s + gap).trip.id).toBe(LEG.id)
+  })
+})
+
+describe('a departure timed from the feed does not also wear a badge', () => {
+  /*
+   * The badge is only honest while it is the same number as the two times. On a
+   * row timed from the feed's own prediction for THIS stop it is not: the bus is
+   * ten minutes down overall and the feed models it recovering to one minute by
+   * here, so a "+10m" badge sits beside "3:13p, Scheduled 3:13p" pointing the
+   * other way. stopboard.js dropped the badge there and said why; this file was
+   * rendering the same models and kept it, which is one departure wearing two
+   * readings on two screens of one board.
+   */
+  const MID = '2106'                    /* 5th/Baylor, four stops along the outbound */
+  const ANCHOR = '4086'                 /* where the bus actually is */
+  const AT_MID = { route_id: '4', direction_id: 1, stop_id: MID, window: 'all' }
+  const OUT = outboundAt(PAIRS[0].outbound_departure_s)
+
+  const feedRoute = (overallLate, hereLate) => {
+    const v = bus({ id: 'B9', trip: OUT, seconds: overallLate, stopId: ANCHOR, status: 'IN_TRANSIT_TO' })
+    const stops = client.cmb.fmt.stopTimesForTrip(DEP, OUT.id)
+    const anchor = stops.find((r) => r.stop_id === ANCHOR)
+    const mid = stops.find((r) => r.stop_id === MID)
+    v.progress.current_stop_sequence = 2
+    v.adherence.against = {
+      stop_id: ANCHOR, stop_name: ANCHOR,
+      scheduled_at: anchor.scheduled_at, predicted_at: anchor.scheduled_at + overallLate,
+    }
+    v.predictions = [[4, MID, mid.scheduled_at + hereLate]]
+    return routeWith(v)
+  }
+
+  t('the fixture really does produce a feed-sourced row, or the rest proves nothing', (p) => {
+    const m = p.resolve(AT_MID, DEP, feedRoute(600, 60), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+    expect(d.from_feed, 'no feed-sourced row, so this block is vacuous').toBe(true)
+    expect(d.view.state, 'and the badge it would have drawn disagrees with the time').toBe('very_late')
+  })
+
+  t('drops the badge, because it would point the other way from the times', (p) => {
+    const m = p.resolve(AT_MID, DEP, feedRoute(600, 60), NOW)
+    const card = p.render(client.document.createElement('div'), [m], {})
+    expect(all(card, 'badge')).toHaveLength(0)
+    /* And the scheduled time is printed unconditionally, because with the badge
+     * gone it is the only thing left saying how late the bus is HERE. */
+    expect(textDeep(card)).toContain('Scheduled')
+  })
+
+  t('says the bus state as a phrase instead, which can carry the scope', (p) => {
+    const m = p.resolve(AT_MID, DEP, feedRoute(600, 60), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+    expect(p.boardingText(d, m)).toBe('Bus B9 is on this trip now, running very late overall.')
+  })
+
+  t('keeps the badge on an extrapolated row, where the two still agree', (p) => {
+    const v = bus({ id: 'B9', trip: OUT, seconds: 600, stopId: ANCHOR })
+    const m = p.resolve(AT_MID, DEP, routeWith(v), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+    expect(d.from_feed).toBe(false)
+    expect(all(p.render(client.document.createElement('div'), [m], {}), 'badge').length)
+      .toBeGreaterThan(0)
   })
 })

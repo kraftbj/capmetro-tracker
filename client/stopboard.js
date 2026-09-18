@@ -404,13 +404,29 @@
       var cov = d.coverage || {};
       if (cov.state === 'inbound' && cov.vehicle) {
         var busName = cov.vehicle.label || cov.vehicle.vehicle_id;
-        var where = cov.runs_ahead === 1 ? 'becomes this run'
+        /*
+         * "becomes this run" is a claim about a continuation and takes §4's
+         * hedge, exactly as the predictor line above does. This branch is
+         * reached when timingFor declined to make the bus a predictor — a
+         * successor with no usable deviation, or a realtime block_id the
+         * schedule does not match — so it is precisely the case where /route
+         * was stating as fact what /stops was calling a likelihood, about one
+         * bus, in one second. The other two readings are positions rather than
+         * continuations and claim nothing to hedge.
+         */
+        var covHedged = cov.runs_ahead === 1 &&
+          W.continuationHedged(cov.vehicle, d.trip && d.trip.id);
+        var where = cov.runs_ahead === 1
+          ? (covHedged ? 'likely becomes this run' : 'becomes this run')
           : cov.runs_ahead > 1 ? 'is ' + fmt.plural(cov.runs_ahead, 'run', 'runs') + ' away'
             /* Interlined: away on another route, so this route's list cannot count. */
             : 'is working this block';
-        row.appendChild(el('p', 'nextbus__sched', 'scheduled · bus ' + busName + ' ' + where));
+        row.appendChild(el('p', 'nextbus__sched' + (covHedged ? ' nextbus__sched--hedged' : ''),
+          'scheduled · bus ' + busName + ' ' + where +
+          (covHedged ? ' — the feed does not confirm this' : '')));
         row.appendChild(el('p', 'sr-only',
-          'No bus on this trip yet. Bus ' + busName + ' ' + where + '.'));
+          'No bus on this trip yet. Bus ' + busName + ' ' + where +
+          (covHedged ? '. The feed does not confirm this continuation' : '') + '.'));
       } else if (cov.state === 'overdue') {
         /*
          * The warning this whole path exists for. It asserts only what was observed —

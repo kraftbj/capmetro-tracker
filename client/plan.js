@@ -46,9 +46,13 @@
  * see out of the window is not the same news as one that is eight minutes away.
  *
  * The live side carries a CONFIDENCE, and it is not decoration. Contract §4
- * forbids stating a low-confidence continuation as fact, and every route 837 block
- * in the 2026-08-19 capture is low — so the hedge is the ordinary reading on one of
- * the three turnarounds this shipped for, not an edge case. It matters more here
+ * forbids stating a low-confidence continuation as fact, and the hedge is not a
+ * hypothetical branch: routes still report `low`, and the 837 fixture holds that
+ * value deliberately so this path is exercised. It is no longer what the real
+ * 2026-08-19 capture carries — the block-chaining fix found on that very route
+ * moved 2,791 continuations from `low` to `high`, and regenerating the capture now
+ * reports `high` for all twelve of 837's blocks. What survives is the rule, not the
+ * tally: an unconfirmed continuation is said as a likelihood. It matters more here
  * than on the rows band: the whole point of this card is answering "is a bus
  * actually coming for me" at a stop where none is visible, which is exactly where a
  * false certainty costs somebody a wait in the dark. Same wording as rows.js
@@ -56,11 +60,11 @@
  *
  * WHAT THIS FILE DOES NOT DECIDE
  *
- * Which departures are upcoming, in what order, and what a cancelled one does to
+ * Which departures are upcoming, in what order, and what a canceled one does to
  * the count are all stopboard.js's answers, reached through SB.upcoming(). They are
  * load-bearing and were paid for once: a departure is upcoming when its PREDICTED
  * arrival is still ahead, so a bus twenty minutes late stays listed until it has
- * actually been; and a cancelled trip is shown without consuming a slot, because a
+ * actually been; and a canceled trip is shown without consuming a slot, because a
  * kid waited at a stop for a bus that was never coming while the board said "no bus
  * reporting yet". This file adds the turnaround, the window and the link to that,
  * and restates none of it.
@@ -495,6 +499,14 @@
    * Block continuity is the only honest link here. Two trips sharing a stop and a
    * plausible gap is a guess; two trips sharing a block_id is the agency saying
    * one vehicle runs both.
+   *
+   * Bounded by how far back it will reach, because "same block" alone is not a
+   * layover. A block that touches this stop in the other direction in the
+   * morning, interlines away onto another route, and comes back for an afternoon
+   * outbound would otherwise name the morning leg: "Comes in on the 7:12a WB. No
+   * bus is reporting on that trip yet." under a 3:09p departure. W.coverageFor
+   * already refuses a claim across the same gap for the same reason, and the
+   * threshold is shared rather than copied.
    */
   function inboundLeg(dep, stopId, directionId, trip, arrivalSeconds) {
     if (!trip || !trip.block_id) return null;
@@ -504,6 +516,7 @@
       if (other[i].trip.block_id !== trip.block_id) continue;
       if (other[i].trip.id === trip.id) continue;
       if (other[i].seconds > arrivalSeconds) continue;
+      if (arrivalSeconds - other[i].seconds > W.INTERLINE_GAP_S) continue;
       if (!best || other[i].seconds > best.seconds) best = other[i];
     }
     return best;
@@ -512,7 +525,7 @@
   /*
    * Whether the leg that would bring this departure in has itself been called off.
    *
-   * A cancelled inbound leg used to be named exactly like a running one — "Comes
+   * A canceled inbound leg used to be named exactly like a running one — "Comes
    * in on the 10:20a SB. No bus is reporting on that trip yet." — and that
    * sentence means "it has not started", used here for "it is never running".
    * That is precisely the confusion cancellations were surfaced to remove, and it
@@ -520,7 +533,7 @@
    * bus is visible at the stop, so the inbound leg is the ONLY evidence a bus is
    * coming.
    *
-   * The whole-block case cannot reach here — the outbound would be cancelled too
+   * The whole-block case cannot reach here — the outbound would be canceled too
    * and decorate() returns before this — so what this covers is one leg of a block
    * called off on its own.
    *
@@ -688,55 +701,96 @@
      * link to our departure is the timetable's block_id rather than anything the
      * feed has confirmed. Contract section 4 forbids stating a low-confidence
      * continuation as fact, so which one answered is carried on the model and
-     * the copy hedges when it has to. On the 2026-08-19 capture every route 837
-     * block is `confidence: low`, so this is not a hypothetical branch.
+     * the copy hedges when it has to. Not a hypothetical branch: the 837 fixture
+     * carries `confidence: low` deliberately, to keep it exercised for the routes
+     * still reporting it. The real capture no longer does — see the header.
      */
-    var feeder = vehicle ? null : vehicleFeeding(route, trip.id);
+    /*
+     * ONE PREDICTOR SOURCE, AND ONE HEDGE.
+     *
+     * `d.predictor` is stopboard's answer to "which bus will run this", and it
+     * is the one /route prints. This file used to ask `vehicleFeeding` first and
+     * only defer to stopboard when the two happened to name the same vehicle —
+     * which sounds stricter and was not, because the two apply different filters
+     * and disagree about whether a bus is a predictor AT ALL. coverageFor
+     * matches the realtime block_id against the schedule's; vehicleFeeding
+     * applies no block filter. timingFor drops a predictor with no usable
+     * deviation; vehicleFeeding keeps it. In both, `d.predictor` came back null,
+     * the deferral could not fire, and this file stated the continuation as
+     * fact while /route named no bus at all — the inverse of the divergence the
+     * deferral was written to close, reached through the branch that was
+     * supposed to always hedge.
+     *
+     * The deferral was also arithmetic: `!d.predictor_hedged` expanded to the
+     * same expression as the local test it was meant to override, so it decided
+     * nothing in the cases where it did fire. Both halves are gone. Stopboard
+     * names the bus, W.continuationHedged grades it, and the two views cannot
+     * disagree because there is nothing left to disagree with.
+     */
+    var feeder = vehicle ? null : (d.predictor || vehicleFeeding(route, trip.id));
     var confidence = feeder && feeder.block ? feeder.block.confidence : null;
     /*
-     * ONE hedge, and when stopboard has spoken it is stopboard's.
-     *
-     * `d.predictor` is the same vehicle this file's `vehicleFeeding` finds — both are
-     * the feed's own block.next_trip — and `d.predictor_hedged` is the exact inverse of
-     * the judgement below. Computing it twice meant one departure could be called a
-     * likelihood on /stops and a fact on /route, from the same feed, in the same second.
-     * Deferring keeps the two views saying one thing.
-     *
-     * Deferred only when the two are talking about the SAME BUS. stopboard reads the
-     * hedge off the block's confidence; this file additionally requires the feed's
-     * next_trip to point at THIS trip, which is a stricter question and the one the
-     * turnaround narrative asks. A vehicle whose next_trip points somewhere else can still
-     * reach stopboard as a predictor by block order, and calling that feed-confirmed here
-     * would state as fact a continuation the feed never made. So: same bus, stopboard's
-     * answer; anything else, including the schedule-only fallback where only a block_id
-     * links the leg to our departure, is judged locally and hedges.
+     * Graded before the schedule-only fallback below, and that ordering is the
+     * rule rather than an accident: a vehicle found only by standing on the
+     * inbound leg has made no continuation claim for the feed to grade, so it
+     * stays hedged whatever its own block says about whatever it runs next.
      */
-    var confirmed = (d.predictor && feeder && d.predictor.vehicle_id === feeder.vehicle_id)
-      ? !d.predictor_hedged
-      : (!!feeder && confidence === 'high');
-    if (!feeder && !vehicle && leg) feeder = W.vehicleForTrip(route, leg.trip.id);
+    var confirmed = !!feeder && !W.continuationHedged(feeder, trip.id);
+    /*
+     * IS THE FEEDER ACTUALLY ON THAT LEG?
+     *
+     * `leg` and `feeder` are found by two different matchers that never compare
+     * notes: the leg is the schedule's latest opposite-direction arrival on this
+     * block, the feeder is whichever vehicle the FEED says runs our trip next.
+     * Normally the same trip. Not always — a block whose immediate predecessor
+     * does not serve this stop in the opposite direction makes inboundLeg reach
+     * back past it while next_trip names the newer one, and route 4 publishing
+     * six patterns in one direction is exactly that condition.
+     *
+     * Fusing them anyway printed a sentence that was false as a statement of
+     * fact ("Bus B1 brings it in on the 3:04p WB") and an ETA that was one
+     * trip's scheduled arrival plus a deviation measured on another. So the leg
+     * is only named as the trip bringing this bus in when it IS the trip this
+     * bus is on; otherwise the bus is still the answer and the wording that
+     * already exists for it — "runs this trip next; it is finishing another one
+     * first" — is the honest one, with no ETA, because there is no leg to time.
+     *
+     * The fallback below is on the leg by construction, which is why it records
+     * that rather than re-deriving it.
+     */
+    var feederOnLeg = !!(feeder && leg && feeder.trip &&
+      String(feeder.trip.trip_id) === String(leg.trip.id));
+    if (!feeder && !vehicle && leg) {
+      feeder = W.vehicleForTrip(route, leg.trip.id);
+      feederOnLeg = !!feeder;
+    }
+    /* The leg this card may speak of: none when a feeder is named and is
+       demonstrably somewhere else. With no feeder at all the leg still stands
+       on its own — "Comes in on the 10:14a WB. No bus is reporting on it yet." */
+    var shownLeg = feeder ? (feederOnLeg ? leg : null) : leg;
 
     var inbound = null;
-    if (leg || feeder) {
+    if (shownLeg || feeder) {
       var fView = feeder ? adhLib.view(feeder, route && route.staleness) : null;
-      var fSched = leg ? dep.service_day_start_epoch + leg.seconds : null;
+      var fSched = shownLeg ? dep.service_day_start_epoch + shownLeg.seconds : null;
       var fLate = fView && fView.seconds !== null && fView.seconds !== undefined ? fView.seconds : null;
       var fDue = fSched === null ? null : (fLate === null ? fSched : fSched + fLate);
       inbound = {
-        trip: leg ? leg.trip : null,
+        trip: shownLeg ? shownLeg.trip : null,
         scheduled_at: fSched,
         due_at: fDue,
         seconds_until: fDue === null ? null : fDue - now,
         vehicle: feeder,
         view: fView,
         at_stop: atStop(feeder, entry.stop_id),
-        canceled: legCanceled(leg, route),
+        canceled: legCanceled(shownLeg, route),
         confidence: confidence,
         confirmed: confirmed,
         /* The scheduled leg names the direction best. Without one, the feeder's
          * own trip still does — and with neither there is no direction to name,
          * which the copy has to handle rather than print an empty phrase. */
-        direction_tag: leg ? fmt.directionTag(leg.trip.headsign, entry.direction_id === 0 ? 1 : 0)
+        direction_tag: shownLeg
+          ? fmt.directionTag(shownLeg.trip.headsign, entry.direction_id === 0 ? 1 : 0)
           : feeder && feeder.trip ? fmt.directionTag(feeder.trip.headsign, feeder.trip.direction_id)
             : null
       };
@@ -862,12 +916,33 @@
       return box;
     }
     line.appendChild(el('span', 'stopdep__until', W.untilText(m.seconds_until)));
-    if (m.view && !m.suppressed) line.appendChild(adhLib.badge(m.view, { small: !isFirst }));
+    /*
+     * NO BADGE ON A FEED-SOURCED ROW — stopboard's rule, for stopboard's reason,
+     * which this file had not been applying to the same models.
+     *
+     * The badge is only honest while it is the same number as the two times: an
+     * extrapolated row IS scheduled plus this bus's deviation, so a reader can
+     * subtract. A row timed from the feed's own prediction for this stop is not,
+     * and across the corpus 325 rendered rows would show a badge and a time
+     * pointing in OPPOSITE directions — "3:12p, Scheduled 3:11p" beside a "+10m"
+     * late badge, because the bus is ten minutes down overall and the feed models
+     * it recovering to one minute by here. /route dropped the badge there; /stops
+     * kept it, so one departure wore two readings on two screens of one board.
+     *
+     * What goes with it is the bare signed number, not the information: the
+     * scheduled time is then printed always, because it becomes the only thing
+     * saying how late the bus is HERE, and the bus's overall state survives as a
+     * phrase in boardingText(), where a word can carry the scope a number cannot.
+     */
+    if (m.view && !m.suppressed && !m.from_feed) {
+      line.appendChild(adhLib.badge(m.view, { small: !isFirst }));
+    }
     box.appendChild(line);
 
     if (m.suppressed) {
       box.appendChild(el('p', 'stopdep__sched', 'Scheduled · lateness unavailable'));
-    } else if (m.predicted_at !== null && m.predicted_at !== m.scheduled_at) {
+    } else if (m.from_feed ||
+      (m.predicted_at !== null && m.predicted_at !== m.scheduled_at)) {
       box.appendChild(el('p', 'stopdep__sched', 'Scheduled ' + fmt.clock(m.scheduled_at)));
     }
 
@@ -953,7 +1028,12 @@
         : 'No bus is reporting on this trip yet.';
     }
     if (m.boarding === 'enroute') {
-      return busName + ' is on this trip now.';
+      /* On a feed-sourced row the badge is gone (see departureLine), so the bus's
+       * overall state is said here instead — as a word, which can carry the scope
+       * "+10m" beside a one-minute-late arrival cannot. */
+      return busName + ' is on this trip now' +
+        (m.from_feed && m.view && !m.suppressed ? ', running ' + m.view.label + ' overall' : '') +
+        '.';
     }
     return model && model.is_turnaround
       ? 'No bus is reporting on this trip yet, and the schedule does not say which one brings it in.'
@@ -1068,7 +1148,7 @@
     /*
      * The summary mirrors the CARD, which lists a cancellation and then the buses
      * that are still running. Taking only the first entry meant that when the
-     * soonest departure was cancelled, a screen-reader user heard "cancelled" and
+     * soonest departure was canceled, a screen-reader user heard "canceled" and
      * nothing else — the half of the message that sends someone home, while a
      * sighted reader saw the two running departures underneath it.
      */
@@ -1087,7 +1167,20 @@
     var m = running[0];
     var when = (canceled.length ? 'The next bus running is due ' : 'Next bus due ') +
       fmt.clockSpoken(m.due_at) + ', ' + W.untilText(m.seconds_until) + '. ';
-    var late = m.view && !m.suppressed ? m.view.spoken + '. ' : '';
+    /*
+     * The same split the printed row makes. "Ten minutes late" spoken straight
+     * after "due 3:12 PM, in 21 minutes" over a 3:11p scheduled time is the
+     * screen-reader version of the contradiction departureLine() avoids, so a
+     * feed-sourced row scopes the state to the bus and says the scheduled time.
+     */
+    var late = '';
+    if (m.view && !m.suppressed) {
+      late = m.from_feed
+        ? 'Scheduled ' + fmt.clockSpoken(m.scheduled_at) + '. ' +
+          (m.vehicle ? 'Bus ' + (m.vehicle.label || m.vehicle.vehicle_id) : 'The bus') +
+          ' is running ' + m.view.label + ' overall. '
+        : m.view.spoken + '. ';
+    }
     var caveat = m.inbound && m.inbound.vehicle && !m.inbound.confirmed
       ? ' ' + UNCONFIRMED_NOTE : '';
     return said + when + late + boardingText(m, model) + caveat;

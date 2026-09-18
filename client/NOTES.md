@@ -423,7 +423,7 @@ Three published facts answer it, and the card says which one it is using:
 
 | What is known | The card says |
 |---|---|
-| The trip is cancelled | "CANCELED · CapMetro has canceled this trip. No bus is coming for it." |
+| The trip is canceled | "CANCELED · CapMetro has canceled this trip. No bus is coming for it." |
 | A vehicle is on the outbound trip and `STOPPED_AT` the stop | "Bus 2867 is at the stop now." |
 | A vehicle is on the inbound leg and `STOPPED_AT` the stop | "Bus 2867 is standing at this stop now, in on the 3:04p WB, and goes back out as this trip." |
 | A vehicle is running the inbound leg elsewhere | "Bus 2867 brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds late." |
@@ -445,18 +445,21 @@ this board exists to prevent, inverted.
 contract §4, and the same hedge `rows.js` `continuationText()` makes: "Bus 8021
 *likely* brings it in on the 10:20a SB". The word is on every line; what it means
 is said once per card, because three identical caveats in a row bury the times the
-card exists to show. That is not an edge case here. Every route 837 block in the
-2026-08-19 capture is `confidence: low`, so it is the ordinary reading on one of
-the three turnarounds this shipped for, and it matters more on this card than on
-the rows band — the whole point of a turnaround card is answering "is a bus
+card exists to show. That is not a hypothetical branch: routes still report
+`confidence: low`, and the 837 fixture holds that value deliberately to keep the
+hedge exercised. It is no longer what the real 2026-08-19 capture carries — the
+block-chaining fix moved 2,791 continuations from `low` to `high`, 837's twelve
+blocks among them — so the justification is the rule, not the tally. It matters
+more on this card than on the rows band — the whole point of a turnaround card is
+answering "is a bus
 actually coming for me" at a stop where none is visible, which is exactly where a
 false certainty costs somebody a wait in the dark.
 
 **Cancellations, ranking and the grace window are `stopboard.js`'s**, not restated
 here: `plan.js` calls `stopboard.upcoming()` and decorates each departure with the
 turnaround facts. So a departure is upcoming when its *predicted* arrival is still
-ahead, a cancelled one is listed and does not consume one of the three slots, and a
-cancelled trip gets no continuation reasoning at all — "Bus 8021 brings it in"
+ahead, a canceled one is listed and does not consume one of the three slots, and a
+canceled trip gets no continuation reasoning at all — "Bus 8021 brings it in"
 printed beside CANCELED is the contradiction this board exists to avoid. Those
 rules were paid for once, when a kid waited for a bus that was never coming.
 
@@ -464,15 +467,15 @@ The inbound leg gets the same check. "Comes in on the 3:04p WB. No bus is
 reporting on that trip yet" means *it has not started*, and using it for *it is
 never running* is the confusion cancellations exist to remove — worst here, since
 the inbound leg is the only evidence a bus is coming at a stop where none is
-visible. The whole-block case never reaches that code (the outbound is cancelled
+visible. The whole-block case never reaches that code (the outbound is canceled
 too, and `decorate()` returns first), so what it covers is one leg of a block
 called off on its own. The real capture only cancels whole blocks, so the test
 edits a fixture rather than pretending the case is in the data.
 
 **The screen-reader summary mirrors the card, not just its first row.** The card
 lists a cancellation and then the buses still running; taking only the first entry
-meant that when the soonest departure was cancelled a screen-reader user heard
-"cancelled" and nothing else — the half of the message that sends someone home.
+meant that when the soonest departure was canceled a screen-reader user heard
+"canceled" and nothing else — the half of the message that sends someone home.
 
 ### A cancellation announced after the page loaded
 
@@ -504,14 +507,28 @@ geometry. It is also compared against `start_time` rather than a `stop_sequence`
 of 1, because sequence numbers belong to whichever pattern a trip runs and route 4
 publishes six patterns in one direction.
 
-### What is deliberately not computed
+### What this used to refuse, and no longer does
 
-When the inbound bus is nine minutes late, the outbound departure it becomes will
-almost certainly leave late too. The board does not print that number. Both facts
-are shown next to each other and the subtraction — which is one subtraction — is
-left to a reader who can see where it came from. A predicted departure derived from
-another trip's lateness is an invention with a plausible face, and nothing on this
-board invents a value.
+This section used to say that when the inbound bus is nine minutes late, the board
+does not print what that makes the outbound departure — that both facts are shown
+next to each other and the subtraction is left to the reader, because a departure
+time derived from another trip's lateness is an invention with a plausible face.
+
+v0.6.1.0 settled that the other way, for the whole board rather than for this view.
+A route 837 rider at 5th/Guadalupe was shown the 17:33 as their next bus while
+their actual bus was ten minutes out, because the 17:03 had no predicted time and
+the past-time filter dropped it. A pending run is now timed as its booked time plus
+the deviation of the bus that will run it — measured against a live capture at 67
+seconds of error — in `stopboard.upcoming()`, which is where this view gets its
+departures. `stopboard.js`'s own note on where an arrival time comes from is the
+long version, including why the extrapolation is still needed for the 5,337
+departures the feed's predictions do not cover.
+
+So the refusal was not merely overtaken, it was unenforceable: the number arrives
+on the model whether this view wants it or not, and printing the booked time here
+while `/route` printed the predicted one would be one departure wearing two times
+on two screens of one board. What carries the uncertainty now is the hedge, and
+there is exactly one of it — `plan.js`'s `confirmed`.
 
 ### Verified
 
@@ -528,7 +545,7 @@ because CLAUDE.md says so and because the fixture is route 4 only.
 - From a `file://` URL the cards say the schedule is fetched rather than bundled
   and that this view needs the board served — not "loading", which would be a lie
   with a spinner attached.
-- The cancelled 10:13 northbound at Republic Square renders as CANCELED with no
+- The canceled 10:13 northbound at Republic Square renders as CANCELED with no
   bus attributed to it, and does not displace a running departure from the three.
 
 Not verified on real hardware.

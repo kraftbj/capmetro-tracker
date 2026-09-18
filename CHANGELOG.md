@@ -61,8 +61,9 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   the inbound leg and, when one is reporting, the bus running it: "Bus 2867
   brings it in on the 3:04p WB — due here in 4 minutes, running 35 seconds
   late." A continuation the feed has not confirmed is said as a likelihood, per
-  contract section 4; every route 837 block in the 2026-08-19 capture is
-  `confidence: low`, so that is the ordinary case, not an edge one.
+  contract section 4. The 837 fixture holds `confidence: low` deliberately so that
+  path stays exercised for the routes still reporting it; the real 2026-08-19
+  capture reports `high` for all twelve of its blocks since the block-chaining fix.
 - The plan rides in the URL fragment, which browsers never send, so the access
   log never carries the stops. `index.html` now also declares
   `referrer: no-referrer` so that holds where the vhost does not reach — a board
@@ -298,6 +299,51 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **One departure could be a likelihood on the stops view and a fact on the route
+  board, in the same second, about the same bus.** Contract section 4 — a
+  continuation the build could only grade `low` is said as a likelihood or not at
+  all — was written out three times: once for the route board's predictor line,
+  once for its coverage line, and once in the stops view's own copy. Three copies
+  of one rule is how they came apart. `/stops` had the stricter test and no
+  visibility into the two filters that make the route board drop a bus as a
+  predictor, so it stated as fact what `/route` was hedging; the route board's
+  coverage line, reached in exactly those cases, hedged nothing at any
+  confidence. There is now one predicate and both views ask it. It also reads the
+  grade as being about the trip the feed NAMED: a bus reached by block order,
+  whose feed says it runs something else next, is hedged rather than confirmed by
+  a grade that was never about this trip.
+- **A stop card showed an adherence badge that pointed the other way from its own
+  times.** The badge is honest only while it is the same number as the clock and
+  the scheduled time. On a departure timed from the feed's own prediction for that
+  stop it is not — the bus is ten minutes down overall and the feed models it
+  recovering to one by here — and across the corpus 325 rendered rows would show a
+  badge and a time disagreeing. The route board dropped the badge on those rows;
+  the stops view was rendering the same models and kept it. It now makes the same
+  split: no badge, the scheduled time always printed because it is then the only
+  thing saying how late the bus is HERE, and the bus's overall state said as a
+  phrase, which can carry a scope a signed number cannot.
+- **A stop card could name an inbound trip the bus was not on, and time the
+  departure from it.** The scheduled leg and the live bus were found by two
+  matchers that never compared notes, then merged into one sentence: "Bus B1
+  brings it in on the 3:04p WB — due here in 14 minutes, running 10 minutes late"
+  for a bus on a different trip, with an ETA built from one trip's schedule and
+  another's deviation. The leg is now named only when the feed puts the bus on it;
+  otherwise the bus is still named and the card says it is finishing another trip
+  first, with no ETA, because there is no leg to time. The same search is also
+  bounded by the interline gap the route board already uses, so it can no longer
+  reach back to a morning leg under an afternoon departure.
+- **Keeping a second link rewrote the link you could share.** Accepting one
+  child's stops while another child's were already kept merged the two and wrote
+  the union back into the address bar and the "Link to these stops" field — so the
+  link handed back to the sender described stops they never had. Storage holds the
+  merged set; the link goes on describing the link.
+- **A `?plan=` in the address bar could outlive the scrub that exists to remove
+  it.** The query was only moved into the fragment when it was the parameter the
+  plan had been read FROM, so one that failed to parse, or one arriving beside a
+  fragment plan that won, was left in place — and re-sent in the request line on
+  every reload for the life of the tab. Both are now scrubbed, the fragment is
+  left alone when there is nothing to promote, and `plan` is a key the address bar
+  will not carry back.
 - **`install.sh` reported every PHP extension missing, on some hosts, every time.**
   `php -m | grep -qix "$ext"` is a race under `set -o pipefail`: `grep -q` exits the moment
   it matches, `php` still has output to write, takes SIGPIPE, and pipefail promotes its status
@@ -933,7 +979,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   default and the only bundled route. The fixture is no longer treated as a
   statement about today, and a document is now swapped out only when its
   replacement has actually arrived rather than deleted before the request.
-- **A cancelled inbound leg was named as the bus bringing a turnaround departure
+- **A canceled inbound leg was named as the bus bringing a turnaround departure
   in**, with "no bus is reporting on that trip yet" -- the sentence that means
   "it has not started" used for "it is never running". That is the confusion
   cancellations were surfaced to remove, on the one card where the inbound leg is
@@ -941,7 +987,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   `watch.isCanceled()` gives every other surface, so a cancellation announced
   after the page loaded reaches it too.
 - **The screen-reader summary announced only the cancellation** when the soonest
-  departure on a card was cancelled, hiding the buses that were still running.
+  departure on a card was canceled, hiding the buses that were still running.
   It now mirrors the card.
 - Two more bare object lookups reachable from a link: a window name resolving
   through `Object.prototype` rendered `NaN:NaNp-NaN:NaNp` permanently, and a

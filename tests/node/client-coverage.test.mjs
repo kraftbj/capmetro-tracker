@@ -201,6 +201,58 @@ describe('what the rider actually reads', () => {
     expect(text).toContain('2 runs away')
   })
 
+  /*
+   * "BECOMES THIS RUN" IS A CONTINUATION CLAIM AND TAKES SECTION 4'S HEDGE.
+   *
+   * This branch is reached exactly when timingFor declined to make the bus a
+   * predictor — a successor with no usable deviation, or a realtime block_id the
+   * schedule does not match — so it was /route's way of stating as fact the same
+   * continuation /stops was calling a likelihood, about one bus, in one second.
+   * Both now ask W.continuationHedged, which is the only place the rule lives.
+   */
+  const covering = (block) => ({
+    state: 'inbound', runs_ahead: 1,
+    vehicle: { vehicle_id: '2810', label: '2810', block: block },
+  })
+
+  t('states the continuation plainly when the feed named THIS trip and graded it high', (cmb) => {
+    const text = draw(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'T' } })))
+    expect(text).toContain('becomes this run')
+    expect(text).not.toContain('likely')
+    expect(text).not.toContain('does not confirm')
+  })
+
+  t('hedges a continuation the build could only grade low', (cmb) => {
+    const text = draw(cmb, row(covering({ confidence: 'low', next_trip: { trip_id: 'T' } })))
+    expect(text).toContain('likely becomes this run')
+    expect(text).toContain('does not confirm')
+  })
+
+  /* The grade is about the trip next_trip NAMES. A bus reached by block order,
+   * whose feed says it runs something else next, has been confirmed onto that
+   * something else — reading its grade as proof of ours is reading a number
+   * about one claim as proof of another. */
+  t('hedges a high grade that is about a different trip', (cmb) => {
+    const text = draw(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'SOMETHING-ELSE' } })))
+    expect(text).toContain('likely becomes this run')
+  })
+
+  t('hedges when the feed has named no continuation at all', (cmb) => {
+    expect(draw(cmb, row(covering({ confidence: 'high', next_trip: null })))).toContain('likely')
+    expect(draw(cmb, row(covering(null)))).toContain('likely')
+  })
+
+  /* Two runs away is a position, not a claim about this trip, so there is
+   * nothing to hedge and the word would only add noise. */
+  t('does not hedge a bus that is merely further down the block', (cmb) => {
+    const text = draw(cmb, row({
+      state: 'inbound', runs_ahead: 2,
+      vehicle: { vehicle_id: '2621', label: '2621', block: { confidence: 'low', next_trip: null } },
+    }))
+    expect(text).toContain('2 runs away')
+    expect(text).not.toContain('likely')
+  })
+
   t('distinguishes a pull-out with no assignment from a bus that is late', (cmb) => {
     const text = draw(cmb, row({ state: 'unassigned', vehicle: null, runs_ahead: null }))
     expect(text).toContain('no bus assigned to it yet')

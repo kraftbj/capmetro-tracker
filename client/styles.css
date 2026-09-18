@@ -995,7 +995,10 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
  * the hedge somewhere a glance can catch. The sentence says it in words too --
  * this is the redundant channel, per the color-is-never-alone rule in D1.
  */
-.nextbus__bus--hedged {
+/* One treatment for one meaning: this claim is hedged. The predictor line and
+   the coverage line both make a continuation claim and both wear it. */
+.nextbus__bus--hedged,
+.nextbus__sched--hedged {
   padding-left: 8px;
   border-left: 2px dashed var(--ink-dim);
 }

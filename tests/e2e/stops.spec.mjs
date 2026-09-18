@@ -202,6 +202,45 @@ test.describe('the plan never reaches the server', () => {
      * which link to share next time. */
     await expect(page.locator('.offer')).toContainText('web address')
   })
+
+  /*
+   * The two shapes that used to keep leaking.
+   *
+   * The scrub ran only when the query was the parameter the plan was read FROM.
+   * A '?plan=' the parser rejected, and a '?plan=' arriving beside a '#plan='
+   * that won, both took the early exit and stayed in the address bar — and
+   * because keptSearch() does not own 'plan', every later syncUrl() wrote the
+   * query straight back out. Nothing on screen says it is still there, so the
+   * only thing that can catch it is a test that reads the bar.
+   *
+   * An unreadable plan is not an unreadable list of stops. '2;4.1.6243.all' is
+   * refused for its format digit alone and still names the stop in the clear.
+   */
+  test('takes an unreadable plan out of the query, and leaves the rest of it', async ({ page }) => {
+    await page.goto('/turnaround/index.html?plan=2%3B4.1.6243.all&ref=sms')
+    await expect(page.locator('.viewtabs__btn').first()).toBeVisible()
+
+    const url = new URL(page.url())
+    expect(url.search, 'a plan the parser refused is still a legible stop id')
+      .not.toContain('plan')
+    expect(url.search, 'the scrub took an unrelated parameter with it').toContain('ref=sms')
+    expect(url.hash, 'a plan that does not parse must not be promoted to the fragment')
+      .not.toContain('plan')
+  })
+
+  test('takes the query plan out even when the fragment plan is the one that won', async ({ page }) => {
+    await page.goto(
+      `/turnaround/index.html?plan=${encodeURIComponent('1;837.1.2112.all')}#plan=${PLAN}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const url = new URL(page.url())
+    expect(url.search, 'the losing plan stayed in the query, where it is sent').not.toContain('plan')
+    /* And the winner is untouched. Promoting the query plan here would replace
+     * the plan on screen with the one that lost. */
+    expect(decodeURIComponent(url.hash)).toBe(`#plan=${PLAN}`)
+    await expect(page.locator('.stopcard').filter({ hasText: 'Campbell/5th' })).toBeVisible()
+    await expect(page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })).toHaveCount(0)
+  })
 })
 
 /*
@@ -259,7 +298,7 @@ test.describe('a resolved route is fetched once, not once per frame', () => {
   })
 })
 
-test.describe('a cancelled trip on a stops card', () => {
+test.describe('a canceled trip on a stops card', () => {
   /* Republic Square: route 837 turns around here, and CapMetro canceled the
    * 10:13 northbound in the 2026-08-19 capture. */
   const CANCELED = '/turnaround/index.html#plan=1;837.1.2112.all'
@@ -500,6 +539,51 @@ test.describe('the link and the screen stay in step', () => {
     await page.reload()
     await expect(page.locator('.stopcard')).toHaveCount(1)
     await expect(page.getByText('Simond SB')).toHaveCount(0)
+  })
+
+  /*
+   * And the rest of the query survives that rewrite.
+   *
+   * linkFor() strips '?' as well as '#' from whatever base it is given, which is
+   * right for a link somebody is about to share and wrong for the address bar.
+   * Handing it location.href dropped ?stop= and ?state= on every edit, and the
+   * loss was permanent: the next syncUrl() reads the search that is now empty.
+   * keptSearch() preserves those keys everywhere else in the file.
+   */
+  test('an edit does not drop the rest of the query from the address bar', async ({ page }) => {
+    await page.goto(`${LINK.split('#')[0]}?ref=sms${LINK.slice(LINK.indexOf('#'))}`)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    const url = new URL(page.url())
+    expect(url.search, 'the edit rewrote the bar without the query').toContain('ref=sms')
+    expect(url.hash, 'and the fragment still describes what is on screen').not.toContain('6293')
+  })
+
+  /*
+   * The second lock on contract section 9. planFromLocation() takes 'plan' out of
+   * the query on the way in; PATH_OWNED makes sure no repaint can put it back,
+   * whatever reaches the address bar afterwards.
+   */
+  test('a plan pushed into the query after boot is not re-emitted by a repaint', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    /* Straight past the boot scrub, the way a browser extension or a hand-edited
+     * URL would put it there. */
+    await page.evaluate(() => {
+      window.history.replaceState(null, '', `${window.location.pathname}?plan=1;800.1.6293.am${window.location.hash}`)
+    })
+    expect(new URL(page.url()).search).toContain('plan')
+
+    /* Any interaction that repaints the URL. */
+    await page.getByRole('button', { name: 'All buses' }).click()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('All buses')
+
+    expect(new URL(page.url()).search, 'a repaint carried the plan back into the query')
+      .not.toContain('plan')
   })
 })
 
@@ -1066,5 +1150,32 @@ test.describe('keeping a second link', () => {
     await page.reload()
     await expect(page.locator('.stopcard').first()).toBeVisible()
     await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  /*
+   * ADDING TO YOUR BOARD MUST NOT REWRITE THE LINK YOU WERE SENT.
+   *
+   * Keeping merges the arriving stops into the ones already on this phone, and
+   * the merged set used to go straight back into the fragment and into the
+   * "Link to these stops" field. So a parent who kept one child's stops, then
+   * accepted the other child's link, was holding a link describing BOTH
+   * children — and would hand it back to the sender, who never had the first
+   * set. Contract section 9 calls the plan a description of somebody's routine;
+   * this is the one path that silently widened whose.
+   */
+  test('the link you can share still describes the link you were sent', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    await page.goto(SECOND)
+    await page.getByRole('button', { name: 'Add to this phone' }).click()
+    /* The board really did merge — otherwise this proves nothing about sharing. */
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    const shared = await page.locator('.share__field').inputValue()
+    expect(shared, 'the shared link carries the second child\'s stop').toContain('800.1.6293')
+    expect(shared, "the shared link picked up the first child's stop").not.toContain('4.1.6243')
+    expect(new URL(page.url()).hash, 'and the address bar is the same link')
+      .not.toContain('4.1.6243')
   })
 })

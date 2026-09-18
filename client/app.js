@@ -194,7 +194,17 @@
      * `declined` is the set of stops the reader has already said no to, not a
      * boolean about this page load — see adoptPlan().
      */
-    plan: { entries: null, saved: false, offer: null, fromQuery: false, fromLink: false,
+    /*
+     * `entries` is what the BOARD shows; `linkEntries` is what the LINK carried.
+     * They are the same until a second link is kept, and then they must not be:
+     * keeping merges the arriving stops into the ones already on this phone, and
+     * writing that union back into the fragment turned the address bar and the
+     * "Link to these stops" field into a description of somebody else's board
+     * too — stops the person who sent the first link never had. Storage holds
+     * the union; the link keeps describing the link. Contract section 9 is why
+     * this is worth a second field rather than a comment.
+     */
+    plan: { entries: null, linkEntries: null, saved: false, offer: null, fromQuery: false, fromLink: false,
       declined: null, storageFailed: false },
     /*
      * The chain editor builds forwards: `legs` are the ones already fixed, `start`
@@ -745,8 +755,8 @@
    */
   function planFromLocation() {
     var found = global.CMB.plan.fromLocation(global.location);
-    if (!found) return null;
-    if (found.fromQuery) rewriteQueryToFragment(found.raw);
+    if (found && found.fromQuery) rewriteQueryToFragment(found.raw);
+    else dropPlanFromQuery();
     return found;
   }
 
@@ -761,11 +771,20 @@
   function syncFragment() {
     if (!state.plan.fromLink) return;
     if (!global.history || typeof global.history.replaceState !== 'function') return;
-    var entries = state.plan.entries || [];
+    var entries = state.plan.linkEntries || [];
     try {
-      global.history.replaceState(null, '', entries.length
-        ? global.CMB.plan.linkFor(entries, global.location.href)
-        : global.location.pathname + global.location.search);
+      /*
+       * Built here rather than through linkFor(), which strips '?' as well as
+       * '#' from whatever base it is handed. Passing location.href to it wrote
+       * the address bar back without the query, so removing a stop silently
+       * dropped ?stop= and ?state= — and the loss was permanent, because the
+       * next syncUrl() reads the search that is now empty. The empty-entries
+       * branch below always kept the query; the two halves of one function
+       * disagreed about it.
+       */
+      global.history.replaceState(null, '',
+        global.location.pathname + keptSearch() +
+        (entries.length ? '#plan=' + global.CMB.plan.encode(entries) : ''));
       if (!entries.length) state.plan.fromLink = false;
     } catch (e) {
       /* Some browsers refuse replaceState on a file:// URL. The screen is still
@@ -773,18 +792,62 @@
     }
   }
 
+  /*
+   * The query with any 'plan' key taken out, without its leading '?'.
+   *
+   * The key is compared decoded, because that is how a browser reads it: a
+   * '?%70lan=' is a plan parameter and is sent to the server as one. Decoding
+   * can throw on a half-written escape, so a key that will not decode is
+   * compared raw rather than allowed to take the boot path down with it.
+   */
+  function searchWithoutPlan() {
+    return String(global.location.search || '').replace(/^\?/, '')
+      .split('&')
+      .filter(function (kv) {
+        if (!kv) return false;
+        var key = kv.split('=')[0];
+        try { key = decodeURIComponent(key); } catch (e) { /* compared raw */ }
+        return key !== 'plan';
+      })
+      .join('&');
+  }
+
   function rewriteQueryToFragment(raw) {
     if (!global.history || typeof global.history.replaceState !== 'function') return;
-    var search = (global.location.search || '').replace(/^\?/, '')
-      .split('&')
-      .filter(function (kv) { return kv && kv.split('=')[0] !== 'plan'; })
-      .join('&');
+    var search = searchWithoutPlan();
     try {
       global.history.replaceState(null, '',
         global.location.pathname + (search ? '?' + search : '') + '#plan=' + raw);
     } catch (e) {
       /* Some browsers refuse replaceState on a file:// URL. The plan still
        * renders; only the tidy-up is lost. */
+    }
+  }
+
+  /*
+   * Take 'plan' out of the query and leave the rest of the URL, fragment
+   * included, exactly as it was.
+   *
+   * This is the case where there is nothing to promote. Either the query plan
+   * does not parse, or a fragment plan already won it — and writing '#plan='
+   * here would replace the plan on screen with the one that lost. Both used to
+   * skip the scrub entirely, and because keptSearch() does not own 'plan',
+   * every later syncUrl() wrote the query straight back out. An unreadable
+   * plan is still a legible list of somebody's stops, sent again on every
+   * reload and carried by every re-share of the address bar.
+   */
+  function dropPlanFromQuery() {
+    if (!global.history || typeof global.history.replaceState !== 'function') return;
+    var raw = String(global.location.search || '').replace(/^\?/, '');
+    if (!raw) return;
+    var search = searchWithoutPlan();
+    if (search === raw) return;
+    try {
+      global.history.replaceState(null, '', global.location.pathname +
+        (search ? '?' + search : '') + (global.location.hash || ''));
+    } catch (e) {
+      /* Some browsers refuse replaceState on a file:// URL. The screen is
+       * still right; only the address bar keeps the query. */
     }
   }
 
@@ -804,6 +867,7 @@
 
     if (link) {
       state.plan.entries = link.entries;
+      state.plan.linkEntries = link.entries;
       state.plan.fromQuery = link.fromQuery;
       state.plan.saved = !!(saved && global.CMB.plan.sameSet(saved, link.entries));
       /*
@@ -826,11 +890,13 @@
         ? null : link.entries;
     } else if (saved) {
       state.plan.entries = saved;
+      state.plan.linkEntries = null;
       state.plan.saved = true;
       state.plan.offer = null;
       state.plan.fromQuery = false;
     } else {
       state.plan.entries = null;
+      state.plan.linkEntries = null;
       state.plan.saved = false;
       state.plan.offer = null;
       state.plan.fromQuery = false;
@@ -1463,7 +1529,14 @@
    * Everything else is kept verbatim. ?state= in particular is how any
    * interaction state is reached, and it has no path spelling.
    */
-  var PATH_OWNED = { view: 1, route: 1, dir: 1, bus: 1 };
+  /*
+   * 'plan' is here for the opposite reason to the other four: the FRAGMENT owns
+   * it, not the path. The scrub in planFromLocation() takes it out of the query
+   * on the way in, and this makes sure nothing can put it back — a query key
+   * that is never kept cannot be re-emitted by a repaint, whatever reaches the
+   * address bar later. Contract section 9 is the reason it gets a second lock.
+   */
+  var PATH_OWNED = { view: 1, route: 1, dir: 1, bus: 1, plan: 1 };
 
   function keptSearch() {
     var raw = String(global.location.search || '').replace(/^\?/, '');
@@ -1971,9 +2044,12 @@
       offer: state.plan.offer,
       cameFromQuery: state.plan.fromQuery,
       saved: state.plan.saved,
-      link: entries.length
-        ? global.CMB.plan.linkFor(entries, global.location.href)
-        : null,
+      /* The link that arrived, not the board it was merged into — same reason
+         as syncFragment(). Falls back to what is on screen when this view was
+         not reached by a link at all, which is the ordinary saved-stops case. */
+      link: (function (shared) {
+        return shared.length ? global.CMB.plan.linkFor(shared, global.location.href) : null;
+      })(state.plan.linkEntries || entries),
       storageFailed: state.plan.storageFailed,
       /* What is already on the phone, so the offer can say so rather than
        * quietly deciding what happens to it. */
@@ -2063,6 +2139,13 @@
           return;
         }
         state.plan.entries = left;
+        /* The link describes the same stops minus the one just removed, or the
+           fragment would restore it on the next load. */
+        if (state.plan.linkEntries) {
+          state.plan.linkEntries = state.plan.linkEntries.filter(function (e) {
+            return global.CMB.plan.keyFor(e) !== key;
+          });
+        }
         if (state.plan.offer) state.plan.offer = state.plan.entries;
         syncFragment();
         render();
@@ -2531,7 +2614,11 @@
    * about which routes are still worth believing.
    */
   function liveRouteMap() {
-    var map = {};
+    /* Null-prototype for the same reason as every other route-id-keyed map in
+     * this file: a route id of '__proto__' would set this object's prototype on
+     * assignment rather than becoming an entry, and chain resolution reads the
+     * result by route id. */
+    var map = Object.create(null);
     var age = function (d, id) {
       if (!d) return d;
       var st = agedStaleness(d, id);

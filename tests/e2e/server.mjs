@@ -225,7 +225,17 @@ const STOPS_DEPARTURES = {
  * the session — and must not ask for it on every repaint while doing so, which
  * is how the fetch-and-render loop this suite guards against would come back.
  */
-const YESTERDAY_ROUTE = '7'
+/*
+ * Not a real route id, for the reason the 837 scoping below records: a synthetic
+ * answer keyed by a number CapMetro also uses shadows the real thing. This used
+ * to be '7' — one of the six watched routes, and the one CLAUDE.md names as the
+ * source of both bugs the 2026-08-19 QA found — and it fires before any scenario
+ * check, so every scenario's route 7 schedule was route 4's trim relabelled and
+ * dated to a service day that has ended. Latent rather than failing, because no
+ * spec asks this server for route 7's schedule today. An id no agency issues
+ * cannot go latent again, which is the same guarantee `flaky*` already has.
+ */
+const YESTERDAY_ROUTE = 'stale-day'
 
 /*
  * A route whose schedule loads exactly once; every request after that is a 500.

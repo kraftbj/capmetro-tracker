@@ -343,6 +343,38 @@
    */
   var INTERLINE_GAP_S = 5400;
 
+  /*
+   * THE ONE PLACE THAT DECIDES WHETHER A CONTINUATION MAY BE STATED AS FACT.
+   *
+   * Contract §4: a continuation the build could only grade `low` is said as a
+   * likelihood or not at all. That rule was written out three times — here for
+   * `predictor_hedged`, again in stopboard's coverage wording, and a third time
+   * in plan.js as `confidence === 'high'` — and three copies of one rule is how
+   * one departure came to be a likelihood on /stops and a fact on /route in the
+   * same second, from the same feed, about the same bus.
+   *
+   * Absence hedges. A vehicle with no block, or no grade on it, has told us
+   * nothing about what it runs next, and "nothing" is not confirmation.
+   */
+  function continuationHedged(vehicle, tripId) {
+    if (!vehicle || !vehicle.block) { return true; }
+    if (vehicle.block.confidence !== 'high') { return true; }
+    /*
+     * AND THE GRADE HAS TO BE ABOUT THIS TRIP.
+     *
+     * `confidence` grades the continuation `next_trip` NAMES. A bus whose feed
+     * says it runs trip N next, graded high, has been confirmed onto trip N —
+     * and reading that as confirmation of trip M is reading a number about one
+     * claim as proof of another. A bus reached by block ORDER rather than by the
+     * feed's own claim is the ordinary way that happens: the timetable links it
+     * to our departure and the feed never did. No named continuation at all is
+     * the same answer for the same reason, so absence hedges.
+     */
+    var nt = vehicle.block.next_trip;
+    return !(nt && tripId !== null && tripId !== undefined &&
+      String(nt.trip_id) === String(tripId));
+  }
+
   function tripStartEpoch(dep, trip) {
     if (!dep || !trip) { return null; }
     var s = secondsOf(trip.start_time);
@@ -614,8 +646,7 @@
        * trip.js read the same field for the same reason; this is the fourth
        * reader and the first where the grade also governs a clock.
        */
-      predictor_hedged: !!predictor &&
-        !(predictor.block && predictor.block.confidence === 'high'),
+      predictor_hedged: !!predictor && continuationHedged(predictor, trip && trip.id),
       view: view,
       predicted_at: predictedAt,
       due_at: predictedAt === null ? scheduledAt : predictedAt
@@ -1112,6 +1143,13 @@
     BEFORE_S: BEFORE_S,
     AFTER_S: AFTER_S,
     DRIFT_TOLERANCE_S: DRIFT_TOLERANCE_S,
+    /* Exported so plan.js bounds its inbound-leg search with THIS number rather
+       than a second copy of it: the question "is that still a layover, or did the
+       block go away and come back" is one question and gets one threshold. */
+    INTERLINE_GAP_S: INTERLINE_GAP_S,
+    /* Exported so stopboard.js and plan.js ask this question rather than each
+       keeping its own answer to it. See the note on the function. */
+    continuationHedged: continuationHedged,
     list: list,
     add: add,
     remove: remove,
