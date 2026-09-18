@@ -43,7 +43,7 @@ to produce some first:
 
 ```
 php runtime/generate-api.php --fixtures=tests/fixtures/feeds-20260819 \
-    --shards=.local/shards --out=.local/test-webroot --now=1787152239
+    --config=runtime/config.fixture.php --out=.local/test-webroot --now=1787152239
 ```
 
 and, if that succeeds, exports `CAPMETRO_WEBROOT` so the criteria bind to it.
@@ -77,13 +77,16 @@ Two standing consequences:
 Measured under `npm test`, which is the entry point these counts describe:
 `run-all.sh` generates a webroot from the committed fixtures first, so the suites
 that need real generated output bind rather than stand down. Run `vitest` or
-`phpunit` on their own, with no `CAPMETRO_WEBROOT`, and 40 node and 17 PHP cases
-skip instead — each one naming the missing webroot, not a missing feature.
+`phpunit` on their own, with no `CAPMETRO_WEBROOT`, and every case that needs
+generated output skips instead — each one naming the missing webroot, not a
+missing feature. The count is deliberately not written down here: it moves
+whenever a case is added, and a stale number in this file is worse than none,
+since this table is the record.
 
 | Suite | What skips | Why |
 |---|---|---|
 | Node | `trip-corpus`, `publishes no arrival time anywhere when adherence is suppressed` | No route in the 2026-08-19 capture has `suppress_adherence` true. The rule itself runs in `StalenessTest` and `client-staleness.test.mjs`. |
-| Node | acceptance criterion 3, `names the added and skipped stops on any vehicle actually running one` | Route 4's special trips run at 08:15 and 16:15 and the capture is from 10:10, so no bus is on one. The other two cases of criterion 3 run. |
+| Node | acceptance criterion 3, `names the added and skipped stops on any vehicle actually running one` | Route 4's special trips run at 08:15 and 16:15 and the capture is from 10:10, so no bus is on one. The other three cases of criterion 3 run. |
 | Node | acceptance criterion 8, `holds for every generated route file when feed ages are forced past 600s` | The generated output is fresh. Binds against a webroot regenerated with feed timestamps pushed past 600s. |
 | PHP | `GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` | Needs `tests/fixtures/feeds-pb-differential/`, a capture taken while both of CapMetro's positions publications are healthy. CLAUDE.md explains why unit tests against the spec are not a substitute. |
 | PHP | `UpstreamTest::testReadsTheLiveUpstreamFeedVersionWithThreeRangeRequests` | Reaches the live upstream zip. The suite is offline by design, so this one skips wherever the network does not answer. |
@@ -145,19 +148,19 @@ looked for, so a rename shows up as a skip rather than a mystery.
 | `cm_stop_service_status` | `runtime/lib/stopstatus.php` | bound |
 | `cm_staleness`, `cm_build_health` | `runtime/lib/staleness.php`, `runtime/lib/health.php` | bound |
 | `cm_atomic_write`, `cm_atomic_write_json`, `cm_acquire_lock`, `cm_release_lock` | `runtime/lib/write.php` | bound |
-| `cm_watch_id`, `cm_watch_resolve` | `runtime/lib/watch.php` | bound; resolution needs shards |
-| `cm_shard_index`, `cm_shard_route`, `cm_shard_times`, `cm_shard_active_services` | `runtime/lib/shards.php` | bound; layout migrating |
-| `cm_unmatched_trip_rate` | not written | skipped |
+| `cm_watch_id`, `cm_watch_resolve` | `runtime/lib/watch.php` | bound |
+| `cm_shard_index`, `cm_shard_route`, `cm_shard_times`, `cm_shard_active_services` | `runtime/lib/shards.php` | bound |
+| `cm_unmatched_trip_rate` | `runtime/lib/shards.php` | bound |
 | `shortenStopName`, `buildBlockChains`, `buildCalendar`, `secondsToClock`, `feedVersionToEpoch` | `build/lib/*.mjs` | bound |
-| `serviceClockToEpoch` | `build/lib/time.mjs` | not exported; skipped |
+| `serviceClockToEpoch` | `build/lib/time.mjs` | bound |
 | `window.CMB.adherence`, `window.CMB.states`, `window.CMB.fmt` | `client/*.js` | bound |
-| Shards at `.local/shards`, generated webroot at `$CAPMETRO_WEBROOT` or `webroot/` | — | both optional |
+| Shards via `runtime/config.fixture.php` (`tests/fixtures/shards-260818_1456`), generated webroot at `$CAPMETRO_WEBROOT` or `webroot/` | — | both optional |
 
 Two structural assumptions worth stating:
 
 - **`runtime/lib/*.php` is pure and safe to `require`.** `tests/php/bootstrap.php`
-  loads that directory and nothing else. `runtime/generate-api.php` and
-  `runtime/tools/*` execute on include, so they are deliberately not loaded.
+  loads that directory and nothing else. `runtime/generate-api.php`
+  executes on include, so it is deliberately not loaded.
   Anything that needs a unit test belongs in a library file.
 - **`client/*.js` are classic scripts attaching to `window.CMB`.**
   `tests/node/helpers/client.mjs` evaluates them in a `vm` context with a

@@ -257,12 +257,24 @@ These touch directories this job does not own.
 
 `tests/node/` imports `build/lib/` directly:
 
-| Path | Exports the suite binds to |
+| Path | Exports |
 |---|---|
 | `build/lib/time.mjs` | `serviceDayMidnight`, `serviceClockToEpoch`, `clockToSeconds`, `secondsToClock`, `feedVersionToEpoch` |
 | `build/lib/stop-names.mjs` | `shortenStopName`, `stopNameStem` |
 | `build/lib/blocks.mjs` | `continuationReasons`, `buildBlockChains` |
 | `build/lib/calendar.mjs` | `buildCalendar` |
+
+Not all of those are reached by a test. `tests/node/build-*.test.mjs` gates on
+`serviceClockToEpoch`, `secondsToClock`, `feedVersionToEpoch`, `shortenStopName`,
+`buildBlockChains` and `buildCalendar` through `gate(mod, [...], it)`, and imports
+`stopNameStem` directly. `serviceDayMidnight`, `clockToSeconds` and
+`continuationReasons` have no test reference at all.
+
+That last one is worth stating rather than tidying away: `continuationReasons` is
+now the only exported handle on section 4's per-pair continuation rule, it is
+exercised only indirectly through `buildBlockChains`, and `blockConfidence` —
+which existed so the rule could be exercised directly — is gone. Deleting it cost
+no coverage, because nothing tested it. It did make the gap permanent.
 
 There used to be a shim layer — `build/time.js`, `build/stops.js`, `build/blocks.js`,
 `build/calendar.js` — re-exporting these under stable paths while build/, runtime/ and
