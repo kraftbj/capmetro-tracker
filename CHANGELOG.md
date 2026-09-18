@@ -7,71 +7,47 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Added
 
-- **Installable on a phone, and it opens with no signal.** A web app manifest, a
-  set of icons cut from the board's own palette, the Apple meta tags iOS reads
-  instead of the manifest, and a service worker. Added to a home screen the board
-  runs without browser chrome, in its own task, at its own colour.
+- **The board no longer goes dark when one of CapMetro's two positions publications
+  stalls.** On 2026-09-01 `vehiclepositions.json` (`cuc7-ywmd`) froze at 12:40:09 CDT and
+  was still frozen five hours later, while CapMetro's protobuf publication of the same feed
+  (`eiei-9rpf`) stayed current to the second. The data was never missing; one of two publish
+  jobs had stopped. Nothing could see it, either: the feed served a clean 200 throughout, and
+  its 404 per-vehicle timestamps all agreed with its header, so a payload four hours old was
+  internally consistent and looked exactly like a healthy one to anything checking that the
+  fetch succeeded. Socrata mints a new blob UUID per publish, and that one had not moved.
 
-  The worker exists for one reason: to make the board OPEN at a bus stop with one
-  bar. It caches the document, the scripts, the stylesheet, the fonts and the
-  bundled fixture — and it **never touches `/api/`**, not even to look. Those
-  documents are regenerated every 60 seconds and a cache in front of them is the
-  board showing where the buses were the last time the phone had signal, with
-  nothing on screen saying so. Offline, the feed fetch fails exactly as it does
-  today, `app.js` falls back to the committed fixture, and the reader gets the
-  **Sample data** banner that already exists. There is no new offline screen
-  because the board already has an honest one.
+  The runtime now reads the protobuf feed when the JSON one is more than `CM_STALE_STALE_S`
+  behind, decoding it into the shape the Socrata JSON export produces so `join.php`,
+  `adherence.php` and everything downstream cannot tell which source they were handed. The
+  threshold is passed in rather than shared as a constant, so falling back and the board
+  going `stale` are the same moment by construction instead of by two numbers that agree
+  until someone edits one. The JSON is still fetched every cycle, which is what makes
+  recovery need no state: the cycle it starts publishing again is the cycle it is used
+  again. A healthy run costs exactly what it did before, and the fallback is the cheaper of
+  the two on the wire anyway (13.5 KB gzipped against the JSON's 16 KB).
 
-  Everything else is network-first rather than cache-first, which is the deploy
-  story: `update.sh` rsyncs new client files and restarts nothing, so a
-  cache-first worker would serve the previous release until somebody remembered
-  to bump a version string. New code lands on the next load exactly as it does
-  without a worker; the cache is a floor, not a ceiling. Fonts are the one
-  exception — immutable for a year in both vhosts, and 70 KB of not-refetching.
+  The fallback is not assumed fresh merely because it is the fallback. A protobuf that has
+  also stalled loses to the JSON, and the board degrades exactly as it does now. Nor is it
+  assumed to be *carrying* anything: a protobuf with a current header and no vehicles in it
+  would win on age every time and quietly empty the board, reporting `ok:true` while doing it,
+  because a feed with nothing in it never trips a staleness check. Stale positions are wrong
+  about when; no positions are wrong about whether the service is running, so an empty
+  fallback loses too. `health.json` gains **`feeds.positions_source`** (`json` or `protobuf`):
+  a board running on the fallback that looks identical to a healthy one is how the next stall
+  goes unnoticed for another four hours. A fallback that was consulted and could not help says
+  so in the run log rather than passing for a run that never needed it.
 
-  Three things had to change outside the client. Both vhosts now name
-  `manifest-src 'self'` and `worker-src 'self'`: this origin's policy starts at
-  `default-src 'none'`, both directives fall back to it, and without them a
-  perfect manifest and a perfect worker are both refused — no install prompt, no
-  offline board, one console line each and nothing wrong on screen. Both vhosts
-  also declare `application/manifest+json` for `.webmanifest`, which neither
-  nginx nor Apache ships a mapping for; served as octet-stream under `nosniff`,
-  Safari refuses the manifest. And `styles.css` pads for `safe-area-inset-*`,
-  because standalone mode has no browser chrome to absorb a notch and the
-  viewport meta has said `viewport-fit=cover` all along.
+  Reading a second, hand-decoded source widened what can reach the published output, so
+  `schedule_relationship` now accepts the three GTFS-RT names CapMetro's JSON export has never
+  been observed to emit (`REPLACEMENT`, `DUPLICATED`, `DELETED`) plus `UNKNOWN`. The decoder
+  deliberately refuses to guess at an enum value the spec adds later — defaulting one to
+  `SCHEDULED` could quietly reinstate a canceled trip — and `UNKNOWN` is how that refusal is
+  published without putting the board's own output outside its schema.
 
-  Every URL in the manifest and every `href` added to `index.html` is relative,
-  for the reason the `<base>` bootstrap exists: the board reads its own directory
-  out of the path, and `tests/e2e/server.mjs` serves the whole client under a
-  scenario prefix. An absolute `/manifest.webmanifest` passes every unit test and
-  404s under the fixture server. The manifest has no `id` for the same reason and
-  it cannot be fixed the same way — `id` resolves against the origin, not the
-  manifest, so there is no prefix-safe spelling of it. Omitted, it defaults to
-  `start_url`, which is correct everywhere.
-
-  The icons are generated rather than committed as five files nobody can
-  re-derive: `node client/icons/regenerate.js` cuts every PNG, the SVG favicon
-  and the `.ico` from node's own zlib and eighty lines of arithmetic, so they can
-  be recut from `tokens.css` by anybody with node installed. The mark is the
-  board's own string-line — a spine with three dots placed by how late each bus
-  is, in the same `--adh-early`/`--adh-ontime`/`--adh-late` hexes the board uses.
-  A test pins those hexes to `tokens.css`, so a repalette cannot leave the old
-  colours on somebody's home screen, where they are not next to the board and
-  nobody would notice.
-
-  The service worker is **driven rather than read** by its tests: it is evaluated
-  against a fake `ServiceWorkerGlobalScope` and dispatched real install, activate
-  and fetch events, because a text assertion passes for a worker that checks
-  `isApi` and then ignores the answer. Its shell list is hand-written — the file
-  is shipped verbatim and there is no build step — and derived independently in
-  the test from the tags in `index.html`, the `@import` chain in the CSS and the
-  manifest's own icons, so a script added to the page without being added to the
-  shell fails there instead of opening offline with one namespace missing. The
-  browser suite covers the three things only a browser can see: that the manifest
-  and icons are served at the right type under the prefix, that the worker's
-  scope follows the prefix rather than claiming the origin root, and that with
-  the network off a never-visited `/trip/7/2641` still opens while
-  `api/route/4.json` still fails.
+  Measured against the stall as it happened. Production reported `ok:false`, positions 295
+  minutes old, `staleness.level: dead` and lateness suppressed board-wide. The same code with
+  the fallback, on the same feeds in the same minute, reported `ok:true`, positions 41 seconds
+  old, `level: fresh`, and an adherence number for all 273 in-service buses.
 
 - **Transfer chains.** A journey with a change in it — the 800 to the 4, the 337 to
   the 350, the 337 to the 7 to the 837 — saved and shown as one card instead of two
@@ -208,7 +184,220 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
     tab: no error, no retry, no way forward, and guaranteed for every route on a
     `file://` board.
 
+- **Installable on a phone, and it opens with no signal.** A web app manifest, a
+  set of icons cut from the board's own palette, the Apple meta tags iOS reads
+  instead of the manifest, and a service worker. Added to a home screen the board
+  runs without browser chrome, in its own task, at its own colour.
+
+  The worker exists for one reason: to make the board OPEN at a bus stop with one
+  bar. It caches the document, the scripts, the stylesheet, the fonts and the
+  bundled fixture — and it **never touches `/api/`**, not even to look. Those
+  documents are regenerated every 60 seconds and a cache in front of them is the
+  board showing where the buses were the last time the phone had signal, with
+  nothing on screen saying so. Offline, the feed fetch fails exactly as it does
+  today, `app.js` falls back to the committed fixture, and the reader gets the
+  **Sample data** banner that already exists. There is no new offline screen
+  because the board already has an honest one.
+
+  Everything else is network-first rather than cache-first, which is the deploy
+  story: `update.sh` rsyncs new client files and restarts nothing, so a
+  cache-first worker would serve the previous release until somebody remembered
+  to bump a version string. New code lands on the next load exactly as it does
+  without a worker; the cache is a floor, not a ceiling. Fonts are the one
+  exception — immutable for a year in both vhosts, and 70 KB of not-refetching.
+
+  Three things had to change outside the client. Both vhosts now name
+  `manifest-src 'self'` and `worker-src 'self'`: this origin's policy starts at
+  `default-src 'none'`, both directives fall back to it, and without them a
+  perfect manifest and a perfect worker are both refused — no install prompt, no
+  offline board, one console line each and nothing wrong on screen. Both vhosts
+  also declare `application/manifest+json` for `.webmanifest`, which neither
+  nginx nor Apache ships a mapping for; served as octet-stream under `nosniff`,
+  Safari refuses the manifest. And `styles.css` pads for `safe-area-inset-*`,
+  because standalone mode has no browser chrome to absorb a notch and the
+  viewport meta has said `viewport-fit=cover` all along.
+
+  Every URL in the manifest and every `href` added to `index.html` is relative,
+  for the reason the `<base>` bootstrap exists: the board reads its own directory
+  out of the path, and `tests/e2e/server.mjs` serves the whole client under a
+  scenario prefix. An absolute `/manifest.webmanifest` passes every unit test and
+  404s under the fixture server. The manifest has no `id` for the same reason and
+  it cannot be fixed the same way — `id` resolves against the origin, not the
+  manifest, so there is no prefix-safe spelling of it. Omitted, it defaults to
+  `start_url`, which is correct everywhere.
+
+  The icons are generated rather than committed as five files nobody can
+  re-derive: `node client/icons/regenerate.js` cuts every PNG, the SVG favicon
+  and the `.ico` from node's own zlib and eighty lines of arithmetic, so they can
+  be recut from `tokens.css` by anybody with node installed. The mark is the
+  board's own string-line — a spine with three dots placed by how late each bus
+  is, in the same `--adh-early`/`--adh-ontime`/`--adh-late` hexes the board uses.
+  A test pins those hexes to `tokens.css`, so a repalette cannot leave the old
+  colours on somebody's home screen, where they are not next to the board and
+  nobody would notice.
+
+  The service worker is **driven rather than read** by its tests: it is evaluated
+  against a fake `ServiceWorkerGlobalScope` and dispatched real install, activate
+  and fetch events, because a text assertion passes for a worker that checks
+  `isApi` and then ignores the answer. Its shell list is hand-written — the file
+  is shipped verbatim and there is no build step — and derived independently in
+  the test from the tags in `index.html`, the `@import` chain in the CSS and the
+  manifest's own icons, so a script added to the page without being added to the
+  shell fails there instead of opening offline with one namespace missing. The
+  browser suite covers the three things only a browser can see: that the manifest
+  and icons are served at the right type under the prefix, that the worker's
+  scope follows the prefix rather than claiming the origin root, and that with
+  the network off a never-visited `/trip/7/2641` still opens while
+  `api/route/4.json` still fails.
+
 ### Fixed
+
+- **`install.sh` reported every PHP extension missing, on some hosts, every time.**
+  `php -m | grep -qix "$ext"` is a race under `set -o pipefail`: `grep -q` exits the moment
+  it matches, `php` still has output to write, takes SIGPIPE, and pipefail promotes its status
+  to the pipeline's — so the check reports an extension MISSING exactly when it is present and
+  matches early. Whether it bites depends on the pipe buffer and scheduling, which is why it
+  went unnoticed; on the machine this was found on it fails every time, killing `install.sh` at
+  the prerequisite check with "PHP extension 'json' is missing" while json is loaded. Asked of
+  `php` directly now. Pre-existing, and in scope only because the drift detection above makes
+  `sudo deploy/install.sh` a step this project now tells people to run.
+
+- **A systemd unit change deployed and then did nothing.** `deploy/update.sh` pulls
+  code and republishes the client but never writes `/etc/systemd/system`; only
+  `install.sh` does. So a change to a `.timer` or `.service` merged, deployed, and
+  left the box running the old one, with nothing reporting the difference. The
+  `capmetro-update.timer` fix below is itself an example: it moved off 04:17 UTC and
+  the box kept firing at 04:17.
+
+  `install.sh` now records a fingerprint of the unit sources it rendered from, and
+  `update.sh` compares the checkout against it on every run — including the "already
+  up to date, nothing to do" path, which is the one that matters, since drift persists
+  across runs while every later run short-circuits. On a mismatch it names the units
+  and exits non-zero, after the code and the schedule are already live: a stale timer
+  is worth a red `systemctl status`, never worth withholding a schedule the board
+  needs today.
+
+  Not-knowing is kept apart from both answers, the way `upstream.php` keeps an unreachable
+  probe apart from a real mismatch. A box with no record — every box installed before this
+  shipped — warns once per run and carries on rather than failing four times a day for a
+  condition that is not drift and that re-running never clears. A record that does not parse
+  says so instead of accusing all four units. And when no `sha256sum` or `shasum` exists,
+  the check reports that it cannot answer rather than hashing every file to the same
+  placeholder, which would have made drift read as clean forever — the exact
+  skip-that-reads-as-a-pass this repo keeps getting bitten by.
+
+  Nothing about the verdict is settable from outside. That took two passes to get right: an
+  exit-code constant briefly kept whatever value it inherited (a repair for a double-source
+  crash), which turned `EXIT_UNIT_DRIFT=0` in the environment into a switch that made
+  confirmed drift exit 0. The systemd probe stays overridable so it can be tested off a
+  systemd box, but says on stderr when it has been pointed elsewhere, because an override
+  makes the whole check pass.
+
+  It fingerprints the *sources* rather than diffing the installed files because
+  `install.sh` renders three of the four units, substituting `@RUN_USER@`, `@GEN@`,
+  `@WEBROOT@`, `@STATE_DIR@`, `@INTERVAL_S@` and `@UPDATE@`. The installed copy never equals the source, so a diff
+  would report drift on a perfectly current box every time, and re-rendering to compare
+  like with like would need install-time flags that nothing records. `update.sh` still
+  does not install units: restarting a timer from inside the service that timer started
+  is a hazard worth avoiding, so it notices and says so rather than acting.
+
+- **CapMetro replaced the schedule off-cycle and the board could not tell.** On
+  2026-08-27, `260818_1456` became `260826_0956` eight days into a feed advertised
+  as valid through 2027-01-09. Every trip id was renumbered, so nothing joined:
+  **56 of 71 routes reported 100% of their live trips absent from the schedule
+  shard**, every bus showed lateness `unknown` with reason `trip_not_in_schedule`,
+  and the board said no bus on the road was in today's schedule. Every clock it
+  owned still read healthy — feeds seconds old, `feed_end_date` five months away —
+  so nothing raised a banner and nothing said why.
+
+  The board now asks the only question that can detect this: is the `feed_version`
+  we built from still the one upstream publishes? It reads `feed_info.txt` out of
+  the upstream zip with three HTTP range requests — about 5.4 KB, not the 34 MB
+  archive — at most once every fifteen minutes. A mismatch sets the new
+  `staleness.schedule_state: "superseded"`, forces `stale`, and draws a banner that
+  says CapMetro has published a newer schedule rather than claiming the timetable
+  ran out, which would have been false. A probe that cannot answer reports nothing
+  and raises nothing: an unreachable upstream is never a mismatch.
+
+  Age was not an option. The rule that graded schedule age was removed for good
+  reason (see the entry below) and reinstating it would fail on exactly the feed it
+  was meant to protect: this one was nine days old and correct on 08-26, nine days
+  old and superseded on 08-27. Identity separates those two; age cannot.
+
+  Delivery was the other half. `deploy/capmetro-update.timer` pulled at 04:17 on a
+  box running `Etc/UTC`, **seven hours before** the GTFS job's 11:20 UTC commit, so
+  a rebuilt schedule was never picked up until the following day — worst case about
+  41 hours from CapMetro publishing to this board serving it. The job now runs four
+  times a day and the box pulls an hour after each, putting the worst case under six.
+
+- **A schedule rebuild turned nine passing tests red without touching a line of source.**
+  Tests that pin real trip ids read them out of `data/`, so they were really asserting "the
+  committed shards have not been rebuilt yet" — and went red the moment production was fixed.
+  Worse, `260826_0956` starts on service date 2026-08-26 while the fixture capture is from
+  2026-08-19, a date absent from the new calendar entirely: the offline webroot came out with
+  71 departure boards carrying zero departures each, so every acceptance criterion bound to
+  generated output silently *skipped* rather than failed, on a corpus that was present and
+  empty.
+
+  The join tests now read `tests/fixtures/shards-260818_1456/`, the complete shard tree the
+  capture was taken against, frozen. `runtime/config.fixture.php` generates from the same
+  place, so the offline webroot is a matched pair again and the full 71-route sweep is back.
+  Whether the committed shards are current is no longer inferred from a fixture at all — it is
+  asked of upstream directly, above.
+
+  The corpus block-continuation check was also counting the wrong thing: its budget was written
+  in trips ("four trips in this feed genuinely chain differently") while the code counted
+  (trip, date) pairs, and the sample cap of five doubled as the count, so the number could
+  never exceed five however bad it got. On `260826_0956` the build's own `invariant_breaks`
+  fell from 4 trips to 1 — an improvement — while the pair count rose to 90, because that one
+  trip's service set spans 90 dates. Same fact, opposite verdict. It now counts distinct trips
+  and cross-checks the total against the build's own declared count, so the budget cannot
+  quietly absorb a real defect.
+
+- **A shard rebuild was blocked by a gate that had been wrong all along.** The
+  §7 shortener breaks a stop name on a space **or** a slash, because Austin names
+  are `Street/CrossStreet` with no space around the slash. `build/verify.mjs` kept
+  its own copy of the normalization steps and then demanded the cut land on a
+  space, so all 23 slash cuts — `Martin Luther King/…`, `Pleasant Valley/…` — were
+  reported as ending mid-word. The names were never wrong; the committed tree
+  carries the same 23 and the JS and PHP implementations agree on all 2,326 upstream
+  names. `npm run verify` only runs in CI when `feed_version` changes, so the broken
+  gate sat latent until the first moment it mattered and then refused the rebuild
+  that would have fixed production. `verify.mjs` now imports `stopNameStem` instead
+  of keeping a second copy, and accepts both legal cut shapes.
+
+- **A schedule eight days old blanked every lateness number on the board.** The
+  staleness ladder graded the realtime feeds and the schedule on one scale, and
+  more than seven days past `feed_start_date` forced `stale` — which sets
+  `suppress_adherence`, so no bus anywhere may show how late it is. CapMetro
+  republishes about three times a year, so that threshold was passed within a week
+  of every publication and stayed passed for months. The board spent almost all of
+  its life refusing to answer the question it exists to answer, under a warning
+  that read "Data 14 sec old. Lateness is hidden until the feed catches up." about
+  positions that were fourteen seconds old and arriving on time — a fault where
+  there was none, and a wait that could never end.
+
+  Schedule age no longer sets the level. What invalidates a lateness number is a
+  schedule that has **run out**: past `feed_end_date` there is no timetable for
+  today to measure against, and that — the condition `health.json` already fails
+  on — is what forces `stale` now. `schedule_age_days` is still reported and still
+  appears under a banner raised by something else; it simply no longer raises one.
+  The realtime thresholds are untouched, so a feed that genuinely stops still goes
+  `aging`, `stale`, `dead` at 120s, 600s and 3600s exactly as before.
+
+  The banner had no way to say which of the two had happened and always blamed the
+  feed. It now names the schedule when the schedule is what gave out, and offers a
+  new publication rather than a wait. `?state=schedule-expired` renders that row.
+
+- **One warning, shouted four times.** The Saved view drew a staleness banner per
+  saved route and the board drew its own above them, so a single dead feed — one
+  cron run, one pair of feeds, the same `staleness` object word for word on every
+  route — stacked four identical warnings above the cards they were about. Routes
+  are now bucketed by what their banner would actually say and each distinct
+  warning is drawn once, labelled with every route it covers ("Routes 4, 800 and
+  837"), and the board's unlabelled copy is not drawn on that view at all. Nothing
+  is collapsed that is not identical: a route this browser alone has failed to
+  refresh reports a different reason, and keeps its own banner and its own retry.
 
 - **A phone left on the counter overnight answered from yesterday's schedule.**
   A departures document was fetched once and kept for the life of the tab, so a
@@ -384,6 +573,57 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   entirely, with nothing having said so. `add()` now reports whether the store
   took it, and the saved view says so in words — the announcement alone goes to a
   screen-reader-only region and leaves a sighted reader with no sign at all.
+
+## [0.6.1.0] - 2026-09-18
+
+### Fixed
+
+- **A bus you are waiting for no longer disappears from the stop board while it is
+  still on its way.** Route 837 on 2026-09-17: the 17:03 northbound was booked to be
+  run by bus 8007, which was fourteen minutes late finishing its southbound trip and
+  did not take the northbound run over until 17:13:56. From 17:04:30 — its time, plus
+  the ninety-second grace — until the handover, the board did not list it at all. A
+  rider at 5th/Guadalupe was shown the 17:33 as their next bus while their actual bus
+  was ten minutes away.
+
+  Nothing upstream was wrong. The feed was fresh, the trip was in the schedule and was
+  not canceled, and the payload already named the bus that would run it. The board
+  timed a departure only from a bus already ON that trip, so a run nobody had started
+  had no predicted time, fell back to its printed time, and was dropped for being in
+  the past. The one exemption was for a run with nothing on its block at all — the
+  opposite case from this one, where the bus is definitely coming.
+
+  A pending run is now timed from the bus that is inbound to run it, so it stays on the
+  board and says when it will really leave: "5:16p, in 9 minutes, scheduled 5:03p, bus
+  8007 becomes this run, running very late". Measured against the capture, the estimate
+  landed within about a minute of the real departure. Only the bus's own published next
+  run is trusted; further down a block, where the feed says less, the board says less.
+
+- **Saved trips stop calling themselves gone while the bus is still coming.** The same
+  fault, on the card that matters most: a saved 17:03 counted down from its booked time
+  and went to "Gone" at 17:18, two minutes after the bus actually pulled out. Both
+  panels now read one answer, so they cannot drift apart about one departure.
+
+- **Cancellations clear off the board instead of stacking up.** A canceled trip has no
+  bus, which read to the board as "due and nothing running it" — the warning meant for a
+  no-show the agency has NOT announced, kept on screen for half an hour. Route 837 had
+  three stacked at 5th/Guadalupe, the oldest twenty-seven minutes gone, above the two
+  buses actually coming. An announced cancellation now stays ten minutes: long enough to
+  answer "why did nothing come", short enough to stop being furniture.
+
+### Changed
+
+- **A continuation the feed does not confirm is now marked as such.** Where the board
+  derives a departure time from a bus's next run, and that chaining is only graded
+  `low`, the row says "likely becomes this run … the feed does not confirm this" and
+  carries a dashed edge, rather than stating it flat. One in five of these rows carries
+  that grade. The time is still shown, because a low grade says how confident the
+  chaining is, not whether the bus exists.
+
+- **The stop board draws about six times faster.** Reading a block's trips re-sorted the
+  whole service day on every row, which was 83% of the work in drawing one stop's
+  panel. It is indexed once per schedule now: across 273 real stop panels, 1041ms to
+  162ms, with no change to a single rendered row.
 
 ## [0.6.0.0] - 2026-08-25
 

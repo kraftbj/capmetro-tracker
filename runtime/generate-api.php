@@ -71,7 +71,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/lib/servicetime.php';
+require_once __DIR__ . '/lib/gtfsrt.php';
 require_once __DIR__ . '/lib/fetch.php';
+require_once __DIR__ . '/lib/upstream.php';
 require_once __DIR__ . '/lib/write.php';
 require_once __DIR__ . '/lib/shards.php';
 require_once __DIR__ . '/lib/alerts.php';
@@ -163,10 +165,126 @@ if ($fixtures !== null) {
     $feeds['positions']    = cm_read_json_file($fixtures . '/vehiclepositions.json');
     $feeds['trip_updates'] = cm_read_json_file($fixtures . '/tripupdates.json');
     $feeds['alerts']       = cm_read_json_file($fixtures . '/servicealerts.json');
-} else {
-    foreach (CM_FEED_URLS as $name => $url) {
-        $feeds[$name] = cm_fetch_json($url, (int) $config['timeout_s']);
+    /*
+     * A fixture directory carrying a vehiclepositions.pb runs the same choice the network path
+     * runs, against the same two feeds, so the fallback is exercised end to end by something
+     * that writes a real webroot rather than only by unit tests of the chooser. Without this
+     * the fixture path hardcodes `json` and the protobuf branch is unreachable from any test
+     * that produces generated output -- which is the output the project's own QA rule says to
+     * check against. Fixtures with no .pb behave exactly as they did.
+     *
+     * The clock is --now, or the fixture's own protobuf header. It cannot be $now, which is
+     * derived further down from whichever positions feed wins and so does not exist yet, and
+     * it must not be the wall clock: a committed fixture ages, and a chooser fed real time
+     * would answer differently in a year than it does today.
+     */
+    $positions_pb = $fixtures . '/vehiclepositions.pb';
+    if (is_file($positions_pb)) {
+        $pb_result = cm_decode_positions_pb((string) file_get_contents($positions_pb));
+        /*
+         * A committed .pb that no longer decodes is a broken fixture, not a scenario. Without
+         * this the run falls back to a $choose_at of 0, decides the JSON is not stale, and
+         * reports source `json` -- so a fixture whose protobuf half rotted would be
+         * indistinguishable from one that never had a protobuf half.
+         */
+        if (!$pb_result['ok'] && !isset($args['now'])) {
+            fwrite(STDERR, 'error: ' . $positions_pb . ': ' . $pb_result['error'] . "\n");
+            exit(2);
+        }
+        $choose_at = isset($args['now'])
+            ? (int) $args['now']
+            : cm_positions_header_at($pb_result);
+        $feeds['positions'] = cm_positions_choose(
+            $feeds['positions'],
+            $pb_result,
+            $choose_at,
+            CM_STALE_STALE_S
+        );
+    } else {
+        $feeds['positions']['source'] = 'json';
     }
+
+    /* The trip updates half of the same arrangement, on the same terms. */
+    $trip_updates_pb = $fixtures . '/tripupdates.pb';
+    if (is_file($trip_updates_pb)) {
+        $tu_pb_result = cm_decode_trip_updates_pb((string) file_get_contents($trip_updates_pb));
+        if (!$tu_pb_result['ok'] && !isset($args['now'])) {
+            fwrite(STDERR, 'error: ' . $trip_updates_pb . ': ' . $tu_pb_result['error'] . "\n");
+            exit(2);
+        }
+        $tu_choose_at = isset($args['now'])
+            ? (int) $args['now']
+            : cm_trip_updates_header_at($tu_pb_result);
+        $feeds['trip_updates'] = cm_trip_updates_choose(
+            $feeds['trip_updates'],
+            $tu_pb_result,
+            $tu_choose_at,
+            CM_STALE_STALE_S
+        );
+    } else {
+        $feeds['trip_updates']['source'] = 'json';
+    }
+} else {
+    $timeout_s = (int) $config['timeout_s'];
+    /*
+     * Positions and trip updates each go through their own fetch because each has a second
+     * publication to fall back on when the first stalls (issue 14 for positions, rmk2-acnw for
+     * trip updates). CM_STALE_STALE_S is passed so that falling back and the board going
+     * `stale` are the same threshold by construction rather than by two constants that agree
+     * until someone edits one.
+     *
+     * One $fetch_at for both, so a cycle cannot judge the two feeds against clocks a second
+     * apart. Alerts has no twin -- it is not GTFS-RT and CapMetro publishes it once -- so it
+     * stays a plain fetch.
+     */
+    $fetch_at = time();
+    $feeds['positions']    = cm_fetch_positions($timeout_s, $fetch_at, CM_STALE_STALE_S);
+    $feeds['trip_updates'] = cm_fetch_trip_updates($timeout_s, $fetch_at, CM_STALE_STALE_S);
+    $feeds['alerts']       = cm_fetch_json(CM_FEED_URLS['alerts'], $timeout_s);
+}
+$positions_source = (string) ($feeds['positions']['source'] ?? 'json');
+/*
+ * Anything unusual about the positions source goes to stderr unconditionally, NOT through
+ * $log. Production runs the generator with --quiet -- install.sh builds the ExecStart that
+ * way -- so $log writes to nobody on the only box that matters, which is why errors below
+ * bypass it too. These are not errors: the board is serving, on the fallback or on a JSON the
+ * fallback could not improve on. They are the conditions an operator has to be able to see
+ * without polling health.json, and the whole premise of issue 14 is that an invisible
+ * degradation runs for four hours.
+ */
+if ($positions_source !== 'json') {
+    fwrite(STDERR, "notice: positions from $positions_source; the JSON publication has stalled\n");
+}
+if (isset($feeds['positions']['fallback_error'])) {
+    fwrite(STDERR, 'notice: positions fallback unavailable: ' . $feeds['positions']['fallback_error'] . "\n");
+}
+if (($feeds['positions']['data']['dropped'] ?? 0) > 0) {
+    fwrite(STDERR, sprintf(
+        "notice: positions source dropped %d undecodable vehicle(s); the fleet is incomplete\n",
+        (int) $feeds['positions']['data']['dropped']
+    ));
+}
+$trip_updates_source = (string) ($feeds['trip_updates']['source'] ?? 'json');
+/*
+ * The same three notices for trip updates, on stderr for the same reason: production runs
+ * --quiet, so anything routed through $log reaches nobody on the box.
+ *
+ * A stalled trip updates feed degrades differently from stalled positions and is worth telling
+ * apart in the journal. Positions going stale empties the map. Trip updates going stale leaves
+ * the map full of buses and quietly takes the predictions with it -- staleness.php suppresses
+ * adherence, so the board stops saying how late anything is while still looking populated.
+ */
+if ($trip_updates_source !== 'json') {
+    fwrite(STDERR, "notice: trip updates from $trip_updates_source; the JSON publication has stalled\n");
+}
+if (isset($feeds['trip_updates']['fallback_error'])) {
+    fwrite(STDERR, 'notice: trip updates fallback unavailable: ' . $feeds['trip_updates']['fallback_error'] . "\n");
+}
+if (($feeds['trip_updates']['data']['dropped'] ?? 0) > 0) {
+    fwrite(STDERR, sprintf(
+        "notice: trip updates source dropped %d undecodable update(s); predictions are incomplete\n",
+        (int) $feeds['trip_updates']['data']['dropped']
+    ));
 }
 foreach ($feeds as $name => $r) {
     if (!$r['ok']) {
@@ -221,7 +339,57 @@ if (preg_match('/^\d{8}$/', $feed_start) === 1) {
     }
 }
 
-$staleness = cm_staleness($now, $feed_times, $schedule_age_days);
+/*
+ * A schedule is spent when the service day being generated runs past feed_end_date,
+ * not when feed_start_date is merely a while ago -- this feed is republished about
+ * three times a year, so "a while ago" is the normal, healthy state. Compared against
+ * the service date rather than the wall clock, because after midnight the run is still
+ * finishing yesterday's service day and must be graded against yesterday's timetable.
+ */
+$feed_end = (string) ($index['feed_end_date'] ?? '');
+$schedule_expired_on = (preg_match('/^\d{8}$/', $feed_end) === 1 && $service_date > $feed_end)
+    ? $feed_end
+    : null;
+
+/*
+ * And a schedule is superseded when CapMetro is publishing a different feed_version than the
+ * one these shards were built from. That is a question only upstream can answer, so it is
+ * asked on a timer of its own -- every 15 minutes, three range requests, ~5.4 KB -- and the
+ * answer is carried in the same state file as cron_last_success_at. A run that cannot reach
+ * upstream keeps the last good answer until it expires and then falls back to no opinion; it
+ * never invents a mismatch. Skipped entirely in fixture mode, which has no network.
+ */
+$upstream_version = null;
+if ($fixtures === null) {
+    $due = cm_upstream_probe_due($now, $state);
+    $upstream_version = $due['upstream_version'];
+    if ($due['probe']) {
+        $probe = cm_upstream_feed_version(CM_GTFS_ZIP_URL, (int) $config['timeout_s']);
+        $upstream_version = $probe['ok'] ? (string) $probe['feed_version'] : null;
+        $state['upstream_checked_at']    = $now;
+        $state['upstream_ok']            = (bool) $probe['ok'];
+        $state['upstream_feed_version']  = $upstream_version;
+        if (!$probe['ok']) {
+            $log('upstream probe failed: ' . $probe['error']);
+        }
+        /* Persisted here rather than with cron_last_success_at at the end, because the
+           error path exits before that write and a probe whose result is not recorded
+           would be repeated every 60 seconds for as long as a feed stays down. */
+        cm_atomic_write_json($state_path, $state);
+    }
+}
+$schedule_superseded_by = cm_schedule_superseded_by($feed_version, $upstream_version);
+if ($schedule_superseded_by !== null) {
+    $log(sprintf('schedule superseded: built from %s, upstream now %s', $feed_version, $schedule_superseded_by));
+}
+
+$staleness = cm_staleness(
+    $now,
+    $feed_times,
+    $schedule_age_days,
+    $schedule_expired_on,
+    $schedule_superseded_by
+);
 $suppress = (bool) $staleness['suppress_adherence'];
 
 /* ------------------------------------------------------------------------------------
@@ -240,7 +408,9 @@ if ($errors !== []) {
         ],
         ['vehicles' => 0, 'routes_written' => 0],
         $errors,
-        $cron_last_success_at
+        $cron_last_success_at,
+        $positions_source,
+        $trip_updates_source
     ));
     foreach ($errors as $e) {
         fwrite(STDERR, "error: $e\n");
@@ -601,7 +771,13 @@ foreach ($watch_targets as $t) {
 
 if ($errors === []) {
     $cron_last_success_at = $now;
-    cm_atomic_write_json($state_path, ['cron_last_success_at' => $now, 'service_date' => $service_date]);
+    /* Merged, not replaced: the upstream probe's own bookkeeping lives in this file too and
+       a bare literal here would reset its clock on every successful run, turning a 15-minute
+       cadence into one probe every 60 seconds. */
+    cm_atomic_write_json($state_path, [
+        'cron_last_success_at' => $now,
+        'service_date'         => $service_date,
+    ] + $state);
 }
 
 cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
@@ -614,17 +790,23 @@ cm_atomic_write_json($api_dir . '/health.json', cm_build_health(
     ],
     ['vehicles' => count($all_vehicles), 'routes_written' => $routes_written],
     $errors,
-    $cron_last_success_at
+    $cron_last_success_at,
+    $positions_source,
+    $trip_updates_source
 ));
 
 $log(sprintf(
-    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s',
+    'wrote %d route files (+ %d departure boards), %d vehicles (%d in service, %d deadhead), %d watches%s%s%s',
     $routes_written,
     count($catalog),
     count($all_vehicles),
     $in_service,
     count($all_vehicles) - $in_service,
     count($watch_targets),
+    /* Named only when it is not the ordinary one. The stderr notice above is what an operator
+       actually sees, since production runs --quiet; this is for an interactive run. */
+    $positions_source === 'json' ? '' : ', positions via ' . $positions_source,
+    $trip_updates_source === 'json' ? '' : ', trip updates via ' . $trip_updates_source,
     $errors === [] ? '' : ', ' . count($errors) . ' error(s)'
 ));
 foreach ($errors as $e) {

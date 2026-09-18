@@ -2,14 +2,14 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "30-0-f641964c",
-				"2-172": "30-0-63fb805e",
+				"1-172": "30-0-63fb805e",
+				"2-172": "30-0-f641964c",
 				"3-172": "30-0-63fb805e",
 				"4-172": "30-0-63fb805e",
-				"5-172": "30-0-63fb805e",
-				"6-172": "30-0-f641964c",
-				"7-172": "30-0-63fb805e",
-				"8-172": "30-0-f641964c"
+				"5-172": "30-0-f641964c",
+				"6-172": "30-0-63fb805e",
+				"7-172": "30-0-f641964c",
+				"8-172": "30-0-63fb805e"
 			},
 			"baseline_pattern_id": "30-0-63fb805e",
 			"baseline_stable": false,
@@ -18,13 +18,13 @@
 				"30-0-63fb805e": {
 					"direction_id": 0,
 					"pattern_id": "30-0-63fb805e",
-					"representative_trip_id": "3000996_5894",
+					"representative_trip_id": "3000996_5934",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
 					"stop_count": 77,
 					"timepoint_count": 9,
@@ -676,11 +676,11 @@
 				"30-0-f641964c": {
 					"direction_id": 0,
 					"pattern_id": "30-0-f641964c",
-					"representative_trip_id": "3000996_5862",
+					"representative_trip_id": "3000996_5941",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 78,
 					"timepoint_count": 9,
@@ -1343,27 +1343,22 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "30-1-08ffc681",
-				"2-172": "30-1-35858ae4",
-				"3-172": "30-1-35858ae4",
-				"4-172": "30-1-35858ae4",
-				"5-172": "30-1-35858ae4",
-				"6-172": "30-1-08ffc681",
-				"7-172": "30-1-35858ae4",
-				"8-172": "30-1-08ffc681"
+				"10-172": "30-1-08ffc681",
+				"11-172": "30-1-08ffc681",
+				"9-172": "30-1-08ffc681"
 			},
-			"baseline_pattern_id": "30-1-35858ae4",
-			"baseline_stable": false,
+			"baseline_pattern_id": "30-1-08ffc681",
+			"baseline_stable": true,
 			"direction_id": 1,
 			"ladders": {
 				"30-1-08ffc681": {
 					"direction_id": 1,
 					"pattern_id": "30-1-08ffc681",
-					"representative_trip_id": "3001028_6107",
+					"representative_trip_id": "3001028_6174",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"10-172",
+						"11-172",
+						"9-172"
 					],
 					"stop_count": 72,
 					"timepoint_count": 10,
@@ -1973,609 +1968,13 @@
 							"stop_sequence": 72
 						}
 					]
-				},
-				"30-1-35858ae4": {
-					"direction_id": 1,
-					"pattern_id": "30-1-35858ae4",
-					"representative_trip_id": "3001028_6138",
-					"service_ids": [
-						"2-172",
-						"3-172",
-						"4-172",
-						"5-172",
-						"7-172"
-					],
-					"stop_count": 69,
-					"timepoint_count": 10,
-					"timepoints": [
-						{
-							"direction_id": 1,
-							"lat": 30.357211,
-							"lon": -97.737209,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.361328,
-									"lon": -97.737137,
-									"stop_id": "1904",
-									"stop_name": "Rockwood/Anderson",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.364974,
-									"lon": -97.735546,
-									"stop_id": "1906",
-									"stop_name": "Steck/Sandalwood",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.365892,
-									"lon": -97.737465,
-									"stop_id": "4649",
-									"stop_name": "Steck/Daleview",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.366965,
-									"lon": -97.739674,
-									"stop_id": "1907",
-									"stop_name": "Steck/Shoal Creek",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.368976,
-									"lon": -97.743943,
-									"stop_id": "1909",
-									"stop_name": "Steck/Mopac",
-									"stop_sequence": 6
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.37058,
-									"lon": -97.7466,
-									"stop_id": "1910",
-									"stop_name": "Steck/Summerside",
-									"stop_sequence": 7
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.37292,
-									"lon": -97.74917,
-									"stop_id": "1911",
-									"stop_name": "Steck/Greenslope",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.373226,
-									"lon": -97.752979,
-									"stop_id": "1912",
-									"stop_name": "Steck/Spicewood",
-									"stop_sequence": 9
-								}
-							],
-							"stop_id": "5856",
-							"stop_name": "Foster/Northcross",
-							"stop_name_full": "2714 Foster/Northcross",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.37377,
-							"lon": -97.756008,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.35865,
-									"lon": -97.75363,
-									"stop_id": "1918",
-									"stop_name": "Greystone/Hart",
-									"stop_sequence": 11
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.358258,
-									"lon": -97.751138,
-									"stop_id": "4652",
-									"stop_name": "Greystone/Wood Hollow",
-									"stop_sequence": 12
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.35775,
-									"lon": -97.75079,
-									"stop_id": "1919",
-									"stop_name": "Wood Hollow/Greystone",
-									"stop_sequence": 13
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.35517,
-									"lon": -97.75214,
-									"stop_id": "1920",
-									"stop_name": "Wood Hollow/Greystone",
-									"stop_sequence": 14
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.3536,
-									"lon": -97.75311,
-									"stop_id": "1921",
-									"stop_name": "Wood Hollow/Far West NW…",
-									"stop_sequence": 15
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.35077,
-									"lon": -97.75486,
-									"stop_id": "1922",
-									"stop_name": "Wood Hollow/Far West",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.34881,
-									"lon": -97.75377,
-									"stop_id": "1923",
-									"stop_name": "North Hills/Valleyside…",
-									"stop_sequence": 17
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.342397,
-									"lon": -97.754052,
-									"stop_id": "5421",
-									"stop_name": "Balcones/Hart",
-									"stop_sequence": 18
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.339599,
-									"lon": -97.755793,
-									"stop_id": "1925",
-									"stop_name": "Balcones/Hart",
-									"stop_sequence": 19
-								}
-							],
-							"stop_id": "1913",
-							"stop_name": "Mesa/Steck",
-							"stop_name_full": "8140 Mesa/Steck",
-							"stop_sequence": 10
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.33696,
-							"lon": -97.75756,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.332659,
-									"lon": -97.7597,
-									"stop_id": "1927",
-									"stop_name": "Hancock/Balcones",
-									"stop_sequence": 21
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.331464,
-									"lon": -97.75715,
-									"stop_id": "1928",
-									"stop_name": "Hancock/Valley Oak",
-									"stop_sequence": 22
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.329566,
-									"lon": -97.753292,
-									"stop_id": "1929",
-									"stop_name": "Hancock/West Frances…",
-									"stop_sequence": 23
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.32806,
-									"lon": -97.75024,
-									"stop_id": "1930",
-									"stop_name": "Hancock/Fresco",
-									"stop_sequence": 24
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.327267,
-									"lon": -97.749435,
-									"stop_id": "1931",
-									"stop_name": "Bull Creek/Hancock",
-									"stop_sequence": 25
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.324792,
-									"lon": -97.750945,
-									"stop_id": "1932",
-									"stop_name": "Bull Creek/49th",
-									"stop_sequence": 26
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.323211,
-									"lon": -97.75192,
-									"stop_id": "1933",
-									"stop_name": "Bull Creek/Perry",
-									"stop_sequence": 27
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.318987,
-									"lon": -97.754525,
-									"stop_id": "1935",
-									"stop_name": "Bull Creek/44th",
-									"stop_sequence": 28
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.315889,
-									"lon": -97.754469,
-									"stop_id": "1936",
-									"stop_name": "Bull Creek/Jackson",
-									"stop_sequence": 29
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.311138,
-									"lon": -97.752058,
-									"stop_id": "1938",
-									"stop_name": "Bull Creek/38th",
-									"stop_sequence": 30
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.309399,
-									"lon": -97.750954,
-									"stop_id": "1939",
-									"stop_name": "Bull Creek/Jefferson",
-									"stop_sequence": 31
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.30713,
-									"lon": -97.74927,
-									"stop_id": "1997",
-									"stop_name": "35th/Crawford",
-									"stop_sequence": 32
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.30646,
-									"lon": -97.74609,
-									"stop_id": "1998",
-									"stop_name": "W 38th/Tonkawa",
-									"stop_sequence": 33
-								}
-							],
-							"stop_id": "4650",
-							"stop_name": "Balcones/Northland",
-							"stop_name_full": "Balcones/Northland",
-							"stop_sequence": 20
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.305323,
-							"lon": -97.74376,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.304405,
-									"lon": -97.741594,
-									"stop_id": "5349",
-									"stop_name": "West 38th Station",
-									"stop_sequence": 35
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.303401,
-									"lon": -97.739461,
-									"stop_id": "5352",
-									"stop_name": "38th/Ronson",
-									"stop_sequence": 36
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.301663,
-									"lon": -97.738974,
-									"stop_id": "489",
-									"stop_name": "Guadalupe/Maiden",
-									"stop_sequence": 37
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.300465,
-									"lon": -97.739714,
-									"stop_id": "490",
-									"stop_name": "Guadalupe/34th Street",
-									"stop_sequence": 38
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.298051,
-									"lon": -97.741261,
-									"stop_id": "5357",
-									"stop_name": "31st Street Station",
-									"stop_sequence": 39
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.295584,
-									"lon": -97.742804,
-									"stop_id": "2003",
-									"stop_name": "Guadalupe/29th",
-									"stop_sequence": 40
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.292195,
-									"lon": -97.741316,
-									"stop_id": "494",
-									"stop_name": "Guadalupe/27th Street",
-									"stop_sequence": 41
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.291085,
-									"lon": -97.741379,
-									"stop_id": "5863",
-									"stop_name": "UT Dean Keeton Station",
-									"stop_sequence": 42
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.286231,
-									"lon": -97.741771,
-									"stop_id": "497",
-									"stop_name": "UT West Mall Station",
-									"stop_sequence": 43
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.283384,
-									"lon": -97.742081,
-									"stop_id": "498",
-									"stop_name": "Guadalupe/W. 21st Street",
-									"stop_sequence": 44
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.278962,
-									"lon": -97.742708,
-									"stop_id": "501",
-									"stop_name": "Guadalupe/16th Street",
-									"stop_sequence": 45
-								}
-							],
-							"stop_id": "1999",
-							"stop_name": "38th/Medical Parkway",
-							"stop_name_full": "38th/Medical Parkway",
-							"stop_sequence": 34
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.275022,
-							"lon": -97.744169,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.271503,
-									"lon": -97.745478,
-									"stop_id": "5950",
-									"stop_name": "Guadalupe/8th",
-									"stop_sequence": 47
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.267331,
-									"lon": -97.747037,
-									"stop_id": "2613",
-									"stop_name": "Guadalupe/4th",
-									"stop_sequence": 48
-								}
-							],
-							"stop_id": "2738",
-							"stop_name": "Capitol Station",
-							"stop_name_full": "Capitol Station (SB)",
-							"stop_sequence": 46
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.259308,
-							"lon": -97.749759,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.258711,
-									"lon": -97.750773,
-									"stop_id": "1718",
-									"stop_name": "Barton Springs/1st",
-									"stop_sequence": 50
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.259787,
-									"lon": -97.753879,
-									"stop_id": "2155",
-									"stop_name": "Barton Springs/Bouldin",
-									"stop_sequence": 51
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.261152,
-									"lon": -97.758921,
-									"stop_id": "4630",
-									"stop_name": "Barton Springs/Lamar",
-									"stop_sequence": 52
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.262302,
-									"lon": -97.76182,
-									"stop_id": "2160",
-									"stop_name": "Barton Springs/Kinney",
-									"stop_sequence": 53
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.264094,
-									"lon": -97.763929,
-									"stop_id": "2202",
-									"stop_name": "Barton Springs/Azie…",
-									"stop_sequence": 54
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.266126,
-									"lon": -97.768413,
-									"stop_id": "4079",
-									"stop_name": "Barton Springs",
-									"stop_sequence": 55
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.26825,
-									"lon": -97.772634,
-									"stop_id": "2206",
-									"stop_name": "Barton Springs",
-									"stop_sequence": 56
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.269505,
-									"lon": -97.776342,
-									"stop_id": "4166",
-									"stop_name": "Mopac/Nature Center",
-									"stop_sequence": 57
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.264934,
-									"lon": -97.782988,
-									"stop_id": "2207",
-									"stop_name": "Wallingwood/Bee Caves",
-									"stop_sequence": 58
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.261146,
-									"lon": -97.786623,
-									"stop_id": "4489",
-									"stop_name": "Spyglass/Wallingwood",
-									"stop_sequence": 59
-								}
-							],
-							"stop_id": "1655",
-							"stop_name": "S 1st/Riverside",
-							"stop_name_full": "400 S 1st/Riverside",
-							"stop_sequence": 49
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.258129,
-							"lon": -97.787481,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.259147,
-									"lon": -97.79103,
-									"stop_id": "4490",
-									"stop_name": "Spyglass/Barton Skyway",
-									"stop_sequence": 61
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.262083,
-									"lon": -97.78957,
-									"stop_id": "4491",
-									"stop_name": "Mopac/Barton Skyway",
-									"stop_sequence": 62
-								}
-							],
-							"stop_id": "2191",
-							"stop_name": "Spyglass/Barton Skyway",
-							"stop_name_full": "Spyglass/Barton Skyway",
-							"stop_sequence": 60
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.2736,
-							"lon": -97.80122,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.268486,
-									"lon": -97.805071,
-									"stop_id": "2212",
-									"stop_name": "Walsh Tarlton/Terrapin",
-									"stop_sequence": 64
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.266895,
-									"lon": -97.806086,
-									"stop_id": "2213",
-									"stop_name": "Walsh Tarlton/Thousand…",
-									"stop_sequence": 65
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.26439,
-									"lon": -97.807634,
-									"stop_id": "2214",
-									"stop_name": "Walsh Tarlton/Stoneridge",
-									"stop_sequence": 66
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.261559,
-									"lon": -97.80944,
-									"stop_id": "2215",
-									"stop_name": "Walsh Tarlton/Tamarron",
-									"stop_sequence": 67
-								}
-							],
-							"stop_id": "4492",
-							"stop_name": "Walsh Tarlton/Bee Caves",
-							"stop_name_full": "1010 Walsh Tarlton/Bee Caves",
-							"stop_sequence": 63
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.256415,
-							"lon": -97.80931,
-							"minor_stops": [],
-							"stop_id": "3924",
-							"stop_name": "Barton Creek Mall",
-							"stop_name_full": "Barton Creek Mall (Backside of Mall )",
-							"stop_sequence": 68
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.231403,
-							"lon": -97.790588,
-							"minor_stops": [],
-							"stop_id": "6379",
-							"stop_name": "Westgate Transit Center…",
-							"stop_name_full": "Westgate Transit Center - F",
-							"stop_sequence": 69
-						}
-					]
 				}
 			},
-			"stop_count": 69,
+			"stop_count": 72,
 			"timepoint_count": 10
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "30",
 	"schema": 1
 }

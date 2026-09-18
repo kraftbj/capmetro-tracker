@@ -25,9 +25,9 @@ Run everything: `npm test` (wraps `tests/run-all.sh`).
 
 | Suite | Command | Covers |
 |---|---|---|
-| Schema | `npm run test:schema` | Generated output vs `schemas/*.json`, plus the staff-PII assertion |
-| Node | `npm run test:node` | `build/` shard generation and shared client logic (vitest) |
-| PHP | `npm run test:php` | `runtime/` pure functions (phpunit) |
+| Schema | `npm run test:schema` | Generated output vs `schemas/*.json` |
+| Node | `npm run test:node` | `build/` shard generation, shared client logic, the `deploy/` scripts, and the staff-PII sweep over generated output (vitest). That sweep needs a webroot: under `npm test` it binds, on a bare `vitest run` it skips |
+| PHP | `npm run test:php` | `runtime/` pure functions, including the alert ingest allowlist that strips staff PII before anything is written (phpunit) |
 | E2E | `npm run test:e2e` | The client at 412px against fixture scenarios (playwright) |
 
 Expectations:
@@ -41,6 +41,26 @@ Expectations:
   identical. They both write `stop_name`, so a divergence renders one stop two ways on one
   screen. Any change to either needs a differential run over all upstream names, not unit
   tests alone. This has already bitten once: ISSUE-002 in `.gstack/qa-reports/`.
+- `runtime/lib/gtfsrt.php` MUST keep producing exactly what CapMetro's JSON exports produce,
+  for **both** the positions pair (`cuc7-ywmd` / `eiei-9rpf`) and the trip updates pair
+  (`mqtr-wwpy` / `rmk2-acnw`). It is the second shape of this kind in the codebase and the same
+  rule applies for the same reason: two producers feeding one consumer, where a divergence is
+  invisible until the day the fallback runs. The difference from the stop-names pair is that we
+  own neither half of the comparison — CapMetro can change its JSON export without telling us,
+  and the decoder would keep agreeing with a spec nobody is publishing any more. Unit tests
+  prove the decoder matches the **spec**; only a differential run over both live publications
+  proves it matches the **export**.
+  - **Trip updates: captured.** `tests/fixtures/feeds-pb-differential/tripupdates.{json,pb}`,
+    both halves stamped `1788946436`, 2,299 entities equal under `===` including key order.
+  - **Positions: still owed.** `feeds-pb-differential/vehiclepositions.pb` does not exist, so
+    `GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` skips
+    and says why. Take it the next time both publications are healthy. Note that a total stall
+    is a *fine* moment to capture a pair — both halves stop moving — but only if the two froze
+    on the same instant; on 2026-09-09 the positions halves froze 29s apart and only 9 of 260
+    vehicles paired, against the test's floor of 50.
+  - Anything touching either decoder needs a differential run over the pair it affects, not
+    unit tests alone. The mutation check that matters: swap the two `ScheduleRelationship`
+    maps and confirm the differential fails.
 - Never commit code that makes existing tests fail.
 
 ## Deploy Configuration (configured by /setup-deploy)
@@ -58,14 +78,68 @@ Expectations:
 - Deploy trigger: `ssh <host> 'sudo /srv/capmetro/src/deploy/update.sh'`
 - Deploy status: `curl -sf https://bus.dillo.dev/api/health.json | grep -q '"ok":true'`
 - Health check: `https://bus.dillo.dev/api/health.json`
+- `update.sh` exit codes: **0** clean; **1** anything that stopped the deploy (a
+  precondition refusal — not root, no checkout, not a fast-forward — or the generator
+  failed and the commit was rolled back); **3** the deploy succeeded but the committed
+  systemd units are not the ones installed, so run `sudo deploy/install.sh`.
+  Anything treating a non-zero exit as a failed deploy must special-case 3, or it
+  will report a healthy board as broken. Note that systemd itself does not: the unit
+  carries no `SuccessExitStatus=3`, so a drift run shows as failed in
+  `systemctl status`, deliberately, since that is the loudest signal available until
+  something alerts. Read `ExecMainStatus` to tell 3 from 1.
 
 ### Notes
+- CapMetro publishes vehicle positions **twice** (JSON `cuc7-ywmd`, protobuf
+  `eiei-9rpf`) and trip updates **twice** (JSON `mqtr-wwpy`, protobuf `rmk2-acnw`).
+  Alerts are published once and are not GTFS-RT, so they have no fallback. The
+  runtime reads each JSON and falls back to that feed's protobuf when the JSON is
+  more than `CM_STALE_STALE_S` behind, because on 2026-09-01 the positions JSON
+  froze for over four hours while its protobuf stayed current. Each JSON is fetched
+  every cycle; a protobuf is fetched **only** on a cycle that has already seen that
+  feed's JSON stalled, which is what makes recovery need no stored state and keeps a
+  healthy run costing what it always did. All are fetched server-side by the cron
+  when they are fetched at all; none is ever fetched by the browser, which only ever
+  reads our own `/api/*.json`. `health.json`'s `feeds.positions_source` and
+  `feeds.trip_updates_source` say which one each run used — if either reads
+  `protobuf`, that JSON feed has stalled upstream and the board is running on the
+  fallback for it.
+- **A `json` source is not evidence of health.** On 2026-09-09 every CapMetro
+  publication to data.texas.gov stopped inside four minutes — both positions
+  halves, both trip updates halves, and alerts — and both source fields correctly
+  read `json` throughout, because neither protobuf was any fresher than the JSON it
+  would have replaced. That is the fallback declining, working as designed. Read
+  `errors` and `ok` to judge health; read the source fields only to learn which
+  publication answered. When diagnosing, check Socrata's own
+  `viewLastModified` (`https://data.texas.gov/api/views/<id>.json`) to tell a
+  publisher that stopped uploading from one still uploading stale content. The generator also writes a
+  `notice:` line to stderr, and therefore to the journal, when the source is not
+  `json`, when the fallback was consulted and could not help, and when the decode
+  dropped vehicles. Those go to stderr **unconditionally**, not through the `--quiet`
+  logger: production runs the generator with `--quiet` (see the `GEN` line in
+  `install.sh`), so anything routed through `$log` reaches nobody on the box. A
+  stalled feed serves a clean 200 with internally consistent content, so only its
+  header age gives it away. The fallback gets a bounded 10s timeout rather than the
+  full `timeout_s` — it is not what brings a run inside the unit's
+  `TimeoutStartSec=50`, which the fetch budget already exceeds without it; see TODOS.
 - Nothing under the webroot executes. The runtime is a PHP CLI job on a systemd
   timer that writes JSON to disk; there is no PHP handler in the vhost and that
   is deliberate, not an omission.
 - `update.sh` does not restart anything. The generator is a systemd oneshot, so
   new code is picked up on the next firing and there is no window where the
   board is down for a deploy.
+- `update.sh` does not install systemd units either; only `install.sh` writes
+  `/etc/systemd/system`. It does now *detect* when the committed units have moved
+  on: it names them and exits **3** (distinct from 1, which means the deploy itself
+  failed and rolled back), after the code and schedule are already live. A unit
+  change therefore needs `sudo deploy/install.sh` to take effect — a plain
+  `update.sh` will tell you, not fix it. Anything reading update.sh's exit status
+  as a deploy verdict should treat 3 as "deployed, units stale", not as a failure.
+- The record it checks against is `/etc/capmetro/installed-units.sha256`, written by
+  `install.sh`. It lives in the root-owned config dir rather than the state dir
+  because the state dir belongs to the nologin job account, and a stamp that account
+  could rewrite is a check it could switch off. A box that has never run an
+  `install.sh` carrying this feature has no record; `update.sh` says so once per run
+  and carries on, because "cannot tell" is not "drifted".
 - `/etc/capmetro/config.php` is never overwritten by the installer. It carries
   the watch list, which is the one file on the box describing somebody's routine.
 - The GTFS Action is still required and is also the delivery mechanism: it

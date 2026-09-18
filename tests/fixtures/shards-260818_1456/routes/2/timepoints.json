@@ -1,0 +1,1235 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "2-0-ec9e6171",
+				"2-172": "2-0-06130a15",
+				"3-172": "2-0-06130a15",
+				"4-172": "2-0-06130a15",
+				"5-172": "2-0-06130a15",
+				"6-172": "2-0-ec9e6171",
+				"7-172": "2-0-06130a15",
+				"8-172": "2-0-ec9e6171"
+			},
+			"baseline_pattern_id": "2-0-06130a15",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"2-0-06130a15": {
+					"direction_id": 0,
+					"pattern_id": "2-0-06130a15",
+					"representative_trip_id": "3013463_2635",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 31,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.2517,
+							"lon": -97.69763,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.259748,
+									"lon": -97.693656,
+									"stop_id": "4581",
+									"stop_name": "Airport/Shady",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26537,
+									"lon": -97.69532,
+									"stop_id": "3260",
+									"stop_name": "Airport/Springdale",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267244,
+									"lon": -97.694388,
+									"stop_id": "1379",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27106,
+									"lon": -97.69193,
+									"stop_id": "1381",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27361,
+									"lon": -97.69835,
+									"stop_id": "634",
+									"stop_name": "Oak Springs SB",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272939,
+									"lon": -97.70225,
+									"stop_id": "5464",
+									"stop_name": "Oak Springs/Webberville",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272556,
+									"lon": -97.704568,
+									"stop_id": "635",
+									"stop_name": "Oak Springs/Ridgeway",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272319,
+									"lon": -97.708296,
+									"stop_id": "637",
+									"stop_name": "Rosewood/Bedford",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "6448",
+							"stop_name": "Eastside Bus Plaza Bay H",
+							"stop_name_full": "5203 Eastside Bus Plaza Bay H",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.271236,
+							"lon": -97.710649,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270419,
+									"lon": -97.715,
+									"stop_id": "3728",
+									"stop_name": "Rosewood/Chestnut",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269698,
+									"lon": -97.719604,
+									"stop_id": "4172",
+									"stop_name": "Rosewood/Chicon",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268978,
+									"lon": -97.724138,
+									"stop_id": "3730",
+									"stop_name": "Rosewood/Angelina",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268704,
+									"lon": -97.727634,
+									"stop_id": "3731",
+									"stop_name": "11th/Lydia",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269995,
+									"lon": -97.731193,
+									"stop_id": "5496",
+									"stop_name": "11th/Branch",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271094,
+									"lon": -97.734976,
+									"stop_id": "6382",
+									"stop_name": "11th/Red River",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "638",
+							"stop_name": "Rosewood/Hargrave",
+							"stop_name_full": "2370 Rosewood/Hargrave",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.270613,
+							"lon": -97.744215,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.263819,
+									"lon": -97.746366,
+									"stop_id": "1781",
+									"stop_name": "Cesar Chavez/Lavaca",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.262969,
+									"lon": -97.743365,
+									"stop_id": "993",
+									"stop_name": "Cesar Chavez/Brazos",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.262213,
+									"lon": -97.740639,
+									"stop_id": "5633",
+									"stop_name": "Cesar Chavez/Trinity",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259919,
+									"lon": -97.732856,
+									"stop_id": "2812",
+									"stop_name": "Cesar Chavez/Waller",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258279,
+									"lon": -97.728156,
+									"stop_id": "1802",
+									"stop_name": "Cesar Chavez/Comal",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256843,
+									"lon": -97.724082,
+									"stop_id": "6272",
+									"stop_name": "Cesar Chavez/Chicon",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.25572,
+									"lon": -97.720807,
+									"stop_id": "6270",
+									"stop_name": "Cesar Chavez/Robert…",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.254208,
+									"lon": -97.716515,
+									"stop_id": "6268",
+									"stop_name": "Cesar Chavez/Pedernales",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252964,
+									"lon": -97.713005,
+									"stop_id": "6266",
+									"stop_name": "Cesar Chavez/Pleasant…",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252336,
+									"lon": -97.703929,
+									"stop_id": "6414",
+									"stop_name": "Springdale/Cesar Chavez",
+									"stop_sequence": 30
+								}
+							],
+							"stop_id": "5938",
+							"stop_name": "8th/Lavaca",
+							"stop_name_full": "216 8Th/Lavaca",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.2517,
+							"lon": -97.69763,
+							"minor_stops": [],
+							"stop_id": "6448",
+							"stop_name": "Eastside Bus Plaza Bay H",
+							"stop_name_full": "5203 Eastside Bus Plaza Bay H",
+							"stop_sequence": 31
+						}
+					]
+				},
+				"2-0-ec9e6171": {
+					"direction_id": 0,
+					"pattern_id": "2-0-ec9e6171",
+					"representative_trip_id": "3013463_2575",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 33,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.2517,
+							"lon": -97.69763,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.255955,
+									"lon": -97.701385,
+									"stop_id": "844",
+									"stop_name": "7th/Springdale",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.264596,
+									"lon": -97.696074,
+									"stop_id": "4534",
+									"stop_name": "Springdale/Govalle",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267244,
+									"lon": -97.694388,
+									"stop_id": "1379",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27106,
+									"lon": -97.69193,
+									"stop_id": "1381",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273662,
+									"lon": -97.69085,
+									"stop_id": "632",
+									"stop_name": "OAK SPRINGS/SPRINGDALE",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273894,
+									"lon": -97.695063,
+									"stop_id": "5618",
+									"stop_name": "Oak Springs/Gunter",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27361,
+									"lon": -97.69835,
+									"stop_id": "634",
+									"stop_name": "Oak Springs SB",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272939,
+									"lon": -97.70225,
+									"stop_id": "5464",
+									"stop_name": "Oak Springs/Webberville",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272556,
+									"lon": -97.704568,
+									"stop_id": "635",
+									"stop_name": "Oak Springs/Ridgeway",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.272319,
+									"lon": -97.708296,
+									"stop_id": "637",
+									"stop_name": "Rosewood/Bedford",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "6448",
+							"stop_name": "Eastside Bus Plaza Bay H",
+							"stop_name_full": "5203 Eastside Bus Plaza Bay H",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.271236,
+							"lon": -97.710649,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270419,
+									"lon": -97.715,
+									"stop_id": "3728",
+									"stop_name": "Rosewood/Chestnut",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269698,
+									"lon": -97.719604,
+									"stop_id": "4172",
+									"stop_name": "Rosewood/Chicon",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268978,
+									"lon": -97.724138,
+									"stop_id": "3730",
+									"stop_name": "Rosewood/Angelina",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268704,
+									"lon": -97.727634,
+									"stop_id": "3731",
+									"stop_name": "11th/Lydia",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269995,
+									"lon": -97.731193,
+									"stop_id": "5496",
+									"stop_name": "11th/Branch",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271094,
+									"lon": -97.734976,
+									"stop_id": "6382",
+									"stop_name": "11th/Red River",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "638",
+							"stop_name": "Rosewood/Hargrave",
+							"stop_name_full": "2370 Rosewood/Hargrave",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.270613,
+							"lon": -97.744215,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.263819,
+									"lon": -97.746366,
+									"stop_id": "1781",
+									"stop_name": "Cesar Chavez/Lavaca",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.262969,
+									"lon": -97.743365,
+									"stop_id": "993",
+									"stop_name": "Cesar Chavez/Brazos",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.262213,
+									"lon": -97.740639,
+									"stop_id": "5633",
+									"stop_name": "Cesar Chavez/Trinity",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259919,
+									"lon": -97.732856,
+									"stop_id": "2812",
+									"stop_name": "Cesar Chavez/Waller",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258279,
+									"lon": -97.728156,
+									"stop_id": "1802",
+									"stop_name": "Cesar Chavez/Comal",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256843,
+									"lon": -97.724082,
+									"stop_id": "6272",
+									"stop_name": "Cesar Chavez/Chicon",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.25572,
+									"lon": -97.720807,
+									"stop_id": "6270",
+									"stop_name": "Cesar Chavez/Robert…",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.254208,
+									"lon": -97.716515,
+									"stop_id": "6268",
+									"stop_name": "Cesar Chavez/Pedernales",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252964,
+									"lon": -97.713005,
+									"stop_id": "6266",
+									"stop_name": "Cesar Chavez/Pleasant…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252336,
+									"lon": -97.703929,
+									"stop_id": "6414",
+									"stop_name": "Springdale/Cesar Chavez",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "5938",
+							"stop_name": "8th/Lavaca",
+							"stop_name_full": "216 8Th/Lavaca",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.2517,
+							"lon": -97.69763,
+							"minor_stops": [],
+							"stop_id": "6448",
+							"stop_name": "Eastside Bus Plaza Bay H",
+							"stop_name_full": "5203 Eastside Bus Plaza Bay H",
+							"stop_sequence": 33
+						}
+					]
+				}
+			},
+			"stop_count": 31,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "2-1-fdd8e79f",
+				"2-172": "2-1-61221b0b",
+				"3-172": "2-1-61221b0b",
+				"4-172": "2-1-61221b0b",
+				"5-172": "2-1-61221b0b",
+				"6-172": "2-1-fdd8e79f",
+				"7-172": "2-1-61221b0b",
+				"8-172": "2-1-fdd8e79f"
+			},
+			"baseline_pattern_id": "2-1-61221b0b",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"2-1-61221b0b": {
+					"direction_id": 1,
+					"pattern_id": "2-1-61221b0b",
+					"representative_trip_id": "3013523_2232",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 35,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.251577,
+							"lon": -97.697387,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.252034,
+									"lon": -97.7047,
+									"stop_id": "6261",
+									"stop_name": "Cesar Chavez/Springdale",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.251738,
+									"lon": -97.708599,
+									"stop_id": "6263",
+									"stop_name": "Cesar Chavez/Tillery",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253005,
+									"lon": -97.712584,
+									"stop_id": "6265",
+									"stop_name": "Cesar Chavez/Pleasant…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.254573,
+									"lon": -97.717283,
+									"stop_id": "6267",
+									"stop_name": "Cesar Chavez/Pedernales",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.255752,
+									"lon": -97.720588,
+									"stop_id": "6269",
+									"stop_name": "Cesar Chavez/Robert…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.257268,
+									"lon": -97.724841,
+									"stop_id": "6271",
+									"stop_name": "Cesar Chavez/Chicon",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25853,
+									"lon": -97.72848,
+									"stop_id": "1847",
+									"stop_name": "Cesar Chavez/Comal",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259911,
+									"lon": -97.732463,
+									"stop_id": "1849",
+									"stop_name": "Cesar Chavez/Waller",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.261585,
+									"lon": -97.737717,
+									"stop_id": "4175",
+									"stop_name": "Cesar Chavez/Red River",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26246,
+									"lon": -97.74084,
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26392,
+									"lon": -97.74614,
+									"stop_id": "6274",
+									"stop_name": "Cesar Chavez/Colorado",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7th/Colorado",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6447",
+							"stop_name": "Eastside Bus Plaza Bay G",
+							"stop_name_full": "5207 Eastside Bus Plaza Bay G",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269216,
+							"lon": -97.738446,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.27114,
+									"lon": -97.735733,
+									"stop_id": "5209",
+									"stop_name": "11th/Red River",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26986,
+									"lon": -97.731241,
+									"stop_id": "657",
+									"stop_name": "11th/Branch",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269271,
+									"lon": -97.729681,
+									"stop_id": "658",
+									"stop_name": "11th/Waller",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268613,
+									"lon": -97.72782,
+									"stop_id": "659",
+									"stop_name": "11th/Lydia",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26878,
+									"lon": -97.72446,
+									"stop_id": "661",
+									"stop_name": "Rosewood/Angelina",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269218,
+									"lon": -97.721609,
+									"stop_id": "5627",
+									"stop_name": "Rosewood/Lawson",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269696,
+									"lon": -97.718601,
+									"stop_id": "663",
+									"stop_name": "Rosewood/Chicon",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27025,
+									"lon": -97.71522,
+									"stop_id": "3932",
+									"stop_name": "Rosewood/Chestnut",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "6315",
+							"stop_name": "8th Street NB",
+							"stop_name_full": "8th Street NB (Trinity/8th)",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.271107,
+							"lon": -97.710539,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.272209,
+									"lon": -97.70819,
+									"stop_id": "5392",
+									"stop_name": "Rosewood/Bedford",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.272357,
+									"lon": -97.705144,
+									"stop_id": "666",
+									"stop_name": "Rosewood/Webberville",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.272787,
+									"lon": -97.702321,
+									"stop_id": "667",
+									"stop_name": "Oak Springs/Webberville",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273484,
+									"lon": -97.698127,
+									"stop_id": "668",
+									"stop_name": "Oak Springs/Airport",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27375,
+									"lon": -97.694929,
+									"stop_id": "3722",
+									"stop_name": "Oak Springs/Gunter",
+									"stop_sequence": 29
+								}
+							],
+							"stop_id": "665",
+							"stop_name": "ROSEWOOD/HARGRAVE",
+							"stop_name_full": "2399 ROSEWOOD/HARGRAVE",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.273534,
+							"lon": -97.691296,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.270901,
+									"lon": -97.692225,
+									"stop_id": "1338",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267579,
+									"lon": -97.694349,
+									"stop_id": "1339",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.264908,
+									"lon": -97.695452,
+									"stop_id": "5100",
+									"stop_name": "Airport/Springdale",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25936,
+									"lon": -97.69377,
+									"stop_id": "3302",
+									"stop_name": "Airport/Shady Lane",
+									"stop_sequence": 34
+								}
+							],
+							"stop_id": "669",
+							"stop_name": "Oak Springs/Springdale",
+							"stop_name_full": "Oak Springs/Springdale",
+							"stop_sequence": 30
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.251577,
+							"lon": -97.697387,
+							"minor_stops": [],
+							"stop_id": "6447",
+							"stop_name": "Eastside Bus Plaza Bay G",
+							"stop_name_full": "5207 Eastside Bus Plaza Bay G",
+							"stop_sequence": 35
+						}
+					]
+				},
+				"2-1-fdd8e79f": {
+					"direction_id": 1,
+					"pattern_id": "2-1-fdd8e79f",
+					"representative_trip_id": "3013523_2172",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 36,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.251577,
+							"lon": -97.697387,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.252034,
+									"lon": -97.7047,
+									"stop_id": "6261",
+									"stop_name": "Cesar Chavez/Springdale",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.251738,
+									"lon": -97.708599,
+									"stop_id": "6263",
+									"stop_name": "Cesar Chavez/Tillery",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253005,
+									"lon": -97.712584,
+									"stop_id": "6265",
+									"stop_name": "Cesar Chavez/Pleasant…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.254573,
+									"lon": -97.717283,
+									"stop_id": "6267",
+									"stop_name": "Cesar Chavez/Pedernales",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.255752,
+									"lon": -97.720588,
+									"stop_id": "6269",
+									"stop_name": "Cesar Chavez/Robert…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.257268,
+									"lon": -97.724841,
+									"stop_id": "6271",
+									"stop_name": "Cesar Chavez/Chicon",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25853,
+									"lon": -97.72848,
+									"stop_id": "1847",
+									"stop_name": "Cesar Chavez/Comal",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259911,
+									"lon": -97.732463,
+									"stop_id": "1849",
+									"stop_name": "Cesar Chavez/Waller",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.261585,
+									"lon": -97.737717,
+									"stop_id": "4175",
+									"stop_name": "Cesar Chavez/Red River",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26246,
+									"lon": -97.74084,
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26392,
+									"lon": -97.74614,
+									"stop_id": "6274",
+									"stop_name": "Cesar Chavez/Colorado",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7th/Colorado",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6447",
+							"stop_name": "Eastside Bus Plaza Bay G",
+							"stop_name_full": "5207 Eastside Bus Plaza Bay G",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269216,
+							"lon": -97.738446,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.27114,
+									"lon": -97.735733,
+									"stop_id": "5209",
+									"stop_name": "11th/Red River",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26986,
+									"lon": -97.731241,
+									"stop_id": "657",
+									"stop_name": "11th/Branch",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269271,
+									"lon": -97.729681,
+									"stop_id": "658",
+									"stop_name": "11th/Waller",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268613,
+									"lon": -97.72782,
+									"stop_id": "659",
+									"stop_name": "11th/Lydia",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.26878,
+									"lon": -97.72446,
+									"stop_id": "661",
+									"stop_name": "Rosewood/Angelina",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269218,
+									"lon": -97.721609,
+									"stop_id": "5627",
+									"stop_name": "Rosewood/Lawson",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269696,
+									"lon": -97.718601,
+									"stop_id": "663",
+									"stop_name": "Rosewood/Chicon",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27025,
+									"lon": -97.71522,
+									"stop_id": "3932",
+									"stop_name": "Rosewood/Chestnut",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "6315",
+							"stop_name": "8th Street NB",
+							"stop_name_full": "8th Street NB (Trinity/8th)",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.271107,
+							"lon": -97.710539,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.272209,
+									"lon": -97.70819,
+									"stop_id": "5392",
+									"stop_name": "Rosewood/Bedford",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.272357,
+									"lon": -97.705144,
+									"stop_id": "666",
+									"stop_name": "Rosewood/Webberville",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.272787,
+									"lon": -97.702321,
+									"stop_id": "667",
+									"stop_name": "Oak Springs/Webberville",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273484,
+									"lon": -97.698127,
+									"stop_id": "668",
+									"stop_name": "Oak Springs/Airport",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27375,
+									"lon": -97.694929,
+									"stop_id": "3722",
+									"stop_name": "Oak Springs/Gunter",
+									"stop_sequence": 29
+								}
+							],
+							"stop_id": "665",
+							"stop_name": "ROSEWOOD/HARGRAVE",
+							"stop_name_full": "2399 ROSEWOOD/HARGRAVE",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.273534,
+							"lon": -97.691296,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.270901,
+									"lon": -97.692225,
+									"stop_id": "1338",
+									"stop_name": "Springdale/Prock",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267579,
+									"lon": -97.694349,
+									"stop_id": "1339",
+									"stop_name": "Springdale/Goodwin",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.266136,
+									"lon": -97.695276,
+									"stop_id": "1340",
+									"stop_name": "Springdale/Airport",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.255952,
+									"lon": -97.701621,
+									"stop_id": "6570",
+									"stop_name": "7th/Springdale",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253397,
+									"lon": -97.697886,
+									"stop_id": "942",
+									"stop_name": "7th/Shady",
+									"stop_sequence": 35
+								}
+							],
+							"stop_id": "669",
+							"stop_name": "Oak Springs/Springdale",
+							"stop_name_full": "Oak Springs/Springdale",
+							"stop_sequence": 30
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.251577,
+							"lon": -97.697387,
+							"minor_stops": [],
+							"stop_id": "6447",
+							"stop_name": "Eastside Bus Plaza Bay G",
+							"stop_name_full": "5207 Eastside Bus Plaza Bay G",
+							"stop_sequence": 36
+						}
+					]
+				}
+			},
+			"stop_count": 35,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "2",
+	"schema": 1
+}

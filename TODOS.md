@@ -74,6 +74,82 @@ fix and the same acronym allowlist, applied wherever a route long_name is shorte
 **Priority:** P3
 **Depends on:** None
 
+### Decide whether a bus whose next run is canceled should chain past it
+
+**What:** `coverageFor` attaches a bus to the trip it publishes in `block.next_trip`, and
+it does that even when that trip has since been canceled. The bus's real next work is then
+the trip AFTER the canceled one, which gets only the weaker block-mate match and so never
+earns a predicted time. Open question: should the claimant walk forward past canceled
+successors?
+
+**Why:** Not acted on, because the evidence does not yet support it. A sweep of all 71 live
+routes on 2026-09-17 at 17:28 found 46 cancellations, and 45 of them sat on a block with no
+bus reporting at all — a block nobody is operating, where there is no bus to chain. Exactly
+one had a bus on its block: route 800 bus 8010, `very_late` by 856s, still claiming the
+canceled 17:50 with the 19:00 next on its block. One case is not a pattern, and the likeliest
+reading of that one is a stale `next_trip` rather than a reassignment, since 8010 was 14
+minutes late against a run 22 minutes out with a ~100 minute block gap ahead of it.
+
+**Context:** Raised while fixing the inbound-predictor bug — the thought was that an agency
+might cancel a run so a late bus can pick up a later one, which would make a canceled
+successor a routine thing to chain through rather than an anomaly. The data above says
+cancellations here are mostly missing buses, not recovery moves, but that is one snapshot on
+one afternoon and peak disruption may look different. Worth re-running the sweep during a
+real incident before building anything. The sweep script shape is in the investigation notes
+for `.local/captures/837-nb-inbound-drop-20260917/`.
+
+`timingFor` already refuses to predict for a canceled trip at all, so the current behavior
+is conservative rather than wrong: the canceled row keeps the time it was canceled from, and
+the run after it shows "no bus reporting yet" instead of a made-up time.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** A capture taken while cancellations are actually being used to recover
+
+### chain.js times a leg from the timetable when its bus has not started
+
+**What:** `client/chain.js` is a third producer of "when is this departure due", beside the
+stop board and the saved cards, and it has the blind spot those two just lost. A leg whose
+bus has not started gets `lateness: null` (`chain.js:676`) and `predicted_board_at` falls
+back to the booked time (`chain.js:775`), so a transfer is graded against a timetable while
+the bus that will run it is knowably late.
+
+**Why:** Not folded into the 0.6.1.0 fix, deliberately. `timingFor` takes one `scheduledAt`
+and returns one time; a chain leg carries a `board_at`/`alight_at` pair and feeds
+transfer-slack arithmetic, so this is a different shape, not a fourth call site. It also
+changes how connections are graded, which needs its own differential over a chain corpus
+before anyone trusts it — the 0.6.1.0 differential covered stop-board rows only.
+
+**Context:** Found in the pre-landing checklist pass while tracing consumers of the new row
+model. The three-way split is the shape CLAUDE.md warns about after ISSUE-002; two of the
+three now share `watch.timingFor`, and this is the one left out.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** A chain corpus differential, the way the stop board got one
+
+### A mass cancellation can set how long the stop board panel is
+
+**What:** `upcoming()` caps the list at `count` LIVE departures, and canceled or overdue rows
+ride along without consuming a slot (`client/stopboard.js`, the `live < want` loop). If every
+remaining row at a stop is canceled, nothing increments `live` and the panel renders the whole
+rest of the service day — about 97 rows at route 837's busiest stop.
+
+**Why:** Degraded UI, not resource exhaustion, and it predates 0.6.1.0 — that release only
+changed WHICH canceled rows reach the loop, and lowered the exposure on balance (announced
+cancellations dropped from a 30-minute window to 10). Worth a bound anyway, because the set is
+upstream-controlled: `isCanceled` reads `schedule.canceled_trips`, rebuilt from CapMetro's
+trip updates every cycle.
+
+**Context:** Raised by the security pass on the 0.6.1.0 review at medium confidence, with the
+97-row worst case measured against `tests/fixtures/capture-20260917-837/`. A cap of
+`want + MAX_RIDE_ALONG` on total pushed rows would close it without changing the "a
+cancellation does not consume one of your two answers" rule.
+
+**Effort:** S
+**Priority:** P3
+**Depends on:** None
+
 ### Finish the test coverage on the client panels
 
 **What:** The ship coverage audit on 2026-08-19 put the time-axis branch at about 30% of
@@ -147,6 +223,103 @@ and it does not scale to six.
 
 ## Infrastructure
 
+### Re-capture the feed fixtures against a current publication
+
+**What:** `tests/fixtures/feeds-20260819/` is a live capture from 2026-08-19, paired with
+`tests/fixtures/shards-260818_1456/`. The pair is internally consistent and the suite is green
+against it, but it is now two publications behind: `260826_0956` starts on service date
+2026-08-26, so the captured service day does not exist in the current feed at all.
+
+**Why:** Nothing is broken today — the acceptance criteria bind to the frozen pair and cover
+all 71 routes. What the age costs is realism: the fixtures cannot exercise anything CapMetro
+has changed since, and every new capture drifts further from what the board actually serves.
+
+**Context:** A capture wants a date carrying a one-off service, for the reason
+`tests/fixtures/README.md` gives — an ordinary weekday hides trip-id instability, which is
+exactly what saved watches have to survive. In `260826_0956` the remaining such dates are
+**2026-08-27, 08-28, 08-29 and 08-30, then nothing until 2026-10-31.** Re-capture both halves
+together: `ShardFreshnessTest` asserts they agree, so half a re-pin fails loudly.
+
+**Effort:** M
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/12
+
+### Nothing tells anyone when the schedule pipeline breaks
+
+**What:** The GTFS job failed on 2026-08-27 and the board sat on a superseded schedule until a
+person looked at the site and thought the notice seemed wrong. A failed Action, an `ok:false`
+health file and a failed `capmetro-update.service` are each visible only to someone already
+looking in the right place.
+
+**Why:** The runtime now tells riders what is wrong. It tells the operator nothing.
+
+**Context:** `health.json` already carries the whole diagnosis; the gap is that nobody reads
+it. Alert on persistence, not on a single poll — one failed upstream fetch flips `ok` to false
+routinely.
+
+**Effort:** S
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/11
+
+### A vehicle with no position renders at null island rather than nowhere
+
+**What:** `join.php` reads coordinates as `$pos = $v['position'] ?? []` then
+`(float) ($pos['latitude'] ?? 0)`, so a vehicle carrying no position submessage at all
+publishes as `lat: 0, lon: 0` — a point in the Gulf of Guinea — instead of as a vehicle whose
+position is unknown. The board would draw it, confidently, in the Atlantic.
+
+**Why:** It is the same failure PR 15 fixed one level down inside the protobuf decoder, where a
+*corrupt* latitude was defaulting to 0 and plotting a bus mid-ocean. The decoder now refuses to
+emit a half-position, but the consumer's default is still there, and it is reachable from the
+JSON path too, which no decoder change can protect.
+
+**Context:** Not observed in real data — 0 of 404 vehicles in the 2026-09-01 JSON capture, 0 of
+392 in the 2026-08-19 one, and 0 of 413 in the protobuf omit position — which is why it has
+never shown. CapMetro appears to omit the vehicle entirely rather than publish it without
+coordinates. The fix is to make `position` nullable through the join and the schema rather than
+defaulting it, so an unknown position renders as unknown; the client already handles a vehicle
+it cannot place, since that is what a deadhead outside the service area looks like. Predates
+PR 15 and is reachable from either feed, so it is not that PR's to fix.
+
+**Effort:** S
+**Priority:** P3
+
+### A run's worst-case fetch time is roughly twice the unit's TimeoutStartSec
+
+**What:** `deploy/capmetro-generate.service` sets `TimeoutStartSec=50`. A run makes three feed
+requests at `timeout_s` each — 45s at the configured 15 — and every fifteenth minute the
+upstream probe adds three more ranged GETs at the same timeout, for 90s. The two fallbacks add
+a capped 10s each on a stalled cycle, so a cycle that stalls on both feeds adds 20s. Nothing
+bounds the run as a whole, so a slow upstream can have systemd kill the generator outright.
+
+**Why:** It has never fired, because the feeds answer in well under a second and the failure
+needs several requests to hang at once. But the runs where it would fire are exactly the runs
+where upstream is already misbehaving — which is when the board most needs the cycle to finish.
+A killed run writes nothing, and the failure looks like a dead cron rather than a slow feed.
+
+**Context:** Found reviewing PR 15, which added the fourth request and made the arithmetic
+worth doing; the trip updates fallback later added a fifth. Both are capped at 10s
+(`CM_POSITIONS_PB_TIMEOUT_S`, `CM_TRIP_UPDATES_PB_TIMEOUT_S`) so neither can be the thing that
+blows the budget, but the budget was already over the ceiling without either, so those caps
+narrow the problem rather than fixing it. Worth noting the worst case is now genuinely
+reachable: on 2026-09-09 both feeds were stalled at once, which is exactly the cycle that fires
+both fallbacks. The fix is to bound the run rather than each
+request: a deadline threaded through the fetches, so whatever has not answered by then is
+treated as a failed feed and the run publishes what it has. Raising `TimeoutStartSec` instead
+would only move the cliff, and it is a unit change, so it costs a `sudo deploy/install.sh` and
+an exit-3 run to take effect.
+
+The unit file's own comment claimed a ~45s worst case, which was wrong by roughly half and had
+been since before the fallback existed. Corrected in place, so the next person to reach for
+`TimeoutStartSec` reads the real arithmetic rather than the one that made 50 look generous.
+That correction is itself a unit edit, so it trips the drift check it describes: `update.sh`
+names the file and exits 3 until `sudo deploy/install.sh` runs. On a box with no
+`/etc/capmetro/installed-units.sha256` yet it says it cannot tell and exits 0 instead — either
+way `install.sh` is what settles it.
+
+**Effort:** S
+**Priority:** P3
+
 ### Deploy it somewhere you can actually open on a phone
 
 **What:** The board runs locally and nowhere else. Get the static client onto GitHub
@@ -214,6 +387,147 @@ only.
 **Depends on:** None
 
 ## Completed
+
+### Give capture-20260917-837 a section in the fixtures README
+
+**What:** `tests/fixtures/README.md` documents every fixture directory with a prose section
+explaining what it encodes and why it must not be casually regenerated.
+`capture-20260917-837/` had only its `MANIFEST.json`.
+
+**Why:** The README is where someone looks before re-capturing something, and the 837 capture
+has the same "do not regenerate casually" property as the others: the tests read its exact
+adherence numbers (820 and 681), its trip ids, and the fact that bus 8007's continuation is
+graded `high` confidence. A re-capture that loses any of those turns assertions vacuous rather
+than red — which is why the invariant block in
+`tests/node/client-stopboard-inbound-predictor.test.mjs` exists.
+
+**How it was closed:** A section following the same shape as the other captures: what it
+encodes, a file-by-file table with each snapshot's clock, which tests depend on which numbers,
+and the PII statement. `tests/NOTES.md` gained the matching pointers — the `predictor` e2e
+scenario and the four files `tests/schema/validate.py` now validates.
+
+**Effort:** S
+**Priority:** P3
+**Completed:** v0.6.1.0 (2026-09-18)
+
+### Fall back to the protobuf positions feed when the JSON one stalls
+
+**What:** On 2026-09-01 `vehiclepositions.json` (`cuc7-ywmd`) froze at 12:40:09 CDT for over
+four hours while CapMetro's protobuf publication of the same feed (`eiei-9rpf`) stayed current
+to the second. Read the PB twin when the JSON is stale, converting it to the same camelCase
+shape so nothing downstream changes.
+
+**Why:** The data was never missing. The board spent an afternoon showing four-hour-old
+positions, and because `cm_staleness()` takes the oldest feed, it also suppressed lateness for
+trip updates that were 39 seconds fresh.
+
+**Context:** The stall was upstream and only on the publish side — the file served a clean 200
+throughout, and Socrata's per-publish blob UUID never advanced. The decoder landed in its own
+`runtime/lib/gtfsrt.php` rather than inside `fetch.php`, returning the `cm_fetch_json()` array
+shape. The enum mapping was the part to watch, as expected: `scheduleRelationship` and
+`currentStatus` are strings in the JSON and integers in the PB, and `adherence.php` compares
+`CANCELED` by name, so a bad mapping would have changed lateness silently.
+
+Review turned up the failure modes that freshness alone does not cover, and they were the
+interesting ones. An empty protobuf with a current header beat a stale-but-populated JSON on
+age and reported `ok:true` while emptying the board — no staleness error fires on a feed that
+has nothing in it to be stale. A wire-type mismatch on an enum field raised a TypeError out of
+a decoder whose entire premise is that it degrades instead of failing. Invalid UTF-8 from the
+wire would have made `json_encode()` return false and `write.php` correctly refuse to write —
+one bad byte in one vehicle label costing every file that vehicle appears in. And a fourth
+full-budget HTTP request put the worst case over the unit's `TimeoutStartSec=50`, on exactly
+the runs where upstream is already misbehaving.
+
+**Still open:** the differential proof, for POSITIONS only. Unit tests show the decoder matches
+the GTFS-RT spec; only a capture with both publications describing one instant shows it matches
+CapMetro's JSON *export*.
+`GtfsRtDecoderTest::testDecodedProtobufMatchesTheJsonExportForTheSameObservations` is written
+and skips until `tests/fixtures/feeds-pb-differential/vehiclepositions.pb` exists.
+
+The 2026-09-09 outage could not supply it: the two positions publications froze 29 seconds
+apart, and the test pairs on `id@vehicle.timestamp`, so only 9 of 260 vehicles matched against
+a floor of 50. The trip updates pair from that same morning *did* work, and is committed — see
+the trip updates entry below. Buses move in 29 seconds; a trip's predicted stop times mostly do
+not, which is the whole difference.
+
+**Effort:** M
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/14
+**Completed:** 2026-09-02, PR 15. Needs the differential capture the next time both
+publications are healthy at once.
+
+### Fall back to the protobuf trip updates feed when the JSON one stalls
+
+**What:** CapMetro publishes trip updates twice, as JSON (`mqtr-wwpy`) and protobuf
+(`rmk2-acnw`), exactly as it does positions. Nothing in the runtime knew the second one existed.
+Read the PB twin when the JSON is stale, on the same terms and through the same chooser.
+
+**Why:** A JSON-only trip updates stall was unrecoverable for no better reason than a missing
+URL. It also fails less visibly than a positions stall: stalled positions empty the map, while
+stalled trip updates leave the map full of buses and quietly take the predictions with them,
+because `cm_staleness()` suppresses adherence on the oldest feed. The board looks populated and
+has stopped saying when anything arrives.
+
+**Context:** Found on 2026-09-09 while diagnosing a total outage — every CapMetro publication to
+data.texas.gov stopped inside four minutes, so the positions fallback had nothing fresher to
+switch to either. This feed does **not** rescue that outage. It rescues the single-publication
+case, which is the one that had actually happened before, in the other feed.
+
+Three things worth recording:
+
+- **The dangerous part was an enum, again, and a different one than last time.**
+  `StopTimeUpdate.ScheduleRelationship` and `TripDescriptor.ScheduleRelationship` are different
+  enums sharing wire numbers: wire 1 is `SKIPPED` in one and `ADDED` in the other. `join.php`
+  and `adherence.php` both drop a stop whose relationship is `SKIPPED`, so decoding through the
+  wrong map would have published an arrival time for a stop the bus drives past — silently, with
+  nothing in `health.json` to show for it. It has its own constant and its own test.
+- **The differential capture finally happened**, for this feed. Both publications froze on the
+  same instant that morning (header `1788946436`), which makes a better differential pair than a
+  live capture: neither half moves while you fetch it. All 2,299 entities decode identical to
+  the JSON export including key order, asserted with `===`. That required one cosmetic fix to
+  `cm_pb_trip_descriptor`, which had been emitting `routeId` before `scheduleRelationship` where
+  the export emits them the other way round — harmless to every reader, but it is the difference
+  between an equality test and a weaker normalized one.
+- **The chooser is now one implementation with two names.** `cm_feed_choose()` holds the logic;
+  `cm_positions_choose()` and `cm_trip_updates_choose()` are wrappers. Four failure branches, a
+  threshold, a tie rule and a two-channel error report were not worth having twice — CLAUDE.md
+  already records what a duplicated behaviour cost here once, in the stop-names pair.
+
+**Effort:** M
+**Priority:** P2
+**Completed:** 2026-09-09.
+
+### `update.sh` silently ignored systemd unit changes
+
+**What:** `deploy/update.sh` never touches `/etc/systemd/system`; only `install.sh` writes
+unit files. So a committed change to `capmetro-generate.timer` or `capmetro-update.timer`
+merged, deployed, and never took effect, with nothing reporting the difference.
+
+**Why:** Found on 2026-08-27 while fixing the update timer's firing hour — 04:17 on a box
+running `Etc/UTC`, seven hours *before* the GTFS job commits at 11:20, so a rebuilt schedule
+waited a full day. That fix reached the box; the box kept firing at 04:17.
+
+**Context:** Took the fail-loudly option rather than having `update.sh` install units itself:
+restarting a timer from inside the service that timer started is its own hazard.
+`install.sh` records a sha256 fingerprint of the four unit *sources* into
+`/etc/capmetro/installed-units.sha256`; `update.sh` compares and exits **3** — distinct from
+1, which means the deploy failed — after the code and schedule are already live. It
+fingerprints sources rather than diffing installed files because `install.sh` renders three
+of the four units, so the installed copy never equals the source.
+
+Four review rounds, and in each one the previous round's fix opened the next hole: a test
+rewrite unpinned the call sites, a `readonly` repair made the exit code inheritable from the
+environment, and the extraction that finally made the write testable stopped reporting its
+own failures. The recurring class throughout was a check that silently passes. Along the way
+it also turned out `install.sh` itself would not run — `php -m | grep -q` races under
+`pipefail` and reported every extension missing — which would have made the documented remedy
+fail on first use.
+
+**Effort:** S (became M)
+**Priority:** P2
+**Tracking:** https://github.com/kraftbj/capmetro-tracker/issues/10
+**Completed:** 2026-08-28, PR 13 (`8b43897`). Needs `sudo deploy/install.sh` on the box once
+to write the first record.
 
 ### Regenerate the golden route 4 fixture and make the block fields required
 

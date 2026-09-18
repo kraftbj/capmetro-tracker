@@ -1,0 +1,714 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "392-0-3bf8884a",
+				"8-172": "392-0-3bf8884a",
+				"9-172": "392-0-3bf8884a"
+			},
+			"baseline_pattern_id": "392-0-3bf8884a",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"392-0-3bf8884a": {
+					"direction_id": 0,
+					"pattern_id": "392-0-3bf8884a",
+					"representative_trip_id": "3005255_14694",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 26,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.392965,
+							"lon": -97.715786,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.39123,
+									"lon": -97.713218,
+									"stop_id": "4970",
+									"stop_name": "Braker/Kramer",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.392385,
+									"lon": -97.708773,
+									"stop_id": "3021",
+									"stop_name": "Braker/Metric",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.391164,
+									"lon": -97.705878,
+									"stop_id": "4971",
+									"stop_name": "Braker/Metric",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.389101,
+									"lon": -97.701391,
+									"stop_id": "3022",
+									"stop_name": "Braker/Bittern Hollow",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.387124,
+									"lon": -97.697959,
+									"stop_id": "3023",
+									"stop_name": "Braker/Milbanks",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.385618,
+									"lon": -97.695091,
+									"stop_id": "4972",
+									"stop_name": "Braker/Parkfield",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.383667,
+									"lon": -97.690661,
+									"stop_id": "4973",
+									"stop_name": "Braker/Plains",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5580",
+							"stop_name": "Kramer/Brockton",
+							"stop_name_full": "2415 Kramer/Brockton",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.380984,
+							"lon": -97.684984,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.379968,
+									"lon": -97.6833,
+									"stop_id": "3081",
+									"stop_name": "Braker/Hornsby",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.379016,
+									"lon": -97.681568,
+									"stop_id": "5951",
+									"stop_name": "Braker/Georgian",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.37763,
+									"lon": -97.678405,
+									"stop_id": "3082",
+									"stop_name": "Braker/Middle Fiskville",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.376193,
+									"lon": -97.674267,
+									"stop_id": "3083",
+									"stop_name": "Braker/Joseph Clayton",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.374972,
+									"lon": -97.671833,
+									"stop_id": "6433",
+									"stop_name": "Braker/Bluff Bend",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.373772,
+									"lon": -97.669335,
+									"stop_id": "5123",
+									"stop_name": "Braker/Tom Adams",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.378569,
+									"lon": -97.659881,
+									"stop_id": "3087",
+									"stop_name": "Shropshire/Rotherham",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.380906,
+									"lon": -97.661208,
+									"stop_id": "3088",
+									"stop_name": "Shropshire/Tobler",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.384103,
+									"lon": -97.66232,
+									"stop_id": "3089",
+									"stop_name": "Thompkins/Tuffit",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.387545,
+									"lon": -97.660983,
+									"stop_id": "3090",
+									"stop_name": "Thompkins/Peggotty",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "4550",
+							"stop_name": "Braker/Motheral",
+							"stop_name_full": "Braker/Motheral",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.389819,
+							"lon": -97.65961,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.398734,
+									"lon": -97.668725,
+									"stop_id": "5336",
+									"stop_name": "Canyon Ridge/Yager",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.398589,
+									"lon": -97.662869,
+									"stop_id": "5330",
+									"stop_name": "Tech Ridge/Canyon Ridge",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.399775,
+									"lon": -97.65916,
+									"stop_id": "5331",
+									"stop_name": "Tech Ridge/Parmer",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.405922,
+									"lon": -97.663623,
+									"stop_id": "4672",
+									"stop_name": "McCallen/Parmer",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.411847,
+									"lon": -97.663686,
+									"stop_id": "5332",
+									"stop_name": "McCallen/Parmer",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "3091",
+							"stop_name": "Thompkins/Yager",
+							"stop_name_full": "12215 Thompkins/Yager",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.418296,
+							"lon": -97.668868,
+							"minor_stops": [],
+							"stop_id": "5281",
+							"stop_name": "Tech Ridge Bay G",
+							"stop_name_full": "Tech Ridge Bay G",
+							"stop_sequence": 26
+						}
+					]
+				}
+			},
+			"stop_count": 26,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "392-1-e7099c3b",
+				"2-172": "392-1-cec3f874",
+				"3-172": "392-1-cec3f874",
+				"4-172": "392-1-cec3f874",
+				"5-172": "392-1-cec3f874",
+				"6-172": "392-1-e7099c3b",
+				"7-172": "392-1-cec3f874",
+				"8-172": "392-1-e7099c3b"
+			},
+			"baseline_pattern_id": "392-1-cec3f874",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"392-1-cec3f874": {
+					"direction_id": 1,
+					"pattern_id": "392-1-cec3f874",
+					"representative_trip_id": "3005287_14825",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 24,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.418296,
+							"lon": -97.668868,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.411844,
+									"lon": -97.663981,
+									"stop_id": "5530",
+									"stop_name": "McCallen/Center Ridge",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.400782,
+									"lon": -97.658737,
+									"stop_id": "5328",
+									"stop_name": "Tech Ridge/Parmer",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.398943,
+									"lon": -97.663278,
+									"stop_id": "5329",
+									"stop_name": "Tech Ridge/Canyon Ridge",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.398148,
+									"lon": -97.66904,
+									"stop_id": "5335",
+									"stop_name": "Canyon Ridge/Tech Ridge",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.383411,
+									"lon": -97.66271,
+									"stop_id": "5321",
+									"stop_name": "Thompkins/Larkins",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.378361,
+									"lon": -97.659936,
+									"stop_id": "5323",
+									"stop_name": "Shropshire/Rotherham",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.37371,
+									"lon": -97.66846,
+									"stop_id": "5324",
+									"stop_name": "Braker/January",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.375894,
+									"lon": -97.673184,
+									"stop_id": "5325",
+									"stop_name": "Braker/Wedgewood",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.377449,
+									"lon": -97.677411,
+									"stop_id": "4554",
+									"stop_name": "Braker/Pollyanna",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.378569,
+									"lon": -97.679983,
+									"stop_id": "4553",
+									"stop_name": "Braker/Oakwood",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.380223,
+									"lon": -97.683325,
+									"stop_id": "4551",
+									"stop_name": "Braker/Hornsby",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.381776,
+									"lon": -97.685877,
+									"stop_id": "3895",
+									"stop_name": "Braker/Lamar NE Corner",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "5281",
+							"stop_name": "Tech Ridge Bay G",
+							"stop_name_full": "Tech Ridge Bay G",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.382691,
+							"lon": -97.687669,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.384098,
+									"lon": -97.690954,
+									"stop_id": "5014",
+									"stop_name": "Braker/Plains",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.385465,
+									"lon": -97.694205,
+									"stop_id": "4965",
+									"stop_name": "Braker/Austin Park",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.387659,
+									"lon": -97.69841,
+									"stop_id": "3010",
+									"stop_name": "Braker/Swearingen",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.389344,
+									"lon": -97.701332,
+									"stop_id": "3011",
+									"stop_name": "Braker/Bittern Hollow",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391553,
+									"lon": -97.706104,
+									"stop_id": "3012",
+									"stop_name": "Braker/Metric",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.39276,
+									"lon": -97.70884,
+									"stop_id": "4967",
+									"stop_name": "Braker/Metric",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391761,
+									"lon": -97.713127,
+									"stop_id": "4968",
+									"stop_name": "Braker/Kramer",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391796,
+									"lon": -97.721477,
+									"stop_id": "4761",
+									"stop_name": "Burnet/Braker Stadium…",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.394612,
+									"lon": -97.719265,
+									"stop_id": "5791",
+									"stop_name": "Kramer/Burnet",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "4964",
+							"stop_name": "Braker/Lamar NW Corner",
+							"stop_name_full": "Braker/Lamar NW Corner",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.392965,
+							"lon": -97.715786,
+							"minor_stops": [],
+							"stop_id": "5580",
+							"stop_name": "Kramer/Brockton",
+							"stop_name_full": "2415 Kramer/Brockton",
+							"stop_sequence": 24
+						}
+					]
+				},
+				"392-1-e7099c3b": {
+					"direction_id": 1,
+					"pattern_id": "392-1-e7099c3b",
+					"representative_trip_id": "3005287_14793",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 25,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.418296,
+							"lon": -97.668868,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.411844,
+									"lon": -97.663981,
+									"stop_id": "5530",
+									"stop_name": "McCallen/Center Ridge",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.400782,
+									"lon": -97.658737,
+									"stop_id": "5328",
+									"stop_name": "Tech Ridge/Parmer",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.398943,
+									"lon": -97.663278,
+									"stop_id": "5329",
+									"stop_name": "Tech Ridge/Canyon Ridge",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.398148,
+									"lon": -97.66904,
+									"stop_id": "5335",
+									"stop_name": "Canyon Ridge/Tech Ridge",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "5281",
+							"stop_name": "Tech Ridge Bay G",
+							"stop_name_full": "Tech Ridge Bay G",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.387388,
+							"lon": -97.661196,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.383411,
+									"lon": -97.66271,
+									"stop_id": "5321",
+									"stop_name": "Thompkins/Larkins",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.378361,
+									"lon": -97.659936,
+									"stop_id": "5323",
+									"stop_name": "Shropshire/Rotherham",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.37371,
+									"lon": -97.66846,
+									"stop_id": "5324",
+									"stop_name": "Braker/January",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.375894,
+									"lon": -97.673184,
+									"stop_id": "5325",
+									"stop_name": "Braker/Wedgewood",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.377449,
+									"lon": -97.677411,
+									"stop_id": "4554",
+									"stop_name": "Braker/Pollyanna",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.378569,
+									"lon": -97.679983,
+									"stop_id": "4553",
+									"stop_name": "Braker/Oakwood",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.380223,
+									"lon": -97.683325,
+									"stop_id": "4551",
+									"stop_name": "Braker/Hornsby",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.381776,
+									"lon": -97.685877,
+									"stop_id": "3895",
+									"stop_name": "Braker/Lamar NE Corner",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "5320",
+							"stop_name": "Thompkins/Trotwood",
+							"stop_name_full": "Thompkins/Trotwood",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.382691,
+							"lon": -97.687669,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.384098,
+									"lon": -97.690954,
+									"stop_id": "5014",
+									"stop_name": "Braker/Plains",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.385465,
+									"lon": -97.694205,
+									"stop_id": "4965",
+									"stop_name": "Braker/Austin Park",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.387659,
+									"lon": -97.69841,
+									"stop_id": "3010",
+									"stop_name": "Braker/Swearingen",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.389344,
+									"lon": -97.701332,
+									"stop_id": "3011",
+									"stop_name": "Braker/Bittern Hollow",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391553,
+									"lon": -97.706104,
+									"stop_id": "3012",
+									"stop_name": "Braker/Metric",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.39276,
+									"lon": -97.70884,
+									"stop_id": "4967",
+									"stop_name": "Braker/Metric",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391761,
+									"lon": -97.713127,
+									"stop_id": "4968",
+									"stop_name": "Braker/Kramer",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.391796,
+									"lon": -97.721477,
+									"stop_id": "4761",
+									"stop_name": "Burnet/Braker Stadium…",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.394612,
+									"lon": -97.719265,
+									"stop_id": "5791",
+									"stop_name": "Kramer/Burnet",
+									"stop_sequence": 24
+								}
+							],
+							"stop_id": "4964",
+							"stop_name": "Braker/Lamar NW Corner",
+							"stop_name_full": "Braker/Lamar NW Corner",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.392965,
+							"lon": -97.715786,
+							"minor_stops": [],
+							"stop_id": "5580",
+							"stop_name": "Kramer/Brockton",
+							"stop_name_full": "2415 Kramer/Brockton",
+							"stop_sequence": 25
+						}
+					]
+				}
+			},
+			"stop_count": 24,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "392",
+	"schema": 1
+}

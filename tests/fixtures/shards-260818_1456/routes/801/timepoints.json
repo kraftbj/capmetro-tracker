@@ -1,0 +1,615 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "801-0-ac0e59c0",
+				"8-172": "801-0-ac0e59c0",
+				"9-172": "801-0-ac0e59c0"
+			},
+			"baseline_pattern_id": "801-0-ac0e59c0",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"801-0-ac0e59c0": {
+					"direction_id": 0,
+					"pattern_id": "801-0-ac0e59c0",
+					"representative_trip_id": "3011189_22451",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 30,
+					"timepoint_count": 11,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.162883,
+							"lon": -97.790317,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.169961,
+									"lon": -97.787073,
+									"stop_id": "6362",
+									"stop_name": "Slaughter Station",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "5873",
+							"stop_name": "Southpark Meadows Station",
+							"stop_name_full": "Southpark Meadows Station",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.194535,
+							"lon": -97.778085,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.202145,
+									"lon": -97.775515,
+									"stop_id": "559",
+									"stop_name": "Little Texas Station",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.205395,
+									"lon": -97.774493,
+									"stop_id": "6525",
+									"stop_name": "Stassney NB Rapid",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217776,
+									"lon": -97.766955,
+									"stop_id": "6355",
+									"stop_name": "St Elmo Station",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "4382",
+							"stop_name": "Pleasant Hill Station",
+							"stop_name_full": "Pleasant Hill Station (NB)",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.222941,
+							"lon": -97.76628,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.230564,
+									"lon": -97.759511,
+									"stop_id": "5869",
+									"stop_name": "St Edwards Station",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.239554,
+									"lon": -97.752826,
+									"stop_id": "4039",
+									"stop_name": "Oltorf Station",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.248772,
+									"lon": -97.749826,
+									"stop_id": "4026",
+									"stop_name": "Soco Station",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259459,
+									"lon": -97.748994,
+									"stop_id": "2767",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "5552",
+							"stop_name": "South Congress Station…",
+							"stop_name_full": "South Congress Station Bay J",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.266218,
+							"lon": -97.746056,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.27042,
+									"lon": -97.74444,
+									"stop_id": "2606",
+									"stop_name": "Austin History Center…",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275587,
+									"lon": -97.742558,
+									"stop_id": "591",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2793,
+									"lon": -97.74119,
+									"stop_id": "4657",
+									"stop_name": "Museum Station",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5868",
+							"stop_name": "Republic Square Station",
+							"stop_name_full": "Republic Square Station (NB)",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.286216,
+							"lon": -97.741573,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.297767,
+									"lon": -97.741167,
+									"stop_id": "603",
+									"stop_name": "31st Street Rapid Station",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "5865",
+							"stop_name": "UT West Mall Station",
+							"stop_name_full": "UT West Mall Station (NB)",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.304422,
+							"lon": -97.736957,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.314796,
+									"lon": -97.732266,
+									"stop_id": "610",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.321317,
+									"lon": -97.729114,
+									"stop_id": "612",
+									"stop_name": "North Loop East Rapid…",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "606",
+							"stop_name": "Hyde Park Station",
+							"stop_name_full": "Hyde Park Station (NB)",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.326325,
+							"lon": -97.725966,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.336889,
+									"lon": -97.719305,
+									"stop_id": "5860",
+									"stop_name": "Crestview Station",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "5862",
+							"stop_name": "Brentwood Station",
+							"stop_name_full": "Brentwood Station (NB)",
+							"stop_sequence": 22
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.349326,
+							"lon": -97.711685,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.355674,
+									"lon": -97.702242,
+									"stop_id": "6348",
+									"stop_name": "Fairfield Station",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "5859",
+							"stop_name": "North Lamar Transit…",
+							"stop_name_full": "North Lamar Transit Center",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.362617,
+							"lon": -97.697133,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.372083,
+									"lon": -97.691817,
+									"stop_id": "4543",
+									"stop_name": "Masterson Station",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "2821",
+							"stop_name": "Rundberg Station",
+							"stop_name_full": "Rundberg Station (NB)",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.379385,
+							"lon": -97.687683,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.40559,
+									"lon": -97.678489,
+									"stop_id": "5270",
+									"stop_name": "Parmer Rapid Station",
+									"stop_sequence": 29
+								}
+							],
+							"stop_id": "4548",
+							"stop_name": "Chinatown Station",
+							"stop_name_full": "Chinatown Station (NB)",
+							"stop_sequence": 28
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.418199,
+							"lon": -97.668243,
+							"minor_stops": [],
+							"stop_id": "5304",
+							"stop_name": "Tech Ridge Bay I",
+							"stop_name_full": "Tech Ridge Bay I",
+							"stop_sequence": 30
+						}
+					]
+				}
+			},
+			"stop_count": 30,
+			"timepoint_count": 11
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "801-1-4bb65e3d",
+				"8-172": "801-1-4bb65e3d",
+				"9-172": "801-1-4bb65e3d"
+			},
+			"baseline_pattern_id": "801-1-4bb65e3d",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"801-1-4bb65e3d": {
+					"direction_id": 1,
+					"pattern_id": "801-1-4bb65e3d",
+					"representative_trip_id": "3011285_22652",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 31,
+					"timepoint_count": 11,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.418199,
+							"lon": -97.668243,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.410119,
+									"lon": -97.678043,
+									"stop_id": "5280",
+									"stop_name": "Parmer Rapid Station",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.382313,
+									"lon": -97.686338,
+									"stop_id": "6528",
+									"stop_name": "Braker Station",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "5304",
+							"stop_name": "Tech Ridge Bay I",
+							"stop_name_full": "Tech Ridge Bay I",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.380367,
+							"lon": -97.687401,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.370933,
+									"lon": -97.692733,
+									"stop_id": "5858",
+									"stop_name": "Masterson Station",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "5857",
+							"stop_name": "Chinatown Station",
+							"stop_name_full": "Chinatown Station (SB)",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.363669,
+							"lon": -97.69684,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.355296,
+									"lon": -97.703128,
+									"stop_id": "467",
+									"stop_name": "Fairfield Rapid Station",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "4540",
+							"stop_name": "Rundberg Station",
+							"stop_name_full": "Rundberg Station (SB)",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.349326,
+							"lon": -97.711685,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.337824,
+									"lon": -97.719068,
+									"stop_id": "5606",
+									"stop_name": "Crestview Station",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5859",
+							"stop_name": "North Lamar Transit…",
+							"stop_name_full": "North Lamar Transit Center",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.32686,
+							"lon": -97.725902,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.320787,
+									"lon": -97.729716,
+									"stop_id": "6360",
+									"stop_name": "North Loop East Station",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.314586,
+									"lon": -97.732526,
+									"stop_id": "484",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "5861",
+							"stop_name": "Brentwood Station",
+							"stop_name_full": "Brentwood Station (SB)",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.30358,
+							"lon": -97.737757,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.298051,
+									"lon": -97.741261,
+									"stop_id": "5357",
+									"stop_name": "31st Street Station",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.291085,
+									"lon": -97.741379,
+									"stop_id": "5863",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5405",
+							"stop_name": "Hyde Park Station",
+							"stop_name_full": "Hyde Park Station (SB)",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.286231,
+							"lon": -97.741771,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.279366,
+									"lon": -97.742545,
+									"stop_id": "5866",
+									"stop_name": "Museum Station",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271057,
+									"lon": -97.745655,
+									"stop_id": "2611",
+									"stop_name": "Austin History Center…",
+									"stop_sequence": 19
+								}
+							],
+							"stop_id": "497",
+							"stop_name": "UT West Mall Station",
+							"stop_name_full": "UT West Mall Station (SB)",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.267751,
+							"lon": -97.746857,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.258767,
+									"lon": -97.7487,
+									"stop_id": "2763",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.248134,
+									"lon": -97.750367,
+									"stop_id": "4029",
+									"stop_name": "Soco Station",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238013,
+									"lon": -97.754383,
+									"stop_id": "4046",
+									"stop_name": "Oltorf Station",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.228933,
+									"lon": -97.760817,
+									"stop_id": "5870",
+									"stop_name": "St Edwards Station",
+									"stop_sequence": 24
+								}
+							],
+							"stop_id": "5867",
+							"stop_name": "Republic Square Station",
+							"stop_name_full": "Republic Square Station (SB)",
+							"stop_sequence": 20
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.222718,
+							"lon": -97.766459,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.216701,
+									"lon": -97.768024,
+									"stop_id": "6356",
+									"stop_name": "St Elmo Station",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204553,
+									"lon": -97.775064,
+									"stop_id": "546",
+									"stop_name": "Stassney SB Rapid",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.202521,
+									"lon": -97.775659,
+									"stop_id": "5871",
+									"stop_name": "Little Texas Station",
+									"stop_sequence": 28
+								}
+							],
+							"stop_id": "5553",
+							"stop_name": "South Congress Station…",
+							"stop_name_full": "South Congress Station Bay K",
+							"stop_sequence": 25
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.1924,
+							"lon": -97.779234,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.169621,
+									"lon": -97.787869,
+									"stop_id": "6361",
+									"stop_name": "Slaughter Station",
+									"stop_sequence": 30
+								}
+							],
+							"stop_id": "5872",
+							"stop_name": "Pleasant Hill Station",
+							"stop_name_full": "Pleasant Hill Station (SB)",
+							"stop_sequence": 29
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.162883,
+							"lon": -97.790317,
+							"minor_stops": [],
+							"stop_id": "5873",
+							"stop_name": "Southpark Meadows Station",
+							"stop_name_full": "Southpark Meadows Station",
+							"stop_sequence": 31
+						}
+					]
+				}
+			},
+			"stop_count": 31,
+			"timepoint_count": 11
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "801",
+	"schema": 1
+}

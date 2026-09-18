@@ -1,20 +1,36 @@
 # Written by deploy/install.sh.
 #
-# Daily. CapMetro republishes the schedule about three times a year and the
-# build job commits only when feed_version changes, so this is a no-op on
-# roughly 362 days out of 365 - and on the other three it is the only thing
-# standing between the board and a whole season of wrong departure times.
+# Pulls trunk, which is how a rebuilt schedule reaches the box. CapMetro is
+# supposed to republish about three times a year, so this was daily and this
+# comment used to say it was a no-op on 362 days out of 365. Both halves of that
+# turned out to be wrong on 2026-08-27.
+#
+# WRONG ABOUT THE CADENCE: 260818_1456 was replaced by 260826_0956 eight days
+# later, off-cycle, in a feed advertised as valid through 2027-01-09. Between the
+# two, every live trip id is renumbered and nothing joins: 56 of 71 routes
+# reported 100% of their live trips missing from the schedule shard.
+#
+# WRONG ABOUT THE HOUR: the box runs Etc/UTC, so 04:17 fired SEVEN HOURS BEFORE
+# the GTFS job's 11:20 UTC commit. A rebuild committed today was therefore never
+# picked up until 04:17 tomorrow. Worst case, from CapMetro publishing to this
+# board serving it, was about 41 hours.
+#
+# Now: four times a day, and the first firing after 11:20 UTC is 12:20, an hour
+# behind the commit rather than seventeen. Worst case is under six hours and the
+# usual case is about one. The pull is a git fetch that finds nothing on almost
+# every run, so the extra firings cost a few HTTP requests a day.
 [Unit]
-Description=Pull the CapMetro board's schedule and code daily
+Description=Pull the CapMetro board's schedule and code
 
 [Timer]
-OnCalendar=*-*-* 04:17:00
+# 00:20, 06:20, 12:20, 18:20 UTC. The GTFS job commits at 11:20 UTC.
+OnCalendar=*-*-* 00,06,12,18:20:00
 # Woken late if the box was off. A schedule update missed because of a reboot
 # is exactly the case this exists for.
 Persistent=true
-# The GTFS job commits at 11:20 UTC; a spread stops every box that ever copies
-# this from hitting GitHub on the same second.
-RandomizedDelaySec=1800
+# A spread stops every box that ever copies this from hitting GitHub on the same
+# second. Kept well under the six-hour gap so the ordering above still holds.
+RandomizedDelaySec=900
 
 [Install]
 WantedBy=timers.target

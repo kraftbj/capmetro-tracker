@@ -981,6 +981,18 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 .nextbus__sched, .nextbus__bus {
   margin: 4px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome);
 }
+/*
+ * An unconfirmed continuation, marked the way .chip--hedged already marks one:
+ * a dashed edge, not a colour. §4 lets a `low` grade be said hedged or not at
+ * all, and the clock on this row is derived from it, so the row has to carry
+ * the hedge somewhere a glance can catch. The sentence says it in words too --
+ * this is the redundant channel, per the colour-is-never-alone rule in D1.
+ */
+.nextbus__bus--hedged {
+  padding-left: 8px;
+  border-left: 2px dashed var(--ink-dim);
+}
+
 .nextbus__note {
   margin: 6px 0 0; padding-left: 8px;
   border-left: 2px solid var(--adh-special);
@@ -1043,6 +1055,18 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
   padding: 2px 6px; border-radius: var(--radius-sm);
   background: var(--danger); color: var(--adh-ink-dark);
 }
+/*
+ * Overdue: due out, nothing on its block, and no cancellation published. Warn and not
+ * danger, and no strike-through — the run is not called off, it is unaccounted for, and
+ * the two must not look alike at a glance. The word carries it for a screen reader.
+ */
+.nextbus--overdue { border-left-color: var(--warn); }
+.nextbus__overdue {
+  font-size: var(--fs-chrome); font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  background: var(--warn); color: var(--adh-ink-dark);
+}
+
 .watchcard--canceled { border-left-color: var(--danger); }
 .watchcard__canceled {
   font-family: var(--font-figure); font-size: 20px; font-weight: 700;

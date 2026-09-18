@@ -1,120 +1,114 @@
 {
-	"date_count": 18,
+	"date_count": 17,
 	"dates": {
-		"20260821": {
-			"is_exception_day": false,
-			"service_ids": [
-				"18-172"
-			]
-		},
 		"20260828": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20260904": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20260911": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20260918": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20260925": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261002": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261009": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261016": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261023": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261030": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261106": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261113": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261120": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261204": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261211": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20261218": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		},
 		"20270108": {
 			"is_exception_day": false,
 			"service_ids": [
-				"18-172"
+				"20-172"
 			]
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "492",
 	"schema": 1,
 	"service_ids": [
-		"18-172"
+		"20-172"
 	]
 }

@@ -29,6 +29,16 @@ const CLIENT = path.join(ROOT, 'client')
 const GOLDEN = path.join(ROOT, 'tests/fixtures/golden/route-4-20260819.json')
 const GOLDEN_DEP = path.join(ROOT, 'tests/fixtures/golden/departures-4-20260819.json')
 const SYNTHETIC = path.join(ROOT, 'tests/fixtures/synthetic')
+/*
+ * The 2026-09-17 route 837 capture. The board's clock follows the feed
+ * (app.js nowEpoch returns generated_at), so serving the pending snapshot puts
+ * the client at 17:07:48 — the exact moment the 17:03 northbound had passed its
+ * booked time with bus 8007 still finishing the trip before. That is why this
+ * scenario can prove a predictor row at all: the golden route 4 fixture has no
+ * block continuation that reaches this state, and CLAUDE.md is explicit that a
+ * route-4-only check reports clean on bugs the other routes carry.
+ */
+const CAPTURE_837 = path.join(ROOT, 'tests/fixtures/capture-20260917-837')
 
 const PORT = Number(process.env.CAPMETRO_E2E_PORT || 4173)
 
@@ -122,6 +132,13 @@ const SCENARIOS = {
    * fixture's CONTENT is tests/node/client-chain.test.mjs, which reads it
    * directly.
    */
+  /*
+   * A pending run timed from the bus inbound to it. Route 837, not route 4: this
+   * is the one scenario whose live payload is a real capture rather than a
+   * mutation of the golden one, because the state needs a late bus publishing a
+   * next_trip for a run whose booked time has already gone.
+   */
+  predictor: () => ({ status: 200, body: JSON.stringify(readJson(path.join(CAPTURE_837, 'route-837-pending.json'))) }),
   chain: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
   chaindead: () => ({ status: 200, body: JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, 'route-4-dead-cron.json')))) }),
 }
@@ -217,10 +234,15 @@ const server = createServer((req, res) => {
    */
   const DEPARTURES = CHAIN_SCENARIOS[scenario]
     ? { 4: () => chainDeparturesFor('4'), 800: () => chainDeparturesFor('800') }
-    : {
-      4: () => readJson(GOLDEN_DEP),
-      800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
-    }
+    : scenario === 'predictor'
+      /* Its own pair, and only 837: the capture's schedule is the one the
+         captured live payload belongs to, and serving the golden route 4
+         schedule beside an 837 payload would correlate nothing. */
+      ? { 837: () => readJson(path.join(CAPTURE_837, 'departures-837.json')) }
+      : {
+        4: () => readJson(GOLDEN_DEP),
+        800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
+      }
   const depMatch = rest.match(/^api\/departures\/([^/]+)\.json$/)
   if (depMatch && Object.prototype.hasOwnProperty.call(DEPARTURES, depMatch[1])) {
     if (scenario === 'missing') {

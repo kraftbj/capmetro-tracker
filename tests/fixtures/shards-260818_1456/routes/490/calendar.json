@@ -1,0 +1,259 @@
+{
+	"date_count": 41,
+	"dates": {
+		"20260819": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20260820": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20260826": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20260827": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20260902": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20260903": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20260909": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20260910": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20260916": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20260917": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20260923": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20260924": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20260930": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261001": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261007": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261008": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261014": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261015": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261021": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261022": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261028": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261029": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261104": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261105": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261111": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261112": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261118": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261119": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261125": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261202": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261203": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261209": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261210": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261216": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261217": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261223": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261224": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20261230": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20261231": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		},
+		"20270106": {
+			"is_exception_day": false,
+			"service_ids": [
+				"17-172"
+			]
+		},
+		"20270107": {
+			"is_exception_day": false,
+			"service_ids": [
+				"16-172"
+			]
+		}
+	},
+	"exception_dates": [],
+	"feed_version": "260818_1456",
+	"route_id": "490",
+	"schema": 1,
+	"service_ids": [
+		"16-172",
+		"17-172"
+	]
+}

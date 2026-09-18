@@ -1,0 +1,342 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "171-0-aa3d5f2d",
+				"2-172": "171-0-aa3d5f2d",
+				"3-172": "171-0-aa3d5f2d",
+				"4-172": "171-0-aa3d5f2d",
+				"5-172": "171-0-aa3d5f2d"
+			},
+			"baseline_pattern_id": "171-0-aa3d5f2d",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"171-0-aa3d5f2d": {
+					"direction_id": 0,
+					"pattern_id": "171-0-aa3d5f2d",
+					"representative_trip_id": "2998787_1572",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.246587,
+							"lon": -97.888607,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.241604,
+									"lon": -97.89409,
+									"stop_id": "4454",
+									"stop_name": "Red Willow/Smokey Hill",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240596,
+									"lon": -97.898425,
+									"stop_id": "4458",
+									"stop_name": "Red Willow/Selway",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236772,
+									"lon": -97.900898,
+									"stop_id": "4461",
+									"stop_name": "Red Willow/Fenton",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235646,
+									"lon": -97.897868,
+									"stop_id": "4485",
+									"stop_name": "Scenic Brook/Banpass",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.237722,
+									"lon": -97.892904,
+									"stop_id": "4482",
+									"stop_name": "Scenic Brook/Kirkham",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236888,
+									"lon": -97.878511,
+									"stop_id": "4474",
+									"stop_name": "Scenic Brook/SH 71",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "2595",
+							"stop_name": "Silvermine/SH 71",
+							"stop_name_full": "6600 Silvermine/SH 71",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.23176,
+							"lon": -97.881544,
+							"minor_stops": [],
+							"stop_id": "5943",
+							"stop_name": "Pinnacle Park and Ride",
+							"stop_name_full": "Pinnacle Park and Ride",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.234925,
+							"lon": -97.85363,
+							"minor_stops": [],
+							"stop_id": "5585",
+							"stop_name": "US 290/Old Fredericksburg",
+							"stop_name_full": "6063 US 290/Old Fredericksburg",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.265454,
+							"lon": -97.752098,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.265792,
+									"lon": -97.746213,
+									"stop_id": "5944",
+									"stop_name": "Lavaca/3rd",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "5498",
+							"stop_name": "Seaholm Station",
+							"stop_name_full": "Seaholm Station (NB)",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269226,
+							"lon": -97.743548,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269216,
+									"lon": -97.738446,
+									"stop_id": "6315",
+									"stop_name": "8th Street NB",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289093,
+									"lon": -97.73154,
+									"stop_id": "2005",
+									"stop_name": "Dean Keeton/San Jacinto",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28758,
+									"lon": -97.72652,
+									"stop_id": "4144",
+									"stop_name": "Red River/Dean Keeton",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "6314",
+							"stop_name": "7th/Colorado",
+							"stop_name_full": "115 7Th/Colorado",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.290665,
+							"lon": -97.727112,
+							"minor_stops": [],
+							"stop_id": "2493",
+							"stop_name": "Red River/32nd",
+							"stop_name_full": "3107 Red River/32nd",
+							"stop_sequence": 21
+						}
+					]
+				}
+			},
+			"stop_count": 21,
+			"timepoint_count": 6
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "171-1-33cf23a1",
+				"2-172": "171-1-33cf23a1",
+				"3-172": "171-1-33cf23a1",
+				"4-172": "171-1-33cf23a1",
+				"5-172": "171-1-33cf23a1"
+			},
+			"baseline_pattern_id": "171-1-33cf23a1",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"171-1-33cf23a1": {
+					"direction_id": 1,
+					"pattern_id": "171-1-33cf23a1",
+					"representative_trip_id": "2998789_1582",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.285506,
+							"lon": -97.733782,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "1179",
+							"stop_name": "UT Stadium SB",
+							"stop_name_full": "UT Stadium SB (San Jacinto/23rd)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.23176,
+							"lon": -97.881544,
+							"minor_stops": [],
+							"stop_id": "5943",
+							"stop_name": "Pinnacle Park and Ride",
+							"stop_name_full": "Pinnacle Park and Ride",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "171",
+	"schema": 1
+}

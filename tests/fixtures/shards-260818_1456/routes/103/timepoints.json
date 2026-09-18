@@ -1,0 +1,799 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "103-0-5d6f9d7d",
+				"2-172": "103-0-40fc50b4",
+				"3-172": "103-0-40fc50b4",
+				"4-172": "103-0-40fc50b4",
+				"5-172": "103-0-40fc50b4"
+			},
+			"baseline_pattern_id": "103-0-40fc50b4",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"103-0-40fc50b4": {
+					"direction_id": 0,
+					"pattern_id": "103-0-40fc50b4",
+					"representative_trip_id": "2998492_1475",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 27,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.283014,
+							"lon": -97.7341,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "1180",
+							"stop_name": "SAN JACINTO/21ST",
+							"stop_name_full": "2098 SAN JACINTO/21ST",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270316,
+									"lon": -97.75049,
+									"stop_id": "5499",
+									"stop_name": "6th/West",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270539,
+									"lon": -97.754587,
+									"stop_id": "2321",
+									"stop_name": "Lamar/5th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235223,
+									"lon": -97.784979,
+									"stop_id": "2650",
+									"stop_name": "Menchaca/Valley View",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.228464,
+									"lon": -97.78938,
+									"stop_id": "734",
+									"stop_name": "Menchaca/Redd",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.214391,
+							"lon": -97.799519,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.210671,
+									"lon": -97.803629,
+									"stop_id": "743",
+									"stop_name": "Menchaca/Berkett",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208952,
+									"lon": -97.804711,
+									"stop_id": "744",
+									"stop_name": "Menchaca/Berkeley",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207078,
+									"lon": -97.80593,
+									"stop_id": "745",
+									"stop_name": "Menchaca/Miles",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.203522,
+									"lon": -97.808472,
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "742",
+							"stop_name": "Menchaca/Whitestone",
+							"stop_name_full": "5720 Menchaca/Whitestone",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.206749,
+							"lon": -97.815837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.201795,
+									"lon": -97.81873,
+									"stop_id": "5478",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198811,
+									"lon": -97.81952,
+									"stop_id": "2652",
+									"stop_name": "Seminary Ridge/Manassas",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.195669,
+									"lon": -97.821554,
+									"stop_id": "2653",
+									"stop_name": "Seminary Ridge/Shiloh",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1925,
+									"lon": -97.823745,
+									"stop_id": "2654",
+									"stop_name": "Seminary Ridge/Sweet…",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188355,
+									"lon": -97.827991,
+									"stop_id": "2656",
+									"stop_name": "Guidepost/Huebinger Pass",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188517,
+									"lon": -97.829121,
+									"stop_id": "2657",
+									"stop_name": "Curlew/Guidepost",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.183032,
+									"lon": -97.832409,
+									"stop_id": "2660",
+									"stop_name": "Curlew/Crownspoint",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.180475,
+									"lon": -97.833345,
+									"stop_id": "2661",
+									"stop_name": "Curlew/Monarch",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.177943,
+									"lon": -97.833807,
+									"stop_id": "5750",
+									"stop_name": "Curlew/Aftonshire",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176005,
+									"lon": -97.831107,
+									"stop_id": "2663",
+									"stop_name": "Slaughter/Gail",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "4430",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6900 West Gate/William Cannon",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.173801,
+							"lon": -97.827013,
+							"minor_stops": [],
+							"stop_id": "4412",
+							"stop_name": "Slaughter/Riddle",
+							"stop_name_full": "Slaughter/Riddle",
+							"stop_sequence": 27
+						}
+					]
+				},
+				"103-0-5d6f9d7d": {
+					"direction_id": 0,
+					"pattern_id": "103-0-5d6f9d7d",
+					"representative_trip_id": "2998492_1474",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 28,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.28671,
+							"lon": -97.733652,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271368,
+									"lon": -97.739026,
+									"stop_id": "6499",
+									"stop_name": "Capitol/Waterloo SB",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "1178",
+							"stop_name": "San Jacinto/24th",
+							"stop_name_full": "2324 San Jacinto/24th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.269914,
+							"lon": -97.741869,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270316,
+									"lon": -97.75049,
+									"stop_id": "5499",
+									"stop_name": "6th/West",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270539,
+									"lon": -97.754587,
+									"stop_id": "2321",
+									"stop_name": "Lamar/5th",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.235223,
+									"lon": -97.784979,
+									"stop_id": "2650",
+									"stop_name": "Menchaca/Valley View",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.228464,
+									"lon": -97.78938,
+									"stop_id": "734",
+									"stop_name": "Menchaca/Redd",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "5937",
+							"stop_name": "8th/Congress",
+							"stop_name_full": "104 8th/Congress",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.214391,
+							"lon": -97.799519,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.210671,
+									"lon": -97.803629,
+									"stop_id": "743",
+									"stop_name": "Menchaca/Berkett",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208952,
+									"lon": -97.804711,
+									"stop_id": "744",
+									"stop_name": "Menchaca/Berkeley",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207078,
+									"lon": -97.80593,
+									"stop_id": "745",
+									"stop_name": "Menchaca/Miles",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.203522,
+									"lon": -97.808472,
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "742",
+							"stop_name": "Menchaca/Whitestone",
+							"stop_name_full": "5720 Menchaca/Whitestone",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.206749,
+							"lon": -97.815837,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.201795,
+									"lon": -97.81873,
+									"stop_id": "5478",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198811,
+									"lon": -97.81952,
+									"stop_id": "2652",
+									"stop_name": "Seminary Ridge/Manassas",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.195669,
+									"lon": -97.821554,
+									"stop_id": "2653",
+									"stop_name": "Seminary Ridge/Shiloh",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1925,
+									"lon": -97.823745,
+									"stop_id": "2654",
+									"stop_name": "Seminary Ridge/Sweet…",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188355,
+									"lon": -97.827991,
+									"stop_id": "2656",
+									"stop_name": "Guidepost/Huebinger Pass",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188517,
+									"lon": -97.829121,
+									"stop_id": "2657",
+									"stop_name": "Curlew/Guidepost",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.183032,
+									"lon": -97.832409,
+									"stop_id": "2660",
+									"stop_name": "Curlew/Crownspoint",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.180475,
+									"lon": -97.833345,
+									"stop_id": "2661",
+									"stop_name": "Curlew/Monarch",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.177943,
+									"lon": -97.833807,
+									"stop_id": "5750",
+									"stop_name": "Curlew/Aftonshire",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176005,
+									"lon": -97.831107,
+									"stop_id": "2663",
+									"stop_name": "Slaughter/Gail",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "4430",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6900 West Gate/William Cannon",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.173801,
+							"lon": -97.827013,
+							"minor_stops": [],
+							"stop_id": "4412",
+							"stop_name": "Slaughter/Riddle",
+							"stop_name_full": "Slaughter/Riddle",
+							"stop_sequence": 28
+						}
+					]
+				}
+			},
+			"stop_count": 27,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "103-1-162b3824",
+				"2-172": "103-1-162b3824",
+				"3-172": "103-1-162b3824",
+				"4-172": "103-1-162b3824",
+				"5-172": "103-1-162b3824"
+			},
+			"baseline_pattern_id": "103-1-162b3824",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"103-1-162b3824": {
+					"direction_id": 1,
+					"pattern_id": "103-1-162b3824",
+					"representative_trip_id": "2998493_1464",
+					"service_ids": [
+						"1-172",
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 29,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.173996,
+							"lon": -97.826877,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.17668,
+									"lon": -97.83369,
+									"stop_id": "2666",
+									"stop_name": "Slaughter/Curlew",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.177129,
+									"lon": -97.833854,
+									"stop_id": "2667",
+									"stop_name": "Curlew/Slaughter",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.180091,
+									"lon": -97.833358,
+									"stop_id": "4434",
+									"stop_name": "Curlew/Monarch",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.183117,
+									"lon": -97.832175,
+									"stop_id": "2669",
+									"stop_name": "Curlew/Crownspoint",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.187173,
+									"lon": -97.829818,
+									"stop_id": "4433",
+									"stop_name": "Curlew/Kentish Drive",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.188075,
+									"lon": -97.827667,
+									"stop_id": "2673",
+									"stop_name": "Guidepost/Marsh",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.190177,
+									"lon": -97.825412,
+									"stop_id": "2674",
+									"stop_name": "Leo/Davis",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.19154,
+									"lon": -97.824587,
+									"stop_id": "2675",
+									"stop_name": "Seminary Ridge/Cameron…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199565,
+									"lon": -97.820124,
+									"stop_id": "2678",
+									"stop_name": "Manassas/Whispering Oaks",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.201921,
+									"lon": -97.818402,
+									"stop_id": "2357",
+									"stop_name": "West Gate/Grennock",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204834,
+									"lon": -97.816514,
+									"stop_id": "2679",
+									"stop_name": "West Gate/Bryonhall",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "2938",
+							"stop_name": "Slaughter/Riddle",
+							"stop_name_full": "2107 Slaughter/Riddle",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.206976,
+							"lon": -97.815418,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.203663,
+									"lon": -97.809228,
+									"stop_id": "4424",
+									"stop_name": "William Cannon/…",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203378,
+									"lon": -97.806692,
+									"stop_id": "2681",
+									"stop_name": "Menchaca/William Cannon…",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.206901,
+									"lon": -97.805837,
+									"stop_id": "751",
+									"stop_name": "Menchaca/Miles",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209018,
+									"lon": -97.804497,
+									"stop_id": "752",
+									"stop_name": "Menchaca/Berkeley",
+									"stop_sequence": 17
+								}
+							],
+							"stop_id": "2680",
+							"stop_name": "West Gate/William Cannon",
+							"stop_name_full": "6905 West Gate/William Cannon",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.216254,
+							"lon": -97.796781,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.228562,
+									"lon": -97.789081,
+									"stop_id": "4230",
+									"stop_name": "Menchaca/Redd",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.234049,
+									"lon": -97.785514,
+									"stop_id": "765",
+									"stop_name": "Menchaca/Prather",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "4227",
+							"stop_name": "Menchaca/Stassney",
+							"stop_name_full": "5501 Menchaca/Stassney",
+							"stop_sequence": 18
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269522,
+							"lon": -97.752626,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "2107",
+							"stop_name": "5th/Bowie",
+							"stop_name_full": "5th/Bowie",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269226,
+							"lon": -97.743548,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.269216,
+									"lon": -97.738446,
+									"stop_id": "6315",
+									"stop_name": "8th Street NB",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 28
+								}
+							],
+							"stop_id": "6314",
+							"stop_name": "7th/Colorado",
+							"stop_name_full": "115 7Th/Colorado",
+							"stop_sequence": 23
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.288776,
+							"lon": -97.734397,
+							"minor_stops": [],
+							"stop_id": "1256",
+							"stop_name": "San Jacinto/Dean Keeton",
+							"stop_name_full": "2525 San Jacinto/Dean Keeton",
+							"stop_sequence": 29
+						}
+					]
+				}
+			},
+			"stop_count": 29,
+			"timepoint_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "103",
+	"schema": 1
+}

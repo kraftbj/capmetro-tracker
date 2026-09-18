@@ -1,0 +1,411 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "550-0-f379bd39",
+				"14-172": "550-0-04519cb6",
+				"18-172": "550-0-f379bd39",
+				"20-172": "550-0-f379bd39",
+				"21-172": "550-0-f379bd39",
+				"22-172": "550-0-f379bd39",
+				"23-172": "550-0-f379bd39"
+			},
+			"baseline_pattern_id": "550-0-f379bd39",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"550-0-04519cb6": {
+					"direction_id": 0,
+					"pattern_id": "550-0-04519cb6",
+					"representative_trip_id": "3006739_17315",
+					"service_ids": [
+						"14-172"
+					],
+					"stop_count": 6,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.387973,
+							"lon": -97.717549,
+							"minor_stops": [],
+							"stop_id": "6519",
+							"stop_name": "McKalla Station",
+							"stop_name_full": "McKalla Station",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.338559,
+							"lon": -97.719691,
+							"minor_stops": [],
+							"stop_id": "5538",
+							"stop_name": "Crestview Station",
+							"stop_name_full": "Crestview Station",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.328601,
+							"lon": -97.716203,
+							"minor_stops": [],
+							"stop_id": "5537",
+							"stop_name": "Highland Station",
+							"stop_name_full": "Highland Station",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.279818,
+							"lon": -97.709031,
+							"minor_stops": [],
+							"stop_id": "5536",
+							"stop_name": "M L King Jr Station",
+							"stop_name_full": "M L King Jr Station",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.262242,
+							"lon": -97.727578,
+							"minor_stops": [],
+							"stop_id": "5535",
+							"stop_name": "Plaza Saltillo Station",
+							"stop_name_full": "Plaza Saltillo Station",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.264843,
+							"lon": -97.738448,
+							"minor_stops": [],
+							"stop_id": "5534",
+							"stop_name": "Downtown Station",
+							"stop_name_full": "Downtown Station",
+							"stop_sequence": 6
+						}
+					]
+				},
+				"550-0-f379bd39": {
+					"direction_id": 0,
+					"pattern_id": "550-0-f379bd39",
+					"representative_trip_id": "3006676_17262",
+					"service_ids": [
+						"10-172",
+						"18-172",
+						"20-172",
+						"21-172",
+						"22-172",
+						"23-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 10,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.586401,
+							"lon": -97.855735,
+							"minor_stops": [],
+							"stop_id": "5542",
+							"stop_name": "Leander Station",
+							"stop_name_full": "Leander Station",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.48103,
+							"lon": -97.786543,
+							"minor_stops": [],
+							"stop_id": "5541",
+							"stop_name": "Lakeline Station",
+							"stop_name_full": "Lakeline Station",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.43999,
+							"lon": -97.701734,
+							"minor_stops": [],
+							"stop_id": "5540",
+							"stop_name": "Howard Station",
+							"stop_name_full": "Howard Station",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.392786,
+							"lon": -97.7164,
+							"minor_stops": [],
+							"stop_id": "5539",
+							"stop_name": "Kramer Station",
+							"stop_name_full": "Kramer Station",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.387973,
+							"lon": -97.717549,
+							"minor_stops": [],
+							"stop_id": "6519",
+							"stop_name": "McKalla Station",
+							"stop_name_full": "McKalla Station",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.338559,
+							"lon": -97.719691,
+							"minor_stops": [],
+							"stop_id": "5538",
+							"stop_name": "Crestview Station",
+							"stop_name_full": "Crestview Station",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.328601,
+							"lon": -97.716203,
+							"minor_stops": [],
+							"stop_id": "5537",
+							"stop_name": "Highland Station",
+							"stop_name_full": "Highland Station",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.279818,
+							"lon": -97.709031,
+							"minor_stops": [],
+							"stop_id": "5536",
+							"stop_name": "M L King Jr Station",
+							"stop_name_full": "M L King Jr Station",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.262242,
+							"lon": -97.727578,
+							"minor_stops": [],
+							"stop_id": "5535",
+							"stop_name": "Plaza Saltillo Station",
+							"stop_name_full": "Plaza Saltillo Station",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.264843,
+							"lon": -97.738448,
+							"minor_stops": [],
+							"stop_id": "5534",
+							"stop_name": "Downtown Station",
+							"stop_name_full": "Downtown Station",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 10
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "550-1-8f493b0a",
+				"14-172": "550-1-9141542d",
+				"18-172": "550-1-8f493b0a",
+				"20-172": "550-1-8f493b0a",
+				"21-172": "550-1-8f493b0a",
+				"22-172": "550-1-8f493b0a",
+				"23-172": "550-1-8f493b0a"
+			},
+			"baseline_pattern_id": "550-1-8f493b0a",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"550-1-8f493b0a": {
+					"direction_id": 1,
+					"pattern_id": "550-1-8f493b0a",
+					"representative_trip_id": "3006745_17139",
+					"service_ids": [
+						"10-172",
+						"18-172",
+						"20-172",
+						"21-172",
+						"22-172",
+						"23-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 10,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.264843,
+							"lon": -97.738448,
+							"minor_stops": [],
+							"stop_id": "5534",
+							"stop_name": "Downtown Station",
+							"stop_name_full": "Downtown Station",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.262242,
+							"lon": -97.727578,
+							"minor_stops": [],
+							"stop_id": "5535",
+							"stop_name": "Plaza Saltillo Station",
+							"stop_name_full": "Plaza Saltillo Station",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.279818,
+							"lon": -97.709031,
+							"minor_stops": [],
+							"stop_id": "5536",
+							"stop_name": "M L King Jr Station",
+							"stop_name_full": "M L King Jr Station",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.328601,
+							"lon": -97.716203,
+							"minor_stops": [],
+							"stop_id": "5537",
+							"stop_name": "Highland Station",
+							"stop_name_full": "Highland Station",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.338559,
+							"lon": -97.719691,
+							"minor_stops": [],
+							"stop_id": "5538",
+							"stop_name": "Crestview Station",
+							"stop_name_full": "Crestview Station",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.387973,
+							"lon": -97.717549,
+							"minor_stops": [],
+							"stop_id": "6519",
+							"stop_name": "McKalla Station",
+							"stop_name_full": "McKalla Station",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.392786,
+							"lon": -97.7164,
+							"minor_stops": [],
+							"stop_id": "5539",
+							"stop_name": "Kramer Station",
+							"stop_name_full": "Kramer Station",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.43999,
+							"lon": -97.701734,
+							"minor_stops": [],
+							"stop_id": "5540",
+							"stop_name": "Howard Station",
+							"stop_name_full": "Howard Station",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.48103,
+							"lon": -97.786543,
+							"minor_stops": [],
+							"stop_id": "5541",
+							"stop_name": "Lakeline Station",
+							"stop_name_full": "Lakeline Station",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.586401,
+							"lon": -97.855735,
+							"minor_stops": [],
+							"stop_id": "5542",
+							"stop_name": "Leander Station",
+							"stop_name_full": "Leander Station",
+							"stop_sequence": 10
+						}
+					]
+				},
+				"550-1-9141542d": {
+					"direction_id": 1,
+					"pattern_id": "550-1-9141542d",
+					"representative_trip_id": "3006817_17195",
+					"service_ids": [
+						"14-172"
+					],
+					"stop_count": 5,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.387973,
+							"lon": -97.717549,
+							"minor_stops": [],
+							"stop_id": "6519",
+							"stop_name": "McKalla Station",
+							"stop_name_full": "McKalla Station",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.392786,
+							"lon": -97.7164,
+							"minor_stops": [],
+							"stop_id": "5539",
+							"stop_name": "Kramer Station",
+							"stop_name_full": "Kramer Station",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.43999,
+							"lon": -97.701734,
+							"minor_stops": [],
+							"stop_id": "5540",
+							"stop_name": "Howard Station",
+							"stop_name_full": "Howard Station",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.48103,
+							"lon": -97.786543,
+							"minor_stops": [],
+							"stop_id": "5541",
+							"stop_name": "Lakeline Station",
+							"stop_name_full": "Lakeline Station",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.586401,
+							"lon": -97.855735,
+							"minor_stops": [],
+							"stop_id": "5542",
+							"stop_name": "Leander Station",
+							"stop_name_full": "Leander Station",
+							"stop_sequence": 5
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 10
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "550",
+	"schema": 1
+}

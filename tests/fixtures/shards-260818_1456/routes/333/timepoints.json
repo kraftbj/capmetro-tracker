@@ -1,0 +1,2408 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "333-0-2b90893a",
+				"2-172": "333-0-5a5354c4",
+				"3-172": "333-0-5a5354c4",
+				"4-172": "333-0-5a5354c4",
+				"5-172": "333-0-5a5354c4",
+				"6-172": "333-0-93c1489a",
+				"7-172": "333-0-93c1489a",
+				"8-172": "333-0-93c1489a"
+			},
+			"baseline_pattern_id": "333-0-93c1489a",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"333-0-2b90893a": {
+					"direction_id": 0,
+					"pattern_id": "333-0-2b90893a",
+					"representative_trip_id": "3003562_12015",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 51,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.151526,
+							"lon": -97.75827,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.156566,
+									"lon": -97.752831,
+									"stop_id": "6338",
+									"stop_name": "Vertex/Charles Merle",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.161236,
+									"lon": -97.744138,
+									"stop_id": "5699",
+									"stop_name": "Salt Springs/Roseborough",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.163794,
+									"lon": -97.742645,
+									"stop_id": "6521",
+									"stop_name": "Salt Springs at Tara",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167114,
+									"lon": -97.740546,
+									"stop_id": "4361",
+									"stop_name": "Salt Springs/Orange…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175817,
+									"lon": -97.74341,
+									"stop_id": "6482",
+									"stop_name": "William Cannon/Onion…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.180326,
+									"lon": -97.748355,
+									"stop_id": "5383",
+									"stop_name": "William Cannon/Pleasant…",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "6555",
+							"stop_name": "Goodnight Ranch Bay D",
+							"stop_name_full": "Goodnight Ranch Bay D",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.180618,
+							"lon": -97.750504,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.179147,
+									"lon": -97.753231,
+									"stop_id": "2505",
+									"stop_name": "Meadow Lake/Bucks Run",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.178193,
+									"lon": -97.754961,
+									"stop_id": "5137",
+									"stop_name": "Meadow Lake/Glade Line",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179722,
+									"lon": -97.758433,
+									"stop_id": "2507",
+									"stop_name": "Blue Meadow/Deep Circle",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1804,
+									"lon": -97.761152,
+									"stop_id": "2508",
+									"stop_name": "Blue Meadow/Bitteroot",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.18173,
+									"lon": -97.764323,
+									"stop_id": "4354",
+									"stop_name": "Blue Meadow/Blue Dawn",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.183658,
+									"lon": -97.768765,
+									"stop_id": "2511",
+									"stop_name": "Blue Meadow/Bluff Springs",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.187849,
+									"lon": -97.767957,
+									"stop_id": "5704",
+									"stop_name": "Bluff Springs/William…",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.191773,
+									"lon": -97.774139,
+									"stop_id": "555",
+									"stop_name": "William Cannon/North…",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "2504",
+							"stop_name": "Meadow Lake/William…",
+							"stop_name_full": "6608 Meadow Lake/William Cannon",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.192971,
+							"lon": -97.777955,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.193894,
+									"lon": -97.780466,
+									"stop_id": "3169",
+									"stop_name": "William Cannon/Starstreak",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.19479,
+									"lon": -97.78349,
+									"stop_id": "3170",
+									"stop_name": "William Cannon/Sunstrip",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.196488,
+									"lon": -97.786118,
+									"stop_id": "4398",
+									"stop_name": "William Cannon/Bill…",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.197385,
+									"lon": -97.788022,
+									"stop_id": "3172",
+									"stop_name": "William Cannon/1st",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198565,
+									"lon": -97.790913,
+									"stop_id": "1685",
+									"stop_name": "William Cannon/Cooper",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199334,
+									"lon": -97.793354,
+									"stop_id": "1686",
+									"stop_name": "William Cannon/Emerald…",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199561,
+									"lon": -97.795776,
+									"stop_id": "3173",
+									"stop_name": "William Cannon/Mount…",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.200741,
+									"lon": -97.79945,
+									"stop_id": "3174",
+									"stop_name": "William Cannon/Woodhue",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "556",
+							"stop_name": "William Cannon/Circle S",
+							"stop_name_full": "110 William Cannon/Circle S",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.202551,
+							"lon": -97.80479,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.203522,
+									"lon": -97.808472,
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207075,
+									"lon": -97.81479,
+									"stop_id": "4429",
+									"stop_name": "William Cannon/West Gate",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.20817,
+									"lon": -97.817734,
+									"stop_id": "3178",
+									"stop_name": "William Cannon/Deaton…",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210329,
+									"lon": -97.822279,
+									"stop_id": "4437",
+									"stop_name": "William Cannon/Ranch",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.211536,
+									"lon": -97.825217,
+									"stop_id": "3179",
+									"stop_name": "William Cannon/Stage…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.212637,
+									"lon": -97.827439,
+									"stop_id": "3180",
+									"stop_name": "William Cannon/Lost…",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "3175",
+							"stop_name": "William Cannon/…",
+							"stop_name_full": "1900 William Cannon/Cannonleague",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.213001,
+							"lon": -97.83105,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.207183,
+									"lon": -97.834986,
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.20339,
+									"lon": -97.837717,
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.205019,
+									"lon": -97.840085,
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.205872,
+									"lon": -97.843088,
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207821,
+									"lon": -97.846452,
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.209422,
+									"lon": -97.848776,
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.211939,
+									"lon": -97.84982,
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.215679,
+									"lon": -97.849077,
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217449,
+									"lon": -97.846951,
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217489,
+									"lon": -97.849946,
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217987,
+									"lon": -97.852494,
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak",
+									"stop_sequence": 44
+								}
+							],
+							"stop_id": "3182",
+							"stop_name": "Brodie/Bannockburn",
+							"stop_name_full": "7000 Brodie/Bannockburn",
+							"stop_sequence": 33
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.219087,
+							"lon": -97.854773,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.220755,
+									"lon": -97.858202,
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.222453,
+									"lon": -97.861693,
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.223818,
+									"lon": -97.864469,
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John Blocker",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.226028,
+									"lon": -97.868956,
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.230043,
+									"lon": -97.87863,
+									"stop_id": "6392",
+									"stop_name": "Convict Hill/290",
+									"stop_sequence": 50
+								}
+							],
+							"stop_id": "4447",
+							"stop_name": "Convict Hill/Woodcreek",
+							"stop_name_full": "Convict Hill/Woodcreek",
+							"stop_sequence": 45
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 51
+						}
+					]
+				},
+				"333-0-5a5354c4": {
+					"direction_id": 0,
+					"pattern_id": "333-0-5a5354c4",
+					"representative_trip_id": "3003562_12047",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 50,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.151526,
+							"lon": -97.75827,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.156566,
+									"lon": -97.752831,
+									"stop_id": "6338",
+									"stop_name": "Vertex/Charles Merle",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.161236,
+									"lon": -97.744138,
+									"stop_id": "5699",
+									"stop_name": "Salt Springs/Roseborough",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.163794,
+									"lon": -97.742645,
+									"stop_id": "6521",
+									"stop_name": "Salt Springs at Tara",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167114,
+									"lon": -97.740546,
+									"stop_id": "4361",
+									"stop_name": "Salt Springs/Orange…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175817,
+									"lon": -97.74341,
+									"stop_id": "6482",
+									"stop_name": "William Cannon/Onion…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.180326,
+									"lon": -97.748355,
+									"stop_id": "5383",
+									"stop_name": "William Cannon/Pleasant…",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "6555",
+							"stop_name": "Goodnight Ranch Bay D",
+							"stop_name_full": "Goodnight Ranch Bay D",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.180618,
+							"lon": -97.750504,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.179147,
+									"lon": -97.753231,
+									"stop_id": "2505",
+									"stop_name": "Meadow Lake/Bucks Run",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.178193,
+									"lon": -97.754961,
+									"stop_id": "5137",
+									"stop_name": "Meadow Lake/Glade Line",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179722,
+									"lon": -97.758433,
+									"stop_id": "2507",
+									"stop_name": "Blue Meadow/Deep Circle",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1804,
+									"lon": -97.761152,
+									"stop_id": "2508",
+									"stop_name": "Blue Meadow/Bitteroot",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.18173,
+									"lon": -97.764323,
+									"stop_id": "4354",
+									"stop_name": "Blue Meadow/Blue Dawn",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.183658,
+									"lon": -97.768765,
+									"stop_id": "2511",
+									"stop_name": "Blue Meadow/Bluff Springs",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.187849,
+									"lon": -97.767957,
+									"stop_id": "5704",
+									"stop_name": "Bluff Springs/William…",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.191773,
+									"lon": -97.774139,
+									"stop_id": "555",
+									"stop_name": "William Cannon/North…",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "2504",
+							"stop_name": "Meadow Lake/William…",
+							"stop_name_full": "6608 Meadow Lake/William Cannon",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.192971,
+							"lon": -97.777955,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.193894,
+									"lon": -97.780466,
+									"stop_id": "3169",
+									"stop_name": "William Cannon/Starstreak",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.19479,
+									"lon": -97.78349,
+									"stop_id": "3170",
+									"stop_name": "William Cannon/Sunstrip",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.196488,
+									"lon": -97.786118,
+									"stop_id": "4398",
+									"stop_name": "William Cannon/Bill…",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.197385,
+									"lon": -97.788022,
+									"stop_id": "3172",
+									"stop_name": "William Cannon/1st",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198565,
+									"lon": -97.790913,
+									"stop_id": "1685",
+									"stop_name": "William Cannon/Cooper",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199334,
+									"lon": -97.793354,
+									"stop_id": "1686",
+									"stop_name": "William Cannon/Emerald…",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199561,
+									"lon": -97.795776,
+									"stop_id": "3173",
+									"stop_name": "William Cannon/Mount…",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.200741,
+									"lon": -97.79945,
+									"stop_id": "3174",
+									"stop_name": "William Cannon/Woodhue",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "556",
+							"stop_name": "William Cannon/Circle S",
+							"stop_name_full": "110 William Cannon/Circle S",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.202551,
+							"lon": -97.80479,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.203522,
+									"lon": -97.808472,
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207075,
+									"lon": -97.81479,
+									"stop_id": "4429",
+									"stop_name": "William Cannon/West Gate",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.20817,
+									"lon": -97.817734,
+									"stop_id": "3178",
+									"stop_name": "William Cannon/Deaton…",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210329,
+									"lon": -97.822279,
+									"stop_id": "4437",
+									"stop_name": "William Cannon/Ranch",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.211536,
+									"lon": -97.825217,
+									"stop_id": "3179",
+									"stop_name": "William Cannon/Stage…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.212637,
+									"lon": -97.827439,
+									"stop_id": "3180",
+									"stop_name": "William Cannon/Lost…",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "3175",
+							"stop_name": "William Cannon/…",
+							"stop_name_full": "1900 William Cannon/Cannonleague",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.213001,
+							"lon": -97.83105,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.207183,
+									"lon": -97.834986,
+									"stop_id": "3183",
+									"stop_name": "Brodie/Harpers Ferry",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.20339,
+									"lon": -97.837717,
+									"stop_id": "4435",
+									"stop_name": "Eskew/Brodie",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.205019,
+									"lon": -97.840085,
+									"stop_id": "3185",
+									"stop_name": "Eskew/Croftwood",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.205872,
+									"lon": -97.843088,
+									"stop_id": "3186",
+									"stop_name": "Eskew/Wakefield",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207821,
+									"lon": -97.846452,
+									"stop_id": "3187",
+									"stop_name": "Eskew/Mauai",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.209422,
+									"lon": -97.848776,
+									"stop_id": "3188",
+									"stop_name": "Eskew/Copano",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.211939,
+									"lon": -97.84982,
+									"stop_id": "4441",
+									"stop_name": "Copano/Clarno",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.215679,
+									"lon": -97.849077,
+									"stop_id": "4442",
+									"stop_name": "Latta/Islander",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217449,
+									"lon": -97.846951,
+									"stop_id": "3193",
+									"stop_name": "Convict Hill/Brush…",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217489,
+									"lon": -97.849946,
+									"stop_id": "5491",
+									"stop_name": "Convict Hill/Brush…",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.217987,
+									"lon": -97.852494,
+									"stop_id": "4444",
+									"stop_name": "Convict Hill/Flaming Oak",
+									"stop_sequence": 44
+								}
+							],
+							"stop_id": "3182",
+							"stop_name": "Brodie/Bannockburn",
+							"stop_name_full": "7000 Brodie/Bannockburn",
+							"stop_sequence": 33
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.219087,
+							"lon": -97.854773,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.220755,
+									"lon": -97.858202,
+									"stop_id": "5055",
+									"stop_name": "Convict Hill/Beckett",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.222453,
+									"lon": -97.861693,
+									"stop_id": "3196",
+									"stop_name": "Convict Hill/Wagon Train",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.223818,
+									"lon": -97.864469,
+									"stop_id": "3197",
+									"stop_name": "Convict Hill/John Blocker",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.226028,
+									"lon": -97.868956,
+									"stop_id": "6391",
+									"stop_name": "Convict Hill/Escarpment",
+									"stop_sequence": 49
+								}
+							],
+							"stop_id": "4447",
+							"stop_name": "Convict Hill/Woodcreek",
+							"stop_name_full": "Convict Hill/Woodcreek",
+							"stop_sequence": 45
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 50
+						}
+					]
+				},
+				"333-0-93c1489a": {
+					"direction_id": 0,
+					"pattern_id": "333-0-93c1489a",
+					"representative_trip_id": "3003563_11855",
+					"service_ids": [
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"stop_count": 35,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.151526,
+							"lon": -97.75827,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.156566,
+									"lon": -97.752831,
+									"stop_id": "6338",
+									"stop_name": "Vertex/Charles Merle",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.161236,
+									"lon": -97.744138,
+									"stop_id": "5699",
+									"stop_name": "Salt Springs/Roseborough",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.163794,
+									"lon": -97.742645,
+									"stop_id": "6521",
+									"stop_name": "Salt Springs at Tara",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167114,
+									"lon": -97.740546,
+									"stop_id": "4361",
+									"stop_name": "Salt Springs/Orange…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.175817,
+									"lon": -97.74341,
+									"stop_id": "6482",
+									"stop_name": "William Cannon/Onion…",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.180326,
+									"lon": -97.748355,
+									"stop_id": "5383",
+									"stop_name": "William Cannon/Pleasant…",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "6555",
+							"stop_name": "Goodnight Ranch Bay D",
+							"stop_name_full": "Goodnight Ranch Bay D",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.180618,
+							"lon": -97.750504,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.179147,
+									"lon": -97.753231,
+									"stop_id": "2505",
+									"stop_name": "Meadow Lake/Bucks Run",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.178193,
+									"lon": -97.754961,
+									"stop_id": "5137",
+									"stop_name": "Meadow Lake/Glade Line",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179722,
+									"lon": -97.758433,
+									"stop_id": "2507",
+									"stop_name": "Blue Meadow/Deep Circle",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.1804,
+									"lon": -97.761152,
+									"stop_id": "2508",
+									"stop_name": "Blue Meadow/Bitteroot",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.18173,
+									"lon": -97.764323,
+									"stop_id": "4354",
+									"stop_name": "Blue Meadow/Blue Dawn",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.183658,
+									"lon": -97.768765,
+									"stop_id": "2511",
+									"stop_name": "Blue Meadow/Bluff Springs",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.187849,
+									"lon": -97.767957,
+									"stop_id": "5704",
+									"stop_name": "Bluff Springs/William…",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.191773,
+									"lon": -97.774139,
+									"stop_id": "555",
+									"stop_name": "William Cannon/North…",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "2504",
+							"stop_name": "Meadow Lake/William…",
+							"stop_name_full": "6608 Meadow Lake/William Cannon",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.192971,
+							"lon": -97.777955,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.193894,
+									"lon": -97.780466,
+									"stop_id": "3169",
+									"stop_name": "William Cannon/Starstreak",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.19479,
+									"lon": -97.78349,
+									"stop_id": "3170",
+									"stop_name": "William Cannon/Sunstrip",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.196488,
+									"lon": -97.786118,
+									"stop_id": "4398",
+									"stop_name": "William Cannon/Bill…",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.197385,
+									"lon": -97.788022,
+									"stop_id": "3172",
+									"stop_name": "William Cannon/1st",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198565,
+									"lon": -97.790913,
+									"stop_id": "1685",
+									"stop_name": "William Cannon/Cooper",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199334,
+									"lon": -97.793354,
+									"stop_id": "1686",
+									"stop_name": "William Cannon/Emerald…",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.199561,
+									"lon": -97.795776,
+									"stop_id": "3173",
+									"stop_name": "William Cannon/Mount…",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.200741,
+									"lon": -97.79945,
+									"stop_id": "3174",
+									"stop_name": "William Cannon/Woodhue",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "556",
+							"stop_name": "William Cannon/Circle S",
+							"stop_name_full": "110 William Cannon/Circle S",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.202551,
+							"lon": -97.80479,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.203522,
+									"lon": -97.808472,
+									"stop_id": "3177",
+									"stop_name": "William Cannon/Shier",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.207075,
+									"lon": -97.81479,
+									"stop_id": "4429",
+									"stop_name": "William Cannon/West Gate",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.20817,
+									"lon": -97.817734,
+									"stop_id": "3178",
+									"stop_name": "William Cannon/Deaton…",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.210329,
+									"lon": -97.822279,
+									"stop_id": "4437",
+									"stop_name": "William Cannon/Ranch",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.211536,
+									"lon": -97.825217,
+									"stop_id": "3179",
+									"stop_name": "William Cannon/Stage…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.212637,
+									"lon": -97.827439,
+									"stop_id": "3180",
+									"stop_name": "William Cannon/Lost…",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "3175",
+							"stop_name": "William Cannon/…",
+							"stop_name_full": "1900 William Cannon/Cannonleague",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.213001,
+							"lon": -97.83105,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.219895,
+									"lon": -97.843893,
+									"stop_id": "5900",
+									"stop_name": "Brush Country/One Oak",
+									"stop_sequence": 34
+								}
+							],
+							"stop_id": "3182",
+							"stop_name": "Brodie/Bannockburn",
+							"stop_name_full": "7000 Brodie/Bannockburn",
+							"stop_sequence": 33
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.222951,
+							"lon": -97.841813,
+							"minor_stops": [],
+							"stop_id": "5902",
+							"stop_name": "Brush Country/William…",
+							"stop_name_full": "6703 Brush Country/William Cannon",
+							"stop_sequence": 35
+						}
+					]
+				}
+			},
+			"stop_count": 35,
+			"timepoint_count": 6
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "333-1-41b006d4",
+				"2-172": "333-1-7d5a9343",
+				"3-172": "333-1-7d5a9343",
+				"4-172": "333-1-7d5a9343",
+				"5-172": "333-1-7d5a9343",
+				"6-172": "333-1-adee6f46",
+				"7-172": "333-1-adee6f46",
+				"8-172": "333-1-adee6f46"
+			},
+			"baseline_pattern_id": "333-1-adee6f46",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"333-1-41b006d4": {
+					"direction_id": 1,
+					"pattern_id": "333-1-41b006d4",
+					"representative_trip_id": "3003626_11579",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 51,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.230056,
+									"lon": -97.878875,
+									"stop_id": "6393",
+									"stop_name": "Convict Hill/290",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.225555,
+									"lon": -97.86838,
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223318,
+									"lon": -97.863788,
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.222491,
+									"lon": -97.862056,
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.220475,
+									"lon": -97.85798,
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.218895,
+							"lon": -97.854694,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.217966,
+									"lon": -97.852755,
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216888,
+									"lon": -97.846068,
+									"stop_id": "3887",
+									"stop_name": "Convict Hill/Latta/Brush…",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.213341,
+									"lon": -97.850551,
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.210949,
+									"lon": -97.84958,
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209294,
+									"lon": -97.848453,
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207733,
+									"lon": -97.846601,
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.205755,
+									"lon": -97.843159,
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204892,
+									"lon": -97.840165,
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203863,
+									"lon": -97.838309,
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.206736,
+									"lon": -97.834965,
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.211188,
+									"lon": -97.831853,
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "4446",
+							"stop_name": "Convict Hill/Woodcreek",
+							"stop_name_full": "5125 Convict Hill/Woodcreek",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.213229,
+							"lon": -97.829481,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.210944,
+									"lon": -97.82455,
+									"stop_id": "3224",
+									"stop_name": "William Cannon/Stagecoach",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209995,
+									"lon": -97.822172,
+									"stop_id": "4436",
+									"stop_name": "William Cannon/Ranch",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207901,
+									"lon": -97.817777,
+									"stop_id": "4428",
+									"stop_name": "William Cannon/Deaton…",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207197,
+									"lon": -97.815778,
+									"stop_id": "3226",
+									"stop_name": "William Cannon/West Gate",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203663,
+									"lon": -97.809228,
+									"stop_id": "4424",
+									"stop_name": "William Cannon/…",
+									"stop_sequence": 24
+								}
+							],
+							"stop_id": "3223",
+							"stop_name": "William Cannon/Brodie",
+							"stop_name_full": "3421 William Cannon/Brodie",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.202716,
+							"lon": -97.806233,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.200295,
+									"lon": -97.799002,
+									"stop_id": "3229",
+									"stop_name": "William Cannon/Woodhue",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199251,
+									"lon": -97.795196,
+									"stop_id": "3230",
+									"stop_name": "William Cannon/Mount…",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199075,
+									"lon": -97.793338,
+									"stop_id": "3231",
+									"stop_name": "William Cannon/Emerald…",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197943,
+									"lon": -97.790054,
+									"stop_id": "2917",
+									"stop_name": "William Cannon/Cooper",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197073,
+									"lon": -97.788053,
+									"stop_id": "2918",
+									"stop_name": "William Cannon/1st",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.195674,
+									"lon": -97.785337,
+									"stop_id": "3234",
+									"stop_name": "William Cannon/Bill…",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193479,
+									"lon": -97.780305,
+									"stop_id": "4384",
+									"stop_name": "William Cannon/Skynook",
+									"stop_sequence": 32
+								}
+							],
+							"stop_id": "3228",
+							"stop_name": "William Cannon/Menchaca",
+							"stop_name_full": "1945 William Cannon/Menchaca",
+							"stop_sequence": 25
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.192664,
+							"lon": -97.777841,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.192082,
+									"lon": -97.776037,
+									"stop_id": "551",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.191387,
+									"lon": -97.77353,
+									"stop_id": "552",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.189223,
+									"lon": -97.768461,
+									"stop_id": "5703",
+									"stop_name": "William Cannon/Bluff…",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.187382,
+									"lon": -97.76818,
+									"stop_id": "6520",
+									"stop_name": "Bluff Springs/BitterCreek",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.183426,
+									"lon": -97.768629,
+									"stop_id": "2478",
+									"stop_name": "Blue Meadow/Bluff Springs",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.181535,
+									"lon": -97.76431,
+									"stop_id": "4355",
+									"stop_name": "Blue Meadow/Blue Dawn",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17944,
+									"lon": -97.758205,
+									"stop_id": "5121",
+									"stop_name": "Blue Meadow/Deep",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178217,
+									"lon": -97.755781,
+									"stop_id": "5159",
+									"stop_name": "Blue Meadow/Granger",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178206,
+									"lon": -97.754762,
+									"stop_id": "5136",
+									"stop_name": "Meadow Lake/Blue Meadow",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.179042,
+									"lon": -97.753083,
+									"stop_id": "2482",
+									"stop_name": "Meadow Lake/Bucks Run",
+									"stop_sequence": 43
+								}
+							],
+							"stop_id": "550",
+							"stop_name": "William Cannon/Circle S",
+							"stop_name_full": "115 William Cannon/Circle S",
+							"stop_sequence": 33
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.180708,
+							"lon": -97.750278,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.179893,
+									"lon": -97.747991,
+									"stop_id": "5398",
+									"stop_name": "William Cannon/Pleasant…",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17546,
+									"lon": -97.743505,
+									"stop_id": "6481",
+									"stop_name": "William Cannon/Onion…",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167139,
+									"lon": -97.740724,
+									"stop_id": "4357",
+									"stop_name": "Salt Springs/Orange…",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.163611,
+									"lon": -97.742899,
+									"stop_id": "3901",
+									"stop_name": "Salt Springs/Tara",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.161512,
+									"lon": -97.744196,
+									"stop_id": "6522",
+									"stop_name": "Salt Springs at…",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.155931,
+									"lon": -97.753078,
+									"stop_id": "6339",
+									"stop_name": "Vertex/Cattle Baron",
+									"stop_sequence": 50
+								}
+							],
+							"stop_id": "2483",
+							"stop_name": "Meadow Lake/William…",
+							"stop_name_full": "6601 Meadow Lake/William Cannon",
+							"stop_sequence": 44
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.151526,
+							"lon": -97.75827,
+							"minor_stops": [],
+							"stop_id": "6555",
+							"stop_name": "Goodnight Ranch Bay D",
+							"stop_name_full": "Goodnight Ranch Bay D",
+							"stop_sequence": 51
+						}
+					]
+				},
+				"333-1-7d5a9343": {
+					"direction_id": 1,
+					"pattern_id": "333-1-7d5a9343",
+					"representative_trip_id": "3003626_11612",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 50,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.234966,
+							"lon": -97.87694,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.225555,
+									"lon": -97.86838,
+									"stop_id": "6390",
+									"stop_name": "Convict Hill/Escarpment",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223318,
+									"lon": -97.863788,
+									"stop_id": "3206",
+									"stop_name": "Convict Hill/Cannon…",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.222491,
+									"lon": -97.862056,
+									"stop_id": "3207",
+									"stop_name": "Convict Hill/Wagon Train",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.220475,
+									"lon": -97.85798,
+									"stop_id": "3208",
+									"stop_name": "Convict Hill/Beckett",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "2597",
+							"stop_name": "Oak Hill Plaza",
+							"stop_name_full": "Oak Hill Plaza",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.218895,
+							"lon": -97.854694,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.217966,
+									"lon": -97.852755,
+									"stop_id": "4445",
+									"stop_name": "Convict Hill/Flaming Oak",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216888,
+									"lon": -97.846068,
+									"stop_id": "3887",
+									"stop_name": "Convict Hill/Latta/Brush…",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.213341,
+									"lon": -97.850551,
+									"stop_id": "3212",
+									"stop_name": "Copano/Copperas",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.210949,
+									"lon": -97.84958,
+									"stop_id": "3213",
+									"stop_name": "Copano/Sarasota",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209294,
+									"lon": -97.848453,
+									"stop_id": "3214",
+									"stop_name": "Eskew/Copano",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207733,
+									"lon": -97.846601,
+									"stop_id": "3215",
+									"stop_name": "Eskew/Mauai",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.205755,
+									"lon": -97.843159,
+									"stop_id": "3216",
+									"stop_name": "Eskew/Tree House",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.204892,
+									"lon": -97.840165,
+									"stop_id": "3217",
+									"stop_name": "Eskew/Croftwood",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203863,
+									"lon": -97.838309,
+									"stop_id": "5594",
+									"stop_name": "Eskew/Leafield",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.206736,
+									"lon": -97.834965,
+									"stop_id": "3220",
+									"stop_name": "Brodie/Harpers Ferry",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.211188,
+									"lon": -97.831853,
+									"stop_id": "3221",
+									"stop_name": "Brodie/Convict Hill",
+									"stop_sequence": 17
+								}
+							],
+							"stop_id": "4446",
+							"stop_name": "Convict Hill/Woodcreek",
+							"stop_name_full": "5125 Convict Hill/Woodcreek",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.213229,
+							"lon": -97.829481,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.210944,
+									"lon": -97.82455,
+									"stop_id": "3224",
+									"stop_name": "William Cannon/Stagecoach",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209995,
+									"lon": -97.822172,
+									"stop_id": "4436",
+									"stop_name": "William Cannon/Ranch",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207901,
+									"lon": -97.817777,
+									"stop_id": "4428",
+									"stop_name": "William Cannon/Deaton…",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207197,
+									"lon": -97.815778,
+									"stop_id": "3226",
+									"stop_name": "William Cannon/West Gate",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203663,
+									"lon": -97.809228,
+									"stop_id": "4424",
+									"stop_name": "William Cannon/…",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "3223",
+							"stop_name": "William Cannon/Brodie",
+							"stop_name_full": "3421 William Cannon/Brodie",
+							"stop_sequence": 18
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.202716,
+							"lon": -97.806233,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.200295,
+									"lon": -97.799002,
+									"stop_id": "3229",
+									"stop_name": "William Cannon/Woodhue",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199251,
+									"lon": -97.795196,
+									"stop_id": "3230",
+									"stop_name": "William Cannon/Mount…",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199075,
+									"lon": -97.793338,
+									"stop_id": "3231",
+									"stop_name": "William Cannon/Emerald…",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197943,
+									"lon": -97.790054,
+									"stop_id": "2917",
+									"stop_name": "William Cannon/Cooper",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197073,
+									"lon": -97.788053,
+									"stop_id": "2918",
+									"stop_name": "William Cannon/1st",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.195674,
+									"lon": -97.785337,
+									"stop_id": "3234",
+									"stop_name": "William Cannon/Bill…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193479,
+									"lon": -97.780305,
+									"stop_id": "4384",
+									"stop_name": "William Cannon/Skynook",
+									"stop_sequence": 31
+								}
+							],
+							"stop_id": "3228",
+							"stop_name": "William Cannon/Menchaca",
+							"stop_name_full": "1945 William Cannon/Menchaca",
+							"stop_sequence": 24
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.192664,
+							"lon": -97.777841,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.192082,
+									"lon": -97.776037,
+									"stop_id": "551",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.191387,
+									"lon": -97.77353,
+									"stop_id": "552",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.189223,
+									"lon": -97.768461,
+									"stop_id": "5703",
+									"stop_name": "William Cannon/Bluff…",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.187382,
+									"lon": -97.76818,
+									"stop_id": "6520",
+									"stop_name": "Bluff Springs/BitterCreek",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.183426,
+									"lon": -97.768629,
+									"stop_id": "2478",
+									"stop_name": "Blue Meadow/Bluff Springs",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.181535,
+									"lon": -97.76431,
+									"stop_id": "4355",
+									"stop_name": "Blue Meadow/Blue Dawn",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17944,
+									"lon": -97.758205,
+									"stop_id": "5121",
+									"stop_name": "Blue Meadow/Deep",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178217,
+									"lon": -97.755781,
+									"stop_id": "5159",
+									"stop_name": "Blue Meadow/Granger",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178206,
+									"lon": -97.754762,
+									"stop_id": "5136",
+									"stop_name": "Meadow Lake/Blue Meadow",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.179042,
+									"lon": -97.753083,
+									"stop_id": "2482",
+									"stop_name": "Meadow Lake/Bucks Run",
+									"stop_sequence": 42
+								}
+							],
+							"stop_id": "550",
+							"stop_name": "William Cannon/Circle S",
+							"stop_name_full": "115 William Cannon/Circle S",
+							"stop_sequence": 32
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.180708,
+							"lon": -97.750278,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.179893,
+									"lon": -97.747991,
+									"stop_id": "5398",
+									"stop_name": "William Cannon/Pleasant…",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17546,
+									"lon": -97.743505,
+									"stop_id": "6481",
+									"stop_name": "William Cannon/Onion…",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167139,
+									"lon": -97.740724,
+									"stop_id": "4357",
+									"stop_name": "Salt Springs/Orange…",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.163611,
+									"lon": -97.742899,
+									"stop_id": "3901",
+									"stop_name": "Salt Springs/Tara",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.161512,
+									"lon": -97.744196,
+									"stop_id": "6522",
+									"stop_name": "Salt Springs at…",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.155931,
+									"lon": -97.753078,
+									"stop_id": "6339",
+									"stop_name": "Vertex/Cattle Baron",
+									"stop_sequence": 49
+								}
+							],
+							"stop_id": "2483",
+							"stop_name": "Meadow Lake/William…",
+							"stop_name_full": "6601 Meadow Lake/William Cannon",
+							"stop_sequence": 43
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.151526,
+							"lon": -97.75827,
+							"minor_stops": [],
+							"stop_id": "6555",
+							"stop_name": "Goodnight Ranch Bay D",
+							"stop_name_full": "Goodnight Ranch Bay D",
+							"stop_sequence": 50
+						}
+					]
+				},
+				"333-1-adee6f46": {
+					"direction_id": 1,
+					"pattern_id": "333-1-adee6f46",
+					"representative_trip_id": "3003627_11414",
+					"service_ids": [
+						"6-172",
+						"7-172",
+						"8-172"
+					],
+					"stop_count": 34,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.222951,
+							"lon": -97.841813,
+							"minor_stops": [],
+							"stop_id": "5902",
+							"stop_name": "Brush Country/William…",
+							"stop_name_full": "6703 Brush Country/William Cannon",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.213229,
+							"lon": -97.829481,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.210944,
+									"lon": -97.82455,
+									"stop_id": "3224",
+									"stop_name": "William Cannon/Stagecoach",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.209995,
+									"lon": -97.822172,
+									"stop_id": "4436",
+									"stop_name": "William Cannon/Ranch",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207901,
+									"lon": -97.817777,
+									"stop_id": "4428",
+									"stop_name": "William Cannon/Deaton…",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.207197,
+									"lon": -97.815778,
+									"stop_id": "3226",
+									"stop_name": "William Cannon/West Gate",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203663,
+									"lon": -97.809228,
+									"stop_id": "4424",
+									"stop_name": "William Cannon/…",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "3223",
+							"stop_name": "William Cannon/Brodie",
+							"stop_name_full": "3421 William Cannon/Brodie",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.202716,
+							"lon": -97.806233,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.200295,
+									"lon": -97.799002,
+									"stop_id": "3229",
+									"stop_name": "William Cannon/Woodhue",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199251,
+									"lon": -97.795196,
+									"stop_id": "3230",
+									"stop_name": "William Cannon/Mount…",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.199075,
+									"lon": -97.793338,
+									"stop_id": "3231",
+									"stop_name": "William Cannon/Emerald…",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197943,
+									"lon": -97.790054,
+									"stop_id": "2917",
+									"stop_name": "William Cannon/Cooper",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197073,
+									"lon": -97.788053,
+									"stop_id": "2918",
+									"stop_name": "William Cannon/1st",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.195674,
+									"lon": -97.785337,
+									"stop_id": "3234",
+									"stop_name": "William Cannon/Bill…",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.193479,
+									"lon": -97.780305,
+									"stop_id": "4384",
+									"stop_name": "William Cannon/Skynook",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "3228",
+							"stop_name": "William Cannon/Menchaca",
+							"stop_name_full": "1945 William Cannon/Menchaca",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.192664,
+							"lon": -97.777841,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.192082,
+									"lon": -97.776037,
+									"stop_id": "551",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.191387,
+									"lon": -97.77353,
+									"stop_id": "552",
+									"stop_name": "William Cannon/Circle S",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.189223,
+									"lon": -97.768461,
+									"stop_id": "5703",
+									"stop_name": "William Cannon/Bluff…",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.187382,
+									"lon": -97.76818,
+									"stop_id": "6520",
+									"stop_name": "Bluff Springs/BitterCreek",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.183426,
+									"lon": -97.768629,
+									"stop_id": "2478",
+									"stop_name": "Blue Meadow/Bluff Springs",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.181535,
+									"lon": -97.76431,
+									"stop_id": "4355",
+									"stop_name": "Blue Meadow/Blue Dawn",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17944,
+									"lon": -97.758205,
+									"stop_id": "5121",
+									"stop_name": "Blue Meadow/Deep",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178217,
+									"lon": -97.755781,
+									"stop_id": "5159",
+									"stop_name": "Blue Meadow/Granger",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.178206,
+									"lon": -97.754762,
+									"stop_id": "5136",
+									"stop_name": "Meadow Lake/Blue Meadow",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.179042,
+									"lon": -97.753083,
+									"stop_id": "2482",
+									"stop_name": "Meadow Lake/Bucks Run",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "550",
+							"stop_name": "William Cannon/Circle S",
+							"stop_name_full": "115 William Cannon/Circle S",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.180708,
+							"lon": -97.750278,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.179893,
+									"lon": -97.747991,
+									"stop_id": "5398",
+									"stop_name": "William Cannon/Pleasant…",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.17546,
+									"lon": -97.743505,
+									"stop_id": "6481",
+									"stop_name": "William Cannon/Onion…",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.167139,
+									"lon": -97.740724,
+									"stop_id": "4357",
+									"stop_name": "Salt Springs/Orange…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.163611,
+									"lon": -97.742899,
+									"stop_id": "3901",
+									"stop_name": "Salt Springs/Tara",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.161512,
+									"lon": -97.744196,
+									"stop_id": "6522",
+									"stop_name": "Salt Springs at…",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.155931,
+									"lon": -97.753078,
+									"stop_id": "6339",
+									"stop_name": "Vertex/Cattle Baron",
+									"stop_sequence": 33
+								}
+							],
+							"stop_id": "2483",
+							"stop_name": "Meadow Lake/William…",
+							"stop_name_full": "6601 Meadow Lake/William Cannon",
+							"stop_sequence": 27
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.151526,
+							"lon": -97.75827,
+							"minor_stops": [],
+							"stop_id": "6555",
+							"stop_name": "Goodnight Ranch Bay D",
+							"stop_name_full": "Goodnight Ranch Bay D",
+							"stop_sequence": 34
+						}
+					]
+				}
+			},
+			"stop_count": 34,
+			"timepoint_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "333",
+	"schema": 1
+}

@@ -1,0 +1,467 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "50-0-6936d3e4"
+			},
+			"baseline_pattern_id": "50-0-6936d3e4",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"50-0-6936d3e4": {
+					"direction_id": 0,
+					"pattern_id": "50-0-6936d3e4",
+					"representative_trip_id": "3006632_17114",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 23,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.566885,
+							"lon": -97.658493,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.567374,
+									"lon": -97.664627,
+									"stop_id": "6230",
+									"stop_name": "University/Sandy Brook",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.565967,
+									"lon": -97.669358,
+									"stop_id": "6228",
+									"stop_name": "University/Teravista Club",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.561527,
+									"lon": -97.686898,
+									"stop_id": "6226",
+									"stop_name": "N Mays St/University",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.568408,
+									"lon": -97.686563,
+									"stop_id": "6224",
+									"stop_name": "N Mays St/Teravista Pkwy",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.558732,
+									"lon": -97.679367,
+									"stop_id": "6222",
+									"stop_name": "Sunrise/Hidden Valley",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.552211,
+									"lon": -97.676815,
+									"stop_id": "6220",
+									"stop_name": "Sunrise/Eagles Nest",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.541036,
+									"lon": -97.671114,
+									"stop_id": "6216",
+									"stop_name": "Sunrise/Double File",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6232",
+							"stop_name": "College Park/University",
+							"stop_name_full": "College Park/University",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.537555,
+							"lon": -97.668187,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.534574,
+									"lon": -97.668065,
+									"stop_id": "6212",
+									"stop_name": "Sunrise/Country Aire",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.530674,
+									"lon": -97.668014,
+									"stop_id": "6210",
+									"stop_name": "Sunrise/Bowman",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.526518,
+									"lon": -97.667947,
+									"stop_id": "6208",
+									"stop_name": "Sunrise/Wayne",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.523172,
+									"lon": -97.667891,
+									"stop_id": "6206",
+									"stop_name": "Sunrise/Greenfield",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.520856,
+									"lon": -97.661434,
+									"stop_id": "6203",
+									"stop_name": "Mesa Park/Bayland",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6213",
+							"stop_name": "Sunrise/Old Settlers",
+							"stop_name_full": "Sunrise/Old Settlers",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.520992,
+							"lon": -97.657819,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.517453,
+									"lon": -97.670963,
+									"stop_id": "6200",
+									"stop_name": "Georgetown/Palm Valley",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.510752,
+									"lon": -97.671697,
+									"stop_id": "6198",
+									"stop_name": "Georgetown/Main",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.509463,
+									"lon": -97.675994,
+									"stop_id": "6196",
+									"stop_name": "Main/Burnet",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "6202",
+							"stop_name": "Plateau Vista/Aw Grimes",
+							"stop_name_full": "Plateau Vista/Aw Grimes",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.50715,
+							"lon": -97.681161,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.499799,
+									"lon": -97.676214,
+									"stop_id": "6193",
+									"stop_name": "Mays/Mays Crossing",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.496413,
+									"lon": -97.67599,
+									"stop_id": "6192",
+									"stop_name": "Mays/Shipley",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.49196,
+									"lon": -97.67575,
+									"stop_id": "6191",
+									"stop_name": "Mays/Tower",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "6094",
+							"stop_name": "Bagdad/Brown",
+							"stop_name_full": "Bagdad/Brown",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.485241,
+							"lon": -97.6639,
+							"minor_stops": [],
+							"stop_id": "6161",
+							"stop_name": "Dell Way/Greenlawn",
+							"stop_name_full": "Dell Way/Greenlawn",
+							"stop_sequence": 23
+						}
+					]
+				}
+			},
+			"stop_count": 23,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "50-1-198a37b8"
+			},
+			"baseline_pattern_id": "50-1-198a37b8",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"50-1-198a37b8": {
+					"direction_id": 1,
+					"pattern_id": "50-1-198a37b8",
+					"representative_trip_id": "3006644_17102",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 25,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.485451,
+							"lon": -97.663909,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.492449,
+									"lon": -97.675522,
+									"stop_id": "6190",
+									"stop_name": "Mays/Tower",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.500578,
+									"lon": -97.676059,
+									"stop_id": "6194",
+									"stop_name": "Mays/Mays Crossing",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "6474",
+							"stop_name": "Dellway /Greenlawn",
+							"stop_name_full": "376 Dellway /Greenlawn",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.50715,
+							"lon": -97.681161,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.509196,
+									"lon": -97.676355,
+									"stop_id": "6195",
+									"stop_name": "Main/Burnet",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.510439,
+									"lon": -97.671924,
+									"stop_id": "6197",
+									"stop_name": "Main St/Georgetown St",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.516627,
+									"lon": -97.670963,
+									"stop_id": "6199",
+									"stop_name": "Georgetown/Palm Valley",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "6094",
+							"stop_name": "Bagdad/Brown",
+							"stop_name_full": "Bagdad/Brown",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.521138,
+							"lon": -97.657237,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.520999,
+									"lon": -97.661556,
+									"stop_id": "6204",
+									"stop_name": "Mesa Park/Bayland",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.522608,
+									"lon": -97.667727,
+									"stop_id": "6205",
+									"stop_name": "Sunrise/Greenfield",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.526146,
+									"lon": -97.667778,
+									"stop_id": "6207",
+									"stop_name": "Sunrise/Wayne",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.529748,
+									"lon": -97.667802,
+									"stop_id": "6209",
+									"stop_name": "Sunrise/Bowman",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.534731,
+									"lon": -97.66787,
+									"stop_id": "6211",
+									"stop_name": "Sunrise/Country Aire",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "6201",
+							"stop_name": "Plateau Vista/Aw Grimes",
+							"stop_name_full": "Plateau Vista/Aw Grimes",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.53805,
+							"lon": -97.668019,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.541191,
+									"lon": -97.670999,
+									"stop_id": "6215",
+									"stop_name": "Sunrise/Double File",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.552161,
+									"lon": -97.676562,
+									"stop_id": "6219",
+									"stop_name": "Sunrise/Eagles Nest",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.55775,
+									"lon": -97.678726,
+									"stop_id": "6221",
+									"stop_name": "Sunrise/Hidden Valley",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.56808,
+									"lon": -97.686785,
+									"stop_id": "6223",
+									"stop_name": "Mays/Teravista",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.561458,
+									"lon": -97.687175,
+									"stop_id": "6225",
+									"stop_name": "N Mays/University",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.564111,
+									"lon": -97.673601,
+									"stop_id": "6477",
+									"stop_name": "University/Orion/Goodwill",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.565842,
+									"lon": -97.669101,
+									"stop_id": "6227",
+									"stop_name": "University/Teravista Club",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.567009,
+									"lon": -97.665125,
+									"stop_id": "6229",
+									"stop_name": "University/Sandy Brook",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.56782,
+									"lon": -97.652914,
+									"stop_id": "6478",
+									"stop_name": "Seton/Chautauqua/TX State",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.563415,
+									"lon": -97.65603,
+									"stop_id": "6476",
+									"stop_name": "College Park/ACC Round…",
+									"stop_sequence": 24
+								}
+							],
+							"stop_id": "6214",
+							"stop_name": "Sunrise/Old Settlers",
+							"stop_name_full": "Sunrise/Old Settlers",
+							"stop_sequence": 14
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.566885,
+							"lon": -97.658493,
+							"minor_stops": [],
+							"stop_id": "6232",
+							"stop_name": "College Park/University",
+							"stop_name_full": "College Park/University",
+							"stop_sequence": 25
+						}
+					]
+				}
+			},
+			"stop_count": 25,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "50",
+	"schema": 1
+}

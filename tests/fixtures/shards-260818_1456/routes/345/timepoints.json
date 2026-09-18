@@ -1,0 +1,281 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "345-0-bb285b5f",
+				"8-172": "345-0-bb285b5f",
+				"9-172": "345-0-bb285b5f"
+			},
+			"baseline_pattern_id": "345-0-bb285b5f",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"345-0-bb285b5f": {
+					"direction_id": 0,
+					"pattern_id": "345-0-bb285b5f",
+					"representative_trip_id": "3004493_13790",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.298908,
+							"lon": -97.720539,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.300218,
+									"lon": -97.720574,
+									"stop_id": "5283",
+									"stop_name": "Hancock Center",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301232,
+									"lon": -97.72155,
+									"stop_id": "6336",
+									"stop_name": "Red River/Park",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303319,
+									"lon": -97.720483,
+									"stop_id": "1787",
+									"stop_name": "Red River/44th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.305167,
+									"lon": -97.720184,
+									"stop_id": "5394",
+									"stop_name": "45th/Red River",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.307024,
+									"lon": -97.724177,
+									"stop_id": "4920",
+									"stop_name": "45th/Duval",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3082,
+									"lon": -97.727325,
+									"stop_id": "4921",
+									"stop_name": "45th/Avenue F",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.309112,
+									"lon": -97.729235,
+									"stop_id": "1054",
+									"stop_name": "45th Street/Avenue D",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.310425,
+									"lon": -97.731878,
+									"stop_id": "1055",
+									"stop_name": "45th Street/Avenue A",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.311122,
+									"lon": -97.733277,
+									"stop_id": "1056",
+									"stop_name": "45th/Guadalupe",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.313397,
+									"lon": -97.737245,
+									"stop_id": "1057",
+									"stop_name": "45th/Lamar",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314472,
+									"lon": -97.739517,
+									"stop_id": "6310",
+									"stop_name": "45th/Bellvue",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "3843",
+							"stop_name": "41st/IH 35",
+							"stop_name_full": "924 41st/IH 35",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.31602,
+							"lon": -97.741032,
+							"minor_stops": [],
+							"stop_id": "814",
+							"stop_name": "Burnet/45th",
+							"stop_name_full": "Burnet/45th",
+							"stop_sequence": 13
+						}
+					]
+				}
+			},
+			"stop_count": 13,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "345-1-70cd4382",
+				"8-172": "345-1-70cd4382",
+				"9-172": "345-1-70cd4382"
+			},
+			"baseline_pattern_id": "345-1-70cd4382",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"345-1-70cd4382": {
+					"direction_id": 1,
+					"pattern_id": "345-1-70cd4382",
+					"representative_trip_id": "3004529_13688",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.31602,
+							"lon": -97.741032,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.317748,
+									"lon": -97.740022,
+									"stop_id": "4202",
+									"stop_name": "Burnet/47th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.318547,
+									"lon": -97.736463,
+									"stop_id": "974",
+									"stop_name": "49th/Grover",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.317273,
+									"lon": -97.735369,
+									"stop_id": "4521",
+									"stop_name": "Sunshine",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.315713,
+									"lon": -97.736377,
+									"stop_id": "5877",
+									"stop_name": "Sunshine Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.31298,
+									"lon": -97.736887,
+									"stop_id": "977",
+									"stop_name": "45th/Lamar",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.310607,
+									"lon": -97.732618,
+									"stop_id": "978",
+									"stop_name": "45th/Guadalupe",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.309535,
+									"lon": -97.730392,
+									"stop_id": "979",
+									"stop_name": "45th/Avenue C",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.308071,
+									"lon": -97.727271,
+									"stop_id": "5979",
+									"stop_name": "45th/Avenue F",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306867,
+									"lon": -97.724157,
+									"stop_id": "4919",
+									"stop_name": "45th/Duval",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.304397,
+									"lon": -97.718869,
+									"stop_id": "4529",
+									"stop_name": "45th/Red River",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30045,
+									"lon": -97.716779,
+									"stop_id": "2312",
+									"stop_name": "IH 35/Clarkson",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "814",
+							"stop_name": "Burnet/45th",
+							"stop_name_full": "Burnet/45th",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.298908,
+							"lon": -97.720539,
+							"minor_stops": [],
+							"stop_id": "3843",
+							"stop_name": "41st/IH 35",
+							"stop_name_full": "924 41st/IH 35",
+							"stop_sequence": 13
+						}
+					]
+				}
+			},
+			"stop_count": 13,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "345",
+	"schema": 1
+}

@@ -15,5 +15,20 @@ ExecStart=@UPDATE@ --quiet
 User=root
 TimeoutStartSec=300
 
+# NO SuccessExitStatus=3, deliberately.
+#
+# update.sh exits 3 when the deploy succeeded but the committed systemd units are not the
+# ones installed. Listing 3 here would make systemd call that a success, which is the
+# accurate description of the DEPLOY and the wrong description of the BOX: the unit change
+# still has not landed, and the whole reason this exit code exists is that such a change used
+# to go by in silence. A failed unit is the loudest channel available on this box until
+# something actually alerts (see issue 11), so drift is left looking like a failure on
+# purpose.
+#
+# The cost is that `systemctl --failed` alone cannot tell drift from a deploy that rolled
+# back. The numeric status can: `systemctl show -p ExecMainStatus capmetro-update.service`
+# gives 3 for the first and 1 for the second, and the journal says which in words. Anything
+# built on top of this must branch on the number, not on the failed/not-failed bit.
+
 [Install]
 WantedBy=multi-user.target

@@ -59,6 +59,69 @@ describe('the banner escalates with the level rather than being one flat warning
     expect(ns.stalenessBanner(at('dead', 4000), fresh.feeds).className).toContain('danger')
   })
 
+  /*
+   * `stale` has two causes and they need different sentences. A schedule that has
+   * run out arrives with the realtime feed perfectly healthy, and the banner that
+   * shipped announced "Data 12 sec old. Lateness is hidden until the feed catches
+   * up." over it — a fault where there is none, and a wait that never ends.
+   */
+  t('does not blame the feed for a schedule that ran out under a healthy feed', (ns) => {
+    const st = { level: 'stale', oldest_feed_age_s: 12, schedule_age_days: 190,
+      suppress_adherence: true, reason: 'Schedule data ran out on 2027-01-09' }
+    const text = textOf(ns.stalenessBanner(st, fresh.feeds))
+
+    expect(text).not.toMatch(/12 sec/)
+    expect(text).not.toMatch(/feed catches up/)
+    expect(text.toLowerCase()).toContain('schedule')
+    expect(text.toLowerCase()).toMatch(/hidden/)
+    expect(text).toContain('2027-01-09')
+  })
+
+  /*
+   * The third cause, and the one the ages cannot distinguish from the second: the schedule
+   * did not run out, CapMetro replaced it. Saying "has run out" here is simply false --
+   * feed_end_date was 2027-01-09 on the day this happened -- and offering a wait for a
+   * publication that has already occurred points the reader at nothing.
+   */
+  t('says the schedule was replaced, not that it ran out, when it was superseded', (ns) => {
+    const st = { level: 'stale', oldest_feed_age_s: 14, schedule_age_days: 9,
+      schedule_state: 'superseded', suppress_adherence: true,
+      reason: 'CapMetro published a newer schedule (260826_0956)' }
+    const text = textOf(ns.stalenessBanner(st, fresh.feeds))
+
+    expect(text).not.toMatch(/14 sec/)
+    expect(text).not.toMatch(/feed catches up/)
+    expect(text.toLowerCase()).not.toMatch(/run out|ran out/)
+    expect(text.toLowerCase()).toContain('newer schedule')
+    expect(text).toContain('260826_0956')
+  })
+
+  t('keeps the ran-out sentence when the schedule state says expired', (ns) => {
+    const st = { level: 'stale', oldest_feed_age_s: 12, schedule_age_days: 190,
+      schedule_state: 'expired', suppress_adherence: true,
+      reason: 'Schedule data ran out on 2027-01-09' }
+    const text = textOf(ns.stalenessBanner(st, fresh.feeds)).toLowerCase()
+
+    expect(text).toMatch(/ran out/)
+    expect(text).not.toContain('newer schedule')
+  })
+
+  /* A dead feed outranks either schedule story: the positions are what is missing. */
+  t('blames the feed even on a superseded schedule when the feed is also down', (ns) => {
+    const st = { level: 'stale', oldest_feed_age_s: 900, schedule_age_days: 9,
+      schedule_state: 'superseded', suppress_adherence: true,
+      reason: 'positions feed is 15 minutes old' }
+    const text = textOf(ns.stalenessBanner(st, fresh.feeds))
+
+    expect(text).toMatch(/feed catches up/)
+  })
+
+  t('still blames the feed when the feed is the one that stopped', (ns) => {
+    const text = textOf(ns.stalenessBanner(at('stale', 900), fresh.feeds))
+
+    expect(text).toMatch(/feed catches up/)
+  })
+
   t('names the last position time so the user can judge the data themselves', (ns) => {
     const banner = ns.stalenessBanner(at('dead', 4000), fresh.feeds)
     expect(textOf(banner)).toMatch(/last position/i)

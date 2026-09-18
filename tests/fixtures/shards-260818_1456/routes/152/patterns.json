@@ -1,0 +1,114 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "152-0-21339cef"
+			},
+			"baseline_pattern_id": "152-0-21339cef",
+			"baseline_pattern_ids": [
+				"152-0-21339cef"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 1,
+			"patterns": [
+				{
+					"deltas": {
+						"152-0-21339cef": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"9-172"
+					],
+					"is_special": false,
+					"pattern_id": "152-0-21339cef",
+					"stop_count": 2,
+					"stop_ids": [
+						"5279",
+						"6474"
+					],
+					"trip_ids": [
+						"2998716_1543",
+						"2998717_1544",
+						"2998718_1545",
+						"2998719_1546",
+						"2998720_1547",
+						"2998721_1548",
+						"2998722_1549",
+						"2998723_1550",
+						"2998724_1551",
+						"2998725_1552",
+						"2998726_1553",
+						"2998727_1554"
+					],
+					"trips_by_service": {
+						"9-172": 12
+					},
+					"trips_in_pattern": 12
+				}
+			],
+			"trip_count": 12
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "152-1-aa270582"
+			},
+			"baseline_pattern_id": "152-1-aa270582",
+			"baseline_pattern_ids": [
+				"152-1-aa270582"
+			],
+			"baseline_stable": true,
+			"direction_id": 1,
+			"pattern_count": 1,
+			"patterns": [
+				{
+					"deltas": {
+						"152-1-aa270582": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"9-172"
+					],
+					"is_special": false,
+					"pattern_id": "152-1-aa270582",
+					"stop_count": 3,
+					"stop_ids": [
+						"6161",
+						"6160",
+						"5279"
+					],
+					"trip_ids": [
+						"2998728_1555",
+						"2998729_1556",
+						"2998730_1557",
+						"2998731_1558",
+						"2998732_1559",
+						"2998733_1560",
+						"2998734_1561",
+						"2998735_1562",
+						"2998736_1563",
+						"2998737_1564",
+						"2998738_1565",
+						"2998739_1566"
+					],
+					"trips_by_service": {
+						"9-172": 12
+					},
+					"trips_in_pattern": 12
+				}
+			],
+			"trip_count": 12
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "152",
+	"schema": 1
+}

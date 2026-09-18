@@ -33,7 +33,14 @@ const BOUND_SUFFIXES = [
 	[ /\bWestbound\b/gu, 'WB' ],
 ];
 
-export function shortenStopName( fullName ) {
+/*
+ * Steps 1 through 3b: everything that normalizes a name, stopping short of truncation.
+ *
+ * Exported because build/verify.mjs has to reconstruct the pre-truncation name to prove a cut
+ * landed on a boundary, and a hand-copied second version of these rules there drifted from
+ * this one and failed 23 correctly-shortened names. One implementation, two callers.
+ */
+export function stopNameStem( fullName ) {
 	const original = String( fullName ?? '' ).trim();
 	let name = original;
 
@@ -66,9 +73,15 @@ export function shortenStopName( fullName ) {
 	if ( name === '' ) {
 		/* Everything was stripped; fall back to the raw upstream name. */
 		name = original;
-		if ( name === '' ) {
-			return '';
-		}
+	}
+
+	return name;
+}
+
+export function shortenStopName( fullName ) {
+	const name = stopNameStem( fullName );
+	if ( name === '' ) {
+		return '';
 	}
 
 	/* 4. Word-boundary truncation. Count code points, not UTF-16 units. */

@@ -1,0 +1,677 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "335-0-31b70896",
+				"2-172": "335-0-c38e7867",
+				"3-172": "335-0-c38e7867",
+				"4-172": "335-0-c38e7867",
+				"5-172": "335-0-c38e7867",
+				"6-172": "335-0-31b70896",
+				"7-172": "335-0-c38e7867",
+				"8-172": "335-0-31b70896"
+			},
+			"baseline_pattern_id": "335-0-c38e7867",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"335-0-31b70896": {
+					"direction_id": 0,
+					"pattern_id": "335-0-31b70896",
+					"representative_trip_id": "3003832_12386",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 24,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.296149,
+									"lon": -97.700385,
+									"stop_id": "6293",
+									"stop_name": "Simond SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290214,
+									"lon": -97.699019,
+									"stop_id": "6291",
+									"stop_name": "Mueller Tower Station SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.287728,
+									"lon": -97.701113,
+									"stop_id": "1636",
+									"stop_name": "Manor/Anchor",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28924,
+									"lon": -97.707815,
+									"stop_id": "6288",
+									"stop_name": "38th Half/Airport",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29042,
+									"lon": -97.710641,
+									"stop_id": "6286",
+									"stop_name": "38th Half/Brookview",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29213,
+									"lon": -97.71425,
+									"stop_id": "2071",
+									"stop_name": "38th Half/Maplewood",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29299,
+									"lon": -97.71598,
+									"stop_id": "4738",
+									"stop_name": "38th Half/Lafayette",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294262,
+									"lon": -97.718216,
+									"stop_id": "4737",
+									"stop_name": "38th Half/Hollywood",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.296535,
+							"lon": -97.723448,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.298718,
+									"lon": -97.729583,
+									"stop_id": "6279",
+									"stop_name": "38th/Duval",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300733,
+									"lon": -97.733816,
+									"stop_id": "6277",
+									"stop_name": "38th/Speedway",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303402,
+									"lon": -97.739012,
+									"stop_id": "5350",
+									"stop_name": "38th/Guadalupe",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304699,
+									"lon": -97.741778,
+									"stop_id": "5351",
+									"stop_name": "West 38th Station",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6281",
+							"stop_name": "38th Half/Red River",
+							"stop_name_full": "813 38th Half/Red River",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.305686,
+							"lon": -97.743879,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.306256,
+									"lon": -97.745209,
+									"stop_id": "2086",
+									"stop_name": "38th/Bailey",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30722,
+									"lon": -97.75014,
+									"stop_id": "2087",
+									"stop_name": "35th/Kerbey",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308198,
+									"lon": -97.752801,
+									"stop_id": "2088",
+									"stop_name": "35th/Lawton",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308823,
+									"lon": -97.755704,
+									"stop_id": "2089",
+									"stop_name": "35th/Jackson",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.309568,
+									"lon": -97.759972,
+									"stop_id": "2090",
+									"stop_name": "W 35th/Mopac",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.309551,
+									"lon": -97.762879,
+									"stop_id": "1423",
+									"stop_name": "Exposition/Warren",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.307628,
+									"lon": -97.763402,
+									"stop_id": "1424",
+									"stop_name": "Exposition/Mountain…",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.305496,
+									"lon": -97.764927,
+									"stop_id": "1425",
+									"stop_name": "Exposition/Northwood",
+									"stop_sequence": 23
+								}
+							],
+							"stop_id": "809",
+							"stop_name": "38th/Medical Pkwy",
+							"stop_name_full": "38th/Medical Pkwy",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.30379,
+							"lon": -97.764542,
+							"minor_stops": [],
+							"stop_id": "1426",
+							"stop_name": "Exposition",
+							"stop_name_full": "2728 Exposition (Casis Elementary)",
+							"stop_sequence": 24
+						}
+					]
+				},
+				"335-0-c38e7867": {
+					"direction_id": 0,
+					"pattern_id": "335-0-c38e7867",
+					"representative_trip_id": "3003832_12424",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 23,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.296149,
+									"lon": -97.700385,
+									"stop_id": "6293",
+									"stop_name": "Simond SB",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290214,
+									"lon": -97.699019,
+									"stop_id": "6291",
+									"stop_name": "Mueller Tower Station SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.287728,
+									"lon": -97.701113,
+									"stop_id": "1636",
+									"stop_name": "Manor/Anchor",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28924,
+									"lon": -97.707815,
+									"stop_id": "6288",
+									"stop_name": "38th Half/Airport",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29042,
+									"lon": -97.710641,
+									"stop_id": "6286",
+									"stop_name": "38th Half/Brookview",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29213,
+									"lon": -97.71425,
+									"stop_id": "2071",
+									"stop_name": "38th Half/Maplewood",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29299,
+									"lon": -97.71598,
+									"stop_id": "4738",
+									"stop_name": "38th Half/Lafayette",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294262,
+									"lon": -97.718216,
+									"stop_id": "4737",
+									"stop_name": "38th Half/Hollywood",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.296535,
+							"lon": -97.723448,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.298718,
+									"lon": -97.729583,
+									"stop_id": "6279",
+									"stop_name": "38th/Duval",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.300733,
+									"lon": -97.733816,
+									"stop_id": "6277",
+									"stop_name": "38th/Speedway",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303402,
+									"lon": -97.739012,
+									"stop_id": "5350",
+									"stop_name": "38th/Guadalupe",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.304699,
+									"lon": -97.741778,
+									"stop_id": "5351",
+									"stop_name": "West 38th Station",
+									"stop_sequence": 14
+								}
+							],
+							"stop_id": "6281",
+							"stop_name": "38th Half/Red River",
+							"stop_name_full": "813 38th Half/Red River",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.305686,
+							"lon": -97.743879,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.306256,
+									"lon": -97.745209,
+									"stop_id": "2086",
+									"stop_name": "38th/Bailey",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30722,
+									"lon": -97.75014,
+									"stop_id": "2087",
+									"stop_name": "35th/Kerbey",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308198,
+									"lon": -97.752801,
+									"stop_id": "2088",
+									"stop_name": "35th/Lawton",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.308823,
+									"lon": -97.755704,
+									"stop_id": "2089",
+									"stop_name": "35th/Jackson",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.309551,
+									"lon": -97.762879,
+									"stop_id": "1423",
+									"stop_name": "Exposition/Warren",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.307628,
+									"lon": -97.763402,
+									"stop_id": "1424",
+									"stop_name": "Exposition/Mountain…",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.305496,
+									"lon": -97.764927,
+									"stop_id": "1425",
+									"stop_name": "Exposition/Northwood",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "809",
+							"stop_name": "38th/Medical Pkwy",
+							"stop_name_full": "38th/Medical Pkwy",
+							"stop_sequence": 15
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.30379,
+							"lon": -97.764542,
+							"minor_stops": [],
+							"stop_id": "1426",
+							"stop_name": "Exposition",
+							"stop_name_full": "2728 Exposition (Casis Elementary)",
+							"stop_sequence": 23
+						}
+					]
+				}
+			},
+			"stop_count": 23,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "335-1-fa8f6e46",
+				"8-172": "335-1-fa8f6e46",
+				"9-172": "335-1-fa8f6e46"
+			},
+			"baseline_pattern_id": "335-1-fa8f6e46",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"335-1-fa8f6e46": {
+					"direction_id": 1,
+					"pattern_id": "335-1-fa8f6e46",
+					"representative_trip_id": "3003870_12281",
+					"service_ids": [
+						"10-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 23,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.30379,
+							"lon": -97.764542,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.308347,
+									"lon": -97.754037,
+									"stop_id": "5408",
+									"stop_name": "35th/Oakmont",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30776,
+									"lon": -97.7519,
+									"stop_id": "1996",
+									"stop_name": "35th/Jefferson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30713,
+									"lon": -97.74927,
+									"stop_id": "1997",
+									"stop_name": "35th/Crawford",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30646,
+									"lon": -97.74609,
+									"stop_id": "1998",
+									"stop_name": "W 38th/Tonkawa",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "1426",
+							"stop_name": "Exposition",
+							"stop_name_full": "2728 Exposition (Casis Elementary)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.305323,
+							"lon": -97.74376,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.304405,
+									"lon": -97.741594,
+									"stop_id": "5349",
+									"stop_name": "West 38th Station",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303401,
+									"lon": -97.739461,
+									"stop_id": "5352",
+									"stop_name": "38th/Ronson",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302273,
+									"lon": -97.73745,
+									"stop_id": "6276",
+									"stop_name": "38th/Guadalupe",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.300391,
+									"lon": -97.733404,
+									"stop_id": "6278",
+									"stop_name": "38th/Speedway",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298511,
+									"lon": -97.729686,
+									"stop_id": "6280",
+									"stop_name": "38th/Duval",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "1999",
+							"stop_name": "38th/Medical Parkway",
+							"stop_name_full": "38th/Medical Parkway",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.296361,
+							"lon": -97.723433,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.294337,
+									"lon": -97.718708,
+									"stop_id": "2012",
+									"stop_name": "38th Half/Robinson",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2927,
+									"lon": -97.71574,
+									"stop_id": "2013",
+									"stop_name": "38th Half/Clarkson",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.291761,
+									"lon": -97.713782,
+									"stop_id": "6285",
+									"stop_name": "38th Half/Cherrywood",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289979,
+									"lon": -97.71002,
+									"stop_id": "6287",
+									"stop_name": "38th Half/Basford",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289159,
+									"lon": -97.706708,
+									"stop_id": "6290",
+									"stop_name": "38th Half/Airport",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.288022,
+									"lon": -97.700453,
+									"stop_id": "6289",
+									"stop_name": "Manor/Greenwood",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.290322,
+									"lon": -97.698669,
+									"stop_id": "6091",
+									"stop_name": "Mueller Tower NB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.296343,
+									"lon": -97.700088,
+									"stop_id": "6292",
+									"stop_name": "Simond NB",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302661,
+									"lon": -97.700391,
+									"stop_id": "6335",
+									"stop_name": "Barbara Jordan/Berkman",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.304113,
+									"lon": -97.703462,
+									"stop_id": "6387",
+									"stop_name": "Barbara Jordan/Mueller",
+									"stop_sequence": 22
+								}
+							],
+							"stop_id": "6282",
+							"stop_name": "38th Half/Red River",
+							"stop_name_full": "814 38th Half/Red River",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.302693,
+							"lon": -97.699868,
+							"minor_stops": [],
+							"stop_id": "5926",
+							"stop_name": "Barbara Jordan SB",
+							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
+							"stop_sequence": 23
+						}
+					]
+				}
+			},
+			"stop_count": 23,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "335",
+	"schema": 1
+}

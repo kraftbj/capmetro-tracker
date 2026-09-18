@@ -1,0 +1,199 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"16-172": "490-0-5c3285e0",
+				"17-172": "490-0-9ea40bad"
+			},
+			"baseline_pattern_id": "490-0-5c3285e0",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"490-0-5c3285e0": {
+					"direction_id": 0,
+					"pattern_id": "490-0-5c3285e0",
+					"representative_trip_id": "3006042_16489",
+					"service_ids": [
+						"16-172"
+					],
+					"stop_count": 5,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.259425,
+							"lon": -97.728034,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.26246,
+									"lon": -97.74084,
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "2810",
+							"stop_name": "East Austin Multi-Center",
+							"stop_name_full": "East Austin Multi-Center",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.262213,
+							"lon": -97.740639,
+							"minor_stops": [],
+							"stop_id": "5633",
+							"stop_name": "Cesar Chavez/Trinity",
+							"stop_name_full": "421 Cesar Chavez/Trinity",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.259919,
+							"lon": -97.732856,
+							"minor_stops": [],
+							"stop_id": "2812",
+							"stop_name": "Cesar Chavez/Waller",
+							"stop_name_full": "1117 Cesar Chavez/Waller",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.23524,
+							"lon": -97.721977,
+							"minor_stops": [],
+							"stop_id": "4288",
+							"stop_name": "Riverside SB",
+							"stop_name_full": "Riverside SB (Pleasant Valley HEB)",
+							"stop_sequence": 5
+						}
+					]
+				},
+				"490-0-9ea40bad": {
+					"direction_id": 0,
+					"pattern_id": "490-0-9ea40bad",
+					"representative_trip_id": "3006047_16495",
+					"service_ids": [
+						"17-172"
+					],
+					"stop_count": 2,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.253346,
+							"lon": -97.735557,
+							"minor_stops": [],
+							"stop_id": "6404",
+							"stop_name": "Waller/Flores",
+							"stop_name_full": "27 Waller/Flores",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.23524,
+							"lon": -97.721977,
+							"minor_stops": [],
+							"stop_id": "4288",
+							"stop_name": "Riverside SB",
+							"stop_name_full": "Riverside SB (Pleasant Valley HEB)",
+							"stop_sequence": 2
+						}
+					]
+				}
+			},
+			"stop_count": 5,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"16-172": "490-1-be371a45",
+				"17-172": "490-1-6d6bcc87"
+			},
+			"baseline_pattern_id": "490-1-be371a45",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"490-1-6d6bcc87": {
+					"direction_id": 1,
+					"pattern_id": "490-1-6d6bcc87",
+					"representative_trip_id": "3006053_16485",
+					"service_ids": [
+						"17-172"
+					],
+					"stop_count": 3,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.23524,
+							"lon": -97.721977,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.252636,
+									"lon": -97.733165,
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "4288",
+							"stop_name": "Riverside SB",
+							"stop_name_full": "Riverside SB (Pleasant Valley HEB)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.253346,
+							"lon": -97.735557,
+							"minor_stops": [],
+							"stop_id": "6404",
+							"stop_name": "Waller/Flores",
+							"stop_name_full": "27 Waller/Flores",
+							"stop_sequence": 3
+						}
+					]
+				},
+				"490-1-be371a45": {
+					"direction_id": 1,
+					"pattern_id": "490-1-be371a45",
+					"representative_trip_id": "3006052_16477",
+					"service_ids": [
+						"16-172"
+					],
+					"stop_count": 2,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.23524,
+							"lon": -97.721977,
+							"minor_stops": [],
+							"stop_id": "4288",
+							"stop_name": "Riverside SB",
+							"stop_name_full": "Riverside SB (Pleasant Valley HEB)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.259425,
+							"lon": -97.728034,
+							"minor_stops": [],
+							"stop_id": "2810",
+							"stop_name": "East Austin Multi-Center",
+							"stop_name_full": "East Austin Multi-Center",
+							"stop_sequence": 2
+						}
+					]
+				}
+			},
+			"stop_count": 2,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "490",
+	"schema": 1
+}

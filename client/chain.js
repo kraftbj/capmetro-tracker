@@ -2083,7 +2083,6 @@
     MIN_SLACK_S: MIN_SLACK_S,
     MAX_WAIT_S: MAX_WAIT_S,
     TIGHT_S: TIGHT_S,
-    MAX_LEGS: MAX_LEGS,
     /* Exported for the suite: the whole-journey verdict is one transfer chosen
      * from many, and which one is chosen is the claim the card makes. */
     worstTransfer: worstTransfer,
@@ -2110,14 +2109,12 @@
     connections: connections,
     connectionsFor: connectionsFor,
     resolveLeg: resolveLeg,
-    resolveTransfer: resolveTransfer,
     resolve: resolve,
     slackText: slackText,
     minutesWord: minutesWord,
     connectionDetail: connectionDetail,
     assumptionNote: assumptionNote,
     describe: describe,
-    routeSummary: routeSummary,
     sortModels: sortModels,
     render: render,
     renderEditor: renderEditor,

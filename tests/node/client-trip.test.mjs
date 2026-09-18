@@ -258,3 +258,78 @@ describe('what a picker row says about a bus', () => {
     expect(textDeep(h)).toContain('Alpha')
   })
 })
+
+describe('the continuation footer names the successor trip', () => {
+  /*
+   * next_trip has no headsign of its own — schemas/common.schema.json lists nine
+   * properties and sets additionalProperties:false — so `next.headsign` read undefined on
+   * every bus and the footer always fell through to the literal "its next trip":
+   *
+   *     Then becomes 1 its next trip, 4:56p from Bluff Springs/William…
+   *
+   * The catalog knows what route 1 calls its direction 1, which is the same headsign the
+   * rest of the board shows. Values below are bus 2620's real block on 2026-09-02.
+   */
+  const CATALOG = [{
+    id: '1',
+    short_name: '1',
+    directions: [
+      { id: 0, headsign: '1 William Cannon SB' },
+      { id: 1, headsign: '1 Tech Ridge Park & Ride NB' },
+    ],
+  }]
+
+  const withBlock = () => {
+    const r = JSON.parse(JSON.stringify(ROUTE))
+    r.vehicles[0].block = {
+      block_id: '1010',
+      confidence: 'low',
+      spans_routes: true,
+      route_ids: ['1', '4', '485'],
+      next_trip: {
+        trip_id: '2997899_0076',
+        route_id: '1',
+        route_short_name: '1',
+        direction_id: 1,
+        start_time: '16:56:00',
+        start_epoch: 4000,
+        start_stop_id: '554',
+        start_stop_name: 'Bluff Springs/William…',
+        is_direction_flip: false,
+      },
+      is_last_trip: false,
+    }
+    return r
+  }
+
+  const foot = (trip, routes) => {
+    const h = host()
+    trip.render(h, { route: withBlock(), dep: DEP, vehicleId: '2641', now: 5000, routes },
+      { routes: [] })
+    return all(h, 'trip__next').map(textDeep).join(' ')
+  }
+
+  t('uses the successor route\'s own headsign', (trip) => {
+    const text = foot(trip, CATALOG)
+    expect(text).toContain('1 Tech Ridge Park & Ride NB')
+    expect(text).not.toContain('its next trip')
+  })
+
+  t('does not print the route number twice', (trip) => {
+    /* The headsign already leads with it, so "Then becomes 1 1 Tech Ridge…" is the
+       failure this guards. */
+    expect(foot(trip, CATALOG)).not.toMatch(/becomes\s+1\s+1\b/)
+  })
+
+  t('falls back to the route number when the catalog has not landed', (trip) => {
+    for (const routes of [undefined, [], [{ id: '1', short_name: '1', directions: [] }]]) {
+      const text = foot(trip, routes)
+      expect(text).toContain('route 1')
+      expect(text).toContain('Bluff Springs/William…')
+    }
+  })
+
+  t('keeps the unverified caveat on a low-confidence continuation', (trip) => {
+    expect(foot(trip, CATALOG)).toContain('block continuation is unverified')
+  })
+})

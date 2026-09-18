@@ -1,0 +1,180 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "935-0-b92b0679"
+			},
+			"baseline_pattern_id": "935-0-b92b0679",
+			"baseline_pattern_ids": [
+				"935-0-b92b0679"
+			],
+			"baseline_stable": true,
+			"direction_id": 0,
+			"pattern_count": 1,
+			"patterns": [
+				{
+					"deltas": {
+						"935-0-b92b0679": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"9-172"
+					],
+					"is_special": false,
+					"pattern_id": "935-0-b92b0679",
+					"stop_count": 11,
+					"stop_ids": [
+						"5274",
+						"2107",
+						"2111",
+						"2605",
+						"6314",
+						"6315",
+						"6500",
+						"866",
+						"1253",
+						"3491",
+						"2079"
+					],
+					"trip_ids": [
+						"3013107_24229",
+						"3013108_24228"
+					],
+					"trips_by_service": {
+						"9-172": 2
+					},
+					"trips_in_pattern": 2
+				}
+			],
+			"trip_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "935-1-cb29fa45",
+				"2-172": "935-1-733cc407",
+				"3-172": "935-1-733cc407",
+				"4-172": "935-1-733cc407",
+				"5-172": "935-1-733cc407"
+			},
+			"baseline_pattern_id": "935-1-733cc407",
+			"baseline_pattern_ids": [
+				"935-1-733cc407",
+				"935-1-cb29fa45"
+			],
+			"baseline_stable": false,
+			"direction_id": 1,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"935-1-733cc407": {
+							"adds": [],
+							"skips": []
+						},
+						"935-1-cb29fa45": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "1178",
+									"stop_name": "San Jacinto/24th"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"is_special": false,
+					"pattern_id": "935-1-733cc407",
+					"stop_count": 9,
+					"stop_ids": [
+						"3955",
+						"1180",
+						"916",
+						"6499",
+						"5937",
+						"5938",
+						"2612",
+						"716",
+						"5274"
+					],
+					"trip_ids": [
+						"3013109_24221",
+						"3013109_24223",
+						"3013109_24225",
+						"3013109_24227",
+						"3013110_24220",
+						"3013110_24222",
+						"3013110_24224",
+						"3013110_24226"
+					],
+					"trips_by_service": {
+						"2-172": 2,
+						"3-172": 2,
+						"4-172": 2,
+						"5-172": 2
+					},
+					"trips_in_pattern": 8
+				},
+				{
+					"deltas": {
+						"935-1-733cc407": {
+							"adds": [
+								{
+									"stop_id": "1178",
+									"stop_name": "San Jacinto/24th"
+								}
+							],
+							"skips": []
+						},
+						"935-1-cb29fa45": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"1-172"
+					],
+					"is_special": true,
+					"pattern_id": "935-1-cb29fa45",
+					"stop_count": 10,
+					"stop_ids": [
+						"3955",
+						"1178",
+						"1180",
+						"916",
+						"6499",
+						"5937",
+						"5938",
+						"2612",
+						"716",
+						"5274"
+					],
+					"trip_ids": [
+						"3013109_24219",
+						"3013110_24218"
+					],
+					"trips_by_service": {
+						"1-172": 2
+					},
+					"trips_in_pattern": 2
+				}
+			],
+			"trip_count": 10
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "935",
+	"schema": 1
+}

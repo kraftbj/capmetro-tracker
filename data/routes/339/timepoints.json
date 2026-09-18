@@ -2,22 +2,233 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "339-0-b4d4698e",
-				"8-172": "339-0-b4d4698e",
-				"9-172": "339-0-b4d4698e"
+				"1-172": "339-0-ae6141c3",
+				"2-172": "339-0-b4d4698e",
+				"3-172": "339-0-ae6141c3",
+				"4-172": "339-0-ae6141c3",
+				"5-172": "339-0-b4d4698e",
+				"6-172": "339-0-ae6141c3",
+				"7-172": "339-0-b4d4698e",
+				"8-172": "339-0-ae6141c3"
 			},
-			"baseline_pattern_id": "339-0-b4d4698e",
-			"baseline_stable": true,
+			"baseline_pattern_id": "339-0-ae6141c3",
+			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
+				"339-0-ae6141c3": {
+					"direction_id": 0,
+					"pattern_id": "339-0-ae6141c3",
+					"representative_trip_id": "3004305_13472",
+					"service_ids": [
+						"1-172",
+						"3-172",
+						"4-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 22,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.313865,
+							"lon": -97.664697,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.319038,
+									"lon": -97.660988,
+									"stop_id": "5808",
+									"stop_name": "Manor/Pecan Brook",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.328995,
+									"lon": -97.656302,
+									"stop_id": "5945",
+									"stop_name": "US 290/Springdale",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "1619",
+							"stop_name": "Manor/Susquehanna",
+							"stop_name_full": "7000 Manor/Susquehanna",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.330722,
+							"lon": -97.659482,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.337487,
+									"lon": -97.662196,
+									"stop_id": "5813",
+									"stop_name": "Exchange/Tuscany",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.330305,
+									"lon": -97.666971,
+									"stop_id": "5815",
+									"stop_name": "Exchange/Cross Park",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33692,
+									"lon": -97.68223,
+									"stop_id": "4706",
+									"stop_name": "Fisher-Rosemount Systems",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33794,
+									"lon": -97.68431,
+									"stop_id": "2439",
+									"stop_name": "Rutherford/Cameron",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.34058,
+									"lon": -97.689935,
+									"stop_id": "5447",
+									"stop_name": "Rutherford/Furness",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "5810",
+							"stop_name": "Tuscany/US 290",
+							"stop_name_full": "8408 Tuscany/US 290",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.340372,
+							"lon": -97.691159,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.338844,
+									"lon": -97.694029,
+									"stop_id": "5193",
+									"stop_name": "Norwood Park/Brettonwoods",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.344432,
+									"lon": -97.705583,
+									"stop_id": "5646",
+									"stop_name": "Research/Georgian",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "6424",
+							"stop_name": "Norwood Transit Center -…",
+							"stop_name_full": "Norwood Transit Center - F",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.350066,
+							"lon": -97.712111,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.349206,
+									"lon": -97.716025,
+									"stop_id": "3278",
+									"stop_name": "Anderson/Watson",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.350302,
+									"lon": -97.718359,
+									"stop_id": "4580",
+									"stop_name": "Anderson/Gault",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.351463,
+									"lon": -97.720782,
+									"stop_id": "3279",
+									"stop_name": "Anderson/Lazy",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.35279,
+									"lon": -97.72362,
+									"stop_id": "1078",
+									"stop_name": "Anderson/Wooten Park",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.35401,
+									"lon": -97.72622,
+									"stop_id": "1080",
+									"stop_name": "Anderson/Mullen",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.354997,
+									"lon": -97.728269,
+									"stop_id": "3281",
+									"stop_name": "Anderson/Hardy",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.354217,
+									"lon": -97.732117,
+									"stop_id": "5849",
+									"stop_name": "Northcross Station",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.354986,
+									"lon": -97.73617,
+									"stop_id": "5851",
+									"stop_name": "Northcross/Foster",
+									"stop_sequence": 21
+								}
+							],
+							"stop_id": "5227",
+							"stop_name": "North Lamar Bay 3",
+							"stop_name_full": "North Lamar Bay 3",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.357183,
+							"lon": -97.733456,
+							"minor_stops": [],
+							"stop_id": "5854",
+							"stop_name": "Anderson/Northcross",
+							"stop_name_full": "2535 Anderson/Northcross",
+							"stop_sequence": 22
+						}
+					]
+				},
 				"339-0-b4d4698e": {
 					"direction_id": 0,
 					"pattern_id": "339-0-b4d4698e",
-					"representative_trip_id": "3004305_13595",
+					"representative_trip_id": "3004305_13475",
 					"service_ids": [
-						"10-172",
-						"8-172",
-						"9-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 26,
 					"timepoint_count": 5,
@@ -247,27 +458,32 @@
 					]
 				}
 			},
-			"stop_count": 26,
+			"stop_count": 22,
 			"timepoint_count": 5
 		},
 		{
 			"baseline_by_service": {
-				"10-172": "339-1-37c294d0",
-				"8-172": "339-1-37c294d0",
-				"9-172": "339-1-37c294d0"
+				"1-172": "339-1-5dad5132",
+				"2-172": "339-1-37c294d0",
+				"3-172": "339-1-5dad5132",
+				"4-172": "339-1-5dad5132",
+				"5-172": "339-1-37c294d0",
+				"6-172": "339-1-5dad5132",
+				"7-172": "339-1-37c294d0",
+				"8-172": "339-1-5dad5132"
 			},
-			"baseline_pattern_id": "339-1-37c294d0",
-			"baseline_stable": true,
+			"baseline_pattern_id": "339-1-5dad5132",
+			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
 				"339-1-37c294d0": {
 					"direction_id": 1,
 					"pattern_id": "339-1-37c294d0",
-					"representative_trip_id": "3004337_13500",
+					"representative_trip_id": "3004337_13227",
 					"service_ids": [
-						"10-172",
-						"8-172",
-						"9-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 20,
 					"timepoint_count": 5,
@@ -446,13 +662,146 @@
 							"stop_sequence": 20
 						}
 					]
+				},
+				"339-1-5dad5132": {
+					"direction_id": 1,
+					"pattern_id": "339-1-5dad5132",
+					"representative_trip_id": "3004337_13224",
+					"service_ids": [
+						"1-172",
+						"3-172",
+						"4-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.357183,
+							"lon": -97.733456,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.354472,
+									"lon": -97.727616,
+									"stop_id": "954",
+									"stop_name": "Anderson/Burnet",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.35245,
+									"lon": -97.7234,
+									"stop_id": "956",
+									"stop_name": "Woodrow/Anderson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.350746,
+									"lon": -97.71972,
+									"stop_id": "5508",
+									"stop_name": "Anderson/Lazy",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.350355,
+									"lon": -97.716448,
+									"stop_id": "3284",
+									"stop_name": "Anderson Square/Anderson",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.352341,
+									"lon": -97.715154,
+									"stop_id": "3285",
+									"stop_name": "Anderson Square/Research",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "5854",
+							"stop_name": "Anderson/Northcross",
+							"stop_name_full": "2535 Anderson/Northcross",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.350167,
+							"lon": -97.712099,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.343392,
+									"lon": -97.705027,
+									"stop_id": "5647",
+									"stop_name": "Research/Northcrest",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5226",
+							"stop_name": "North Lamar Bay 2",
+							"stop_name_full": "North Lamar Bay 2",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.340471,
+							"lon": -97.690999,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.340454,
+									"lon": -97.690058,
+									"stop_id": "5446",
+									"stop_name": "Rutherford/Furness",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33771,
+									"lon": -97.68437,
+									"stop_id": "4720",
+									"stop_name": "Cameron Road",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "6423",
+							"stop_name": "Norwood Transit Center -…",
+							"stop_name_full": "Norwood Transit Center - E",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.330713,
+							"lon": -97.65973,
+							"minor_stops": [],
+							"stop_id": "5811",
+							"stop_name": "Tuscany/US 290",
+							"stop_name_full": "8407 Tuscany/US 290",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.313865,
+							"lon": -97.664697,
+							"minor_stops": [],
+							"stop_id": "1619",
+							"stop_name": "Manor/Susquehanna",
+							"stop_name_full": "7000 Manor/Susquehanna",
+							"stop_sequence": 13
+						}
+					]
 				}
 			},
-			"stop_count": 20,
+			"stop_count": 13,
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "339",
 	"schema": 1
 }

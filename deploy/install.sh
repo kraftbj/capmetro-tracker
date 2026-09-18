@@ -105,8 +105,16 @@ fi
 PHP_OK=$(php -r 'echo PHP_VERSION_ID >= 80200 ? "yes" : "no";')
 PHP_V=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
 [ "$PHP_OK" = yes ] || die "PHP $PHP_V found; composer.json requires php>=8.2"
+# Asked of php directly, never `php -m | grep -q`. That pipeline is a race under
+# `set -o pipefail`: grep -q exits the moment it matches, php still has output to write, takes
+# SIGPIPE, and pipefail promotes its 141/255 to the pipeline's status -- so the check reports
+# a MISSING extension precisely when it is present and listed early enough to match. Whether
+# it bites depends on the pipe buffer and scheduling, which is why it survived this long; on
+# this developer's machine it fails every time, taking install.sh down at the prerequisite
+# check with "PHP extension 'json' is missing" while json is loaded.
 for ext in json curl mbstring; do
-  php -m | grep -qix "$ext" || die "PHP extension '$ext' is missing (apt install php-$ext)"
+  php -r 'exit(extension_loaded($argv[1]) ? 0 : 1);' "$ext" \
+    || die "PHP extension '$ext' is missing (apt install php-$ext)"
 done
 say "php $PHP_V with json, curl, mbstring (no composer packages needed)"
 
@@ -128,6 +136,12 @@ done
 # runs a minute later. Owning src as root also means git never needs credentials
 # for a nologin system account.
 run chown -R "$RUN_USER:$RUN_USER" "$WEBROOT" "$STATE_DIR"
+# CONF_DIR is deliberately NOT in that list, and the unit fingerprint written into it later
+# depends on that staying true: the job account is a nologin sandbox because the generator is
+# the likeliest thing to be compromised, and a stamp it could rewrite is a check it could
+# switch off. Asserted rather than inherited from whatever umask created the directory.
+run chown root:root "$CONF_DIR"
+run chmod 0755 "$CONF_DIR"
 
 # ---- source ----------------------------------------------------------------
 if [ -n "$SRC_FROM" ]; then
@@ -192,21 +206,25 @@ run chown -R "$RUN_USER:$RUN_USER" "$WEBROOT"
 PHP_BIN=$(command -v php)
 GEN="$PHP_BIN $SRC_DIR/runtime/generate-api.php --config=$CONF_DIR/config.php --quiet"
 
-# systemctl can exist where systemd is not actually running as pid 1 - a
-# container, a chroot, WSL. Probing for the binary alone and then letting `set
-# -e` kill the script on a failed daemon-reload leaves a half-finished install,
-# so ask whether systemd is really running and fall back rather than abort.
-# The test is /run/systemd/system, not `systemctl is-system-running` and not the
-# presence of the binary. That directory is exactly what sd_booted(3) checks and
-# what Debian's own maintainer scripts use, and it is the only one of the three
-# that was right in every case I tried: systemctl is absent from a base ubuntu
-# image but gets pulled in as a dependency of cron, and is-system-running
-# answered in a way that sent the installer down the systemd path on a box with
-# no systemd running, which then died at daemon-reload with the user, the
-# directories and the config already created.
-SYSTEMD_LIVE=0
-if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
+# The unit list and the fingerprint helper, shared with update.sh so the two cannot drift
+# apart about what "installed" means. Sourced after the clone, because it lives in it --
+# guarded, because under --dry-run the clone above only printed what it would do, so on a
+# fresh box the file is not there and an unguarded `.` would abort the dry run under `set -e`.
+if [ -f "$SRC_DIR/deploy/lib/units.sh" ]; then
+  # shellcheck source=deploy/lib/units.sh
+  . "$SRC_DIR/deploy/lib/units.sh"
+fi
+
+# Whether systemd is really running here. Asked through deploy/lib/units.sh so update.sh
+# asks exactly the same question; see the note there. Falls back to the literal test when
+# the helper is absent -- under --dry-run before the clone, or on a tree rsynced up with
+# --src-from that predates deploy/lib/.
+if command -v cm_systemd_live >/dev/null 2>&1 && cm_systemd_live; then
   SYSTEMD_LIVE=1
+elif [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
+  SYSTEMD_LIVE=1
+else
+  SYSTEMD_LIVE=0
 fi
 
 if [ "$SYSTEMD_LIVE" = 1 ]; then
@@ -244,6 +262,46 @@ if [ "$SYSTEMD_LIVE" = 1 ]; then
     systemctl daemon-reload
     systemctl enable --now capmetro-generate.timer
     systemctl enable --now capmetro-update.timer
+
+    # Record which unit sources these were rendered from. update.sh reads this to notice
+    # when the repo's units have moved on and the box has not, which is otherwise silent:
+    # update.sh never touches /etc/systemd/system, so a committed timer change deploys and
+    # then does nothing. See deploy/update.sh's header for the incident that found this.
+    #
+    # In CONF_DIR, deliberately, and NOT in STATE_DIR. Line 130 chowns STATE_DIR to the job
+    # account, which is a nologin sandbox precisely because the generator is the thing most
+    # likely to be compromised. Writing this file as root into a directory that account owns
+    # would hand it two gifts: a symlink planted at the stamp path turns a root write into an
+    # arbitrary-file overwrite, and absent that, it could simply forge the stamp to make drift
+    # report clean forever -- switching off the check this file exists to be. CONF_DIR is
+    # asserted root:root 0755 above, right after WEBROOT and STATE_DIR are handed to the job
+    # account, so root is the only writer.
+    #
+    # Written to a temp file and moved into place only on success. A plain `>` redirect
+    # truncates the target BEFORE the command runs, so a fingerprint that fails -- no
+    # sha256sum on the box, or sha256sum itself erroring under `set -o pipefail` -- would
+    # leave a zero-byte stamp behind and then abort the install with the timers already
+    # enabled. A zero-byte stamp matches nothing, so update.sh would report all four units
+    # as drifted, forever, on a box where nothing had drifted at all.
+    if ! command -v cm_unit_fingerprint >/dev/null 2>&1; then
+      # The source above is guarded, so this is reachable: a source tree without
+      # deploy/lib/units.sh (an older --src-from rsync, say). Calling the helper anyway
+      # aborts with "command not found" AFTER both timers are enabled, which is a worse
+      # outcome than simply having no drift record.
+      warn "no $SRC_DIR/deploy/lib/units.sh here; units installed, but no drift record written"
+    else
+      cm_write_stamp "$SRC_DIR/deploy" "$CONF_DIR" || STAMP_RC=$?
+      if [ "${STAMP_RC:-0}" = 2 ]; then
+        die "cannot create a temp file in $CONF_DIR (read-only filesystem, or full?).
+     The units ARE installed and running, but there is no drift record."
+      elif [ "${STAMP_RC:-0}" != 0 ]; then
+        # Naming what update.sh will say, because it will say "no record ... normal on a box
+        # installed before that record existed", which is the wrong story for this failure.
+        die "cannot fingerprint the unit sources (no sha256sum or shasum?). The units ARE
+     installed and running. update.sh will report no drift record and call that normal for
+     an older box; it is not, it is this failure. Fix the hashing tool and re-run."
+      fi
+    fi
   fi
   SCHEDULER="systemd timers capmetro-generate.timer (60s) + capmetro-update.timer (daily)"
 else
@@ -254,7 +312,7 @@ else
   # runs once a minute. Say so rather than pretending the flag was honored.
   say "installing a once-a-minute cron entry"
   [ "$INTERVAL_S" != 60 ] && warn "cron cannot run more often than once a minute; --interval $INTERVAL_S ignored"
-  run sh -c "printf '* * * * * %s %s\n#\n# Daily: pull the schedule. CapMetro republishes about three times a year and\n# without this the board serves last season's departures until someone notices.\n17 4 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
+  run sh -c "printf '* * * * * %s %s\n#\n# Four times a day, matching capmetro-update.timer; see the note there.\n20 0,6,12,18 * * * root %s/deploy/update.sh --quiet\n' '$RUN_USER' '$GEN' '$SRC_DIR' > /etc/cron.d/capmetro"
   run chmod 0644 /etc/cron.d/capmetro
   SCHEDULER="cron /etc/cron.d/capmetro (60s generate + daily update)"
 fi
