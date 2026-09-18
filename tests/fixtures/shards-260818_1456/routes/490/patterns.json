@@ -1,0 +1,316 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"16-172": "490-0-5c3285e0",
+				"17-172": "490-0-9ea40bad"
+			},
+			"baseline_pattern_id": "490-0-5c3285e0",
+			"baseline_pattern_ids": [
+				"490-0-5c3285e0",
+				"490-0-9ea40bad"
+			],
+			"baseline_stable": false,
+			"direction_id": 0,
+			"pattern_count": 3,
+			"patterns": [
+				{
+					"deltas": {
+						"490-0-5c3285e0": {
+							"adds": [],
+							"skips": []
+						},
+						"490-0-9ea40bad": {
+							"adds": [
+								{
+									"stop_id": "2810",
+									"stop_name": "East Austin Multi-Center"
+								},
+								{
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity"
+								},
+								{
+									"stop_id": "5633",
+									"stop_name": "Cesar Chavez/Trinity"
+								},
+								{
+									"stop_id": "2812",
+									"stop_name": "Cesar Chavez/Waller"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "6404",
+									"stop_name": "Waller/Flores"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"16-172"
+					],
+					"is_special": false,
+					"pattern_id": "490-0-5c3285e0",
+					"stop_count": 5,
+					"stop_ids": [
+						"2810",
+						"1038",
+						"5633",
+						"2812",
+						"4288"
+					],
+					"trip_ids": [
+						"3006042_16489",
+						"3006044_16491",
+						"3006045_16488",
+						"3006046_16487",
+						"3006051_16490"
+					],
+					"trips_by_service": {
+						"16-172": 5
+					},
+					"trips_in_pattern": 5
+				},
+				{
+					"deltas": {
+						"490-0-5c3285e0": {
+							"adds": [
+								{
+									"stop_id": "6404",
+									"stop_name": "Waller/Flores"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2810",
+									"stop_name": "East Austin Multi-Center"
+								},
+								{
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity"
+								},
+								{
+									"stop_id": "5633",
+									"stop_name": "Cesar Chavez/Trinity"
+								},
+								{
+									"stop_id": "2812",
+									"stop_name": "Cesar Chavez/Waller"
+								}
+							]
+						},
+						"490-0-9ea40bad": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"17-172"
+					],
+					"is_special": true,
+					"pattern_id": "490-0-9ea40bad",
+					"stop_count": 2,
+					"stop_ids": [
+						"6404",
+						"4288"
+					],
+					"trip_ids": [
+						"3006047_16495",
+						"3006048_16494",
+						"3006049_16493",
+						"3006050_16492"
+					],
+					"trips_by_service": {
+						"17-172": 4
+					},
+					"trips_in_pattern": 4
+				},
+				{
+					"deltas": {
+						"490-0-5c3285e0": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "2812",
+									"stop_name": "Cesar Chavez/Waller"
+								},
+								{
+									"stop_id": "4288",
+									"stop_name": "Riverside SB"
+								}
+							]
+						},
+						"490-0-9ea40bad": {
+							"adds": [
+								{
+									"stop_id": "2810",
+									"stop_name": "East Austin Multi-Center"
+								},
+								{
+									"stop_id": "1038",
+									"stop_name": "Cesar Chavez/Trinity"
+								},
+								{
+									"stop_id": "5633",
+									"stop_name": "Cesar Chavez/Trinity"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "6404",
+									"stop_name": "Waller/Flores"
+								},
+								{
+									"stop_id": "4288",
+									"stop_name": "Riverside SB"
+								}
+							]
+						}
+					},
+					"direction_id": 0,
+					"is_baseline": false,
+					"is_baseline_for_services": [],
+					"is_special": true,
+					"pattern_id": "490-0-7701903c",
+					"stop_count": 3,
+					"stop_ids": [
+						"2810",
+						"1038",
+						"5633"
+					],
+					"trip_ids": [
+						"3006043_16486"
+					],
+					"trips_by_service": {
+						"16-172": 1
+					},
+					"trips_in_pattern": 1
+				}
+			],
+			"trip_count": 10
+		},
+		{
+			"baseline_by_service": {
+				"16-172": "490-1-be371a45",
+				"17-172": "490-1-6d6bcc87"
+			},
+			"baseline_pattern_id": "490-1-be371a45",
+			"baseline_pattern_ids": [
+				"490-1-6d6bcc87",
+				"490-1-be371a45"
+			],
+			"baseline_stable": false,
+			"direction_id": 1,
+			"pattern_count": 2,
+			"patterns": [
+				{
+					"deltas": {
+						"490-1-6d6bcc87": {
+							"adds": [
+								{
+									"stop_id": "2810",
+									"stop_name": "East Austin Multi-Center"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…"
+								},
+								{
+									"stop_id": "6404",
+									"stop_name": "Waller/Flores"
+								}
+							]
+						},
+						"490-1-be371a45": {
+							"adds": [],
+							"skips": []
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"16-172"
+					],
+					"is_special": false,
+					"pattern_id": "490-1-be371a45",
+					"stop_count": 2,
+					"stop_ids": [
+						"4288",
+						"2810"
+					],
+					"trip_ids": [
+						"3006052_16477",
+						"3006057_16481",
+						"3006058_16480",
+						"3006059_16479",
+						"3006060_16478"
+					],
+					"trips_by_service": {
+						"16-172": 5
+					},
+					"trips_in_pattern": 5
+				},
+				{
+					"deltas": {
+						"490-1-6d6bcc87": {
+							"adds": [],
+							"skips": []
+						},
+						"490-1-be371a45": {
+							"adds": [
+								{
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…"
+								},
+								{
+									"stop_id": "6404",
+									"stop_name": "Waller/Flores"
+								}
+							],
+							"skips": [
+								{
+									"stop_id": "2810",
+									"stop_name": "East Austin Multi-Center"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": false,
+					"is_baseline_for_services": [
+						"17-172"
+					],
+					"is_special": true,
+					"pattern_id": "490-1-6d6bcc87",
+					"stop_count": 3,
+					"stop_ids": [
+						"4288",
+						"1957",
+						"6404"
+					],
+					"trip_ids": [
+						"3006053_16485",
+						"3006054_16484",
+						"3006055_16483",
+						"3006056_16482"
+					],
+					"trips_by_service": {
+						"17-172": 4
+					},
+					"trips_in_pattern": 4
+				}
+			],
+			"trip_count": 9
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "490",
+	"schema": 1
+}

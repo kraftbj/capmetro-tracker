@@ -2,14 +2,14 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "322-0-f69ee8cc",
-				"2-172": "322-0-3963a900",
+				"1-172": "322-0-3963a900",
+				"2-172": "322-0-f69ee8cc",
 				"3-172": "322-0-3963a900",
 				"4-172": "322-0-3963a900",
-				"5-172": "322-0-3963a900",
-				"6-172": "322-0-f69ee8cc",
-				"7-172": "322-0-3963a900",
-				"8-172": "322-0-f69ee8cc"
+				"5-172": "322-0-f69ee8cc",
+				"6-172": "322-0-3963a900",
+				"7-172": "322-0-f69ee8cc",
+				"8-172": "322-0-3963a900"
 			},
 			"baseline_pattern_id": "322-0-3963a900",
 			"baseline_stable": false,
@@ -18,13 +18,13 @@
 				"322-0-3963a900": {
 					"direction_id": 0,
 					"pattern_id": "322-0-3963a900",
-					"representative_trip_id": "3002965_10722",
+					"representative_trip_id": "3002965_10521",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
 					"stop_count": 25,
 					"timepoint_count": 2,
@@ -240,11 +240,11 @@
 				"322-0-f69ee8cc": {
 					"direction_id": 0,
 					"pattern_id": "322-0-f69ee8cc",
-					"representative_trip_id": "3002965_10688",
+					"representative_trip_id": "3002965_10519",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 28,
 					"timepoint_count": 3,
@@ -489,27 +489,27 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "322-1-0ea45f7c",
-				"2-172": "322-1-a2cd9402",
-				"3-172": "322-1-a2cd9402",
-				"4-172": "322-1-a2cd9402",
-				"5-172": "322-1-a2cd9402",
-				"6-172": "322-1-0ea45f7c",
-				"7-172": "322-1-a2cd9402",
-				"8-172": "322-1-0ea45f7c"
+				"1-172": "322-1-3d3e3b8a",
+				"2-172": "322-1-0ea45f7c",
+				"3-172": "322-1-3d3e3b8a",
+				"4-172": "322-1-3d3e3b8a",
+				"5-172": "322-1-0ea45f7c",
+				"6-172": "322-1-3d3e3b8a",
+				"7-172": "322-1-0ea45f7c",
+				"8-172": "322-1-3d3e3b8a"
 			},
-			"baseline_pattern_id": "322-1-a2cd9402",
+			"baseline_pattern_id": "322-1-3d3e3b8a",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
 				"322-1-0ea45f7c": {
 					"direction_id": 1,
 					"pattern_id": "322-1-0ea45f7c",
-					"representative_trip_id": "3002999_10430",
+					"representative_trip_id": "3002999_10266",
 					"service_ids": [
-						"1-172",
-						"6-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 28,
 					"timepoint_count": 3,
@@ -748,18 +748,18 @@
 						}
 					]
 				},
-				"322-1-a2cd9402": {
+				"322-1-3d3e3b8a": {
 					"direction_id": 1,
-					"pattern_id": "322-1-a2cd9402",
-					"representative_trip_id": "3002999_10463",
+					"pattern_id": "322-1-3d3e3b8a",
+					"representative_trip_id": "3002999_10268",
 					"service_ids": [
-						"2-172",
+						"1-172",
 						"3-172",
 						"4-172",
-						"5-172",
-						"7-172"
+						"6-172",
+						"8-172"
 					],
-					"stop_count": 21,
+					"stop_count": 23,
 					"timepoint_count": 3,
 					"timepoints": [
 						{
@@ -796,11 +796,27 @@
 							"minor_stops": [
 								{
 									"direction_id": 1,
+									"lat": 30.263956,
+									"lon": -97.721408,
+									"stop_id": "2057",
+									"stop_name": "Chicon",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265511,
+									"lon": -97.720676,
+									"stop_id": "2058",
+									"stop_name": "Chicon/College Row",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
 									"lat": 30.267474,
 									"lon": -97.719768,
 									"stop_id": "2059",
 									"stop_name": "Chicon/Hamilton",
-									"stop_sequence": 5
+									"stop_sequence": 7
 								},
 								{
 									"direction_id": 1,
@@ -808,7 +824,7 @@
 									"lon": -97.719064,
 									"stop_id": "2061",
 									"stop_name": "Chicon/Rosewood",
-									"stop_sequence": 6
+									"stop_sequence": 8
 								},
 								{
 									"direction_id": 1,
@@ -816,7 +832,7 @@
 									"lon": -97.719385,
 									"stop_id": "2062",
 									"stop_name": "Chicon/Pennsylvania",
-									"stop_sequence": 7
+									"stop_sequence": 9
 								},
 								{
 									"direction_id": 1,
@@ -824,7 +840,7 @@
 									"lon": -97.719788,
 									"stop_id": "2063",
 									"stop_name": "Chicon/12th",
-									"stop_sequence": 8
+									"stop_sequence": 10
 								},
 								{
 									"direction_id": 1,
@@ -832,7 +848,7 @@
 									"lon": -97.720224,
 									"stop_id": "2064",
 									"stop_name": "Chicon/14th",
-									"stop_sequence": 9
+									"stop_sequence": 11
 								},
 								{
 									"direction_id": 1,
@@ -840,7 +856,7 @@
 									"lon": -97.72068,
 									"stop_id": "2065",
 									"stop_name": "Chicon/17th",
-									"stop_sequence": 10
+									"stop_sequence": 12
 								},
 								{
 									"direction_id": 1,
@@ -848,7 +864,7 @@
 									"lon": -97.721116,
 									"stop_id": "2066",
 									"stop_name": "Chicon/Martin Luther King",
-									"stop_sequence": 11
+									"stop_sequence": 13
 								},
 								{
 									"direction_id": 1,
@@ -856,7 +872,7 @@
 									"lon": -97.721643,
 									"stop_id": "2067",
 									"stop_name": "Chicon/21st",
-									"stop_sequence": 12
+									"stop_sequence": 14
 								},
 								{
 									"direction_id": 1,
@@ -864,7 +880,7 @@
 									"lon": -97.721478,
 									"stop_id": "4186",
 									"stop_name": "Dean Keeton/Lafayette",
-									"stop_sequence": 13
+									"stop_sequence": 15
 								},
 								{
 									"direction_id": 1,
@@ -872,7 +888,7 @@
 									"lon": -97.717815,
 									"stop_id": "4189",
 									"stop_name": "Cherrywood/Manor",
-									"stop_sequence": 14
+									"stop_sequence": 16
 								},
 								{
 									"direction_id": 1,
@@ -880,7 +896,7 @@
 									"lon": -97.716078,
 									"stop_id": "2863",
 									"stop_name": "Cherrywood/Edgewood",
-									"stop_sequence": 15
+									"stop_sequence": 17
 								},
 								{
 									"direction_id": 1,
@@ -888,7 +904,7 @@
 									"lon": -97.71368,
 									"stop_id": "2864",
 									"stop_name": "Cherrywood/38th Half",
-									"stop_sequence": 16
+									"stop_sequence": 18
 								},
 								{
 									"direction_id": 1,
@@ -896,7 +912,7 @@
 									"lon": -97.71425,
 									"stop_id": "2071",
 									"stop_name": "38th Half/Maplewood",
-									"stop_sequence": 17
+									"stop_sequence": 19
 								},
 								{
 									"direction_id": 1,
@@ -904,7 +920,7 @@
 									"lon": -97.71598,
 									"stop_id": "4738",
 									"stop_name": "38th Half/Lafayette",
-									"stop_sequence": 18
+									"stop_sequence": 20
 								},
 								{
 									"direction_id": 1,
@@ -912,7 +928,7 @@
 									"lon": -97.718216,
 									"stop_id": "4737",
 									"stop_name": "38th Half/Hollywood",
-									"stop_sequence": 19
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 1,
@@ -920,7 +936,7 @@
 									"lon": -97.722544,
 									"stop_id": "1785",
 									"stop_name": "Red River/40th",
-									"stop_sequence": 20
+									"stop_sequence": 22
 								}
 							],
 							"stop_id": "2056",
@@ -936,16 +952,16 @@
 							"stop_id": "5283",
 							"stop_name": "Hancock Center",
 							"stop_name_full": "Hancock Center",
-							"stop_sequence": 21
+							"stop_sequence": 23
 						}
 					]
 				}
 			},
-			"stop_count": 21,
+			"stop_count": 23,
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "322",
 	"schema": 1
 }

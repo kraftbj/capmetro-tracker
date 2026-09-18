@@ -1,0 +1,436 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "982-0-65cc2b56"
+			},
+			"baseline_pattern_id": "982-0-65cc2b56",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"982-0-65cc2b56": {
+					"direction_id": 0,
+					"pattern_id": "982-0-65cc2b56",
+					"representative_trip_id": "3013317_24261",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.407777,
+									"lon": -97.747021,
+									"stop_id": "4659",
+									"stop_name": "Balcones Woods/Research",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.396981,
+									"lon": -97.750138,
+									"stop_id": "6093",
+									"stop_name": "Jollyville/Great Hills",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.394037,
+							"lon": -97.74835,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.30776,
+									"lon": -97.7519,
+									"stop_id": "1996",
+									"stop_name": "35th/Jefferson",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "2732",
+							"stop_name": "Great Hills/Jollyville",
+							"stop_name_full": "9829 Great Hills/Jollyville",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.305323,
+							"lon": -97.74376,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.286231,
+									"lon": -97.741771,
+									"stop_id": "497",
+									"stop_name": "UT West Mall Station",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283384,
+									"lon": -97.742081,
+									"stop_id": "498",
+									"stop_name": "Guadalupe/W. 21st Street",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "1999",
+							"stop_name": "38th/Medical Parkway",
+							"stop_name_full": "38th/Medical Parkway",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.271503,
+							"lon": -97.745478,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5th",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "5950",
+							"stop_name": "Guadalupe/8th",
+							"stop_name_full": "812 Guadalupe/8th",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.267105,
+							"lon": -97.749241,
+							"minor_stops": [],
+							"stop_id": "6275",
+							"stop_name": "Nueces/3rd",
+							"stop_name_full": "321 Nueces/3rd",
+							"stop_sequence": 13
+						}
+					]
+				}
+			},
+			"stop_count": 13,
+			"timepoint_count": 5
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "982-1-9624eedc",
+				"2-172": "982-1-3ed75872",
+				"3-172": "982-1-3ed75872",
+				"4-172": "982-1-3ed75872",
+				"5-172": "982-1-3ed75872"
+			},
+			"baseline_pattern_id": "982-1-3ed75872",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"982-1-3ed75872": {
+					"direction_id": 1,
+					"pattern_id": "982-1-3ed75872",
+					"representative_trip_id": "3013322_24241",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.267105,
+							"lon": -97.749241,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "6275",
+							"stop_name": "Nueces/3rd",
+							"stop_name_full": "321 Nueces/3rd",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.278834,
+							"lon": -97.741358,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "5940",
+							"stop_name": "Lavaca/17th",
+							"stop_name_full": "1609 Lavaca/17th (Midblock)",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.305686,
+							"lon": -97.743879,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.308198,
+									"lon": -97.752801,
+									"stop_id": "2088",
+									"stop_name": "35th/Lawton",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "809",
+							"stop_name": "38th/Medical Pkwy",
+							"stop_name_full": "38th/Medical Pkwy",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.394273,
+							"lon": -97.748666,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.400546,
+									"lon": -97.748813,
+									"stop_id": "5237",
+									"stop_name": "Jollyville/Braker",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.407651,
+									"lon": -97.747776,
+									"stop_id": "4658",
+									"stop_name": "Jollyville/Balcones Woods",
+									"stop_sequence": 12
+								}
+							],
+							"stop_id": "2726",
+							"stop_name": "Great Hills/Research",
+							"stop_name_full": "9828 Great Hills/Research",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 13
+						}
+					]
+				},
+				"982-1-9624eedc": {
+					"direction_id": 1,
+					"pattern_id": "982-1-9624eedc",
+					"representative_trip_id": "3013322_24236",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 14,
+					"timepoint_count": 5,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.267105,
+							"lon": -97.749241,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "6275",
+							"stop_name": "Nueces/3rd",
+							"stop_name_full": "321 Nueces/3rd",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.278834,
+							"lon": -97.741358,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5940",
+							"stop_name": "Lavaca/17th",
+							"stop_name_full": "1609 Lavaca/17th (Midblock)",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.305686,
+							"lon": -97.743879,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.308198,
+									"lon": -97.752801,
+									"stop_id": "2088",
+									"stop_name": "35th/Lawton",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "809",
+							"stop_name": "38th/Medical Pkwy",
+							"stop_name_full": "38th/Medical Pkwy",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.394273,
+							"lon": -97.748666,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.400546,
+									"lon": -97.748813,
+									"stop_id": "5237",
+									"stop_name": "Jollyville/Braker",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.407651,
+									"lon": -97.747776,
+									"stop_id": "4658",
+									"stop_name": "Jollyville/Balcones Woods",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "2726",
+							"stop_name": "Great Hills/Research",
+							"stop_name_full": "9828 Great Hills/Research",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.426817,
+							"lon": -97.757476,
+							"minor_stops": [],
+							"stop_id": "2727",
+							"stop_name": "Pavilion Park and Ride",
+							"stop_name_full": "Pavilion Park and Ride",
+							"stop_sequence": 14
+						}
+					]
+				}
+			},
+			"stop_count": 13,
+			"timepoint_count": 5
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "982",
+	"schema": 1
+}

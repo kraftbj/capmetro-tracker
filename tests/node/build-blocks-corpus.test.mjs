@@ -66,7 +66,17 @@ describe('every published block continuation names the trip the block actually r
 		const { trips, continuation, dates, byBlock } = corpus()
 		let examined = 0
 		let multiServiceDates = 0
-		const wrong = []
+		let occurrences = 0
+		/*
+		 * Distinct TRIPS, not (trip, date) pairs. The budget below is written in trips --
+		 * "four trips in this feed genuinely chain differently" -- but this counted pairs, and
+		 * the sample cap doubled as the count, so the number could never exceed 5 no matter
+		 * how bad it got. Feed 260826_0956 made the difference visible: the build's own
+		 * invariant_breaks fell from 4 trips to 1, an improvement, while the pair count rose
+		 * to 90 because that one trip's service set spans 90 dates. Same fact, opposite verdict.
+		 */
+		const wrongTrips = new Map()
+		const sample = []
 
 		for (const [ date, info ] of Object.entries(dates)) {
 			const active = new Set(info.service_ids ?? [])
@@ -83,8 +93,11 @@ describe('every published block continuation names the trip the block actually r
 					const candidates = new Set(Object.values(next.trip_id_by_service ?? {}))
 					if (!candidates.size) candidates.add(next.trip_id)
 					if (!candidates.has(truth)) {
-						if (wrong.length < 5) {
-							wrong.push(`${date} block ${trips.get(running[i]).block_id} ` +
+						occurrences++
+						if (!wrongTrips.has(running[i])) wrongTrips.set(running[i], 0)
+						wrongTrips.set(running[i], wrongTrips.get(running[i]) + 1)
+						if (sample.length < 5) {
+							sample.push(`${date} block ${trips.get(running[i]).block_id} ` +
 								`${running[i]} -> published ${[ ...candidates ].join('/')}, runs ${truth}`)
 						}
 					}
@@ -102,12 +115,29 @@ describe('every published block continuation names the trip the block actually r
 			.toBeGreaterThan(0)
 
 		/*
-		 * Four trips in this feed genuinely chain to different successors depending on the
-		 * date, which the build reports as `invariant_breaks`. They are a known property of
-		 * the feed rather than a defect in the chaining, and are budgeted rather than
+		 * A handful of trips in this feed genuinely chain to different successors depending on
+		 * the date, which the build reports as `invariant_breaks`. They are a known property
+		 * of the feed rather than a defect in the chaining, and are budgeted rather than
 		 * ignored: if the number grows, the assumption that next_trip may publish one
-		 * departure time needs revisiting.
+		 * departure time needs revisiting. Four on 260818_1456, one on 260826_0956.
 		 */
-		expect(wrong.length, `wrong successors:\n${wrong.join('\n')}`).toBeLessThanOrEqual(4)
+		const detail = `${ wrongTrips.size } trip(s) over ${ occurrences } (trip, date) pairs:\n` +
+			sample.join('\n')
+		expect(wrongTrips.size, detail).toBeLessThanOrEqual(4)
+
+		/*
+		 * And it must be the SAME handful the build counted. Without this the budget above
+		 * silently absorbs a real chaining defect as long as it stays under four, which is
+		 * exactly the hiding place a budgeted assertion tends to become.
+		 */
+		const manifest = read(path.join(DATA, 'manifest.json'))
+		const declared = (manifest.warnings ?? [])
+			.map((w) => /^(\d+) trip\(s\) have a successor that differs/.exec(w))
+			.find(Boolean)
+		expect(
+			declared ? Number(declared[1]) : 0,
+			`the build declared ${ declared ? declared[1] : 0 } breaking trip(s); this corpus found ` +
+				`${ wrongTrips.size }. The two measure the same property and must agree.`
+		).toBe(wrongTrips.size)
 	})
 })

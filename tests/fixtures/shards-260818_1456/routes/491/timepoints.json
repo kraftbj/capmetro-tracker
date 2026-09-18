@@ -1,0 +1,258 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"10-172": "491-0-47db110e"
+			},
+			"baseline_pattern_id": "491-0-47db110e",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"491-0-47db110e": {
+					"direction_id": 0,
+					"pattern_id": "491-0-47db110e",
+					"representative_trip_id": "3006118_16504",
+					"service_ids": [
+						"10-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.360488,
+							"lon": -97.735877,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.360677,
+									"lon": -97.737737,
+									"stop_id": "1902",
+									"stop_name": "Rockwood/Ashdale",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "2908",
+							"stop_name": "Rockwood/Ashdale",
+							"stop_name_full": "7925 Rockwood/Ashdale",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.3344,
+							"lon": -97.740705,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.327517,
+									"lon": -97.739833,
+									"stop_id": "5964",
+									"stop_name": "Burnet/Lawnmont",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.325594,
+									"lon": -97.742036,
+									"stop_id": "5006",
+									"stop_name": "North Loop/Burnet",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.318987,
+									"lon": -97.754525,
+									"stop_id": "1935",
+									"stop_name": "Bull Creek/44th",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "5160",
+							"stop_name": "Burnet/Allandale",
+							"stop_name_full": "Burnet/Allandale (HEB)",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.315889,
+							"lon": -97.754469,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.311138,
+									"lon": -97.752058,
+									"stop_id": "1938",
+									"stop_name": "Bull Creek/38th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30713,
+									"lon": -97.74927,
+									"stop_id": "1997",
+									"stop_name": "35th/Crawford",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "1936",
+							"stop_name": "Bull Creek/Jackson",
+							"stop_name_full": "4220 Bull Creek/Jackson",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.305323,
+							"lon": -97.74376,
+							"minor_stops": [],
+							"stop_id": "1999",
+							"stop_name": "38th/Medical Parkway",
+							"stop_name_full": "38th/Medical Parkway",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"10-172": "491-1-c327845b"
+			},
+			"baseline_pattern_id": "491-1-c327845b",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"491-1-c327845b": {
+					"direction_id": 1,
+					"pattern_id": "491-1-c327845b",
+					"representative_trip_id": "3006125_16501",
+					"service_ids": [
+						"10-172"
+					],
+					"stop_count": 12,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.305323,
+							"lon": -97.74376,
+							"minor_stops": [],
+							"stop_id": "1999",
+							"stop_name": "38th/Medical Parkway",
+							"stop_name_full": "38th/Medical Parkway",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.30282,
+							"lon": -97.744768,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.311658,
+									"lon": -97.752215,
+									"stop_id": "1866",
+									"stop_name": "Bull Creek/39th",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "2913",
+							"stop_name": "Lamar/34th",
+							"stop_name_full": "3400 Lamar/34th",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.316743,
+							"lon": -97.754711,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.318984,
+									"lon": -97.754302,
+									"stop_id": "1871",
+									"stop_name": "Bull Creek/45th",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.325374,
+									"lon": -97.742201,
+									"stop_id": "5002",
+									"stop_name": "North Loop/Woodview",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.330446,
+									"lon": -97.739876,
+									"stop_id": "820",
+									"stop_name": "Burnet/Adams",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "4497",
+							"stop_name": "Bull Creek/Jackson",
+							"stop_name_full": "4219 Bull Creek/Jackson",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.3342,
+							"lon": -97.7398,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.3344,
+									"lon": -97.740705,
+									"stop_id": "5160",
+									"stop_name": "Burnet/Allandale",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "822",
+							"stop_name": "Allandale Station",
+							"stop_name_full": "Allandale Station (NB)",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.355782,
+							"lon": -97.734268,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.361328,
+									"lon": -97.737137,
+									"stop_id": "1904",
+									"stop_name": "Rockwood/Anderson",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "830",
+							"stop_name": "Northcross Mall",
+							"stop_name_full": "Northcross Mall",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.360488,
+							"lon": -97.735877,
+							"minor_stops": [],
+							"stop_id": "2908",
+							"stop_name": "Rockwood/Ashdale",
+							"stop_name_full": "7925 Rockwood/Ashdale",
+							"stop_sequence": 12
+						}
+					]
+				}
+			},
+			"stop_count": 12,
+			"timepoint_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "491",
+	"schema": 1
+}

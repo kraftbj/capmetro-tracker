@@ -1,0 +1,52 @@
+{
+  "captured": "2026-09-17T17:07:48-05:00",
+  "captured_through": "2026-09-17T17:18:56-05:00",
+  "source": "https://bus.dillo.dev/api/ — this project's own generated output, not a CapMetro feed",
+  "route": "837",
+  "feed_version": "260826_0956",
+  "service_date": "20260917",
+  "why": [
+    "The bug: a run whose scheduled time had passed, whose bus was still finishing the",
+    "trip before, vanished from the stop board. Captured live while it was happening,",
+    "on request, before the state resolved itself — so this is the failure, not a",
+    "reconstruction of it.",
+    "Trip 3012264_24429 (direction 1, northbound, booked 17:03:00 from stop 2112,",
+    "5th/Guadalupe) was to be run by bus 8007, which was 820s late finishing its",
+    "southbound trip 3012136_24864 and did not take the northbound run over until",
+    "17:13:56. Between 17:04:30 (its time plus the 90s grace) and 17:13:56 the board",
+    "listed nothing for it, and a rider at 5th/Guadalupe was shown the 17:33 as their",
+    "next bus while their actual bus was ten minutes out.",
+    "The trip is present in departures-837.json and is NOT in schedule.canceled_trips.",
+    "Nothing upstream was wrong: health.json reported ok, positions_source json,",
+    "oldest_feed_age_s 47, schedule_state current. The board had every number it",
+    "needed and threw the row away."
+  ],
+  "files": {
+    "departures-837.json": {
+      "generated_at": 1789682807,
+      "note": "The service day's schedule. One document, unchanged all day; service_day_start_epoch 1789621200."
+    },
+    "route-837-pending.json": {
+      "generated_at": 1789682868,
+      "clock": "17:07:48",
+      "note": "The reported moment. Bus 8007 is on the SOUTHBOUND 3012136_24864, very_late by 820s, and publishes block.next_trip.trip_id == 3012264_24429. Nothing is on the northbound run. This is the state that made the row disappear."
+    },
+    "route-837-handover.json": {
+      "generated_at": 1789683236,
+      "clock": "17:13:56",
+      "note": "8007 has taken over 3012264_24429, very_late by 681s. The run reappears on its own here, which is what made the bug look like it fixed itself. Kept so a test can assert the fix changes nothing once a bus is actually on the trip."
+    },
+    "route-837-canceled-stack.json": {
+      "generated_at": 1789683536,
+      "clock": "17:18:56",
+      "note": "Seven cancellations on the route, three of them stacked at stop 2112 northbound with the oldest 27 minutes gone. A canceled trip reads as `overdue` to coverageFor, so it used to inherit OVERDUE_KEEP_S (30 min) — a window meant for a no-show CapMetro has NOT announced. This snapshot is what CANCELED_KEEP_S is measured against."
+    }
+  },
+  "predictor_accuracy": {
+    "note": "Evidence that extrapolating from the inbound bus is worth doing, measured on these files rather than asserted.",
+    "at_17_12_36": "8007 was 748s late, so scheduled 17:03 + 748 predicted a 17:15:28 departure.",
+    "actual": "8007 took the run at 17:13:56 running 681s late, i.e. 17:14:21 at the origin.",
+    "error_s": 67
+  },
+  "pii": "None. This is generated API output: vehicle ids, trip ids, stop names and times. No staff identities, unlike feeds-20260819/servicealerts.json."
+}

@@ -1,0 +1,884 @@
+{
+	"date_count": 145,
+	"dates": {
+		"20260818": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260819": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260820": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260821": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260822": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260823": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260824": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260825": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260826": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260827": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260828": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260829": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260830": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260831": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260901": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260902": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260903": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260904": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260905": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260906": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260907": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260908": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260909": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260910": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260911": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260912": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260913": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260914": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260915": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260916": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260917": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260918": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260919": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260920": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260921": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260922": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260923": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260924": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260925": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260926": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20260927": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20260928": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260929": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20260930": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261001": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261002": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261003": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261004": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261005": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261006": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261007": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261008": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261009": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261010": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261011": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261012": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261013": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261014": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261015": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261016": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261017": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261018": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261019": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261020": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261021": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261022": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261023": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261024": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261025": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261026": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261027": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261028": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261029": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261030": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261031": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261101": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261102": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261103": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261104": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261105": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261106": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261107": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261108": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261109": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261110": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261111": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261112": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261113": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261114": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261115": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261116": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261117": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261118": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261119": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261120": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261121": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261122": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261123": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261124": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261125": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261126": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261127": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261128": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261129": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261130": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261201": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261202": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261203": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261204": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261205": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261206": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261207": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261208": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261209": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261210": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261211": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261212": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261213": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261214": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261215": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261216": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261217": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261218": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261219": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261220": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261221": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261222": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261223": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261224": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261225": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261226": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261227": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261228": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261229": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261230": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20261231": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20270101": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20270102": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20270103": {
+			"is_exception_day": false,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20270104": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20270105": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20270106": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20270107": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20270108": {
+			"is_exception_day": false,
+			"service_ids": [
+				"9-172"
+			]
+		},
+		"20270109": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		}
+	},
+	"exception_dates": [],
+	"feed_version": "260818_1456",
+	"route_id": "243",
+	"schema": 1,
+	"service_ids": [
+		"10-172",
+		"8-172",
+		"9-172"
+	]
+}

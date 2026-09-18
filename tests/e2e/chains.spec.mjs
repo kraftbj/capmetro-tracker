@@ -298,10 +298,37 @@ test.describe('a chain leg on a route whose feed died', () => {
     const banners = page.locator('.savedbanner')
     await expect(banners.first()).toBeVisible()
 
-    /* Route 800 is leg 1 and is not the board's route — the case that had none. */
-    await expect(page.locator('.savedbanner', { hasText: 'Route 800' })).toHaveCount(1)
-    await expect(page.locator('.savedbanner', { hasText: 'Route 800' }))
-      .toContainText(/Data|Feed is down/)
+    /* Route 800 is leg 1 and is not the board's route — the case that had none.
+       One banner covers every route here because every route is behind the same
+       dead feed, so the route it names is read off the label rather than by
+       counting boxes. */
+    await expect(banners.first().locator('.savedbanner__route')).toContainText(/\b800\b/)
+    await expect(banners.first()).toContainText(/Data|Feed is down/)
+  })
+
+  /*
+   * One cron run, one pair of feeds, one sentence. Every saved route is generated
+   * together, so when the feed dies every route's staleness is the same object word
+   * for word — and the Saved view stacked one banner per route above the cards, plus
+   * the board's own on top of those. Four copies of a warning is not four warnings.
+   */
+  test('says it once for all of them rather than once per route', async ({ page }) => {
+    await saveTheChain(page)
+    await page.goto('/chaindead/index.html?view=saved')
+
+    const banners = page.locator('.savedbanner')
+    await expect(banners).toHaveCount(1)
+
+    /* Collapsed, not truncated: the one banner still names every route it covers. */
+    const label = await banners.first().locator('.savedbanner__route').innerText()
+    expect(label).toMatch(/\b4\b/)
+    expect(label).toMatch(/\b800\b/)
+
+    /* And the board's own unlabelled copy is not stacked on top of it: a staleness
+       banner outside a .savedbanner is one that names no route. */
+    await expect(page.locator('main > .banner', {
+      hasText: /Feed is down|Lateness is hidden/
+    })).toHaveCount(0)
   })
 
   test('and the card shows no lateness it cannot stand behind', async ({ page }) => {

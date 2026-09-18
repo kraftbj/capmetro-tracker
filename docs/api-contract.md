@@ -79,14 +79,15 @@ The primary endpoint. One file per route, regenerated every cron run.
   "feeds": {                            // age of each upstream input, for staleness rendering
     "positions_at": 1787152239,
     "trip_updates_at": 1787152196,
-    "alerts_at": 1787152100,
+    "alerts_at": 1787152100,            // positions_source is health.json only; see §10 and §17
     "gtfs_feed_version": "260818_1456",
     "gtfs_built_at": 1787100000
   },
   "staleness": {                        // server decides; client does not compute this
     "level": "fresh",                   // fresh | aging | stale | dead
     "oldest_feed_age_s": 43,
-    "schedule_age_days": 1,
+    "schedule_age_days": 1,             // reported only; does not set the level, see §1
+    "schedule_state": "current",        // current | superseded | expired, see §1
     "suppress_adherence": false,        // when true the client MUST NOT render any lateness value
     "reason": null                      // human-readable string when level != fresh
   },
@@ -141,13 +142,55 @@ reason it exists, but a route showing five buses can still answer "when does the
 
 | level | Condition | Client behavior |
 |---|---|---|
-| `fresh` | oldest feed age <= 120s and schedule_age_days <= 2 | Normal render |
+| `fresh` | oldest feed age <= 120s | Normal render |
 | `aging` | oldest feed age <= 600s | Render normally, show age chip |
-| `stale` | oldest feed age > 600s **or** schedule_age_days > 7 | `suppress_adherence: true`; positions shown, no lateness numbers, banner |
+| `stale` | oldest feed age > 600s **or** `schedule_state` is `expired` or `superseded` | `suppress_adherence: true`; positions shown, no lateness numbers, banner |
 | `dead` | oldest feed age > 3600s | Positions shown greyed; prominent banner with last-good time |
 
 `suppress_adherence` is authoritative. The client checks that flag, not the ages. This is the
 enforcement rule the engineering review required: staleness is a rendered state, not a log line.
+
+**`schedule_age_days` does not set the level.** It is reported so a banner can say
+"schedule 8 days old" beside its reason, and that is all it does. It used to force `stale`
+past seven days and `aging` past two, which read schedule age as schedule decay — on this
+feed the two are unrelated. CapMetro republishes about three times a year, so
+`feed_start_date` is routinely months behind while the timetable it carries is the current
+one; the old rule spent all but the first week of every feed suppressing lateness and
+telling the reader a feed fourteen seconds old was behind. What invalidates adherence is a
+schedule that has run out — past `feed_end_date` there is no timetable for today to measure
+against — and that is the condition above. It is the same one `health.json` fails on (§10).
+
+**`schedule_state` says which timetable problem it is**, because the ages cannot: `current`,
+`superseded`, or `expired`. Both non-current values force `stale`, and `expired` outranks
+`superseded` when somehow both hold.
+
+- `expired` — the service date is past `feed_end_date`. There is no timetable for today, so a
+  lateness number is measured against nothing.
+- `superseded` — CapMetro is publishing a `feed_version` different from the one these shards
+  were built from. The timetable has not run out; it has been REPLACED, and the numbers are
+  measured against an edition that is no longer in force.
+
+The client MUST NOT infer the cause from the ages. `expired` and `superseded` are
+indistinguishable from `oldest_feed_age_s`, and they need different sentences: one waits for a
+publication, the other waits for this board to catch up with a publication that has already
+happened. A payload with no `schedule_state` is read as `expired`, which is what the field's
+absence meant before it existed.
+
+**How `superseded` is detected.** `feed_version` identity, never age — see the note above for
+why age is the wrong question. The runtime reads `feed_info.txt` out of the upstream zip with
+three HTTP range requests, about 5.4 KB, at most once every 15 minutes, and compares the
+`feed_version` there with the one the shards carry. A probe that cannot answer reports nothing
+and raises no banner: an unreachable upstream is never a mismatch.
+
+This exists because of 2026-08-27. CapMetro replaced `260818_1456` with `260826_0956` eight
+days into a feed advertised through 2027-01-09. Every trip id was renumbered, 56 of 71 routes
+reported 100% of their live trips absent from the schedule shard, and every clock the board
+owned still read healthy: feeds seconds old, `feed_end_date` five months away. The board told
+its reader that no bus on the road was in today's schedule and could not say why.
+
+The two causes of `stale` need different words on screen, and the client tells them apart
+from `oldest_feed_age_s` against the thresholds in this table: at `stale` with a feed under
+600s, the schedule is what gave out. Waiting fixes the first and never the second.
 
 ---
 
@@ -169,13 +212,18 @@ enforcement rule the engineering review required: staleness is a rendered state,
     "start_epoch": 1787147580,          // resolved to epoch; use THIS for display
     "direction_id": 1,
     "headsign": "4 Shady EB",
-    "schedule_relationship": "SCHEDULED" // SCHEDULED | CANCELED | ADDED | UNSCHEDULED
+    "schedule_relationship": "SCHEDULED" // SCHEDULED | CANCELED | ADDED | UNSCHEDULED |
+                                        // REPLACEMENT | DUPLICATED | DELETED | UNKNOWN
+                                        // the last four reachable only via the protobuf
+                                        // positions fallback; UNKNOWN is a value outside
+                                        // GTFS-RT's vocabulary, never a guess. See §17.
   },
 
   "progress": {                         // absent when in_service is false
     "current_stop_sequence": 42,        // null when the feed omits it
     "current_stop_id": "6243",
     "current_status": "IN_TRANSIT_TO"   // IN_TRANSIT_TO | STOPPED_AT | INCOMING_AT | null
+                                        // null also covers a value outside the vocabulary
   },
 
   "predictions": [                      // absent when in_service is false; see below
@@ -556,6 +604,20 @@ feed.
 The client renders `low` confidence continuations with hedged language ("likely becomes the
 10:21 EB") or not at all. It never presents a `low` continuation as fact.
 
+**A departure time may be derived from a `low` continuation, hedged.** The stop board and the
+saved cards time a run nobody has started yet from the bus that is inbound to run it, which
+means the grade governs a clock and not only a sentence. Dropping the low-graded ones was
+considered and rejected: on the live system 1,811 of 8,859 such rows (20.4%) carry a `low`
+grade, and refusing them puts a fifth of those runs back on a scheduled time that has already
+passed — the failure the prediction exists to remove. A `low` grade states how confident the
+chaining is, not whether the bus exists.
+
+So the time stands and the sentence hedges: "bus 2867 · likely becomes this run, running very
+late — the feed does not confirm this", with the same dashed marking `chip--hedged` uses, and
+the same hedge in the spoken line. A `high` continuation keeps the unhedged wording. What is
+still forbidden is the unmarked case: a clock derived from a `low` continuation beside a
+sentence that asserts the handoff.
+
 ### Why the grade is what it is — `spans_routes` and `route_ids`
 
 A `low` grade used to arrive unexplained: a bus could be on time, in service, and graded `low`
@@ -791,7 +853,9 @@ Small, cheap, and checkable without opening the app.
   "generated_at": 1787152239,
   "ok": true,
   "cron_last_success_at": 1787152239,
-  "feeds": { "positions_at": 1787152239, "trip_updates_at": 1787152196, "alerts_at": 1787152100 },
+  "feeds": { "positions_at": 1787152239, "trip_updates_at": 1787152196, "alerts_at": 1787152100,
+             "positions_source": "json",     // json | protobuf, see §17
+             "trip_updates_source": "json" },// json | protobuf, independent of the above
   "gtfs": { "feed_version": "260818_1456", "built_at": 1787100000, "valid_until": "20270109" },
   "counts": { "vehicles": 392, "routes_written": 71 },
   "errors": []                          // strings; non-empty forces ok:false
@@ -800,6 +864,21 @@ Small, cheap, and checkable without opening the app.
 
 `ok` is false when any feed is older than 600s, the GTFS feed version is past `valid_until`, or
 the last cron run raised an error. This is the endpoint an uptime check hits.
+
+`feeds.positions_source` and `feeds.trip_updates_source` say which of CapMetro's two
+publications of each feed the run used. Both read `json` on every ordinary run; `protobuf` means
+that feed's JSON publication had stalled and the board is running on its fallback.
+
+They are reported **separately, not as one flag**, because the two stall independently: on
+2026-09-01 only positions went. Three states a monitor should tell apart, per feed: `ok:true`
+with `json` is healthy, `ok:true` with `protobuf` is healthy **on the fallback and worth looking
+at**, and `ok:false` with a `<feed> is Ns old` error is a stall the fallback could not rescue.
+
+That last state is not hypothetical. On 2026-09-09 every CapMetro publication to data.texas.gov
+stopped inside four minutes — both positions publications, both trip updates publications, and
+alerts — and both source fields correctly read `json` throughout, because neither twin was any
+fresher than the JSON it would have replaced. **A `json` source is not evidence of health**;
+`errors` is what says the board is degraded. See §17.
 
 ---
 
@@ -1193,3 +1272,64 @@ from a realtime feed — so §11's `no-cache` is the wrong policy for it. It cha
 `service_date` or `feed_version` changes, both of which are in the payload, and a client that has
 today's copy for a route does not need to fetch it again today.
 
+
+
+---
+
+## 17. The doubled feeds, and their fallbacks
+
+CapMetro publishes vehicle positions **twice**: as JSON (`cuc7-ywmd`) and as GTFS-RT protobuf
+(`eiei-9rpf`). They are the same data from the same source, published by two jobs, and on
+2026-09-01 one of those jobs stopped while the other kept running. The JSON froze at 12:40:09
+CDT and was still frozen four hours later, serving a clean HTTP 200 the entire time with
+well-formed, internally consistent, four-hour-old content. Nothing that checks a fetch
+succeeded could have seen it.
+
+**Trip updates are doubled the same way**, as JSON (`mqtr-wwpy`) and protobuf (`rmk2-acnw`),
+and get the identical treatment. That second publication had existed all along and nothing in
+the runtime knew it: it was found on 2026-09-09 while looking for a source that was still
+publishing, which means a JSON-only trip updates stall had been unrecoverable for no better
+reason than a missing URL. A stalled trip updates feed fails less visibly than stalled
+positions, which is what makes it worth catching — the map stays full of buses and the
+predictions quietly go, because staleness suppresses adherence once the oldest feed passes the
+threshold.
+
+Alerts are **not** doubled. CapMetro publishes them once, and the feed is not GTFS-RT at all
+(a bespoke Socrata array), so there is nothing to fall back to.
+
+The runtime reads each JSON, and reads that feed's protobuf instead when the JSON's own header
+is more than `CM_STALE_STALE_S` behind — the same threshold at which the board reports `stale`, passed
+in rather than duplicated, so falling back and going stale are the same moment by construction.
+The JSON is fetched every cycle regardless, which is what makes recovery need no stored state:
+the cycle it starts publishing again is the cycle it is used again.
+
+**All of them are fetched server-side by the cron. None is ever fetched by the browser**, which
+only reads our own `/api/*.json`. Each protobuf is decoded into exactly the shape the Socrata
+JSON export produces — camelCase keys, enums as names, timestamps as strings — so nothing
+downstream can tell which source it was handed. That shape-fidelity is a standing obligation,
+not an implementation detail; see the parity note in CLAUDE.md.
+
+What the fallback will **not** do:
+
+- **Win on freshness alone.** A protobuf that has also stalled loses to the JSON, and the board
+  degrades exactly as it would without a fallback.
+- **Win while carrying nothing.** A feed with a current header and zero entities would beat a
+  stale one on age every time, trading a board of old buses for an empty one while reporting
+  `ok:true`, since an empty feed never trips a staleness check. Stale positions are wrong about
+  *when*; no positions are wrong about whether the service is running. The same rule holds for
+  trip updates, where zero entities would blank every prediction on a board that still looks
+  populated.
+- **Guess at a value it does not recognize.** An enum outside GTFS-RT's vocabulary publishes as
+  `UNKNOWN` (`schedule_relationship`) or `null` (`current_status`), never as a plausible
+  default. Defaulting an unrecognized `schedule_relationship` to `SCHEDULED` could reinstate a
+  canceled trip.
+- **Reinterpret a feed it cannot read.** A `DIFFERENTIAL` feed carries changes since the last
+  message rather than the fleet, so it is declined rather than published as though it were the
+  whole board.
+
+**Observability.** `health.json`'s `feeds.positions_source` and `feeds.trip_updates_source`
+name the source on every run. The generator also writes `notice:` lines to stderr — and
+therefore to the journal — per feed, when the source is not `json`, when the fallback was
+consulted and could not help, and when the decode dropped undecodable entities. Those bypass the `--quiet` logger deliberately, because
+production runs the generator with `--quiet`. A degradation nobody can see is the failure this
+whole section exists to prevent: the original stall ran for four hours unnoticed.

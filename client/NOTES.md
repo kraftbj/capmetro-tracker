@@ -84,7 +84,7 @@ for keeps the saved one rather than retrying forever.
 
 **Every fetch hangs off a derived base, never a hardcoded `/api/`.** The client
 fetches relative to the page, so `api/route/4.json` read from `/trip/1234` asks
-for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognised app path to
+for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognized app path to
 get the directory the board is served from. Hardcoding `/api/` would break every
 browser test in this repo, because `tests/e2e/server.mjs` serves the whole client
 under a scenario prefix.
@@ -155,6 +155,146 @@ on screen as synthetic. They are instruments, not data — nothing in the shippe
 board invents a value.
 
 ---
+
+## Installed on a phone (`manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`)
+
+Added to a home screen the board runs in its own task with no browser chrome.
+`manifest.webmanifest` describes it, `client/icons/` holds the art,
+`client/pwa.js` registers `client/sw.js`, and the two vhosts had to change for
+any of it to be allowed.
+
+### The rule the service worker is written under
+
+**`/api/*` is never cached, never inspected, never answered.** Requests under an
+`api/` segment fall straight through with no `respondWith()`, so the browser
+does exactly what the page asked. Those documents are rebuilt every 60 seconds
+and both vhosts serve them `no-cache`; CLAUDE.md is explicit that a cache in
+front of them shows stale positions while looking current, which is the failure
+this whole project exists to avoid.
+
+Offline that means the feed fetch **fails**, which is correct: failing is how
+`app.js` knows to fall back to the bundled fixture and raise the **Sample data**
+banner. There is deliberately no new offline screen. The board has an honest one
+already and it says more than a generic one could.
+
+Everything else is **network-first**, cache as fallback only. That is the deploy
+story, not a preference: `deploy/update.sh` rsyncs new client files and restarts
+nothing, so a cache-first worker would keep serving the previous release until
+its version string changed and somebody remembered to change it. Network-first
+means a deploy lands on the next load exactly as it does with no worker, and the
+same fetch that serves the page refreshes the cached copy behind it. The fonts
+are the one exception: immutable for a year in both vhosts, cache-first, 70 KB.
+
+`VERSION` in `sw.js` therefore does **not** need bumping for a code change. It
+needs bumping when the SHELL list changes, so a file that was removed stops
+being served out of an old cache — the one thing network-first cannot fix by
+itself.
+
+### Everything here is a relative URL, for the reason the `<base>` bootstrap exists
+
+`register('sw.js')` resolves against the document base the bootstrap set, so the
+worker lands at `/sw.js` in production and `/fresh/sw.js` under
+`tests/e2e/server.mjs`, and its scope follows. `register('/sw.js')` would claim
+the origin root and, on the fixture server, every other scenario with it. The
+same goes for `<link rel="manifest">`, the icon links, and every URL inside the
+manifest: an absolute one passes every unit test and 404s under the prefix.
+
+The manifest has **no `id`**, and that is not an oversight that a relative
+spelling would fix. `id` is resolved against the ORIGIN rather than against the
+manifest, so no spelling of it survives a prefix. Left out it defaults to
+`start_url`, which is right everywhere.
+
+`sw.js` is registered on `load` rather than at parse, so it never competes with
+the first paint. Registration failure is swallowed: a worker that will not
+register costs the reader nothing they can see, and telling somebody waiting for
+a bus about a caching layer is not a feature.
+
+### What the vhosts had to grow
+
+`default-src 'none'` is the point of this origin's policy, and **`manifest-src`
+and `worker-src` both fall back to it**. Without naming them, the browser
+refuses a perfect manifest and a perfect worker: no install prompt, no offline
+board, one console line each, nothing wrong on screen, every other test green.
+`worker-src` would in fact reach `script-src` through `child-src`, but a feature
+that works by two-step fallback stops working the next time `script-src` is
+edited.
+
+Neither nginx nor Apache ships a MIME mapping for `.webmanifest`. Served as
+`application/octet-stream` on an origin sending `X-Content-Type-Options:
+nosniff`, Chrome parses it anyway and **Safari does not**. Both vhosts now
+declare `application/manifest+json`, and `tests/e2e/server.mjs` declares it too
+for the same reason.
+
+Icons and favicons cache for a day; the manifest and `sw.js` revalidate like
+`index.html` does. The manifest names every icon and the start URL, and `sw.js`
+is the one file whose staleness the worker cannot fix for itself.
+
+### The icons
+
+Generated, not committed as five files nobody can re-derive:
+
+```
+node client/icons/regenerate.js
+```
+
+That writes every PNG, `client/favicon.svg` and `client/favicon.ico` using
+node's own zlib and nothing else — this project has no build step and adding an
+image dependency to produce five files that change roughly never is the worse
+trade. The mark is the board's own string-line: a spine with three dots offset
+by how late each bus is, drawn in the same `--adh-early`, `--adh-ontime` and
+`--adh-late` hexes `tokens.css` publishes.
+`tests/node/client-installable.test.mjs` pins those hexes to `tokens.css`, so a
+repalette cannot leave the old colors on a home screen where nobody is looking
+at them next to the board.
+
+`maskable-*.png` are separate files rather than `purpose: "any maskable"` on the
+same ones. A launcher may crop a maskable icon to 80% of its width; the tiled
+art fills its frame, so one file declared as both would be shown cropped through
+its own rounded corners.
+
+iOS reads **none** of the manifest's icons and only `<link rel="apple-touch-icon">`
+plus the `apple-` meta tags. `status-bar-style` is `black` rather than
+`black-translucent`: translucent puts the board under the notch, and
+`styles.css` pads for the safe area — it does not lay out around it. If that
+ever changes, `tests/node/client-installable.test.mjs` is the test to change
+with it.
+
+### Safe-area padding
+
+Four declarations. The horizontal pair sits at the end of `styles.css`; the
+vertical two are folded into `.topbar` and `.foot`'s own `padding` shorthands so
+each base value is written once, rather than restated in a later override that
+would win unconditionally and make editing the original do nothing. Standalone mode has no browser
+chrome to absorb a notch or a home indicator and the viewport meta has said
+`viewport-fit=cover` since before any of this. `env()` is 0 in a tab and on
+every device without an inset, so the 412px design does not move — the
+horizontal-overflow checks in the browser suite cover that. The horizontal inset
+sits on `<body>` rather than on `--pad-band` because the panels are full-width
+bands on one continuous surface, and the strip beside a landscape notch has to
+be that same surface rather than a gap cut into it.
+
+### What is tested where
+
+| | |
+|---|---|
+| `tests/node/client-installable.test.mjs` | the manifest, the tags, the icon files, the palette they were cut from |
+| `tests/node/client-sw.test.mjs` | the worker DRIVEN against a fake `ServiceWorkerGlobalScope` — install, activate and fetch events dispatched for real. A text assertion would pass for a worker that reads `isApi` and ignores the answer. Also derives the SHELL list independently from `index.html`, the CSS `@import` chain and the manifest's icons |
+| `tests/node/deploy-vhost-headers.test.mjs` | `manifest-src`, `worker-src`, the MIME type, and that the new icon location stayed below the deny blocks |
+| `tests/e2e/installable.spec.mjs` | the three things only a browser sees: served at the right type under the prefix, the worker's scope following the prefix, and a never-visited `/trip/7/2641` opening offline while `api/route/4.json` still fails |
+
+### Not done
+
+- **No install prompt of our own.** No `beforeinstallprompt` handler, no "add to
+  home screen" button on the board. The browser already offers it, and a banner
+  the reader did not ask for is a banner between them and a bus time.
+- **No push, no background sync, no periodic sync.** All three want a server
+  that can talk back; the runtime here is a cron job writing JSON to disk.
+- **No `orientation` in the manifest.** The board is designed at 412px portrait,
+  but locking rotation on a device somebody is holding sideways for a reason is
+  not ours to do.
+- **No screenshots in the manifest.** They only change the install dialog on
+  Android and would mean committing rendered PNGs of the board that go stale
+  every time it changes.
 
 ## The stops link (`#plan=`)
 
@@ -444,7 +584,7 @@ anything ever groups by stop.
 
 **5. Stop-name shortening (task D8) has a capitalisation artefact.** `"8Th/Lavaca"`
 in the fixture. Rule 3 of §7 standardises directional suffixes but nothing
-normalises an intercapped ordinal. Cosmetic, build-side.
+normalizes an intercapped ordinal. Cosmetic, build-side.
 
 **6. Not built, and out of the four-panel hierarchy I was given:** the watchlist
 (`/api/watch/{id}.json`, §9) and the all-buses view (`/api/all.json`, §8). The
@@ -515,7 +655,7 @@ no tile server, no geocoder, no key, no network call.
   that used to hold — the row prints an arrival, a scheduled time and a badge,
   so a reader can subtract, and 1,438 of 4,205 rendered rows would have been
   off by more than two minutes with 325 pointing opposite ways. On a
-  feed-sourced row the badge, the state colour and the signed number go; the
+  feed-sourced row the badge, the state color and the signed number go; the
   scheduled time is printed always instead, since it becomes the only thing
   saying how late the bus is *here*. The bus's overall state survives as a
   phrase — "running very late" — because a word can carry the scope a bare
@@ -607,6 +747,57 @@ variation on it.
 
 - **"Now" is `generated_at`.** The client never uses the device clock to judge
   freshness; every age comes from `staleness.oldest_feed_age_s`.
+
+- **A departure's due time has exactly one producer: `watch.timingFor()`.** The stop board
+  and the saved cards both need it and both used to compute it inline from the same three
+  lines, which is the shape CLAUDE.md forbids after ISSUE-002 — here the first symptom would
+  be the two panels disagreeing about when one departure is due, on one screen. Both now call
+  `timingFor`, and it is exported for that reason rather than for testing.
+
+  It also answers the question the inline version could not. Both callers looked the vehicle
+  up by THIS trip's id, so a run nobody had started had no lateness, no predicted time, and
+  `due_at` fell back to the printed schedule; the stop board then dropped the row for being in
+  the past and a saved card called it `passed`. `timingFor` falls back to the bus that is
+  **inbound** to run it, whose own deviation is the best available estimate of how late the run
+  will begin. Route 837 on 2026-09-17 is the case: the 17:03 northbound was invisible from
+  17:04:30 until bus 8007 took it over at 17:13:56, while a rider at 5th/Guadalupe was shown
+  the 17:33. Measured against that capture, the extrapolation was 67 seconds out.
+
+  Only `coverage.runs_ahead === 1` is trusted — the bus's own published `next_trip`. Further
+  down a block all `coverageFor` has is the weaker block-mate match, and a lateness measured
+  two or three runs back says little about a departure half an hour out with layovers in
+  between; those stay unpredicted rather than confidently wrong. A canceled trip is never
+  predicted for at all, even when a bus still names it in `next_trip`, because a canceled row
+  leads with `due_at` and moving that time moves the one number a rider uses to recognize
+  which run was canceled. A successor with no usable deviation of its own (`in_service`,
+  adherence `unknown`) reports no predictor and no view, so the row falls back to the coverage
+  wording instead of printing "running undefined".
+
+  The row names the bus it borrowed the number from, and hedges when it has to. §4 of the API
+  contract lets a `low` continuation be said hedged or not at all, and here the grade governs
+  a clock, so a `low` one renders "likely becomes this run … the feed does not confirm this"
+  with `.nextbus__bus--hedged`'s dashed edge, in the spoken line too. Dropping the low-graded
+  rows was considered and rejected: 20.4% of them carry that grade, and refusing them puts a
+  fifth of these runs back on a time that has already passed.
+
+- **`CANCELED_KEEP_S` is ten minutes, and deliberately not `OVERDUE_KEEP_S`.** A canceled trip
+  has no bus and usually nothing on its block, so `coverageFor` reads it as `overdue` and it
+  inherited the thirty-minute window. That was never a decision: `overdue` means "due, nothing
+  running it, and CapMetro has NOT announced a cancellation", the warning that fires in the
+  silence *before* an announcement, and `departureRow` renders `canceled` first so the overdue
+  wording never appeared on these rows anyway. Route 837 stacked three of them at
+  5th/Guadalupe, the oldest twenty-seven minutes gone, above the two buses actually coming.
+  Both windows are exported so the tests assert against the constants rather than restating
+  the numbers.
+
+- **A block's trips are indexed once per departures document, not filtered per row.**
+  `tripsInBlock` re-filtered and re-sorted all 194 of route 837's trips on each of the 160
+  calls one stop panel makes, through `coverageFor` and `runsAhead` — 83% of the work in
+  drawing a panel. The index is memoized on the document's own identity, which is sound
+  because a departures document is immutable once fetched and `app.js` replaces it wholesale
+  when the service day rolls, and it is held beside the document rather than on it so nothing
+  is added to a payload that also gets schema-validated. Callers still get a fresh array.
+  Measured across 273 real stop panels: 1041ms to 162ms, with zero output differences.
 
 - **A transfer is a PAIR of stops within a short walk, not a shared stop id.**
   `chain.js` finds connections geometrically because on this feed the headline

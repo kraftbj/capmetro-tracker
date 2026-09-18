@@ -1,0 +1,2437 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "10-0-cf87109e",
+				"11-172": "10-0-cf87109e",
+				"12-172": "10-0-cf87109e",
+				"2-172": "10-0-21256c03",
+				"3-172": "10-0-21256c03",
+				"4-172": "10-0-21256c03",
+				"5-172": "10-0-21256c03",
+				"6-172": "10-0-cf87109e",
+				"7-172": "10-0-21256c03"
+			},
+			"baseline_pattern_id": "10-0-21256c03",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"10-0-21256c03": {
+					"direction_id": 0,
+					"pattern_id": "10-0-21256c03",
+					"representative_trip_id": "3014513_1312",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 68,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.340202,
+							"lon": -97.691345,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.340454,
+									"lon": -97.690058,
+									"stop_id": "5446",
+									"stop_name": "Rutherford/Furness",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33771,
+									"lon": -97.68437,
+									"stop_id": "4720",
+									"stop_name": "Cameron Road",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33555,
+									"lon": -97.68456,
+									"stop_id": "2455",
+									"stop_name": "Cameron/Rutherford",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33123,
+									"lon": -97.68753,
+									"stop_id": "2456",
+									"stop_name": "Cameron/Anderson",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.32921,
+									"lon": -97.69045,
+									"stop_id": "2457",
+									"stop_name": "Cameron/McKie",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.325707,
+									"lon": -97.691802,
+									"stop_id": "6346",
+									"stop_name": "St Johns/Cameron",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3223,
+									"lon": -97.68924,
+									"stop_id": "1313",
+									"stop_name": "Berkman/US 290 NW Corner",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.319884,
+									"lon": -97.68919,
+									"stop_id": "4748",
+									"stop_name": "Berkman/US 290 SW Corner",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.318167,
+									"lon": -97.690141,
+									"stop_id": "5186",
+									"stop_name": "Berkman/Wheless",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.316451,
+									"lon": -97.691223,
+									"stop_id": "1316",
+									"stop_name": "Berkman/Glen Valley",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "6419",
+							"stop_name": "Norwood Transit Center -…",
+							"stop_name_full": "Norwood Transit Center - A",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.312311,
+							"lon": -97.693666,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.309342,
+									"lon": -97.695539,
+									"stop_id": "1319",
+									"stop_name": "Berkman/Cloverleaf",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306736,
+									"lon": -97.697201,
+									"stop_id": "6295",
+									"stop_name": "Berkman/Broadmoor",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302661,
+									"lon": -97.700391,
+									"stop_id": "6335",
+									"stop_name": "Barbara Jordan/Berkman",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303915,
+									"lon": -97.704151,
+									"stop_id": "5794",
+									"stop_name": "Mueller/Barbara Jordan",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301482,
+									"lon": -97.70572,
+									"stop_id": "5483",
+									"stop_name": "Mueller/Philomena",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298134,
+									"lon": -97.707679,
+									"stop_id": "5670",
+									"stop_name": "Aldrich/Mueller",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29844,
+									"lon": -97.709294,
+									"stop_id": "5918",
+									"stop_name": "Airport/Aldrich",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30041,
+									"lon": -97.71246,
+									"stop_id": "3271",
+									"stop_name": "Airport/Parkwood",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303935,
+									"lon": -97.717598,
+									"stop_id": "3532",
+									"stop_name": "45th / Bennett",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303378,
+									"lon": -97.72062,
+									"stop_id": "1701",
+									"stop_name": "Red River/44th",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301618,
+									"lon": -97.721598,
+									"stop_id": "6337",
+									"stop_name": "Red River/Park",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298607,
+									"lon": -97.722783,
+									"stop_id": "1703",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29576,
+									"lon": -97.723443,
+									"stop_id": "1704",
+									"stop_name": "Red River/38th",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.293324,
+									"lon": -97.725492,
+									"stop_id": "5569",
+									"stop_name": "Red River/Harris",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "1318",
+							"stop_name": "Berkman/Sweetbriar",
+							"stop_name_full": "5810 Berkman/Sweetbriar",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.290572,
+							"lon": -97.727389,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.287579,
+									"lon": -97.727345,
+									"stop_id": "2077",
+									"stop_name": "Dean Keeton/Red River",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 31
+								}
+							],
+							"stop_id": "1706",
+							"stop_name": "Red River/32nd",
+							"stop_name_full": "3100 Red River/32nd",
+							"stop_sequence": 27
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.271368,
+							"lon": -97.739026,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259308,
+									"lon": -97.749759,
+									"stop_id": "1655",
+									"stop_name": "S 1st/Riverside",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258081,
+									"lon": -97.750396,
+									"stop_id": "1656",
+									"stop_name": "S 1ST/BARTON SPRINGS",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256619,
+									"lon": -97.751224,
+									"stop_id": "1657",
+									"stop_name": "South 1st/Barton Springs",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.250218,
+									"lon": -97.754974,
+									"stop_id": "1659",
+									"stop_name": "S 1st/Elizabeth",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.247569,
+									"lon": -97.755862,
+									"stop_id": "1661",
+									"stop_name": "S 1st/Annie",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.244384,
+									"lon": -97.757865,
+									"stop_id": "1662",
+									"stop_name": "S 1st/Live Oak",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.242264,
+									"lon": -97.759614,
+									"stop_id": "1663",
+									"stop_name": "S 1st/Oltorf",
+									"stop_sequence": 42
+								}
+							],
+							"stop_id": "6499",
+							"stop_name": "Capitol/Waterloo SB",
+							"stop_name_full": "Capitol/Waterloo SB (San Jacinto/10th)",
+							"stop_sequence": 32
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.239928,
+							"lon": -97.761138,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.235098,
+									"lon": -97.764161,
+									"stop_id": "1666",
+									"stop_name": "S 1st/Powell",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232131,
+									"lon": -97.766035,
+									"stop_id": "1667",
+									"stop_name": "S 1st/Cardinal",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229317,
+									"lon": -97.767827,
+									"stop_id": "6564",
+									"stop_name": "S 1st/S Center",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.22738,
+									"lon": -97.769059,
+									"stop_id": "1669",
+									"stop_name": "S 1st/Ben White",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225333,
+									"lon": -97.770328,
+									"stop_id": "1671",
+									"stop_name": "S 1st/Ben White",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.221255,
+									"lon": -97.772893,
+									"stop_id": "1673",
+									"stop_name": "S 1st/St Elmo",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.218151,
+									"lon": -97.774823,
+									"stop_id": "1674",
+									"stop_name": "S 1st/Philco",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.213437,
+									"lon": -97.778077,
+									"stop_id": "1676",
+									"stop_name": "S 1st/Emerald Wood",
+									"stop_sequence": 51
+								}
+							],
+							"stop_id": "1664",
+							"stop_name": "S 1st/Herndon",
+							"stop_name_full": "2522 S 1st/Herndon",
+							"stop_sequence": 43
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.208753,
+							"lon": -97.78142,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.205367,
+									"lon": -97.78315,
+									"stop_id": "4394",
+									"stop_name": "South 1st/Stassney",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.200712,
+									"lon": -97.785683,
+									"stop_id": "1682",
+									"stop_name": "S 1st/Eberhart",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.197336,
+									"lon": -97.787836,
+									"stop_id": "2640",
+									"stop_name": "1st/William Cannon",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193782,
+									"lon": -97.790034,
+									"stop_id": "2626",
+									"stop_name": "S. 1st/Mulberry",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.191739,
+									"lon": -97.790498,
+									"stop_id": "3763",
+									"stop_name": "S 1st/Prince Valiant",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.190183,
+									"lon": -97.79057,
+									"stop_id": "2627",
+									"stop_name": "S 1st/Meadow Lea",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.184112,
+									"lon": -97.792603,
+									"stop_id": "2628",
+									"stop_name": "S 1st/Dittmar",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.181296,
+									"lon": -97.794775,
+									"stop_id": "2629",
+									"stop_name": "S 1st/Mairo",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179602,
+									"lon": -97.79606,
+									"stop_id": "3764",
+									"stop_name": "S 1st/Great Britain",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176287,
+									"lon": -97.79814,
+									"stop_id": "4403",
+									"stop_name": "S 1st/Hyde Park",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173877,
+									"lon": -97.799008,
+									"stop_id": "4915",
+									"stop_name": "S 1st/Slaughter",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.171795,
+									"lon": -97.798989,
+									"stop_id": "5999",
+									"stop_name": "Slaughter/1st",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.168969,
+									"lon": -97.795672,
+									"stop_id": "5380",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167354,
+									"lon": -97.792824,
+									"stop_id": "5623",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 66
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 67
+								}
+							],
+							"stop_id": "2623",
+							"stop_name": "S 1st/Stassney",
+							"stop_name_full": "5500 S 1st/Stassney",
+							"stop_sequence": 52
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.163367,
+							"lon": -97.791351,
+							"minor_stops": [],
+							"stop_id": "5263",
+							"stop_name": "Turk/Cullen",
+							"stop_name_full": "200 Turk/Cullen",
+							"stop_sequence": 68
+						}
+					]
+				},
+				"10-0-cf87109e": {
+					"direction_id": 0,
+					"pattern_id": "10-0-cf87109e",
+					"representative_trip_id": "2998304_1390",
+					"service_ids": [
+						"1-172",
+						"11-172",
+						"12-172",
+						"6-172"
+					],
+					"stop_count": 70,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.340202,
+							"lon": -97.691345,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.340454,
+									"lon": -97.690058,
+									"stop_id": "5446",
+									"stop_name": "Rutherford/Furness",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33771,
+									"lon": -97.68437,
+									"stop_id": "4720",
+									"stop_name": "Cameron Road",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33555,
+									"lon": -97.68456,
+									"stop_id": "2455",
+									"stop_name": "Cameron/Rutherford",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.33123,
+									"lon": -97.68753,
+									"stop_id": "2456",
+									"stop_name": "Cameron/Anderson",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.32921,
+									"lon": -97.69045,
+									"stop_id": "2457",
+									"stop_name": "Cameron/McKie",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.325707,
+									"lon": -97.691802,
+									"stop_id": "6346",
+									"stop_name": "St Johns/Cameron",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.3223,
+									"lon": -97.68924,
+									"stop_id": "1313",
+									"stop_name": "Berkman/US 290 NW Corner",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.319884,
+									"lon": -97.68919,
+									"stop_id": "4748",
+									"stop_name": "Berkman/US 290 SW Corner",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.318167,
+									"lon": -97.690141,
+									"stop_id": "5186",
+									"stop_name": "Berkman/Wheless",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.316451,
+									"lon": -97.691223,
+									"stop_id": "1316",
+									"stop_name": "Berkman/Glen Valley",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "6419",
+							"stop_name": "Norwood Transit Center -…",
+							"stop_name_full": "Norwood Transit Center - A",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.312311,
+							"lon": -97.693666,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.309342,
+									"lon": -97.695539,
+									"stop_id": "1319",
+									"stop_name": "Berkman/Cloverleaf",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.306736,
+									"lon": -97.697201,
+									"stop_id": "6295",
+									"stop_name": "Berkman/Broadmoor",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302661,
+									"lon": -97.700391,
+									"stop_id": "6335",
+									"stop_name": "Barbara Jordan/Berkman",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303915,
+									"lon": -97.704151,
+									"stop_id": "5794",
+									"stop_name": "Mueller/Barbara Jordan",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301482,
+									"lon": -97.70572,
+									"stop_id": "5483",
+									"stop_name": "Mueller/Philomena",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298134,
+									"lon": -97.707679,
+									"stop_id": "5670",
+									"stop_name": "Aldrich/Mueller",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29844,
+									"lon": -97.709294,
+									"stop_id": "5918",
+									"stop_name": "Airport/Aldrich",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.30041,
+									"lon": -97.71246,
+									"stop_id": "3271",
+									"stop_name": "Airport/Parkwood",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303935,
+									"lon": -97.717598,
+									"stop_id": "3532",
+									"stop_name": "45th / Bennett",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.303378,
+									"lon": -97.72062,
+									"stop_id": "1701",
+									"stop_name": "Red River/44th",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.301618,
+									"lon": -97.721598,
+									"stop_id": "6337",
+									"stop_name": "Red River/Park",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.298607,
+									"lon": -97.722783,
+									"stop_id": "1703",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29576,
+									"lon": -97.723443,
+									"stop_id": "1704",
+									"stop_name": "Red River/38th",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.293324,
+									"lon": -97.725492,
+									"stop_id": "5569",
+									"stop_name": "Red River/Harris",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "1318",
+							"stop_name": "Berkman/Sweetbriar",
+							"stop_name_full": "5810 Berkman/Sweetbriar",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.290572,
+							"lon": -97.727389,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.287579,
+									"lon": -97.727345,
+									"stop_id": "2077",
+									"stop_name": "Dean Keeton/Red River",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.288847,
+									"lon": -97.729473,
+									"stop_id": "6498",
+									"stop_name": "East Dean Keeton SB",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285506,
+									"lon": -97.733782,
+									"stop_id": "1179",
+									"stop_name": "UT Stadium SB",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 33
+								}
+							],
+							"stop_id": "1706",
+							"stop_name": "Red River/32nd",
+							"stop_name_full": "3100 Red River/32nd",
+							"stop_sequence": 27
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.271368,
+							"lon": -97.739026,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.259308,
+									"lon": -97.749759,
+									"stop_id": "1655",
+									"stop_name": "S 1st/Riverside",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258081,
+									"lon": -97.750396,
+									"stop_id": "1656",
+									"stop_name": "S 1ST/BARTON SPRINGS",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256619,
+									"lon": -97.751224,
+									"stop_id": "1657",
+									"stop_name": "South 1st/Barton Springs",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.250218,
+									"lon": -97.754974,
+									"stop_id": "1659",
+									"stop_name": "S 1st/Elizabeth",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.247569,
+									"lon": -97.755862,
+									"stop_id": "1661",
+									"stop_name": "S 1st/Annie",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.244384,
+									"lon": -97.757865,
+									"stop_id": "1662",
+									"stop_name": "S 1st/Live Oak",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.242264,
+									"lon": -97.759614,
+									"stop_id": "1663",
+									"stop_name": "S 1st/Oltorf",
+									"stop_sequence": 44
+								}
+							],
+							"stop_id": "6499",
+							"stop_name": "Capitol/Waterloo SB",
+							"stop_name_full": "Capitol/Waterloo SB (San Jacinto/10th)",
+							"stop_sequence": 34
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.239928,
+							"lon": -97.761138,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.235098,
+									"lon": -97.764161,
+									"stop_id": "1666",
+									"stop_name": "S 1st/Powell",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.232131,
+									"lon": -97.766035,
+									"stop_id": "1667",
+									"stop_name": "S 1st/Cardinal",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229317,
+									"lon": -97.767827,
+									"stop_id": "6564",
+									"stop_name": "S 1st/S Center",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.22738,
+									"lon": -97.769059,
+									"stop_id": "1669",
+									"stop_name": "S 1st/Ben White",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.225333,
+									"lon": -97.770328,
+									"stop_id": "1671",
+									"stop_name": "S 1st/Ben White",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.221255,
+									"lon": -97.772893,
+									"stop_id": "1673",
+									"stop_name": "S 1st/St Elmo",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.218151,
+									"lon": -97.774823,
+									"stop_id": "1674",
+									"stop_name": "S 1st/Philco",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.213437,
+									"lon": -97.778077,
+									"stop_id": "1676",
+									"stop_name": "S 1st/Emerald Wood",
+									"stop_sequence": 53
+								}
+							],
+							"stop_id": "1664",
+							"stop_name": "S 1st/Herndon",
+							"stop_name_full": "2522 S 1st/Herndon",
+							"stop_sequence": 45
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.208753,
+							"lon": -97.78142,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.205367,
+									"lon": -97.78315,
+									"stop_id": "4394",
+									"stop_name": "South 1st/Stassney",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.200712,
+									"lon": -97.785683,
+									"stop_id": "1682",
+									"stop_name": "S 1st/Eberhart",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.197336,
+									"lon": -97.787836,
+									"stop_id": "2640",
+									"stop_name": "1st/William Cannon",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193782,
+									"lon": -97.790034,
+									"stop_id": "2626",
+									"stop_name": "S. 1st/Mulberry",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.191739,
+									"lon": -97.790498,
+									"stop_id": "3763",
+									"stop_name": "S 1st/Prince Valiant",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.190183,
+									"lon": -97.79057,
+									"stop_id": "2627",
+									"stop_name": "S 1st/Meadow Lea",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.184112,
+									"lon": -97.792603,
+									"stop_id": "2628",
+									"stop_name": "S 1st/Dittmar",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.181296,
+									"lon": -97.794775,
+									"stop_id": "2629",
+									"stop_name": "S 1st/Mairo",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.179602,
+									"lon": -97.79606,
+									"stop_id": "3764",
+									"stop_name": "S 1st/Great Britain",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.176287,
+									"lon": -97.79814,
+									"stop_id": "4403",
+									"stop_name": "S 1st/Hyde Park",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.173877,
+									"lon": -97.799008,
+									"stop_id": "4915",
+									"stop_name": "S 1st/Slaughter",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.171795,
+									"lon": -97.798989,
+									"stop_id": "5999",
+									"stop_name": "Slaughter/1st",
+									"stop_sequence": 66
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.168969,
+									"lon": -97.795672,
+									"stop_id": "5380",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 67
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.167354,
+									"lon": -97.792824,
+									"stop_id": "5623",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 68
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 69
+								}
+							],
+							"stop_id": "2623",
+							"stop_name": "S 1st/Stassney",
+							"stop_name_full": "5500 S 1st/Stassney",
+							"stop_sequence": 54
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.163367,
+							"lon": -97.791351,
+							"minor_stops": [],
+							"stop_id": "5263",
+							"stop_name": "Turk/Cullen",
+							"stop_name_full": "200 Turk/Cullen",
+							"stop_sequence": 70
+						}
+					]
+				}
+			},
+			"stop_count": 68,
+			"timepoint_count": 7
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "10-1-cbafc13c",
+				"11-172": "10-1-cbafc13c",
+				"12-172": "10-1-cbafc13c",
+				"2-172": "10-1-c9fd6d0d",
+				"3-172": "10-1-c9fd6d0d",
+				"4-172": "10-1-c9fd6d0d",
+				"5-172": "10-1-cbafc13c",
+				"6-172": "10-1-cbafc13c",
+				"7-172": "10-1-cbafc13c"
+			},
+			"baseline_pattern_id": "10-1-cbafc13c",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"10-1-c9fd6d0d": {
+					"direction_id": 1,
+					"pattern_id": "10-1-c9fd6d0d",
+					"representative_trip_id": "3015008_0470",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172"
+					],
+					"stop_count": 71,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.163367,
+							"lon": -97.791351,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.167797,
+									"lon": -97.79335,
+									"stop_id": "6479",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.169519,
+									"lon": -97.795847,
+									"stop_id": "5968",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173403,
+									"lon": -97.798751,
+									"stop_id": "4404",
+									"stop_name": "S 1st/Slaughter",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.176671,
+									"lon": -97.797694,
+									"stop_id": "3768",
+									"stop_name": "S 1st/Hyde Park",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.179635,
+									"lon": -97.795803,
+									"stop_id": "3769",
+									"stop_name": "S 1st/Great Britain",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.180906,
+									"lon": -97.794841,
+									"stop_id": "2636",
+									"stop_name": "S 1st/Mairo",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.183697,
+									"lon": -97.79269,
+									"stop_id": "3757",
+									"stop_name": "S 1st/Dittmar",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.187782,
+									"lon": -97.790505,
+									"stop_id": "5735",
+									"stop_name": "S 1st/Elderberry",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.189842,
+									"lon": -97.790405,
+									"stop_id": "2638",
+									"stop_name": "S 1st/Meadow Lea",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.191724,
+									"lon": -97.790325,
+									"stop_id": "3770",
+									"stop_name": "S 1st/Prince Valiant",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.194695,
+									"lon": -97.78927,
+									"stop_id": "2639",
+									"stop_name": "S 1st/Thelma",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197445,
+									"lon": -97.7875,
+									"stop_id": "1540",
+									"stop_name": "1st/William Cannon",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.200331,
+									"lon": -97.785673,
+									"stop_id": "1541",
+									"stop_name": "S 1st/Eberhart",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203634,
+									"lon": -97.783793,
+									"stop_id": "1542",
+									"stop_name": "S 1st/Flournoy",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5263",
+							"stop_name": "Turk/Cullen",
+							"stop_name_full": "200 Turk/Cullen",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.20827,
+							"lon": -97.781507,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.211573,
+									"lon": -97.779025,
+									"stop_id": "1545",
+									"stop_name": "S 1st/Ramble",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.213276,
+									"lon": -97.778011,
+									"stop_id": "1546",
+									"stop_name": "S 1st/Emerald Wood",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216799,
+									"lon": -97.775454,
+									"stop_id": "1548",
+									"stop_name": "S 1st/Orland",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.220937,
+									"lon": -97.772909,
+									"stop_id": "1549",
+									"stop_name": "S 1st/St Elmo",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223688,
+									"lon": -97.771174,
+									"stop_id": "1550",
+									"stop_name": "S 1st/Radam",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.22722,
+									"lon": -97.768914,
+									"stop_id": "1553",
+									"stop_name": "S 1st/Ben White",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229637,
+									"lon": -97.76737,
+									"stop_id": "1554",
+									"stop_name": "1st/South Center",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235094,
+									"lon": -97.763975,
+									"stop_id": "1557",
+									"stop_name": "S 1st/Powell",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238061,
+									"lon": -97.762106,
+									"stop_id": "1558",
+									"stop_name": "S 1st/Cumberland",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "2641",
+							"stop_name": "S 1st/Stassney",
+							"stop_name_full": "5603 S 1st/Stassney",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.239949,
+							"lon": -97.760859,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.24193,
+									"lon": -97.759656,
+									"stop_id": "1560",
+									"stop_name": "S 1st/Oltorf",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.244369,
+									"lon": -97.757657,
+									"stop_id": "1561",
+									"stop_name": "S 1st/Live Oak",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.247241,
+									"lon": -97.755836,
+									"stop_id": "1562",
+									"stop_name": "S 1st/Annie",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.250218,
+									"lon": -97.754785,
+									"stop_id": "4065",
+									"stop_name": "S 1st/Elizabeth",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253611,
+									"lon": -97.75294,
+									"stop_id": "1564",
+									"stop_name": "S 1st/Copeland",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.256192,
+									"lon": -97.751284,
+									"stop_id": "1565",
+									"stop_name": "South 1st/Copeland",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.257981,
+									"lon": -97.750171,
+									"stop_id": "1566",
+									"stop_name": "S 1ST/BARTON SPRINGS",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259426,
+									"lon": -97.749357,
+									"stop_id": "1567",
+									"stop_name": "S 1st/Riverside",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7th/Colorado",
+									"stop_sequence": 36
+								}
+							],
+							"stop_id": "1559",
+							"stop_name": "S 1st/Herndon",
+							"stop_name_full": "2529 S 1st/Herndon",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269216,
+							"lon": -97.738446,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.288776,
+									"lon": -97.734397,
+									"stop_id": "1256",
+									"stop_name": "San Jacinto/Dean Keeton",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289093,
+									"lon": -97.73154,
+									"stop_id": "2005",
+									"stop_name": "Dean Keeton/San Jacinto",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28758,
+									"lon": -97.72652,
+									"stop_id": "4144",
+									"stop_name": "Red River/Dean Keeton",
+									"stop_sequence": 44
+								}
+							],
+							"stop_id": "6315",
+							"stop_name": "8th Street NB",
+							"stop_name_full": "8th Street NB (Trinity/8th)",
+							"stop_sequence": 37
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.290665,
+							"lon": -97.727112,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.293112,
+									"lon": -97.725448,
+									"stop_id": "4147",
+									"stop_name": "Red River/Harris",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.296366,
+									"lon": -97.723097,
+									"stop_id": "1784",
+									"stop_name": "Red River/38th Half",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298741,
+									"lon": -97.722544,
+									"stop_id": "1785",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301232,
+									"lon": -97.72155,
+									"stop_id": "6336",
+									"stop_name": "Red River/Park",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303319,
+									"lon": -97.720483,
+									"stop_id": "1787",
+									"stop_name": "Red River/44th",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.304397,
+									"lon": -97.718869,
+									"stop_id": "4529",
+									"stop_name": "45th/Red River",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.299909,
+									"lon": -97.712142,
+									"stop_id": "3291",
+									"stop_name": "Airport/Crestwood",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.297877,
+									"lon": -97.707818,
+									"stop_id": "5669",
+									"stop_name": "Aldrich/Mueller",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301239,
+									"lon": -97.70562,
+									"stop_id": "6332",
+									"stop_name": "Mueller/Philomena",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303868,
+									"lon": -97.703474,
+									"stop_id": "6409",
+									"stop_name": "Barbara Jordan/Mueller",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302547,
+									"lon": -97.699539,
+									"stop_id": "5925",
+									"stop_name": "Barbara Jordan NB",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306662,
+									"lon": -97.697044,
+									"stop_id": "6294",
+									"stop_name": "Berkman/Westmoor",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.31036,
+									"lon": -97.69473,
+									"stop_id": "1396",
+									"stop_name": "Berkman/Larkwood",
+									"stop_sequence": 58
+								}
+							],
+							"stop_id": "2493",
+							"stop_name": "Red River/32nd",
+							"stop_name_full": "3107 Red River/32nd",
+							"stop_sequence": 45
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.314786,
+							"lon": -97.692049,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.31646,
+									"lon": -97.691029,
+									"stop_id": "1399",
+									"stop_name": "Berkman/Glen Valley",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.318728,
+									"lon": -97.689634,
+									"stop_id": "1400",
+									"stop_name": "Berkman/Wheless",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.320741,
+									"lon": -97.688771,
+									"stop_id": "1401",
+									"stop_name": "Berkman/US 290 SE Corner",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32244,
+									"lon": -97.68899,
+									"stop_id": "1402",
+									"stop_name": "Berkman/US 290 NE Corner",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324859,
+									"lon": -97.68969,
+									"stop_id": "6342",
+									"stop_name": "St Johns/Berkman",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.326238,
+									"lon": -97.692041,
+									"stop_id": "4709",
+									"stop_name": "Cameron/St Johns",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.329295,
+									"lon": -97.690041,
+									"stop_id": "4708",
+									"stop_name": "Cameron/Coronado Hills",
+									"stop_sequence": 66
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.331463,
+									"lon": -97.686986,
+									"stop_id": "2436",
+									"stop_name": "Cameron/Anderson",
+									"stop_sequence": 67
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33485,
+									"lon": -97.68471,
+									"stop_id": "4707",
+									"stop_name": "Cameron/Anderson",
+									"stop_sequence": 68
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33794,
+									"lon": -97.68431,
+									"stop_id": "2439",
+									"stop_name": "Rutherford/Cameron",
+									"stop_sequence": 69
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.34058,
+									"lon": -97.689935,
+									"stop_id": "5447",
+									"stop_name": "Rutherford/Furness",
+									"stop_sequence": 70
+								}
+							],
+							"stop_id": "1398",
+							"stop_name": "Berkman/Briarcliff",
+							"stop_name_full": "6001 Berkman/Briarcliff",
+							"stop_sequence": 59
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.340202,
+							"lon": -97.691345,
+							"minor_stops": [],
+							"stop_id": "6419",
+							"stop_name": "Norwood Transit Center -…",
+							"stop_name_full": "Norwood Transit Center - A",
+							"stop_sequence": 71
+						}
+					]
+				},
+				"10-1-cbafc13c": {
+					"direction_id": 1,
+					"pattern_id": "10-1-cbafc13c",
+					"representative_trip_id": "2998398_0896",
+					"service_ids": [
+						"1-172",
+						"11-172",
+						"12-172",
+						"5-172",
+						"6-172",
+						"7-172"
+					],
+					"stop_count": 72,
+					"timepoint_count": 7,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.163367,
+							"lon": -97.791351,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.167797,
+									"lon": -97.79335,
+									"stop_id": "6479",
+									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.169519,
+									"lon": -97.795847,
+									"stop_id": "5968",
+									"stop_name": "Slaughter/Francia",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.173403,
+									"lon": -97.798751,
+									"stop_id": "4404",
+									"stop_name": "S 1st/Slaughter",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.176671,
+									"lon": -97.797694,
+									"stop_id": "3768",
+									"stop_name": "S 1st/Hyde Park",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.179635,
+									"lon": -97.795803,
+									"stop_id": "3769",
+									"stop_name": "S 1st/Great Britain",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.180906,
+									"lon": -97.794841,
+									"stop_id": "2636",
+									"stop_name": "S 1st/Mairo",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.183697,
+									"lon": -97.79269,
+									"stop_id": "3757",
+									"stop_name": "S 1st/Dittmar",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.187782,
+									"lon": -97.790505,
+									"stop_id": "5735",
+									"stop_name": "S 1st/Elderberry",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.189842,
+									"lon": -97.790405,
+									"stop_id": "2638",
+									"stop_name": "S 1st/Meadow Lea",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.191724,
+									"lon": -97.790325,
+									"stop_id": "3770",
+									"stop_name": "S 1st/Prince Valiant",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.194695,
+									"lon": -97.78927,
+									"stop_id": "2639",
+									"stop_name": "S 1st/Thelma",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.197445,
+									"lon": -97.7875,
+									"stop_id": "1540",
+									"stop_name": "1st/William Cannon",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.200331,
+									"lon": -97.785673,
+									"stop_id": "1541",
+									"stop_name": "S 1st/Eberhart",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.203634,
+									"lon": -97.783793,
+									"stop_id": "1542",
+									"stop_name": "S 1st/Flournoy",
+									"stop_sequence": 15
+								}
+							],
+							"stop_id": "5263",
+							"stop_name": "Turk/Cullen",
+							"stop_name_full": "200 Turk/Cullen",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.20827,
+							"lon": -97.781507,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.211573,
+									"lon": -97.779025,
+									"stop_id": "1545",
+									"stop_name": "S 1st/Ramble",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.213276,
+									"lon": -97.778011,
+									"stop_id": "1546",
+									"stop_name": "S 1st/Emerald Wood",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.216799,
+									"lon": -97.775454,
+									"stop_id": "1548",
+									"stop_name": "S 1st/Orland",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.220937,
+									"lon": -97.772909,
+									"stop_id": "1549",
+									"stop_name": "S 1st/St Elmo",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.223688,
+									"lon": -97.771174,
+									"stop_id": "1550",
+									"stop_name": "S 1st/Radam",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.22722,
+									"lon": -97.768914,
+									"stop_id": "1553",
+									"stop_name": "S 1st/Ben White",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.229637,
+									"lon": -97.76737,
+									"stop_id": "1554",
+									"stop_name": "1st/South Center",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.232198,
+									"lon": -97.765807,
+									"stop_id": "1556",
+									"stop_name": "S 1st/Lightsey",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.235094,
+									"lon": -97.763975,
+									"stop_id": "1557",
+									"stop_name": "S 1st/Powell",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.238061,
+									"lon": -97.762106,
+									"stop_id": "1558",
+									"stop_name": "S 1st/Cumberland",
+									"stop_sequence": 26
+								}
+							],
+							"stop_id": "2641",
+							"stop_name": "S 1st/Stassney",
+							"stop_name_full": "5603 S 1st/Stassney",
+							"stop_sequence": 16
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.239949,
+							"lon": -97.760859,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.24193,
+									"lon": -97.759656,
+									"stop_id": "1560",
+									"stop_name": "S 1st/Oltorf",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.244369,
+									"lon": -97.757657,
+									"stop_id": "1561",
+									"stop_name": "S 1st/Live Oak",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.247241,
+									"lon": -97.755836,
+									"stop_id": "1562",
+									"stop_name": "S 1st/Annie",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.250218,
+									"lon": -97.754785,
+									"stop_id": "4065",
+									"stop_name": "S 1st/Elizabeth",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.253611,
+									"lon": -97.75294,
+									"stop_id": "1564",
+									"stop_name": "S 1st/Copeland",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.256192,
+									"lon": -97.751284,
+									"stop_id": "1565",
+									"stop_name": "South 1st/Copeland",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.257981,
+									"lon": -97.750171,
+									"stop_id": "1566",
+									"stop_name": "S 1ST/BARTON SPRINGS",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259426,
+									"lon": -97.749357,
+									"stop_id": "1567",
+									"stop_name": "S 1st/Riverside",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.266689,
+									"lon": -97.745863,
+									"stop_id": "2643",
+									"stop_name": "Lavaca/4th",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.269226,
+									"lon": -97.743548,
+									"stop_id": "6314",
+									"stop_name": "7th/Colorado",
+									"stop_sequence": 37
+								}
+							],
+							"stop_id": "1559",
+							"stop_name": "S 1st/Herndon",
+							"stop_name_full": "2529 S 1st/Herndon",
+							"stop_sequence": 27
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.269216,
+							"lon": -97.738446,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.271964,
+									"lon": -97.737436,
+									"stop_id": "6500",
+									"stop_name": "Capitol/Waterloo NB",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 41
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 42
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.288776,
+									"lon": -97.734397,
+									"stop_id": "1256",
+									"stop_name": "San Jacinto/Dean Keeton",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.289093,
+									"lon": -97.73154,
+									"stop_id": "2005",
+									"stop_name": "Dean Keeton/San Jacinto",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28758,
+									"lon": -97.72652,
+									"stop_id": "4144",
+									"stop_name": "Red River/Dean Keeton",
+									"stop_sequence": 45
+								}
+							],
+							"stop_id": "6315",
+							"stop_name": "8th Street NB",
+							"stop_name_full": "8th Street NB (Trinity/8th)",
+							"stop_sequence": 38
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.290665,
+							"lon": -97.727112,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.293112,
+									"lon": -97.725448,
+									"stop_id": "4147",
+									"stop_name": "Red River/Harris",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.296366,
+									"lon": -97.723097,
+									"stop_id": "1784",
+									"stop_name": "Red River/38th Half",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298741,
+									"lon": -97.722544,
+									"stop_id": "1785",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301232,
+									"lon": -97.72155,
+									"stop_id": "6336",
+									"stop_name": "Red River/Park",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303319,
+									"lon": -97.720483,
+									"stop_id": "1787",
+									"stop_name": "Red River/44th",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.304397,
+									"lon": -97.718869,
+									"stop_id": "4529",
+									"stop_name": "45th/Red River",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.299909,
+									"lon": -97.712142,
+									"stop_id": "3291",
+									"stop_name": "Airport/Crestwood",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.297877,
+									"lon": -97.707818,
+									"stop_id": "5669",
+									"stop_name": "Aldrich/Mueller",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.301239,
+									"lon": -97.70562,
+									"stop_id": "6332",
+									"stop_name": "Mueller/Philomena",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.303868,
+									"lon": -97.703474,
+									"stop_id": "6409",
+									"stop_name": "Barbara Jordan/Mueller",
+									"stop_sequence": 56
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.302547,
+									"lon": -97.699539,
+									"stop_id": "5925",
+									"stop_name": "Barbara Jordan NB",
+									"stop_sequence": 57
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.306662,
+									"lon": -97.697044,
+									"stop_id": "6294",
+									"stop_name": "Berkman/Westmoor",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.31036,
+									"lon": -97.69473,
+									"stop_id": "1396",
+									"stop_name": "Berkman/Larkwood",
+									"stop_sequence": 59
+								}
+							],
+							"stop_id": "2493",
+							"stop_name": "Red River/32nd",
+							"stop_name_full": "3107 Red River/32nd",
+							"stop_sequence": 46
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.314786,
+							"lon": -97.692049,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.31646,
+									"lon": -97.691029,
+									"stop_id": "1399",
+									"stop_name": "Berkman/Glen Valley",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.318728,
+									"lon": -97.689634,
+									"stop_id": "1400",
+									"stop_name": "Berkman/Wheless",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.320741,
+									"lon": -97.688771,
+									"stop_id": "1401",
+									"stop_name": "Berkman/US 290 SE Corner",
+									"stop_sequence": 63
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.32244,
+									"lon": -97.68899,
+									"stop_id": "1402",
+									"stop_name": "Berkman/US 290 NE Corner",
+									"stop_sequence": 64
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.324859,
+									"lon": -97.68969,
+									"stop_id": "6342",
+									"stop_name": "St Johns/Berkman",
+									"stop_sequence": 65
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.326238,
+									"lon": -97.692041,
+									"stop_id": "4709",
+									"stop_name": "Cameron/St Johns",
+									"stop_sequence": 66
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.329295,
+									"lon": -97.690041,
+									"stop_id": "4708",
+									"stop_name": "Cameron/Coronado Hills",
+									"stop_sequence": 67
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.331463,
+									"lon": -97.686986,
+									"stop_id": "2436",
+									"stop_name": "Cameron/Anderson",
+									"stop_sequence": 68
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33485,
+									"lon": -97.68471,
+									"stop_id": "4707",
+									"stop_name": "Cameron/Anderson",
+									"stop_sequence": 69
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.33794,
+									"lon": -97.68431,
+									"stop_id": "2439",
+									"stop_name": "Rutherford/Cameron",
+									"stop_sequence": 70
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.34058,
+									"lon": -97.689935,
+									"stop_id": "5447",
+									"stop_name": "Rutherford/Furness",
+									"stop_sequence": 71
+								}
+							],
+							"stop_id": "1398",
+							"stop_name": "Berkman/Briarcliff",
+							"stop_name_full": "6001 Berkman/Briarcliff",
+							"stop_sequence": 60
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.340202,
+							"lon": -97.691345,
+							"minor_stops": [],
+							"stop_id": "6419",
+							"stop_name": "Norwood Transit Center -…",
+							"stop_name_full": "Norwood Transit Center - A",
+							"stop_sequence": 72
+						}
+					]
+				}
+			},
+			"stop_count": 72,
+			"timepoint_count": 7
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "10",
+	"schema": 1
+}

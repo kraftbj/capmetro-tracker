@@ -1,0 +1,251 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "985-0-a76ee4fa"
+			},
+			"baseline_pattern_id": "985-0-a76ee4fa",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"985-0-a76ee4fa": {
+					"direction_id": 0,
+					"pattern_id": "985-0-a76ee4fa",
+					"representative_trip_id": "3013387_24273",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 12,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.586407,
+							"lon": -97.855296,
+							"minor_stops": [],
+							"stop_id": "5387",
+							"stop_name": "Leander Station Bay D",
+							"stop_name_full": "Leander Station Bay D",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.480719,
+							"lon": -97.786775,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26835,
+									"lon": -97.74792,
+									"stop_id": "2111",
+									"stop_name": "5th/San Antonio",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "5230",
+							"stop_name": "Lakeline Station Bay G",
+							"stop_name_full": "Lakeline Station Bay G",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.268613,
+							"lon": -97.745114,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276572,
+									"lon": -97.738732,
+									"stop_id": "6518",
+									"stop_name": "15th/Brazos",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.27751,
+									"lon": -97.735397,
+									"stop_id": "866",
+									"stop_name": "Medical School NB",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.28555,
+									"lon": -97.733531,
+									"stop_id": "3491",
+									"stop_name": "UT Stadium NB",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "2605",
+							"stop_name": "Lavaca/6th",
+							"stop_name_full": "517 Lavaca/6th",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.288776,
+							"lon": -97.734397,
+							"minor_stops": [],
+							"stop_id": "1256",
+							"stop_name": "San Jacinto/Dean Keeton",
+							"stop_name_full": "2525 San Jacinto/Dean Keeton",
+							"stop_sequence": 12
+						}
+					]
+				}
+			},
+			"stop_count": 12,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "985-1-ceaac164"
+			},
+			"baseline_pattern_id": "985-1-ceaac164",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"985-1-ceaac164": {
+					"direction_id": 1,
+					"pattern_id": "985-1-ceaac164",
+					"representative_trip_id": "3013392_24267",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.285506,
+							"lon": -97.733782,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.276851,
+									"lon": -97.738575,
+									"stop_id": "5092",
+									"stop_name": "15th/Brazos",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "1179",
+							"stop_name": "UT Stadium SB",
+							"stop_name_full": "UT Stadium SB (San Jacinto/23rd)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.271503,
+							"lon": -97.745478,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "5950",
+							"stop_name": "Guadalupe/8th",
+							"stop_name_full": "812 Guadalupe/8th",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.480899,
+							"lon": -97.786969,
+							"minor_stops": [],
+							"stop_id": "5231",
+							"stop_name": "Lakeline Station Bay F",
+							"stop_name_full": "Lakeline Station Bay F",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.586407,
+							"lon": -97.855296,
+							"minor_stops": [],
+							"stop_id": "5387",
+							"stop_name": "Leander Station Bay D",
+							"stop_name_full": "Leander Station Bay D",
+							"stop_sequence": 10
+						}
+					]
+				}
+			},
+			"stop_count": 10,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "985",
+	"schema": 1
+}

@@ -1,0 +1,167 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"2-172": "642-0-febdb503",
+				"24-172": "642-0-febdb503",
+				"25-172": "642-0-febdb503",
+				"26-172": "642-0-febdb503",
+				"27-172": "642-0-febdb503",
+				"28-172": "642-0-febdb503",
+				"3-172": "642-0-febdb503",
+				"4-172": "642-0-febdb503",
+				"5-172": "642-0-febdb503"
+			},
+			"baseline_pattern_id": "642-0-febdb503",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"642-0-febdb503": {
+					"direction_id": 0,
+					"pattern_id": "642-0-febdb503",
+					"representative_trip_id": "3007817_18393",
+					"service_ids": [
+						"2-172",
+						"24-172",
+						"25-172",
+						"26-172",
+						"27-172",
+						"28-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 14,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.286032,
+							"lon": -97.733433,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.289536,
+									"lon": -97.737134,
+									"stop_id": "2079",
+									"stop_name": "Dean Keeton/Speedway NE…",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289717,
+									"lon": -97.738797,
+									"stop_id": "5024",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.292003,
+									"lon": -97.740219,
+									"stop_id": "4096",
+									"stop_name": "27th/Whitis",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.291657,
+									"lon": -97.742835,
+									"stop_id": "5373",
+									"stop_name": "Nueces/27th",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290696,
+									"lon": -97.744249,
+									"stop_id": "4122",
+									"stop_name": "26th/Rio Grande",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29086,
+									"lon": -97.746437,
+									"stop_id": "4123",
+									"stop_name": "26th/Pearl",
+									"stop_sequence": 7
+								}
+							],
+							"stop_id": "5379",
+							"stop_name": "San Jacinto/23rd",
+							"stop_name_full": "San Jacinto/23rd (Midblock)",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.29005,
+							"lon": -97.747693,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.285872,
+									"lon": -97.748124,
+									"stop_id": "4979",
+									"stop_name": "San Gabriel/22nd Half",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285285,
+									"lon": -97.746666,
+									"stop_id": "4120",
+									"stop_name": "22nd/Pearl",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283384,
+									"lon": -97.742081,
+									"stop_id": "498",
+									"stop_name": "Guadalupe/W. 21st Street",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.281645,
+									"lon": -97.733191,
+									"stop_id": "4135",
+									"stop_name": "San Jacinto/20th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283104,
+									"lon": -97.73391,
+									"stop_id": "1253",
+									"stop_name": "San Jacinto/21st",
+									"stop_sequence": 13
+								}
+							],
+							"stop_id": "4121",
+							"stop_name": "San Gabriel/25 1/2",
+							"stop_name_full": "San Gabriel/25 1/2",
+							"stop_sequence": 8
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.286032,
+							"lon": -97.733433,
+							"minor_stops": [],
+							"stop_id": "5379",
+							"stop_name": "San Jacinto/23rd",
+							"stop_name_full": "San Jacinto/23rd (Midblock)",
+							"stop_sequence": 14
+						}
+					]
+				}
+			},
+			"stop_count": 14,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "642",
+	"schema": 1
+}

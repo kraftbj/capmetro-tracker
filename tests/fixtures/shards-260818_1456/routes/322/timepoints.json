@@ -1,0 +1,951 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "322-0-f69ee8cc",
+				"2-172": "322-0-3963a900",
+				"3-172": "322-0-3963a900",
+				"4-172": "322-0-3963a900",
+				"5-172": "322-0-3963a900",
+				"6-172": "322-0-f69ee8cc",
+				"7-172": "322-0-3963a900",
+				"8-172": "322-0-f69ee8cc"
+			},
+			"baseline_pattern_id": "322-0-3963a900",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"322-0-3963a900": {
+					"direction_id": 0,
+					"pattern_id": "322-0-3963a900",
+					"representative_trip_id": "3002965_10722",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 25,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.300218,
+							"lon": -97.720574,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.298607,
+									"lon": -97.722783,
+									"stop_id": "1703",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294337,
+									"lon": -97.718708,
+									"stop_id": "2012",
+									"stop_name": "38th Half/Robinson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2927,
+									"lon": -97.71574,
+									"stop_id": "2013",
+									"stop_name": "38th Half/Clarkson",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.291308,
+									"lon": -97.713951,
+									"stop_id": "2014",
+									"stop_name": "38th 1/2 /Cherrywood",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286857,
+									"lon": -97.716876,
+									"stop_id": "2015",
+									"stop_name": "Cherrywood/32nd",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.284585,
+									"lon": -97.718386,
+									"stop_id": "6471",
+									"stop_name": "Cherrywood/Manor",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283897,
+									"lon": -97.722231,
+									"stop_id": "2019",
+									"stop_name": "Lafayette/Manor",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.281539,
+									"lon": -97.721679,
+									"stop_id": "2020",
+									"stop_name": "Chicon/21st",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279458,
+									"lon": -97.721226,
+									"stop_id": "2021",
+									"stop_name": "Chicon/Martin Luther King",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276889,
+									"lon": -97.720647,
+									"stop_id": "2022",
+									"stop_name": "Chicon/16th",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274873,
+									"lon": -97.720216,
+									"stop_id": "2023",
+									"stop_name": "Chicon/13th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273484,
+									"lon": -97.71992,
+									"stop_id": "2024",
+									"stop_name": "Chicon/12th",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271857,
+									"lon": -97.719589,
+									"stop_id": "2025",
+									"stop_name": "Chicon/Pennsylvania",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269775,
+									"lon": -97.719137,
+									"stop_id": "2026",
+									"stop_name": "Chicon/Rosewood",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268434,
+									"lon": -97.719497,
+									"stop_id": "2027",
+									"stop_name": "Chicon/Cornell",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266178,
+									"lon": -97.720553,
+									"stop_id": "2028",
+									"stop_name": "Chicon/11th",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.264536,
+									"lon": -97.721293,
+									"stop_id": "2029",
+									"stop_name": "Chicon",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "5283",
+							"stop_name": "Hancock Center",
+							"stop_name_full": "Hancock Center",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.262761,
+							"lon": -97.722107,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.258414,
+									"lon": -97.724115,
+									"stop_id": "2033",
+									"stop_name": "Chicon/2nd",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.257258,
+									"lon": -97.724661,
+									"stop_id": "6330",
+									"stop_name": "Chicon/Cesar Chavez",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.25422,
+									"lon": -97.728132,
+									"stop_id": "2039",
+									"stop_name": "Holly/Chalmers",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.254921,
+									"lon": -97.730153,
+									"stop_id": "2040",
+									"stop_name": "Holly/Comal",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256066,
+									"lon": -97.734469,
+									"stop_id": "5427",
+									"stop_name": "Waller/Holly",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252636,
+									"lon": -97.733165,
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "2030",
+							"stop_name": "Chicon/7th",
+							"stop_name_full": "700 Chicon/7th",
+							"stop_sequence": 19
+						}
+					]
+				},
+				"322-0-f69ee8cc": {
+					"direction_id": 0,
+					"pattern_id": "322-0-f69ee8cc",
+					"representative_trip_id": "3002965_10688",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 28,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.300218,
+							"lon": -97.720574,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.298607,
+									"lon": -97.722783,
+									"stop_id": "1703",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294337,
+									"lon": -97.718708,
+									"stop_id": "2012",
+									"stop_name": "38th Half/Robinson",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.2927,
+									"lon": -97.71574,
+									"stop_id": "2013",
+									"stop_name": "38th Half/Clarkson",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.291308,
+									"lon": -97.713951,
+									"stop_id": "2014",
+									"stop_name": "38th 1/2 /Cherrywood",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.286857,
+									"lon": -97.716876,
+									"stop_id": "2015",
+									"stop_name": "Cherrywood/32nd",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.284585,
+									"lon": -97.718386,
+									"stop_id": "6471",
+									"stop_name": "Cherrywood/Manor",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283897,
+									"lon": -97.722231,
+									"stop_id": "2019",
+									"stop_name": "Lafayette/Manor",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.281539,
+									"lon": -97.721679,
+									"stop_id": "2020",
+									"stop_name": "Chicon/21st",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.279458,
+									"lon": -97.721226,
+									"stop_id": "2021",
+									"stop_name": "Chicon/Martin Luther King",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.276889,
+									"lon": -97.720647,
+									"stop_id": "2022",
+									"stop_name": "Chicon/16th",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274873,
+									"lon": -97.720216,
+									"stop_id": "2023",
+									"stop_name": "Chicon/13th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.273484,
+									"lon": -97.71992,
+									"stop_id": "2024",
+									"stop_name": "Chicon/12th",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271857,
+									"lon": -97.719589,
+									"stop_id": "2025",
+									"stop_name": "Chicon/Pennsylvania",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.269775,
+									"lon": -97.719137,
+									"stop_id": "2026",
+									"stop_name": "Chicon/Rosewood",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268434,
+									"lon": -97.719497,
+									"stop_id": "2027",
+									"stop_name": "Chicon/Cornell",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.266178,
+									"lon": -97.720553,
+									"stop_id": "2028",
+									"stop_name": "Chicon/11th",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.264536,
+									"lon": -97.721293,
+									"stop_id": "2029",
+									"stop_name": "Chicon",
+									"stop_sequence": 18
+								}
+							],
+							"stop_id": "5283",
+							"stop_name": "Hancock Center",
+							"stop_name_full": "Hancock Center",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.262761,
+							"lon": -97.722107,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.259509,
+									"lon": -97.723601,
+									"stop_id": "2032",
+									"stop_name": "Chicon/4th",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258414,
+									"lon": -97.724115,
+									"stop_id": "2033",
+									"stop_name": "Chicon/2nd",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.257258,
+									"lon": -97.724661,
+									"stop_id": "6330",
+									"stop_name": "Chicon/Cesar Chavez",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.25422,
+									"lon": -97.728132,
+									"stop_id": "2039",
+									"stop_name": "Holly/Chalmers",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.254921,
+									"lon": -97.730153,
+									"stop_id": "2040",
+									"stop_name": "Holly/Comal",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.255619,
+									"lon": -97.732075,
+									"stop_id": "2041",
+									"stop_name": "Holly/Navasota",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.256066,
+									"lon": -97.734469,
+									"stop_id": "5427",
+									"stop_name": "Waller/Holly",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.252636,
+									"lon": -97.733165,
+									"stop_id": "1957",
+									"stop_name": "Health Center WB/Art…",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "2030",
+							"stop_name": "Chicon/7th",
+							"stop_name_full": "700 Chicon/7th",
+							"stop_sequence": 19
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.253346,
+							"lon": -97.735557,
+							"minor_stops": [],
+							"stop_id": "6404",
+							"stop_name": "Waller/Flores",
+							"stop_name_full": "27 Waller/Flores",
+							"stop_sequence": 28
+						}
+					]
+				}
+			},
+			"stop_count": 25,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"1-172": "322-1-0ea45f7c",
+				"2-172": "322-1-a2cd9402",
+				"3-172": "322-1-a2cd9402",
+				"4-172": "322-1-a2cd9402",
+				"5-172": "322-1-a2cd9402",
+				"6-172": "322-1-0ea45f7c",
+				"7-172": "322-1-a2cd9402",
+				"8-172": "322-1-0ea45f7c"
+			},
+			"baseline_pattern_id": "322-1-a2cd9402",
+			"baseline_stable": false,
+			"direction_id": 1,
+			"ladders": {
+				"322-1-0ea45f7c": {
+					"direction_id": 1,
+					"pattern_id": "322-1-0ea45f7c",
+					"representative_trip_id": "3002999_10430",
+					"service_ids": [
+						"1-172",
+						"6-172",
+						"8-172"
+					],
+					"stop_count": 28,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.253346,
+							"lon": -97.735557,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.254853,
+									"lon": -97.734855,
+									"stop_id": "2045",
+									"stop_name": "Waller/Clermont",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.25619,
+									"lon": -97.73426,
+									"stop_id": "1959",
+									"stop_name": "Waller/Holly",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.255457,
+									"lon": -97.73204,
+									"stop_id": "2046",
+									"stop_name": "Holly/Navasota",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.254888,
+									"lon": -97.730453,
+									"stop_id": "2047",
+									"stop_name": "Holly/Comal",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.254179,
+									"lon": -97.728458,
+									"stop_id": "2048",
+									"stop_name": "Holly/Chalmers",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.257488,
+									"lon": -97.724394,
+									"stop_id": "6331",
+									"stop_name": "Chicon/Cesar Chavez",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259493,
+									"lon": -97.723477,
+									"stop_id": "2055",
+									"stop_name": "Chicon/4th",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6404",
+							"stop_name": "Waller/Flores",
+							"stop_name_full": "27 Waller/Flores",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.262274,
+							"lon": -97.722189,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.263956,
+									"lon": -97.721408,
+									"stop_id": "2057",
+									"stop_name": "Chicon",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265511,
+									"lon": -97.720676,
+									"stop_id": "2058",
+									"stop_name": "Chicon/College Row",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.267474,
+									"lon": -97.719768,
+									"stop_id": "2059",
+									"stop_name": "Chicon/Hamilton",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270126,
+									"lon": -97.719064,
+									"stop_id": "2061",
+									"stop_name": "Chicon/Rosewood",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27166,
+									"lon": -97.719385,
+									"stop_id": "2062",
+									"stop_name": "Chicon/Pennsylvania",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273559,
+									"lon": -97.719788,
+									"stop_id": "2063",
+									"stop_name": "Chicon/12th",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27565,
+									"lon": -97.720224,
+									"stop_id": "2064",
+									"stop_name": "Chicon/14th",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2777,
+									"lon": -97.72068,
+									"stop_id": "2065",
+									"stop_name": "Chicon/17th",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279657,
+									"lon": -97.721116,
+									"stop_id": "2066",
+									"stop_name": "Chicon/Martin Luther King",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28212,
+									"lon": -97.721643,
+									"stop_id": "2067",
+									"stop_name": "Chicon/21st",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284125,
+									"lon": -97.721478,
+									"stop_id": "4186",
+									"stop_name": "Dean Keeton/Lafayette",
+									"stop_sequence": 20
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.285131,
+									"lon": -97.717815,
+									"stop_id": "4189",
+									"stop_name": "Cherrywood/Manor",
+									"stop_sequence": 21
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28781,
+									"lon": -97.716078,
+									"stop_id": "2863",
+									"stop_name": "Cherrywood/Edgewood",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29149,
+									"lon": -97.71368,
+									"stop_id": "2864",
+									"stop_name": "Cherrywood/38th Half",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29213,
+									"lon": -97.71425,
+									"stop_id": "2071",
+									"stop_name": "38th Half/Maplewood",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29299,
+									"lon": -97.71598,
+									"stop_id": "4738",
+									"stop_name": "38th Half/Lafayette",
+									"stop_sequence": 25
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.294262,
+									"lon": -97.718216,
+									"stop_id": "4737",
+									"stop_name": "38th Half/Hollywood",
+									"stop_sequence": 26
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298741,
+									"lon": -97.722544,
+									"stop_id": "1785",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 27
+								}
+							],
+							"stop_id": "2056",
+							"stop_name": "Chicon/7th",
+							"stop_name_full": "613 Chicon/7th",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.300218,
+							"lon": -97.720574,
+							"minor_stops": [],
+							"stop_id": "5283",
+							"stop_name": "Hancock Center",
+							"stop_name_full": "Hancock Center",
+							"stop_sequence": 28
+						}
+					]
+				},
+				"322-1-a2cd9402": {
+					"direction_id": 1,
+					"pattern_id": "322-1-a2cd9402",
+					"representative_trip_id": "3002999_10463",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172",
+						"7-172"
+					],
+					"stop_count": 21,
+					"timepoint_count": 3,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.254179,
+							"lon": -97.728458,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.257488,
+									"lon": -97.724394,
+									"stop_id": "6331",
+									"stop_name": "Chicon/Cesar Chavez",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.259493,
+									"lon": -97.723477,
+									"stop_id": "2055",
+									"stop_name": "Chicon/4th",
+									"stop_sequence": 3
+								}
+							],
+							"stop_id": "2048",
+							"stop_name": "Holly/Chalmers",
+							"stop_name_full": "1631 Holly/Chalmers",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.262274,
+							"lon": -97.722189,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.267474,
+									"lon": -97.719768,
+									"stop_id": "2059",
+									"stop_name": "Chicon/Hamilton",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.270126,
+									"lon": -97.719064,
+									"stop_id": "2061",
+									"stop_name": "Chicon/Rosewood",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27166,
+									"lon": -97.719385,
+									"stop_id": "2062",
+									"stop_name": "Chicon/Pennsylvania",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.273559,
+									"lon": -97.719788,
+									"stop_id": "2063",
+									"stop_name": "Chicon/12th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.27565,
+									"lon": -97.720224,
+									"stop_id": "2064",
+									"stop_name": "Chicon/14th",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.2777,
+									"lon": -97.72068,
+									"stop_id": "2065",
+									"stop_name": "Chicon/17th",
+									"stop_sequence": 10
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.279657,
+									"lon": -97.721116,
+									"stop_id": "2066",
+									"stop_name": "Chicon/Martin Luther King",
+									"stop_sequence": 11
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28212,
+									"lon": -97.721643,
+									"stop_id": "2067",
+									"stop_name": "Chicon/21st",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.284125,
+									"lon": -97.721478,
+									"stop_id": "4186",
+									"stop_name": "Dean Keeton/Lafayette",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.285131,
+									"lon": -97.717815,
+									"stop_id": "4189",
+									"stop_name": "Cherrywood/Manor",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.28781,
+									"lon": -97.716078,
+									"stop_id": "2863",
+									"stop_name": "Cherrywood/Edgewood",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29149,
+									"lon": -97.71368,
+									"stop_id": "2864",
+									"stop_name": "Cherrywood/38th Half",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29213,
+									"lon": -97.71425,
+									"stop_id": "2071",
+									"stop_name": "38th Half/Maplewood",
+									"stop_sequence": 17
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.29299,
+									"lon": -97.71598,
+									"stop_id": "4738",
+									"stop_name": "38th Half/Lafayette",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.294262,
+									"lon": -97.718216,
+									"stop_id": "4737",
+									"stop_name": "38th Half/Hollywood",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.298741,
+									"lon": -97.722544,
+									"stop_id": "1785",
+									"stop_name": "Red River/40th",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "2056",
+							"stop_name": "Chicon/7th",
+							"stop_name_full": "613 Chicon/7th",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.300218,
+							"lon": -97.720574,
+							"minor_stops": [],
+							"stop_id": "5283",
+							"stop_name": "Hancock Center",
+							"stop_name_full": "Hancock Center",
+							"stop_sequence": 21
+						}
+					]
+				}
+			},
+			"stop_count": 21,
+			"timepoint_count": 3
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "322",
+	"schema": 1
+}

@@ -90,32 +90,58 @@
     return fmt.directionsForRows(data);
   }
 
-  function continuationText(block, data) {
+  function continuationText(block, data, routes, ownRouteId) {
     if (!block) return null;
     if (!block.next_trip) {
       return { chip: 'last trip of block', text: 'Last trip of block ' + block.block_id + '.', hedged: false };
     }
     var n = block.next_trip;
     var when = fmt.serviceClock(n.start_time);
-    var tag = dirTag(data, n.direction_id);
+    var nextRoute = n.route_short_name || n.route_id;
+    /*
+     * Blocks interline: 35 of the 249 in-service buses on the 2026-08-19 capture sit on a
+     * block that spans routes. When the successor leaves this route, a time and a bearing
+     * alone describe a trip on a route the reader is not looking at, starting from a stop
+     * that is not on this board — block 1010 sends a route 4 bus to Bluff Springs/William
+     * Cannon, which is route 1's south end. Naming the route is what makes that stop make
+     * sense instead of looking like a bug.
+     */
+    var changesRoute = !!nextRoute && !!ownRouteId && String(nextRoute) !== String(ownRouteId);
+    /*
+     * direction_id indexes the SUCCESSOR's route, so this payload may only answer for it
+     * when the successor stays here. Across routes the catalog answers, and a null answer
+     * drops the bearing rather than inventing one.
+     */
+    var tag = changesRoute
+      ? fmt.directionTagForRouteId(routes, n.route_id, n.direction_id)
+      : dirTag(data, n.direction_id);
+    var what = (changesRoute ? 'route ' + nextRoute : '') +
+      (changesRoute && tag ? ' ' : '') + (tag || '');
     var where = n.start_stop_name ? ' from ' + n.start_stop_name : '';
-    var verb = n.is_direction_flip ? 'becomes' : 'then runs';
+    /*
+     * is_direction_flip compares two direction_ids, and those share no meaning across
+     * routes: block 1010 hands a route 4 EB trip to a route 1 trip that is also
+     * direction 1 and runs northbound. "Becomes" asserts a turnaround, so it is only
+     * said within one route.
+     */
+    var verb = (!changesRoute && n.is_direction_flip) ? 'becomes' : 'then runs';
+    var suffix = what ? ' ' + what : '';
     if (block.confidence === 'high') {
       return {
-        chip: verb + ' ' + when + ' ' + tag,
-        text: verb.charAt(0).toUpperCase() + verb.slice(1) + ' the ' + when + ' ' + tag + where + '.',
+        chip: verb + ' ' + when + suffix,
+        text: verb.charAt(0).toUpperCase() + verb.slice(1) + ' the ' + when + suffix + where + '.',
         hedged: false
       };
     }
     return {
-      chip: 'likely ' + verb + ' ' + when + ' ' + tag,
-      text: 'Likely ' + verb + ' the ' + when + ' ' + tag + where +
+      chip: 'likely ' + verb + ' ' + when + suffix,
+      text: 'Likely ' + verb + ' the ' + when + suffix + where +
         ' — the feed does not confirm this continuation.',
       hedged: true
     };
   }
 
-  function spokenLabel(v, view, data, highlight) {
+  function spokenLabel(v, view, data, highlight, routes) {
     var bits = ['Bus ' + (v.label || v.vehicle_id)];
     if (highlight) bits.push('next bus at your nearest stop');
     bits.push(view.spoken);
@@ -130,10 +156,14 @@
       bits.push('measured at ' + against.stop_name + ', scheduled ' +
         fmt.clockSpoken(against.scheduled_at) + ', predicted ' + fmt.clockSpoken(against.predicted_at));
     } else if (v.progress && v.progress.current_stop_id) {
-      bits.push((STATUS_WORD[v.progress.current_status] || 'near') + ' stop ' + v.progress.current_stop_id);
+      var posGap = fmt.stoppedAtGap(data, v);
+      bits.push(posGap
+        ? fmt.distance(posGap.meters) + ' from stop ' + posGap.stop_id +
+          ', though the feed reports it stopped there'
+        : (STATUS_WORD[v.progress.current_status] || 'near') + ' stop ' + v.progress.current_stop_id);
     }
     if (v.pattern && v.pattern.is_special) bits.push('special trip pattern');
-    var cont = continuationText(v.block, data);
+    var cont = continuationText(v.block, data, routes, v.route_id);
     if (cont) bits.push(cont.text);
     if (!v.in_service) bits.push('deadhead, no trip assigned');
     return bits.map(function (b) { return String(b).replace(/\.$/, ''); }).join('. ') + '.';
@@ -143,7 +173,7 @@
    * mean something. Motion fires on a real transition, never on first paint. */
   var lastState = Object.create(null);
 
-  function buildRow(v, data, idx, highlight) {
+  function buildRow(v, data, idx, highlight, routes) {
     var view = adh.view(v, data.staleness);
     var wrap = el('article', 'vrow vrow--' + view.state);
     /*
@@ -168,7 +198,7 @@
     main.type = 'button';
     main.setAttribute('aria-expanded', 'false');
     main.setAttribute('aria-controls', detailId);
-    main.setAttribute('aria-label', spokenLabel(v, view, data, highlight));
+    main.setAttribute('aria-label', spokenLabel(v, view, data, highlight, routes));
 
     var badgeCell = el('span', 'vrow__badge');
     badgeCell.appendChild(adh.badge(view));
@@ -209,8 +239,19 @@
       l2.appendChild(el('span', 'warnink', view.reasonLabel || 'no prediction available'));
       if (v.progress && v.progress.current_stop_id) {
         l2.appendChild(el('span', 'sep', ' · '));
-        l2.appendChild(el('span', 'dim', (STATUS_WORD[v.progress.current_status] || 'near') + ' stop '));
-        l2.appendChild(el('span', 'fig', v.progress.current_stop_id));
+        /*
+         * The feed's own position can contradict its "stopped at". When it does, the
+         * measured distance is the honest line and the claim is left to the detail,
+         * where it can be shown as a claim rather than repeated as a fact.
+         */
+        var gap = fmt.stoppedAtGap(data, v);
+        if (gap) {
+          l2.appendChild(el('span', 'warnink', fmt.distance(gap.meters) + ' from stop '));
+          l2.appendChild(el('span', 'fig', gap.stop_id));
+        } else {
+          l2.appendChild(el('span', 'dim', (STATUS_WORD[v.progress.current_status] || 'near') + ' stop '));
+          l2.appendChild(el('span', 'fig', v.progress.current_stop_id));
+        }
       }
     } else {
       l2.appendChild(el('span', 'dim', 'last seen '));
@@ -227,7 +268,7 @@
       sp.appendChild(el('span', null, 'special pattern'));
       chips.appendChild(sp);
     }
-    var cont = continuationText(v.block, data);
+    var cont = continuationText(v.block, data, routes, v.route_id);
     if (cont && v.block.next_trip) {
       var cc = el('span', 'chip chip--block' + (cont.hedged ? ' chip--hedged' : ''));
       cc.appendChild(el('span', null, cont.chip));
@@ -261,6 +302,18 @@
         (v.progress.current_stop_id || '—') +
         (v.progress.current_stop_sequence === null ? ', sequence not reported'
           : ', sequence ' + v.progress.current_stop_sequence)));
+      /*
+       * Shown as a claim the payload contradicts, not silently dropped. The feed said
+       * it, and a reader comparing this board against CapMetro's own app needs to see
+       * the same sentence plus the reason it cannot be true.
+       */
+      var detailGap = fmt.stoppedAtGap(data, v);
+      if (detailGap) {
+        detail.appendChild(fact('But the position says',
+          fmt.distance(detailGap.meters) + ' from ' +
+          (detailGap.stop_name ? detailGap.stop_name + ' (stop ' + detailGap.stop_id + ')'
+            : 'stop ' + detailGap.stop_id)));
+      }
     }
     if (v.trip) {
       detail.appendChild(fact('Trip', v.trip.trip_id + ' · ' + v.trip.schedule_relationship.toLowerCase()));
@@ -395,7 +448,7 @@
         group.appendChild(head);
         var list = el('div', 'vrows vrows--dir');
         forDir.forEach(function (v, i) {
-          list.appendChild(buildRow(v, data, dir.id + '-' + i, !!yours[v.vehicle_id]));
+          list.appendChild(buildRow(v, data, dir.id + '-' + i, !!yours[v.vehicle_id], opts.routes));
         });
         group.appendChild(list);
         groups.appendChild(group);
@@ -404,7 +457,7 @@
     } else {
       var list = el('div', 'vrows');
       counts.shown.forEach(function (v, i) {
-        list.appendChild(buildRow(v, data, i, !!yours[v.vehicle_id]));
+        list.appendChild(buildRow(v, data, i, !!yours[v.vehicle_id], opts.routes));
       });
       host.appendChild(list);
     }
@@ -417,7 +470,7 @@
       host.appendChild(oosHead);
       var oos = el('div', 'vrows vrows--muted');
       counts.outOfService.forEach(function (v, i) {
-        oos.appendChild(buildRow(v, data, 'd' + i));
+        oos.appendChild(buildRow(v, data, 'd' + i, false, opts.routes));
       });
       host.appendChild(oos);
     }
@@ -425,7 +478,6 @@
 
   global.CMB.rows = {
     render: render,
-    vehiclesFor: vehiclesFor,
     continuationText: continuationText,
     directionsInLadderOrder: directionsInLadderOrder
   };

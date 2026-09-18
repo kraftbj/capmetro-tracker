@@ -29,6 +29,16 @@ const CLIENT = path.join(ROOT, 'client')
 const GOLDEN = path.join(ROOT, 'tests/fixtures/golden/route-4-20260819.json')
 const GOLDEN_DEP = path.join(ROOT, 'tests/fixtures/golden/departures-4-20260819.json')
 const SYNTHETIC = path.join(ROOT, 'tests/fixtures/synthetic')
+/*
+ * The 2026-09-17 route 837 capture. The board's clock follows the feed
+ * (app.js nowEpoch returns generated_at), so serving the pending snapshot puts
+ * the client at 17:07:48 — the exact moment the 17:03 northbound had passed its
+ * booked time with bus 8007 still finishing the trip before. That is why this
+ * scenario can prove a predictor row at all: the golden route 4 fixture has no
+ * block continuation that reaches this state, and CLAUDE.md is explicit that a
+ * route-4-only check reports clean on bugs the other routes carry.
+ */
+const CAPTURE_837 = path.join(ROOT, 'tests/fixtures/capture-20260917-837')
 
 const PORT = Number(process.env.CAPMETRO_E2E_PORT || 4173)
 
@@ -55,6 +65,30 @@ const SECURITY_HEADERS = {
   'Referrer-Policy': 'no-referrer',
 }
 
+/*
+ * What production actually sends, mirrored here because a service worker's correctness
+ * depends on it.
+ *
+ * client/sw.js precaches the shell using the browser's own HTTP cache rather than bypassing
+ * it, and the entire argument that this cannot freeze a stale release is a claim about these
+ * headers: the document is no-cache and the scripts, stylesheets and manifest are
+ * must-revalidate, so the browser has to check with the origin before reusing any of them.
+ * This server previously sent no Cache-Control on any static asset, so nothing the browser
+ * suite could do would ever observe that -- the claim was pinned only by a text assertion
+ * over the vhost files and by a probe against real nginx.
+ *
+ * Kept deliberately in step with deploy/nginx-capmetro.conf and deploy/apache-capmetro.conf.
+ * If those change and this does not, the browser suite quietly stops modelling production.
+ */
+function cacheControlFor(file) {
+  const ext = path.extname(file)
+  if (ext === '.woff2' || ext === '.woff') return 'public, max-age=31536000, immutable'
+  if (ext === '.png' || ext === '.svg' || ext === '.ico') return 'public, max-age=86400'
+  if (ext === '.html' || file.endsWith('/')) return 'no-cache'
+  /* Scripts, stylesheets and the manifest: revalidate, never reuse blind. */
+  return 'public, max-age=0, must-revalidate'
+}
+
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -63,6 +97,12 @@ const TYPES = {
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  /* Neither nginx nor Apache ships a mapping for this, which is why both vhosts
+     declare one. This server has to declare it for the same reason: served as
+     octet-stream under nosniff, the manifest is refused and the board is not
+     installable -- a failure with no symptom on screen. */
+  '.webmanifest': 'application/manifest+json',
   '.woff2': 'font/woff2',
   '.woff': 'font/woff',
 }
@@ -116,6 +156,13 @@ const SCENARIOS = {
    * fixture's CONTENT is tests/node/client-chain.test.mjs, which reads it
    * directly.
    */
+  /*
+   * A pending run timed from the bus inbound to it. Route 837, not route 4: this
+   * is the one scenario whose live payload is a real capture rather than a
+   * mutation of the golden one, because the state needs a late bus publishing a
+   * next_trip for a run whose booked time has already gone.
+   */
+  predictor: () => ({ status: 200, body: JSON.stringify(readJson(path.join(CAPTURE_837, 'route-837-pending.json'))) }),
   chain: () => ({ status: 200, body: JSON.stringify(readJson(GOLDEN)) }),
   chaindead: () => ({ status: 200, body: JSON.stringify(wireFormat(readJson(path.join(SYNTHETIC, 'route-4-dead-cron.json')))) }),
   /*
@@ -419,10 +466,15 @@ const server = createServer((req, res) => {
    */
   const DEPARTURES = CHAIN_SCENARIOS[scenario]
     ? { 4: () => chainDeparturesFor('4'), 800: () => chainDeparturesFor('800') }
-    : {
-      4: () => readJson(GOLDEN_DEP),
-      800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
-    }
+    : scenario === 'predictor'
+      /* Its own pair, and only 837: the capture's schedule is the one the
+         captured live payload belongs to, and serving the golden route 4
+         schedule beside an 837 payload would correlate nothing. */
+      ? { 837: () => readJson(path.join(CAPTURE_837, 'departures-837.json')) }
+      : {
+        4: () => readJson(GOLDEN_DEP),
+        800: () => wireFormat(readJson(path.join(SYNTHETIC, 'departures-800.json'))),
+      }
   const depMatch = rest.match(/^api\/departures\/([^/]+)\.json$/)
   if (depMatch && Object.prototype.hasOwnProperty.call(DEPARTURES, depMatch[1])) {
     if (scenario === 'missing') {
@@ -454,7 +506,11 @@ const server = createServer((req, res) => {
     return
   }
 
-  res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' })
+  res.writeHead(200, {
+    ...SECURITY_HEADERS,
+    'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream',
+    'Cache-Control': cacheControlFor(file),
+  })
   res.end(readFileSync(file))
 })
 

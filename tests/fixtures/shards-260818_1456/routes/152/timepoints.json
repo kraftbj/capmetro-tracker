@@ -1,0 +1,104 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"9-172": "152-0-21339cef"
+			},
+			"baseline_pattern_id": "152-0-21339cef",
+			"baseline_stable": true,
+			"direction_id": 0,
+			"ladders": {
+				"152-0-21339cef": {
+					"direction_id": 0,
+					"pattern_id": "152-0-21339cef",
+					"representative_trip_id": "2998716_1543",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 2,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.418161,
+							"lon": -97.667996,
+							"minor_stops": [],
+							"stop_id": "5279",
+							"stop_name": "Tech Ridge Bay J",
+							"stop_name_full": "Tech Ridge Bay J",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.485451,
+							"lon": -97.663909,
+							"minor_stops": [],
+							"stop_id": "6474",
+							"stop_name": "Dellway /Greenlawn",
+							"stop_name_full": "376 Dellway /Greenlawn",
+							"stop_sequence": 2
+						}
+					]
+				}
+			},
+			"stop_count": 2,
+			"timepoint_count": 2
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "152-1-aa270582"
+			},
+			"baseline_pattern_id": "152-1-aa270582",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"152-1-aa270582": {
+					"direction_id": 1,
+					"pattern_id": "152-1-aa270582",
+					"representative_trip_id": "2998728_1555",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 3,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.485241,
+							"lon": -97.6639,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.481344,
+									"lon": -97.670476,
+									"stop_id": "6160",
+									"stop_name": "Louis Henna/Walmart",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "6161",
+							"stop_name": "Dell Way/Greenlawn",
+							"stop_name_full": "Dell Way/Greenlawn",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.418161,
+							"lon": -97.667996,
+							"minor_stops": [],
+							"stop_id": "5279",
+							"stop_name": "Tech Ridge Bay J",
+							"stop_name_full": "Tech Ridge Bay J",
+							"stop_sequence": 3
+						}
+					]
+				}
+			},
+			"stop_count": 3,
+			"timepoint_count": 2
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "152",
+	"schema": 1
+}

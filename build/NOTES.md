@@ -249,31 +249,42 @@ These touch directories this job does not own.
 4. **`schemas/` has no schema for the build shards.** The five schemas cover the runtime's
    `/api/*` output, which is a different shape. If shard validation is wanted, a
    `schemas/shard-*.schema.json` set would need to be added by whoever owns `schemas/`.
-5. **`.gitignore` already ignores `build/data/` and `build/dist/`.** Those entries are now
-   vestigial, since the output goes to `data/` at the repo root so CI can commit it and the
-   webserver can serve it as `/data/*` per §11. `node_modules/` and `build/.cache/` are already
-   covered correctly. Harmless either way, but worth tidying.
-6. **`data/` is not committed yet.** The workflow commits it, but the first commit has to come
-   from a human or from a `workflow_dispatch` run with `force_commit`. It is 27.96 MB raw and
-   about 5.5 MB as a git object store; `TODOS.md` already tracks the history-growth question,
+5. **`data/` is committed, 358 files and 31 MB on disk.** The workflow keeps it current and
+   only commits when `feed_version` changes; `TODOS.md` tracks the history-growth question,
    and the `feed_version` gate it names as "the cheapest mitigation" is implemented here.
 
 ## Interfaces other lanes import
 
-`tests/node/` probes a handful of module paths under `build/`. Those paths exist as thin,
-stable entry points over `build/lib/`:
+`tests/node/` imports `build/lib/` directly:
 
 | Path | Exports |
 |---|---|
-| `build/time.js` | `serviceDayMidnight`, `serviceClockToEpoch`, `clockToSeconds`, `secondsToClock`, `feedVersionToEpoch` |
-| `build/stops.js` | `shortenStopName`, `stopsIndex` |
-| `build/blocks.js` | `blockConfidence`, `continuationReasons`, `buildBlockChains` |
-| `build/calendar.js` | `activeServiceIds`, `isExceptionDay`, `watchId`, `buildCalendar` |
+| `build/lib/time.mjs` | `serviceDayMidnight`, `serviceClockToEpoch`, `clockToSeconds`, `secondsToClock`, `feedVersionToEpoch` |
+| `build/lib/stop-names.mjs` | `shortenStopName`, `stopNameStem` |
+| `build/lib/blocks.mjs` | `continuationReasons`, `buildBlockChains` |
+| `build/lib/calendar.mjs` | `buildCalendar` |
 
-`blockConfidence` is §4's grade as a pure function over one predecessor/successor pair, and it
-is the same code path `buildBlockChains` runs over the feed, so the rule has one
-implementation. `serviceDayMidnight` implements §2's noon-minus-12 anchor: on 2026-03-08 it
-lands at 23:00 the previous evening, because that service day is 23 hours long.
+Not all of those are reached by a test. `tests/node/build-*.test.mjs` gates on
+`serviceClockToEpoch`, `secondsToClock`, `feedVersionToEpoch`, `shortenStopName`,
+`buildBlockChains` and `buildCalendar` through `gate(mod, [...], it)`, and imports
+`stopNameStem` directly. `serviceDayMidnight`, `clockToSeconds` and
+`continuationReasons` have no test reference at all.
+
+That last one is worth stating rather than tidying away: `continuationReasons` is
+now the only exported handle on section 4's per-pair continuation rule, it is
+exercised only indirectly through `buildBlockChains`, and `blockConfidence` —
+which existed so the rule could be exercised directly — is gone. Deleting it cost
+no coverage, because nothing tested it. It did make the gap permanent.
+
+There used to be a shim layer — `build/time.js`, `build/stops.js`, `build/blocks.js`,
+`build/calendar.js` — re-exporting these under stable paths while build/, runtime/ and
+client/ were being authored concurrently. The suite moved off it and nothing else ever used
+it, so it is gone. `build/calendar.js` also carried a second implementation of §9's
+`watch_id` hash; the live one is `cm_watch_id` in `runtime/lib/watch.php`, which
+`WatchResolutionTest` covers.
+
+`serviceDayMidnight` implements §2's noon-minus-12 anchor: on 2026-03-08 it lands at 23:00 the
+previous evening, because that service day is 23 hours long.
 
 **`build/shards.js` (`unmatchedTripRate`, `shardHealth`) is deliberately absent.** Both grade
 how well live trip updates match a shard, which is a property of a runtime poll rather than of

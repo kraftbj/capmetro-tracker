@@ -293,6 +293,335 @@
     return false;
   }
 
+  /*
+   * ---- who is going to run this trip ------------------------------------
+   *
+   * A departure with no bus joined to it was rendered "no bus reporting yet", which
+   * reads as "it has not started". That sentence covers three states that call for
+   * completely different actions from someone standing at the stop, and it is the same
+   * flattening that once rendered a CANCELED trip as "not reporting" and left a kid
+   * waiting for a bus that was never coming. One level down, the same harm:
+   *
+   *   2026-09-01, the 16:49 run on block 4091. The board said "no bus reporting yet" at
+   *   16:49, at 16:55, at 16:59. CapMetro published the cancellation at 16:59, ten
+   *   minutes after the bus was due out. For those ten minutes the board's sentence was
+   *   indistinguishable from the one it prints for a bus that is simply early in its
+   *   layover, and somebody stood at 5th/West Lynn reading it.
+   *
+   * What the board can actually know, given `block_id` on every trip in the departures
+   * document and `block` on every live vehicle:
+   *
+   *   live       — a bus is on this trip right now. Nothing to infer.
+   *   inbound    — no bus on THIS trip, but one is working this block on an earlier run.
+   *                It exists, it is out, and it is coming. Naming it is the difference
+   *                between "no bus reporting yet" and "2810 is two runs away".
+   *   unassigned — no bus anywhere on this block, and this trip is not due out yet. The
+   *                honest state for a fresh pull-out: nobody can name the vehicle,
+   *                CapMetro's own app included, because the assignment does not exist
+   *                until a bus starts reporting. Benign, and it must not read as alarm.
+   *   overdue    — no bus anywhere on this block and this trip's own start time has
+   *                PASSED. This is the one that is news. It does not claim a
+   *                cancellation, because we have not been told of one; it states the
+   *                observation, which is already more than the feed is saying.
+   *   unknown    — we may not say. No route document, a stale feed, or a trip with no
+   *                block. A dead feed and a dead bus produce the identical observation
+   *                — no vehicle — and calling that overdue would read the silence of a
+   *                broken feed as news about a bus.
+   *
+   * `unknown` is checked FIRST and deliberately. Every other state here is an assertion
+   * about the world, and none of them may be made from a snapshot that stopped updating.
+   */
+
+  /* A bus can begin reporting a little after its booked start without anything being
+     wrong. Below this it is a layover; above it, the trip is late to exist. */
+  var OVERDUE_GRACE_S = 120;
+
+  /*
+   * The longest gap between two of a block's runs on one route that still reads as a
+   * layover. Above it the block was plausibly away on another route, where this route's
+   * payload cannot see its bus, and no claim about a missing bus may be made.
+   */
+  var INTERLINE_GAP_S = 5400;
+
+  function tripStartEpoch(dep, trip) {
+    if (!dep || !trip) { return null; }
+    var s = secondsOf(trip.start_time);
+    if (s === null || dep.service_day_start_epoch === undefined) { return null; }
+    return dep.service_day_start_epoch + s;
+  }
+
+  /*
+   * Every trip of one block on this route, in running order.
+   *
+   * Indexed once per departures document, because the naive form was 83% of a
+   * stop-board render: it re-filtered and re-SORTED all 194 of route 837's trips
+   * on each of the 160 calls one panel makes, through coverageFor and runsAhead.
+   * Measured on the live board, worst panel 12.15ms -> 1.72ms, and a 291-panel
+   * sweep across routes 4, 7, 803 and 837 1132ms -> 179ms, with zero output
+   * differences over all 291 panels.
+   *
+   * Memoized on the document's own identity, which is sound because a departures
+   * document is immutable once fetched and is replaced wholesale — app.js drops
+   * and refetches it when the service day rolls, so a new day is a new object and
+   * gets a new index. Held in a WeakMap-shaped pair rather than on the document,
+   * so nothing is added to a payload that also gets schema-validated, and the
+   * entry dies with the document rather than pinning the old day's trips in
+   * memory. One slot is enough: the board reads one route's schedule at a time,
+   * and a miss just rebuilds.
+   *
+   * Callers still get a fresh array. runsAhead and coverageFor only read, but
+   * handing out the cached array would let any future caller sort or splice the
+   * index itself.
+   */
+  var blockIndexDoc = null;
+  var blockIndex = null;
+
+  function indexFor(dep) {
+    if (blockIndexDoc === dep) { return blockIndex; }
+    var idx = Object.create(null);
+    var trips = (dep && dep.trips) || [];
+    /* Sort once over the whole document, so each bucket comes out ordered. */
+    var sorted = trips.slice().sort(function (a, b) {
+      return (secondsOf(a.start_time) || 0) - (secondsOf(b.start_time) || 0);
+    });
+    for (var i = 0; i < sorted.length; i++) {
+      var k = String(sorted[i].block_id);
+      if (!idx[k]) { idx[k] = []; }
+      idx[k].push(sorted[i]);
+    }
+    blockIndexDoc = dep;
+    blockIndex = idx;
+    return idx;
+  }
+
+  function tripsInBlock(dep, blockId) {
+    if (!dep || !blockId) { return []; }
+    var bucket = indexFor(dep)[String(blockId)];
+    return bucket ? bucket.slice() : [];
+  }
+
+  /*
+   * How many runs sit between the bus and this trip, or null when it cannot be counted.
+   *
+   * Counted over this route's trips only, which is all the departures document holds.
+   * A block that interlines is away on another route for part of its day, so the count
+   * is unavailable rather than wrong: null prints "is working this block" and a number
+   * prints "two runs away", and inventing a number from a partial list would be the
+   * second kind of sentence built on the first kind of knowledge.
+   */
+  function runsAhead(dep, vehicle, trip) {
+    var current = vehicle && vehicle.trip && vehicle.trip.trip_id;
+    if (!current) { return null; }
+    var seq = tripsInBlock(dep, trip.block_id);
+    var from = -1, to = -1;
+    for (var i = 0; i < seq.length; i++) {
+      if (String(seq[i].id) === String(current)) { from = i; }
+      if (String(seq[i].id) === String(trip.id)) { to = i; }
+    }
+    if (from === -1 || to === -1 || to <= from) { return null; }
+    return to - from;
+  }
+
+  function vehiclesOnBlock(route, blockId) {
+    if (!blockId) { return []; }
+    return ((route && route.vehicles) || []).filter(function (v) {
+      return v.block && String(v.block.block_id) === String(blockId);
+    });
+  }
+
+  function coverageFor(dep, route, trip, now) {
+    var out = {
+      state: 'unknown', vehicle: null, runs_ahead: null,
+      start_epoch: tripStartEpoch(dep, trip), overdue_s: null
+    };
+    if (!trip || !route) { return out; }
+    /* A snapshot that has stopped updating cannot say a bus is missing. */
+    if (route.staleness && route.staleness.suppress_adherence) { return out; }
+
+    var onIt = vehicleForTrip(route, trip.id);
+    if (onIt) { out.state = 'live'; out.vehicle = onIt; return out; }
+
+    if (!trip.block_id) { return out; }
+
+    /*
+     * The successor claim first, because it is exact: a vehicle publishing
+     * next_trip.trip_id for this trip is one run away by the build's own chaining.
+     * The block match behind it catches the same bus further out, where there is no
+     * published claim to read.
+     */
+    var mates = vehiclesOnBlock(route, trip.block_id);
+    var claimant = null;
+    for (var i = 0; i < mates.length; i++) {
+      var nt = mates[i].block && mates[i].block.next_trip;
+      if (nt && String(nt.trip_id) === String(trip.id)) { claimant = mates[i]; break; }
+    }
+    if (claimant) {
+      out.state = 'inbound'; out.vehicle = claimant; out.runs_ahead = 1;
+      return out;
+    }
+    if (mates.length) {
+      out.state = 'inbound'; out.vehicle = mates[0];
+      out.runs_ahead = runsAhead(dep, mates[0], trip);
+      return out;
+    }
+
+    /* Nothing is on this block. Only the clock separates "not out yet" from news. */
+    if (out.start_epoch === null || now === null || now === undefined) { return out; }
+    if (now <= out.start_epoch + OVERDUE_GRACE_S) { out.state = 'unassigned'; return out; }
+
+    /*
+     * Past its time with nothing on the block — but "nothing on the block" is read from
+     * THIS ROUTE's vehicle list, and an interlined block spends part of its day on
+     * another route where this payload cannot see it. Block 1010 leaves route 4 at 16:19
+     * and works route 1 until midnight; a route 4 trip it returned for would look
+     * abandoned while the bus was running perfectly well two routes over, and a late
+     * bus wrongly reported missing is the same class of lie as a missing bus reported
+     * on time.
+     *
+     * So `overdue` is claimed only where the block cannot be somewhere else:
+     *
+     *   - the trip is the block's FIRST of the day. A pull-out has no prior work, so
+     *     there is nowhere else for it to be. This is the 4091 case, and the one that
+     *     went unannounced for ten minutes on 2026-09-01.
+     *   - or the block's previous run on this route was recent enough to be a layover
+     *     rather than an excursion. Consecutive same-route runs sit 30-60 minutes apart
+     *     by start time; an interline gap is hours. Beyond the threshold we do not know,
+     *     and `unknown` is the honest answer.
+     */
+    var seq = tripsInBlock(dep, trip.block_id);
+    var idx = -1;
+    for (var j = 0; j < seq.length; j++) {
+      if (String(seq[j].id) === String(trip.id)) { idx = j; break; }
+    }
+    if (idx > 0) {
+      var prev = secondsOf(seq[idx - 1].start_time);
+      var mine = secondsOf(trip.start_time);
+      if (prev === null || mine === null || mine - prev > INTERLINE_GAP_S) { return out; }
+    }
+
+    out.state = 'overdue';
+    out.overdue_s = now - out.start_epoch;
+    return out;
+  }
+
+  /*
+   * When a departure is actually expected, and which bus that answer came from.
+   *
+   * ONE place, because the stop board and the saved cards both need it and both
+   * used to compute it inline from the same three lines. CLAUDE.md's rule after
+   * ISSUE-002 is that two producers of one value drift; here the first symptom
+   * would be the two panels disagreeing about when the same departure is due,
+   * on one screen.
+   *
+   * WHY THE BUS ON THE TRIP IS NOT THE ONLY PREDICTOR.
+   *
+   * Both callers looked the vehicle up by THIS trip's id, so a run that has not
+   * started yet had no vehicle, no lateness, and therefore no predicted time —
+   * `due_at` fell back to the bare schedule. stopboard.js then dropped the row
+   * for being in the past, and a saved card called it `passed`.
+   *
+   * That is wrong exactly when it matters most. Route 837 on 2026-09-17: the
+   * 17:03 northbound was to be run by bus 8007, which was still 820s late
+   * finishing its southbound trip and did not take the run over until 17:14.
+   * Between 17:04:30 (its time, plus the 90s grace) and 17:14 the board did not
+   * list it at all, and a rider at 5th/Guadalupe was shown the 17:33 as their
+   * next bus while their actual bus was ten minutes away. The capture is in
+   * tests/fixtures/capture-20260917-837/, with its MANIFEST.json.
+   *
+   * The payload already answered it. coverageFor() finds the bus that published
+   * `next_trip.trip_id == this trip`, and that bus's own lateness is the best
+   * estimate of how late this run will begin. Measured against that capture:
+   * at 17:12:36 the extrapolation said 17:15:28; 8007 actually took the run at
+   * 17:13:56 running 681s late, i.e. 17:14:21 at the origin. About a minute out,
+   * against a row that was not on the board at all.
+   *
+   * Only `runs_ahead === 1` — coverageFor's exact successor claim, the bus's own
+   * published `next_trip` — is used. Further down a block the weaker block-mate
+   * match is all coverageFor has, and a lateness measured two or three runs back
+   * says little about a departure half an hour out with layovers in between. That
+   * stays unpredicted rather than confidently wrong.
+   */
+  function timingFor(dep, route, trip, scheduledAt, now, coverage, canceled) {
+    var onIt = vehicleForTrip(route, trip && trip.id);
+    var predictor = null;
+    /*
+     * Never for a canceled trip, even when a bus is still advertising it as its
+     * next run — which happens: CapMetro published a cancellation for route 800's
+     * 3010826_22741 while bus 8010 went on naming it in next_trip. Extrapolating
+     * there says when a bus that is not coming would have arrived, and the
+     * canceled row leads with due_at, so it moved the one number a rider uses to
+     * recognize which run was canceled. Theirs said 17:30; the board would have
+     * said 17:44.
+     */
+    var isOff = canceled === undefined ? isCanceled(trip, route) : !!canceled;
+    if (!onIt && !isOff) {
+      /* The caller may already hold it; coverageFor walks the vehicle list and
+         the block's trips, and the stop board asks per row per stop. Measured:
+         dropping this argument doubles a panel render, 11.3ms to 21.7ms. Same
+         reason `canceled` is threaded above — the stop board already knows both
+         answers for this row, and recomputing them here took isCanceled from 69
+         to 378 linear scans per panel. Both must be for THIS trip at THIS now. */
+      var cov = coverage || coverageFor(dep, route, trip, now);
+      if (cov.state === 'inbound' && cov.runs_ahead === 1 && cov.vehicle) {
+        predictor = cov.vehicle;
+      }
+    }
+    var source = onIt || predictor;
+    var view = source ? adhLib.view(source, route && route.staleness) : null;
+    var lateness = view && view.seconds !== null && view.seconds !== undefined
+      ? view.seconds : null;
+    var predictedAt = lateness === null ? null : scheduledAt + lateness;
+    /*
+     * A successor with no usable deviation of its own predicts nothing, so it is
+     * not reported as a predictor. Bus 2817 on route 466 is the case: inbound to
+     * 3005797_15872, `in_service`, and `adherence.state` unknown with reason
+     * no_trip_update, so there is no number to add to the schedule.
+     *
+     * Naming it anyway left a row advertising a predictor beside a null
+     * predicted_at, and callers read the two as one fact — departureRow keys the
+     * shifted-time branch off predicted_at and would have said "becomes this run,
+     * running undefined". With this null the row falls back to the coverage
+     * wording, which names the same bus without attaching a time to it. Caught by
+     * a differential over all 71 live routes, not by a unit test.
+     *
+     * The view goes with it, and that is not tidiness. `view` is what the stop
+     * board colours the row from (`d.view ? d.view.state : 'scheduled'`), so
+     * handing back the successor's `unknown` view restyled every such row from
+     * `nextbus--scheduled` to `nextbus--unknown` — an "unknown lateness" row
+     * where the honest reading is "no prediction yet". Nothing is on this trip
+     * and nothing was predicted for it, so there is no state to report. A bus
+     * that IS on the trip keeps its view whatever its adherence says: that case
+     * never reaches here, because `predictor` was never set for it.
+     */
+    if (predictedAt === null && !onIt) { predictor = null; view = null; }
+    return {
+      /* The bus ON this trip. Callers key "live" off this and must not see the
+         successor here: it is running something else right now. */
+      vehicle: onIt,
+      /* The bus that WILL run it, when nothing is on it yet. Named separately so
+         a row can say "becomes this run" rather than claiming it is under way. */
+      predictor: predictor,
+      /*
+       * Whether that continuation is one the build could only grade `low`, in
+       * which case §4 of the contract governs how it may be said: hedged, or not
+       * at all. It is never dropped here — a low grade is a statement about how
+       * confident the chaining is, not about whether the bus exists, and 20% of
+       * predictor rows on the live system carry one. Dropping them would put a
+       * fifth of these runs back on a scheduled time that has already passed,
+       * which is the bug this whole change is about.
+       *
+       * So the time stands and the sentence hedges. rows.js, allbuses.js and
+       * trip.js read the same field for the same reason; this is the fourth
+       * reader and the first where the grade also governs a clock.
+       */
+      predictor_hedged: !!predictor &&
+        !(predictor.block && predictor.block.confidence === 'high'),
+      view: view,
+      predicted_at: predictedAt,
+      due_at: predictedAt === null ? scheduledAt : predictedAt
+    };
+  }
+
   function resolve(watch, dep, route, now) {
     var base = { watch: watch, key: keyFor(watch) };
 
@@ -337,15 +666,24 @@
         detail: 'CapMetro has canceled this trip. No bus is running it today.'
       });
     }
-    var vehicle = vehicleForTrip(route, trip.id);
-    var view = vehicle ? adhLib.view(vehicle, route && route.staleness) : null;
-    var lateness = view && view.seconds !== null && view.seconds !== undefined ? view.seconds : null;
-    var predictedAt = lateness === null ? null : scheduledAt + lateness;
-    var dueAt = predictedAt === null ? scheduledAt : predictedAt;
+    var timing = timingFor(dep, route, trip, scheduledAt, now);
+    var vehicle = timing.vehicle;
+    var view = timing.view;
+    var predictedAt = timing.predicted_at;
+    var dueAt = timing.due_at;
 
     var model = extend(base, {
       trip: trip,
       vehicle: vehicle,
+      /*
+       * The successor, when one is inbound and nothing is on the trip yet. It is
+       * what keeps `due_at` honest below: without it a card for a run whose bus
+       * is still finishing the trip before went `passed` on the schedule while
+       * the bus was minutes away.
+       */
+      predictor: timing.predictor,
+      /* §4: a `low` continuation may be hedged but never stated as fact. */
+      predictor_hedged: timing.predictor_hedged,
       view: view,
       shifted: match.shifted,
       drift: match.drift,
@@ -435,6 +773,26 @@
         'Scheduled ' + fmt.clock(model.scheduled_at) + ' · ' + model.view.label));
       box.appendChild(el('p', 'watchcard__bus',
         'Bus ' + (model.vehicle.label || model.vehicle.vehicle_id)));
+    } else if (model.state === 'no-vehicle' && model.predictor && model.view) {
+      /*
+       * Nothing is on the trip, but the bus that will run it is known and is
+       * late finishing the run before, so there IS a time to lead with. It has
+       * to lead: `seconds_until` counts to due_at, and printing it beside the
+       * SCHEDULED time read "17:03 · in 9 minutes" — two numbers nine minutes
+       * apart on one line. They agreed only while an unstarted run had no
+       * prediction at all.
+       */
+      line.appendChild(el('span', 'watchcard__due', fmt.clock(model.due_at)));
+      line.appendChild(el('span', 'watchcard__until', untilText(model.seconds_until)));
+      box.appendChild(line);
+      box.appendChild(adhLib.badge(model.view));
+      box.appendChild(el('p', 'watchcard__detail',
+        'Scheduled ' + fmt.clock(model.scheduled_at) + ' · bus ' +
+        (model.predictor.label || model.predictor.vehicle_id) +
+        ' has not started it yet and is running ' + model.view.label + '.' +
+        (model.predictor_hedged
+          ? ' The feed does not confirm this bus takes this run.'
+          : '')));
     } else if (model.state === 'no-vehicle') {
       line.textContent = fmt.clock(model.scheduled_at) + ' · ' + untilText(model.seconds_until);
       box.appendChild(line);
@@ -478,7 +836,18 @@
         : model.state === 'canceled' ? 'Canceled. No bus is running this trip today.'
           : model.state === 'passed' ? 'Already gone.'
           : model.state === 'upcoming' ? 'Due ' + fmt.clockSpoken(model.scheduled_at) + '.'
-            : (model.detail || 'Nothing to show.'));
+            /* The predictor card prints a time and a badge, so the spoken line has
+               to carry both. Without this it fell through to "Nothing to show" on
+               the one card that had the most to say. */
+            : model.state === 'no-vehicle' && model.predictor && model.view
+              ? 'Due ' + fmt.clockSpoken(model.due_at) + ', scheduled ' +
+                fmt.clockSpoken(model.scheduled_at) + '. Bus ' +
+                (model.predictor.label || model.predictor.vehicle_id) +
+                ' has not started it yet and is running ' + model.view.label + '.' +
+                (model.predictor_hedged
+                  ? ' The feed does not confirm this bus takes this run.'
+                  : '')
+              : (model.detail || 'Nothing to show.'));
     var sr = el('p', 'sr-only', spoken);
     box.appendChild(sr);
 
@@ -754,6 +1123,21 @@
     matchDeparture: matchDeparture,
     vehicleForTrip: vehicleForTrip,
     isCanceled: isCanceled,
+    coverageFor: coverageFor,
+    /*
+     * Exported because stopboard.js must compute a departure's due time through
+     * THIS function rather than its own copy of the arithmetic. See the note on
+     * timingFor: two producers of one value is the shape ISSUE-002 forbids.
+     */
+    timingFor: timingFor,
+    /*
+     * Read by the block-index tests, which pin the memo's two load-bearing
+     * properties: that a second departures document is not served the first
+     * one's index, and that a caller cannot corrupt the cache through the array
+     * it is handed. trunk unexported this in the dead-code pass, correctly --
+     * it had no reader there. It has four now.
+     */
+    tripsInBlock: tripsInBlock,
     resolve: resolve,
     untilText: untilText,
     sortModels: sortModels,

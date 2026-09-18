@@ -58,4 +58,23 @@ final class Runtime
 
         return $path;
     }
+
+    /*
+     * Skip unless one specific fixture FILE is present.
+     *
+     * dirOrSkip is the wrong guard for a directory that holds more than one capture. Both
+     * differential pairs live in tests/fixtures/feeds-pb-differential/, and the trip updates
+     * pair landed first, so a test guarding on the directory would see it exist and then fail
+     * on its own missing file -- reporting a broken test where the honest answer is "that
+     * capture has not been taken yet".
+     */
+    public static function fileOrSkip(TestCase $test, string $rel, string $why): string
+    {
+        $path = self::root() . '/' . ltrim($rel, '/');
+        if (!is_file($path)) {
+            $test->markTestSkipped($why);
+        }
+
+        return $path;
+    }
 }

@@ -2,16 +2,27 @@ name: GTFS shards
 
 # Rebuilds the per-route schedule shards from the CapMetro GTFS static feed.
 #
-# The feed is republished roughly three times a year, so on almost every run this workflow
-# downloads the feed, rebuilds, finds feed_version unchanged, and commits nothing. The build
-# is deterministic (see build/NOTES.md), so an unchanged feed produces a byte-identical tree
-# and the working directory stays clean on its own; the explicit feed_version comparison is
-# the primary gate and the clean-tree check is the backstop.
+# On almost every run this workflow downloads the feed, rebuilds, finds feed_version
+# unchanged, and commits nothing. The build is deterministic (see build/NOTES.md), so an
+# unchanged feed produces a byte-identical tree and the working directory stays clean on its
+# own; the explicit feed_version comparison is the primary gate and the clean-tree check is
+# the backstop.
+#
+# CADENCE. This was once daily, on the assumption that CapMetro republishes about three times
+# a year. They also tweak off-cycle: 260818_1456 became 260826_0956 eight days later, inside a
+# feed advertised through 2027-01-09. Between two feeds every trip id is renumbered, so the
+# board joins nothing and says "not in today's schedule" about every bus on the road. A daily
+# run also leans on GitHub's scheduled-run queue being punctual, and it is not -- the run for
+# 2026-08-27 had still not fired two hours past its slot, on the one morning it mattered.
+#
+# Four times a day instead, and the box pulls an hour after each (deploy/capmetro-update.timer
+# fires at 00:20/06:20/12:20/18:20 UTC). Delivery worst case goes from about 41 hours to under
+# six. A run is ~1 minute and one 34 MB download.
 
 on:
   schedule:
-    # 11:20 UTC daily, comfortably after CapMetro's overnight publish window.
-    - cron: '20 11 * * *'
+    # 05:20 / 11:20 / 17:20 / 23:20 UTC. The box pulls at 20 past the following even hour.
+    - cron: '20 5,11,17,23 * * *'
   workflow_dispatch:
     inputs:
       force_commit:

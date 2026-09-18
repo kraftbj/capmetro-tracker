@@ -1,0 +1,420 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "990-0-cf7e3024",
+				"2-172": "990-0-d19a5e5d",
+				"3-172": "990-0-d19a5e5d",
+				"4-172": "990-0-d19a5e5d",
+				"5-172": "990-0-d19a5e5d"
+			},
+			"baseline_pattern_id": "990-0-d19a5e5d",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"990-0-cf7e3024": {
+					"direction_id": 0,
+					"pattern_id": "990-0-cf7e3024",
+					"representative_trip_id": "3013457_24280",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 14,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.265792,
+							"lon": -97.746213,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "5944",
+							"stop_name": "Lavaca/3rd",
+							"stop_name_full": "Lavaca/3rd",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.285754,
+							"lon": -97.74162,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302541,
+									"lon": -97.738161,
+									"stop_id": "605",
+									"stop_name": "Guadalupe/38th",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314796,
+									"lon": -97.732266,
+									"stop_id": "610",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "1042",
+							"stop_name": "Guadalupe/West Mall UT",
+							"stop_name_full": "2231 Guadalupe/West Mall UT",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.323488,
+							"lon": -97.724021,
+							"minor_stops": [],
+							"stop_id": "2427",
+							"stop_name": "Koenig/Guadalupe SW…",
+							"stop_name_full": "Koenig/Guadalupe SW Corner",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.339694,
+							"lon": -97.559124,
+							"minor_stops": [],
+							"stop_id": "5776",
+							"stop_name": "W Carrie Manor/Lexington",
+							"stop_name_full": "201 W Carrie Manor/Lexington",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.357315,
+							"lon": -97.382054,
+							"minor_stops": [],
+							"stop_id": "5696",
+							"stop_name": "SH 95/Main",
+							"stop_name_full": "SH 95/Main",
+							"stop_sequence": 13
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.34649,
+							"lon": -97.371679,
+							"minor_stops": [],
+							"stop_id": "5777",
+							"stop_name": "Central/Avenue C",
+							"stop_name_full": "Central/Avenue C",
+							"stop_sequence": 14
+						}
+					]
+				},
+				"990-0-d19a5e5d": {
+					"direction_id": 0,
+					"pattern_id": "990-0-d19a5e5d",
+					"representative_trip_id": "3013457_24283",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 13,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.265792,
+							"lon": -97.746213,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.278834,
+									"lon": -97.741358,
+									"stop_id": "5940",
+									"stop_name": "Lavaca/17th",
+									"stop_sequence": 5
+								}
+							],
+							"stop_id": "5944",
+							"stop_name": "Lavaca/3rd",
+							"stop_name_full": "Lavaca/3rd",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.285754,
+							"lon": -97.74162,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.29024,
+									"lon": -97.74125,
+									"stop_id": "5864",
+									"stop_name": "UT Dean Keeton Station",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.302541,
+									"lon": -97.738161,
+									"stop_id": "605",
+									"stop_name": "Guadalupe/38th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314796,
+									"lon": -97.732266,
+									"stop_id": "610",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "1042",
+							"stop_name": "Guadalupe/West Mall UT",
+							"stop_name_full": "2231 Guadalupe/West Mall UT",
+							"stop_sequence": 6
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.323488,
+							"lon": -97.724021,
+							"minor_stops": [],
+							"stop_id": "2427",
+							"stop_name": "Koenig/Guadalupe SW…",
+							"stop_name_full": "Koenig/Guadalupe SW Corner",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.339694,
+							"lon": -97.559124,
+							"minor_stops": [],
+							"stop_id": "5776",
+							"stop_name": "W Carrie Manor/Lexington",
+							"stop_name_full": "201 W Carrie Manor/Lexington",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.357315,
+							"lon": -97.382054,
+							"minor_stops": [],
+							"stop_id": "5696",
+							"stop_name": "SH 95/Main",
+							"stop_name_full": "SH 95/Main",
+							"stop_sequence": 12
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.34649,
+							"lon": -97.371679,
+							"minor_stops": [],
+							"stop_id": "5777",
+							"stop_name": "Central/Avenue C",
+							"stop_name_full": "Central/Avenue C",
+							"stop_sequence": 13
+						}
+					]
+				}
+			},
+			"stop_count": 13,
+			"timepoint_count": 6
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "990-1-212ff67b"
+			},
+			"baseline_pattern_id": "990-1-212ff67b",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"990-1-212ff67b": {
+					"direction_id": 1,
+					"pattern_id": "990-1-212ff67b",
+					"representative_trip_id": "3013460_24295",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 11,
+					"timepoint_count": 6,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.34649,
+							"lon": -97.371679,
+							"minor_stops": [],
+							"stop_id": "5777",
+							"stop_name": "Central/Avenue C",
+							"stop_name_full": "Central/Avenue C",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.357315,
+							"lon": -97.382054,
+							"minor_stops": [],
+							"stop_id": "5696",
+							"stop_name": "SH 95/Main",
+							"stop_name_full": "SH 95/Main",
+							"stop_sequence": 2
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.339694,
+							"lon": -97.559124,
+							"minor_stops": [],
+							"stop_id": "5776",
+							"stop_name": "W Carrie Manor/Lexington",
+							"stop_name_full": "201 W Carrie Manor/Lexington",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.323545,
+							"lon": -97.723626,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.314586,
+									"lon": -97.732526,
+									"stop_id": "484",
+									"stop_name": "Triangle Station",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.30358,
+									"lon": -97.737757,
+									"stop_id": "5405",
+									"stop_name": "Hyde Park Station",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "4513",
+							"stop_name": "Koenig/Guadalupe",
+							"stop_name_full": "Koenig/Guadalupe",
+							"stop_sequence": 4
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.286231,
+							"lon": -97.741771,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.275022,
+									"lon": -97.744169,
+									"stop_id": "2738",
+									"stop_name": "Capitol Station",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.271503,
+									"lon": -97.745478,
+									"stop_id": "5950",
+									"stop_name": "Guadalupe/8th",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "497",
+							"stop_name": "UT West Mall Station",
+							"stop_name_full": "UT West Mall Station (SB)",
+							"stop_sequence": 7
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.268253,
+							"lon": -97.74669,
+							"minor_stops": [],
+							"stop_id": "2612",
+							"stop_name": "Guadalupe/5th",
+							"stop_name_full": "500 Guadalupe/5Th",
+							"stop_sequence": 11
+						}
+					]
+				}
+			},
+			"stop_count": 11,
+			"timepoint_count": 6
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "990",
+	"schema": 1
+}

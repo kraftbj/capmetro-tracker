@@ -152,17 +152,3 @@ function cm_watch_status(
     }
     return 'not_yet_running';
 }
-
-/*
- * True when any configured watch targets this route. Used to decide whether a route's
- * stop times need loading even when no bus is on the route right now.
- */
-function cm_watch_route_wanted(array $config, string $route_id): bool
-{
-    foreach (($config['watches'] ?? []) as $w) {
-        if ((string) ($w['route_id'] ?? '') === $route_id) {
-            return true;
-        }
-    }
-    return false;
-}

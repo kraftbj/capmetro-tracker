@@ -11,7 +11,7 @@
 				"466-0-3564d8b2": {
 					"direction_id": 0,
 					"pattern_id": "466-0-3564d8b2",
-					"representative_trip_id": "3005777_15974",
+					"representative_trip_id": "3005777_15853",
 					"service_ids": [
 						"9-172"
 					],
@@ -116,7 +116,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "260818_1456",
+	"feed_version": "260826_0956",
 	"route_id": "466",
 	"schema": 1
 }

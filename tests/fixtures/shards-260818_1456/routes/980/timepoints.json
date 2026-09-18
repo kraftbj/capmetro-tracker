@@ -1,0 +1,379 @@
+{
+	"directions": [
+		{
+			"baseline_by_service": {
+				"1-172": "980-0-74b35670",
+				"2-172": "980-0-480b303b",
+				"3-172": "980-0-480b303b",
+				"4-172": "980-0-480b303b",
+				"5-172": "980-0-480b303b"
+			},
+			"baseline_pattern_id": "980-0-480b303b",
+			"baseline_stable": false,
+			"direction_id": 0,
+			"ladders": {
+				"980-0-480b303b": {
+					"direction_id": 0,
+					"pattern_id": "980-0-480b303b",
+					"representative_trip_id": "3013247_24232",
+					"service_ids": [
+						"2-172",
+						"3-172",
+						"4-172",
+						"5-172"
+					],
+					"stop_count": 11,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.50715,
+							"lon": -97.681161,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.440473,
+									"lon": -97.701695,
+									"stop_id": "6406",
+									"stop_name": "Howard Station Bay B",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "6094",
+							"stop_name": "Bagdad/Brown",
+							"stop_name_full": "Bagdad/Brown",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.435217,
+							"lon": -97.697402,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26835,
+									"lon": -97.74792,
+									"stop_id": "2111",
+									"stop_name": "5th/San Antonio",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "6095",
+							"stop_name": "New Life Park and Ride",
+							"stop_name_full": "New Life Park and Ride",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.278834,
+							"lon": -97.741358,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "5940",
+							"stop_name": "Lavaca/17th",
+							"stop_name_full": "1609 Lavaca/17th (Midblock)",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 11
+						}
+					]
+				},
+				"980-0-74b35670": {
+					"direction_id": 0,
+					"pattern_id": "980-0-74b35670",
+					"representative_trip_id": "3013247_24231",
+					"service_ids": [
+						"1-172"
+					],
+					"stop_count": 12,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.50715,
+							"lon": -97.681161,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.440473,
+									"lon": -97.701695,
+									"stop_id": "6406",
+									"stop_name": "Howard Station Bay B",
+									"stop_sequence": 2
+								}
+							],
+							"stop_id": "6094",
+							"stop_name": "Bagdad/Brown",
+							"stop_name_full": "Bagdad/Brown",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.435217,
+							"lon": -97.697402,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269522,
+									"lon": -97.752626,
+									"stop_id": "2107",
+									"stop_name": "5th/Bowie",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.26835,
+									"lon": -97.74792,
+									"stop_id": "2111",
+									"stop_name": "5th/San Antonio",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.268613,
+									"lon": -97.745114,
+									"stop_id": "2605",
+									"stop_name": "Lavaca/6th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.271378,
+									"lon": -97.744115,
+									"stop_id": "4007",
+									"stop_name": "Lavaca/9th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.274408,
+									"lon": -97.742995,
+									"stop_id": "590",
+									"stop_name": "Lavaca/12th",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 9
+								}
+							],
+							"stop_id": "6095",
+							"stop_name": "New Life Park and Ride",
+							"stop_name_full": "New Life Park and Ride",
+							"stop_sequence": 3
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.278834,
+							"lon": -97.741358,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.285754,
+									"lon": -97.74162,
+									"stop_id": "1042",
+									"stop_name": "Guadalupe/West Mall UT",
+									"stop_sequence": 11
+								}
+							],
+							"stop_id": "5940",
+							"stop_name": "Lavaca/17th",
+							"stop_name_full": "1609 Lavaca/17th (Midblock)",
+							"stop_sequence": 10
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.289287,
+							"lon": -97.73607,
+							"minor_stops": [],
+							"stop_id": "3955",
+							"stop_name": "Dean Keeton/Speedway",
+							"stop_name_full": "Dean Keeton/Speedway",
+							"stop_sequence": 12
+						}
+					]
+				}
+			},
+			"stop_count": 11,
+			"timepoint_count": 4
+		},
+		{
+			"baseline_by_service": {
+				"9-172": "980-1-6a02633c"
+			},
+			"baseline_pattern_id": "980-1-6a02633c",
+			"baseline_stable": true,
+			"direction_id": 1,
+			"ladders": {
+				"980-1-6a02633c": {
+					"direction_id": 1,
+					"pattern_id": "980-1-6a02633c",
+					"representative_trip_id": "3013248_24230",
+					"service_ids": [
+						"9-172"
+					],
+					"stop_count": 11,
+					"timepoint_count": 4,
+					"timepoints": [
+						{
+							"direction_id": 1,
+							"lat": 30.289536,
+							"lon": -97.737134,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.286231,
+									"lon": -97.741771,
+									"stop_id": "497",
+									"stop_name": "UT West Mall Station",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.283384,
+									"lon": -97.742081,
+									"stop_id": "498",
+									"stop_name": "Guadalupe/W. 21st Street",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.278962,
+									"lon": -97.742708,
+									"stop_id": "501",
+									"stop_name": "Guadalupe/16th Street",
+									"stop_sequence": 4
+								}
+							],
+							"stop_id": "2079",
+							"stop_name": "Dean Keeton/Speedway NE…",
+							"stop_name_full": "Dean Keeton/Speedway NE Corner",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.275022,
+							"lon": -97.744169,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.271503,
+									"lon": -97.745478,
+									"stop_id": "5950",
+									"stop_name": "Guadalupe/8th",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.268253,
+									"lon": -97.74669,
+									"stop_id": "2612",
+									"stop_name": "Guadalupe/5th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.265741,
+									"lon": -97.752406,
+									"stop_id": "716",
+									"stop_name": "Cesar Chavez/West",
+									"stop_sequence": 8
+								}
+							],
+							"stop_id": "2738",
+							"stop_name": "Capitol Station",
+							"stop_name_full": "Capitol Station (SB)",
+							"stop_sequence": 5
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.435217,
+							"lon": -97.697402,
+							"minor_stops": [
+								{
+									"direction_id": 1,
+									"lat": 30.440473,
+									"lon": -97.701695,
+									"stop_id": "6406",
+									"stop_name": "Howard Station Bay B",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "6095",
+							"stop_name": "New Life Park and Ride",
+							"stop_name_full": "New Life Park and Ride",
+							"stop_sequence": 9
+						},
+						{
+							"direction_id": 1,
+							"lat": 30.50715,
+							"lon": -97.681161,
+							"minor_stops": [],
+							"stop_id": "6094",
+							"stop_name": "Bagdad/Brown",
+							"stop_name_full": "Bagdad/Brown",
+							"stop_sequence": 11
+						}
+					]
+				}
+			},
+			"stop_count": 11,
+			"timepoint_count": 4
+		}
+	],
+	"feed_version": "260818_1456",
+	"route_id": "980",
+	"schema": 1
+}

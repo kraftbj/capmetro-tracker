@@ -136,8 +136,6 @@
   global.CMB.adherence = {
     GLYPHS: GLYPHS,
     STATE_LABEL: STATE_LABEL,
-    REASON_LABEL: REASON_LABEL,
-    glyphChar: glyphChar,
     view: view,
     badge: badge
   };
