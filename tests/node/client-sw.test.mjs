@@ -291,13 +291,24 @@ describe('the live feed, which is never cached', () => {
 
 describe('with a network', () => {
   it('serves a script from the network, not from the cache, so a deploy lands', async () => {
-    const scope = makeScope({ files: served })
+    /*
+     * One scope, installed once, whose cache therefore holds the OLD app.js
+     * when the fetch happens. That is the whole test: update.sh rsyncs a new
+     * body to the same URL and restarts nothing, so the worker is never
+     * reinstalled and the stale copy is sitting right there to be served.
+     *
+     * An earlier version of this built a second scope and installed into it,
+     * which precached the new body -- cache-first and network-first both
+     * returned 'the new release' and the test passed for the worker it exists
+     * to forbid. Verified by making the generic branch cache-first: this now
+     * fails, and did not before.
+     */
+    const files = { ...served }
+    const scope = makeScope({ files })
     await scope.dispatch('install', {})
-    /* The deploy: same URL, new body, nothing restarted. */
-    scope.stores.get([...scope.stores.keys()][0]) /* cache still holds the old one */
-    const next = makeScope({ files: { ...served, [new URL('app.js', WORKER).pathname]: 'the new release' } })
-    await next.dispatch('install', {})
-    const event = await next.dispatch('fetch', { request: new Req('app.js') })
+    /* The deploy: same URL, new body, nothing reinstalled, nothing restarted. */
+    files[new URL('app.js', WORKER).pathname] = 'the new release'
+    const event = await scope.dispatch('fetch', { request: new Req('app.js') })
     expect(event.responded.body).toBe('the new release')
   })
 

@@ -113,6 +113,20 @@ test.describe('the service worker', () => {
     await page.goto('/fresh/route/4/eb')
     await controlled(page)
 
+    /*
+     * Warm the feed while the worker is in charge, and do not skip this: the
+     * assertion below is vacuous without it. The first load's own api request
+     * is issued by a page the worker does not yet control, so it never reaches
+     * the worker, nothing is ever stored, and "the feed fails offline" is then
+     * true of a worker that caches api/*.json as eagerly as it caches the
+     * shell -- there is nothing in the cache to answer with either way. This
+     * request is the one a broken worker would keep. Verified by removing the
+     * isApi guard from sw.js: without this line all six tests here still pass.
+     */
+    const online = await page.evaluate(() =>
+      fetch('api/route/4.json').then((r) => r.status, () => 'failed'))
+    expect(online).toBe(200)
+
     await context.setOffline(true)
     try {
       const reached = await page.evaluate(() =>
