@@ -77,6 +77,40 @@ test.describe('what a phone is offered', () => {
   })
 })
 
+test.describe('what the browser is actually told about caching', () => {
+  test('serves the shell with headers that cannot freeze a stale release', async ({ request }) => {
+    /*
+     * The worker precaches the shell through the browser's HTTP cache instead of bypassing
+     * it -- `cache: 'reload'` was removed because it re-downloaded ~290 KB the page had just
+     * fetched. The whole argument that this is safe is a claim about these headers: the
+     * document is no-cache and the scripts, stylesheets and manifest are must-revalidate, so
+     * the browser must check with the origin before reusing any of them and an install
+     * cannot pick up the previous release.
+     *
+     * Until now that claim was pinned only by a text assertion over the vhost FILES and by a
+     * probe against real nginx. Nothing the browser suite did could observe it, because this
+     * fixture server sent no Cache-Control on static assets at all. Asserted here on what is
+     * actually received, so the argument and the test agree.
+     */
+    const revalidates = /no-cache|max-age=0.*must-revalidate/
+    for (const p of ['/fresh/app.js', '/fresh/styles.css', '/fresh/manifest.webmanifest']) {
+      const res = await request.get(p)
+      expect(res.status(), `${p} did not serve`).toBe(200)
+      expect(res.headers()['cache-control'], `${p} may be reused without revalidating`)
+        .toMatch(revalidates)
+    }
+
+    /* The document, however it is reached. */
+    const doc = await request.get('/fresh/')
+    expect(doc.headers()['cache-control']).toMatch(revalidates)
+
+    /* Fonts are the deliberate exception: content-addressed by name and immutable, which is
+       why the worker serves them cache-first. */
+    const font = await request.get('/fresh/fonts/ibm-plex-sans.woff2')
+    expect(font.headers()['cache-control']).toMatch(/immutable/)
+  })
+})
+
 test.describe('the service worker', () => {
   test('registers at the directory the board is served from, not at the origin root', async ({ page }) => {
     await page.goto('/fresh/route/4/eb')

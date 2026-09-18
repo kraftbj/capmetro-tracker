@@ -65,6 +65,30 @@ const SECURITY_HEADERS = {
   'Referrer-Policy': 'no-referrer',
 }
 
+/*
+ * What production actually sends, mirrored here because a service worker's correctness
+ * depends on it.
+ *
+ * client/sw.js precaches the shell using the browser's own HTTP cache rather than bypassing
+ * it, and the entire argument that this cannot freeze a stale release is a claim about these
+ * headers: the document is no-cache and the scripts, stylesheets and manifest are
+ * must-revalidate, so the browser has to check with the origin before reusing any of them.
+ * This server previously sent no Cache-Control on any static asset, so nothing the browser
+ * suite could do would ever observe that -- the claim was pinned only by a text assertion
+ * over the vhost files and by a probe against real nginx.
+ *
+ * Kept deliberately in step with deploy/nginx-capmetro.conf and deploy/apache-capmetro.conf.
+ * If those change and this does not, the browser suite quietly stops modelling production.
+ */
+function cacheControlFor(file) {
+  const ext = path.extname(file)
+  if (ext === '.woff2' || ext === '.woff') return 'public, max-age=31536000, immutable'
+  if (ext === '.png' || ext === '.svg' || ext === '.ico') return 'public, max-age=86400'
+  if (ext === '.html' || file.endsWith('/')) return 'no-cache'
+  /* Scripts, stylesheets and the manifest: revalidate, never reuse blind. */
+  return 'public, max-age=0, must-revalidate'
+}
+
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -274,7 +298,11 @@ const server = createServer((req, res) => {
     return
   }
 
-  res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' })
+  res.writeHead(200, {
+    ...SECURITY_HEADERS,
+    'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream',
+    'Cache-Control': cacheControlFor(file),
+  })
   res.end(readFileSync(file))
 })
 
