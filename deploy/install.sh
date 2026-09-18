@@ -363,6 +363,28 @@ else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
 
+# The record update.sh compares against, so a LATER committed change to either vhost gets
+# noticed instead of sitting in the checkout doing nothing.
+#
+# Written whether or not the operator actually runs the commands above, and that is the
+# honest reading of what it records: "these are the configs as of the last install.sh", which
+# is the same thing the unit stamp records. It cannot know whether the sed-and-reload
+# happened. What it turns into a detectable event is the case that actually bites -- a vhost
+# change landing in a later deploy with nothing to announce it.
+#
+# Not inside the systemd branch above: a box on cron still serves the board over HTTP.
+if [ -r "$SRC_DIR/deploy/lib/units.sh" ]; then
+  VHOST_STAMP_RC=0
+  cm_write_vhost_stamp "$SRC_DIR/deploy" "$CONF_DIR" || VHOST_STAMP_RC=$?
+  if [ "$VHOST_STAMP_RC" != 0 ]; then
+    # A warning, not a die. The board serves correctly without this record; all that is lost
+    # is the notice on a future vhost change, and killing a working install over a missing
+    # fingerprint would be the wrong trade.
+    warn "could not write the vhost drift record ($(cm_vhost_stamp_path "$CONF_DIR")).
+     Everything else is installed. A later vhost change will deploy without a notice."
+  fi
+fi
+
 echo
 say "done"
 printf '  source      %s (%s)\n' "$SRC_DIR" "$BRANCH"

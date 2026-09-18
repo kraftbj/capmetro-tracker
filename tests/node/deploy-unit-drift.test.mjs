@@ -35,6 +35,9 @@ const UPDATE = path.join(REPO, 'deploy/update.sh')
  */
 const UNITS = execFileSync('bash', ['-c', `. "${ LIB }"; printf '%s\\n' $CM_UNIT_FILES`], { encoding: 'utf8' })
 	.trim().split('\n')
+/* Same rule: read from units.sh, never restated here. */
+const VHOSTS = execFileSync('bash', ['-c', `. "${ LIB }"; printf '%s\\n' $CM_VHOST_FILES`], { encoding: 'utf8' })
+	.trim().split('\n')
 
 let work
 
@@ -44,6 +47,7 @@ beforeEach(() => {
 	mkdirSync(path.join(work, 'src/deploy/lib'), { recursive: true })
 	mkdirSync(path.join(work, 'conf'))
 	for (const u of UNITS) writeFileSync(path.join(work, 'src/deploy', u), `[Unit]\nDescription=${ u }\n`)
+	for (const v of VHOSTS) writeFileSync(path.join(work, 'src/deploy', v), `# ${ v }\nroot @WEBROOT@;\n`)
 	writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), readFileSync(LIB))
 })
 afterEach(() => rmSync(work, { recursive: true, force: true }))
@@ -95,7 +99,37 @@ check_units ${ env.context ?? '' } || exit $?
 	}
 }
 
+/**
+ * Calls the REAL check_vhost out of the real update.sh. No systemd overrides: a box on cron
+ * still serves the board over HTTP, so this check deliberately does not gate on systemd.
+ *
+ * PATH is inherited, NOT emptied. Emptying it also hides sha256sum/shasum, so cm_sha256
+ * cannot answer, the check correctly takes its cannot-tell branch, and the test then proves
+ * nothing while looking like it passed. Which remedy gets printed depends on whether the
+ * developer has nginx installed, so the assertions below only touch the lines every branch
+ * shares.
+ */
+function checkVhost(env = {}) {
+	const script = `
+set -euo pipefail
+export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf" WEBROOT="${ work }/www"
+${ env.PATH === undefined ? '' : `export PATH="${ env.PATH }"` }
+. "${ UPDATE }"
+check_vhost || exit $?
+`
+	try {
+		const stdout = execFileSync('bash', ['-c', script], {
+			cwd: work, encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ],
+		})
+		return { code: 0, stdout }
+	} catch (e) {
+		return { code: e.status, stdout: (e.stdout || '') + (e.stderr || '') }
+	}
+}
+
 const writeStamp = () => sh('cm_unit_fingerprint src/deploy > conf/installed-units.sha256')
+const writeVhostStamp = () => sh('cm_vhost_fingerprint src/deploy > conf/installed-vhost.sha256')
+const editVhost = (v, body = 'changed\n') => writeFileSync(path.join(work, 'src/deploy', v), body)
 const editUnit = (u, body = 'changed\n') => writeFileSync(path.join(work, 'src/deploy', u), body)
 
 describe('the fingerprint answers whether the committed units have moved', () => {
@@ -912,5 +946,126 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		const before = readdirSync(path.join(work, 'conf'))
 		runInstall()
 		expect(readdirSync(path.join(work, 'conf'))).toEqual(before)
+	})
+})
+
+/*
+ * The vhosts have the same shape of problem as the units and, until this, none of the
+ * machinery. install.sh PRINTS them and never installs them; update.sh does not touch them.
+ * So a committed change to either sat in the checkout doing nothing, silently.
+ *
+ * The consequence is worse than a stale unit, which is why it is worth detecting: a stale
+ * timer fires at the wrong hour and the board still renders, while a stale vhost can refuse
+ * manifest.webmanifest and sw.js outright -- not installable, no offline board, nothing on
+ * screen, and health.json still ok:true so the documented health check cannot see it.
+ */
+describe('the same question, asked about the web server config', () => {
+	it('reports no drift when nothing has changed', () => {
+		writeVhostStamp()
+		expect(sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256').code).toBe(0)
+	})
+
+	it('names the vhost that changed, and only that one', () => {
+		writeVhostStamp()
+		editVhost(VHOSTS[0], "add_header Content-Security-Policy \"default-src 'none'\";\n")
+		const r = sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256')
+		expect(r.code).toBe(1)
+		expect(r.stdout.trim().split('\n')).toEqual([ VHOSTS[0] ])
+	})
+
+	it('keeps its own record, so installing units does not erase the vhost answer', () => {
+		/*
+		 * Two stamps rather than more lines in one, because the two are written by different
+		 * remedies at different times -- install.sh rewrites the units, a hand cp plus a
+		 * reload installs a vhost -- and a single file would be rewritten wholesale by
+		 * whichever ran last, losing the other's answer.
+		 */
+		writeStamp()
+		writeVhostStamp()
+		expect(sh('cm_unit_stamp_path conf').stdout.trim()).toBe('conf/installed-units.sha256')
+		expect(sh('cm_vhost_stamp_path conf').stdout.trim()).toBe('conf/installed-vhost.sha256')
+		editVhost(VHOSTS[0])
+		/* The vhost moved; the units did not. Each answer is its own. */
+		expect(sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256').code).toBe(1)
+		expect(sh('cm_unit_drift src/deploy conf/installed-units.sha256').code).toBe(0)
+	})
+
+	it('treats a deleted vhost as drift rather than as agreement', () => {
+		writeVhostStamp()
+		rmSync(path.join(work, 'src/deploy', VHOSTS[0]))
+		const r = sh('cm_vhost_drift src/deploy conf/installed-vhost.sha256')
+		expect(r.code).toBe(1)
+		expect(r.stdout.trim().split('\n')).toEqual([ VHOSTS[0] ])
+	})
+
+	it('separates "no record" (2) from "no change" (0)', () => {
+		expect(sh('cm_vhost_drift src/deploy conf/nothing-here').code).toBe(2)
+	})
+
+	it('refuses to fingerprint at all when no hashing tool exists', () => {
+		const r = sh('cm_sha256() { return 3; }\ncm_vhost_fingerprint src/deploy')
+		expect(r.code).toBe(3)
+		expect(r.stdout.trim()).toBe('')
+	})
+})
+
+describe('update.sh actually reports vhost drift, and does not change its exit code', () => {
+	it('says nothing when the configs agree', () => {
+		writeVhostStamp()
+		const r = checkVhost()
+		expect(r.code).toBe(0)
+		expect(r.stdout).not.toMatch(/web server config/)
+	})
+
+	it('names the drifted config and the remedy', () => {
+		writeVhostStamp()
+		editVhost(VHOSTS[0])
+		const r = checkVhost()
+		expect(r.stdout).toMatch(/web server config in the checkout has changed/)
+		expect(r.stdout).toContain(VHOSTS[0])
+		/* The symptom, because there is none on screen and health.json cannot show it. */
+		expect(r.stdout).toMatch(/ok:true/)
+	})
+
+	it('returns 0 even on confirmed drift, so exit 3 keeps meaning the units', () => {
+		/*
+		 * 3 is documented in CLAUDE.md and printed by install.sh as "the committed SYSTEMD
+		 * UNITS are not the ones installed, run install.sh" -- one condition, one remedy.
+		 * A vhost needs a different remedy, and widening 3 to "some config is stale" would
+		 * make the number ambiguous for whatever eventually reads it, which is the mistake
+		 * EXIT_UNIT_DRIFT was split away from 1 to avoid.
+		 */
+		writeVhostStamp()
+		editVhost(VHOSTS[0])
+		editVhost(VHOSTS[1])
+		expect(checkVhost().code).toBe(0)
+	})
+
+	it('says nothing at all on a box with no record, rather than nagging every run', () => {
+		/*
+		 * The expected state of every box installed before this existed, including the live
+		 * one. check_units already explains a missing stamp in its own words; repeating it
+		 * about the vhosts would be noise on every run forever.
+		 */
+		const r = checkVhost()
+		expect(r.code).toBe(0)
+		expect(r.stdout).not.toMatch(/web server config/)
+	})
+
+	it('is wired into update.sh ahead of the units check, so exit 3 cannot swallow it', () => {
+		/*
+		 * check_units exits 3 through `|| exit $?` at its call sites. A check_vhost called
+		 * after it would never run on precisely the deploy that changed both.
+		 */
+		const src = readFileSync(UPDATE, 'utf8')
+		/* Call sites only. `check_units() {` matches a bare name regex too, and the
+		   definitions appear before every call, so including them made the first "call"
+		   a definition and the assertion nonsense. */
+		const calls = [...src.matchAll(/^\s*check_(vhost|units)(?!\s*\()\b.*$/gm)].map((m) => m[1])
+		expect(calls.length, 'no check_ call sites found').toBeGreaterThan(0)
+		/* Every units call is immediately preceded by a vhost call. */
+		calls.forEach((name, i) => {
+			if (name === 'units') expect(calls[i - 1], `check_units call ${ i } has no check_vhost before it`).toBe('vhost')
+		})
 	})
 })

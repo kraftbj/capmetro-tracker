@@ -231,8 +231,18 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
         /etc/nginx/sites-available/capmetro
       sudo nginx -t && sudo systemctl reload nginx
 
-  There is still no drift detection for vhosts the way there is for systemd
-  units, which is filed in TODOS.md rather than fixed here.
+  From the next deploy onward you will be told. `update.sh` now fingerprints
+  both vhosts the way it already fingerprints the systemd units, and names them
+  when the committed config has moved on from what `install.sh` last recorded,
+  with the copy-and-reload for whichever server is installed. It does NOT change
+  the exit code: 3 keeps meaning specifically "the committed systemd units are
+  not the ones installed, run install.sh", because that is one condition with
+  one remedy and a vhost needs a different one. The notice goes to stdout and
+  therefore to the journal on every run.
+
+  On a box with no record yet -- every box installed before this, including the
+  live one -- it says nothing rather than nagging four times a day, and the
+  record is written the next time `install.sh` runs.
 
   Every URL in the manifest and every `href` added to `index.html` is relative,
   for the reason the `<base>` bootstrap exists: the board reads its own directory

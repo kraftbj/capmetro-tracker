@@ -202,6 +202,92 @@ check_units() {
 }
 
 # ---------------------------------------------------------------------------
+# web server config drift
+# ---------------------------------------------------------------------------
+
+# Same question as check_units, asked about the two vhosts, and the answer is a NOTICE rather
+# than an exit status.
+#
+# Why it exists: install.sh prints the vhost and never installs it, and this script does not
+# touch it either, so a committed change to deploy/nginx-capmetro.conf or
+# deploy/apache-capmetro.conf lands in the checkout and does nothing at all until somebody
+# copies it by hand and reloads. Until now nothing said so. That matters more than a stale
+# unit, not less: a stale timer fires at the wrong hour and the board still renders, while a
+# stale vhost can refuse the manifest and the service worker outright -- no install prompt,
+# no offline board, and health.json still ok:true, so the documented post-deploy health check
+# cannot see it either.
+#
+# Why it does NOT change the exit code. 3 is documented, in CLAUDE.md and in install.sh's own
+# output, as "deployed, but the committed SYSTEMD UNITS are not the ones installed, so run
+# install.sh" -- a specific condition with a specific remedy. A vhost needs a different
+# remedy, and widening 3 to mean "some config is stale" would make the one number ambiguous
+# for whatever eventually reads it, which is the exact mistake EXIT_UNIT_DRIFT was split from
+# 1 to avoid. The notice goes to stdout and therefore to the journal on every run, which is
+# the same visibility the not-knowing arms of check_units settle for.
+#
+# Never fatal, for the same reason those arms are not: an absent stamp is the expected state
+# of every box installed before this existed, including this one.
+check_vhost() {
+  local lib="$SRC_DIR/deploy/lib/units.sh"
+  [ -f "$lib" ] || return 0
+  # shellcheck source=deploy/lib/units.sh
+  if ! . "$lib"; then
+    return 0   # check_units already said so; one message about one broken lib is enough
+  fi
+
+  # The lib on disk can predate the code reading it -- after a rollback it certainly does.
+  # Missing functions mean this version does not know about vhosts, which is not drift.
+  local fn
+  for fn in cm_vhost_drift cm_vhost_stamp_path; do
+    command -v "$fn" >/dev/null 2>&1 || return 0
+  done
+
+  local stamp drift rc=0
+  stamp="$(cm_vhost_stamp_path "$CONF_DIR")"
+  drift=$(cm_vhost_drift "$SRC_DIR/deploy" "$stamp") || rc=$?
+
+  case "$rc" in
+    "${CM_DRIFT_SAME:-0}") return 0 ;;
+    "${CM_DRIFT_FOUND:-1}") ;;
+    *)
+      # No stamp, no hashing tool, or a status this function does not know. All of them are
+      # "cannot tell", and check_units has already explained the cause of whichever it is in
+      # its own words; repeating it about the vhosts would be noise on every single run of
+      # every box that predates this feature.
+      return 0
+      ;;
+  esac
+
+  # rc says drift; the names are what make it actionable. An empty list means the answer is
+  # not known, so it is not reported as an accusation.
+  if [ -z "$drift" ]; then
+    return 0
+  fi
+
+  loud "the web server config in the checkout has changed since install.sh last ran:"
+  local f
+  while IFS= read -r f; do
+    [ -n "$f" ] && loud "    $f"
+  done <<< "$drift"
+  loud "the box is still serving the OLD one. Nothing here installs it."
+  loud "A stale vhost can refuse the manifest and the service worker with nothing on screen"
+  loud "to say so, and health.json still reads ok:true, so check this by hand:"
+  if command -v nginx >/dev/null 2>&1; then
+    loud "    sudo cp $SRC_DIR/deploy/nginx-capmetro.conf /etc/nginx/sites-available/capmetro"
+    loud "    sudo nginx -t && sudo systemctl reload nginx"
+    loud "(that copy keeps @WEBROOT@/@DOMAIN@ literal -- substitute them as install.sh prints.)"
+  elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
+    loud "    sudo cp $SRC_DIR/deploy/apache-capmetro.conf /etc/apache2/sites-available/capmetro.conf"
+    loud "    sudo apache2ctl configtest && sudo systemctl reload apache2"
+    loud "(that copy keeps @WEBROOT@/@DOMAIN@ literal -- substitute them as install.sh prints.)"
+  else
+    loud "    no nginx or apache found here; apply it to whatever serves $WEBROOT"
+  fi
+  loud "then record it:  sudo $SRC_DIR/deploy/install.sh"
+  return 0
+}
+
+# ---------------------------------------------------------------------------
 # Everything above is definitions; everything below deploys. Sourcing this file gets the
 # definitions and nothing else, which is what lets the tests call check_units for real
 # rather than grepping this file for the string "check_units" -- a regex cannot tell a live
@@ -236,6 +322,7 @@ if [ "$BEFORE" = "$AFTER" ]; then
   # Checked even here, and this is the case that matters most. Drift persists across runs:
   # the commit that changed a unit lands once, and every run after it reports "nothing to
   # do" while the box quietly stays on the old unit forever.
+  check_vhost
   check_units || exit $?
   exit 0
 fi
@@ -256,6 +343,7 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   # Last, and non-fatal to the deploy itself: the code and the schedule are already live by
   # this point. A unit change that has not been applied is worth a failed unit and a red
   # `systemctl status`, but not worth withholding a schedule the board needs today.
+  check_vhost
   check_units || exit $?
   exit 0
 fi
@@ -277,6 +365,7 @@ if as_user "$RUN_USER" php "$SRC_DIR/runtime/generate-api.php" --config="$CONF" 
   loud "$AFTER is broken; fix it before the next update runs"
   # Reported but not allowed to change the exit code: a broken commit is the headline and
   # a stale unit must not read as the reason the rollback happened.
+  check_vhost
   check_units rolled-back || true
   exit 1
 fi
@@ -288,5 +377,6 @@ loud "rollback to $BEFORE ALSO fails to generate; this is not a code problem"
 loud "the last good JSON is still in $WEBROOT and its staleness is climbing"
 # Cheap, and occasionally the answer: a generator that cannot start on either commit may be
 # looking for a config path a newer unit moved. Reported, never allowed to change the verdict.
+check_vhost
 check_units rolled-back || true
 exit 1
