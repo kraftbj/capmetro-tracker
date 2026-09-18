@@ -282,16 +282,32 @@ test.describe('a resolved route is fetched once, not once per frame', () => {
     /* Route 999 has no schedule and no route file: both fetches 404. An errored
      * status must stop the retry just as a resolved one does. */
     const seen = await countRequests(page, '/missing/index.html#plan=1;4.1.6243.all;999.1.1.all')
+    /* Nothing fetched is not the same as nothing fetched twice: an empty map
+     * satisfies the loop below without exercising anything. */
+    expect(seen.size).toBeGreaterThan(0)
     for (const [url, n] of seen) {
       expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
     }
   })
 
   test('on a schedule that describes a service day that is not today', async ({ page }) => {
-    /* Route 7 is served a document dated 20260818 while the route payload says
-     * 20260819. The client must not trust it for the session, and must not spin
-     * evicting and re-fetching it either. */
-    const seen = await countRequests(page, '/turnaround/index.html#plan=1;4.1.6243.all;7.1.847.all')
+    /*
+     * 'stale-day' is served a document dated 20260818 while the route payload
+     * says 20260819. The client must not trust it for the session, and must not
+     * spin evicting and re-fetching it either.
+     *
+     * The id is the fixture server's, not a real route. It used to be '7' — one
+     * of the six watched routes — and answering that under every scenario
+     * shadowed the real thing; the name moved with the fix, and this test has to
+     * move with the name or it stops describing a stale day at all while still
+     * passing, because its assertion is a request count.
+     */
+    const seen = await countRequests(
+      page, '/turnaround/index.html#plan=1;4.1.6243.all;stale-day.1.847.all')
+    expect(seen.size).toBeGreaterThan(0)
+    expect([...seen.keys()].some((u) => u.includes('stale-day')),
+      'the stale-day schedule was never requested, so nothing was tested')
+      .toBe(true)
     for (const [url, n] of seen) {
       expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
     }

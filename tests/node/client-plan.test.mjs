@@ -1015,7 +1015,7 @@ describe('resolving a stop against the schedule and the live feed', () => {
     expect(m.departures[0].at_stop).toBe(false)
   })
 
-  t('times the outbound trip from the inbound bus, and hedges it', (p) => {
+  t('times the outbound trip from the inbound bus, and states it plainly when the feed confirmed it', (p) => {
     const out = outboundAt(PAIRS[0].outbound_departure_s)
     const inb = inboundAt(PAIRS[0].inbound_arrival_s)
     const route = routeWith(bus({ id: '2867', trip: inb, seconds: 540, nextTripId: out.id }))
@@ -1509,5 +1509,264 @@ describe('the screen reader hears the hedge too', () => {
     const m = p.resolve(AT_TURNAROUND, DEP,
       routeWith(bus({ id: 'B1', trip: outboundAt(PAIRS[0].outbound_departure_s), seconds: 400 })), NOW)
     expect(spokenOf(p, m)).toMatch(/minutes late/)
+  })
+})
+
+/* ------------------------------------------------------------------------- */
+
+/*
+ * "IS STANDING AT THIS STOP NOW" IS THE ONE SENTENCE A RIDER RUNS FOR.
+ *
+ * GTFS-RT publishes current_status beside a position and the two can disagree.
+ * Bus 2354 on 2026-09-02 reported STOPPED_AT stop 6243 while its own coordinates
+ * put it 5,715 m away at the Pleasant Valley yard, assigned to a run it had not
+ * begun - and 6243 is Campbell/5th, the turnaround these cards exist for.
+ * rows.js and allbuses.js already cross-check it; this view did not, so the one
+ * claim that gets somebody out of the door was the one taken on trust.
+ */
+describe('a bus at the yard is not a bus at your stop', () => {
+  const OUT = outboundAt(PAIRS[0].outbound_departure_s)
+  const LEG = inboundAt(PAIRS[0].inbound_arrival_s)
+  /* Campbell/5th's real coordinates, out of the fixture's own stop table. */
+  const TURN_POS = DEP.stops.find((s) => s.stop_id === TURN)
+  /* The Pleasant Valley yard, which is where 2354 actually was. */
+  const YARD = { lat: 30.2258, lon: -97.6892 }
+
+  /* A route payload that can place its stops, which is what lets the check fire.
+   * `timepoints` is the shape fmt.stopPositions indexes. */
+  const locatable = (...vehicles) => ({
+    staleness: { level: 'fresh', suppress_adherence: false },
+    timepoints: [{ stop_id: TURN, stop_name: TURN_POS.stop_name, lat: TURN_POS.lat, lon: TURN_POS.lon }],
+    vehicles,
+  })
+
+  const standing = (position) => {
+    const v = bus({ id: '2354', trip: LEG, seconds: 0, stopId: TURN, status: 'STOPPED_AT', nextTripId: OUT.id })
+    v.position = Object.assign({ bearing: null, speed: null }, position)
+    return v
+  }
+
+  t('the fixture can place the stop, or none of this fires', (p, cmb) => {
+    const gap = cmb.fmt.stoppedAtGap(locatable(standing(YARD)), standing(YARD))
+    expect(gap, 'stoppedAtGap saw nothing, so the tests below prove nothing').toBeTruthy()
+    expect(Math.round(gap.meters / 100) * 100).toBeGreaterThan(1000)
+  })
+
+  t('does not say a bus is standing here when its position is at the yard', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, locatable(standing(YARD)), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.at_stop, 'the feed said STOPPED_AT and the card believed it').toBe(false)
+    expect(d.boarding).not.toBe('waiting')
+    expect(p.boardingText(d, m)).not.toContain('standing at this stop')
+  })
+
+  t('still says so when the bus really is there', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP,
+      locatable(standing({ lat: TURN_POS.lat, lon: TURN_POS.lon })), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.at_stop).toBe(true)
+    expect(d.boarding).toBe('waiting')
+    expect(p.boardingText(d, m)).toContain('standing at this stop now')
+  })
+
+  /*
+   * And a payload that cannot place its stops is not evidence the bus is
+   * elsewhere. Every existing fixture is this shape, so the check must fall
+   * silent rather than refuse every bus on the board.
+   */
+  t('takes the feed at its word when the document cannot place the stop', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP, routeWith(standing(YARD)), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+    expect(d.inbound.at_stop).toBe(true)
+    expect(d.boarding).toBe('waiting')
+  })
+})
+
+/* ------------------------------------------------------------------------- */
+
+describe('the guards and the sentences nothing was reading', () => {
+  /*
+   * merge() keeps two accumulators keyed by things off a link. The route one
+   * decides the MAX_ROUTES cap, and on a bare `{}` a route id of `constructor`
+   * reads back as the Object function rather than undefined - so the cap branch
+   * never runs and the entry rides in over the limit. routesIn()'s identical
+   * guard has a test; this one did not, one function away.
+   */
+  t('counts a route named after something on Object.prototype against the cap', (p) => {
+    const full = []
+    for (let i = 1; i <= p.MAX_ROUTES; i++) {
+      full.push({ route_id: String(i), direction_id: 1, stop_id: '1', window: 'all' })
+    }
+    const hostile = { route_id: 'constructor', direction_id: 1, stop_id: '2', window: 'all' }
+    const merged = p.merge(full, [hostile])
+
+    expect(merged.entries, 'the cap let a seventh route through').toHaveLength(p.MAX_ROUTES)
+    expect(merged.dropped).toBe(1)
+    expect(p.routesIn(merged.entries)).not.toContain('constructor')
+  })
+
+  /*
+   * The two sentences that say "no bus is visible here" were the two nothing
+   * read - which on a turnaround card is the sentence that matters most, because
+   * the card exists for the stop where no approaching bus can be seen. The
+   * here / waiting / inbound sentences are each pinned by several tests.
+   */
+  t('names the bus that is on the trip, rather than any bus', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const m = p.resolve(AT_TURNAROUND, DEP,
+      routeWith(bus({ id: '2867', trip: out, seconds: 60, stopId: '4086' })), NOW)
+    const d = m.departures.find((x) => x.trip.id === out.id)
+
+    expect(d.boarding).toBe('enroute')
+    expect(p.boardingText(d, m)).toBe('Bus 2867 is on this trip now.')
+  })
+
+  t('says a turnaround with nothing reporting is missing its inbound leg too', (p) => {
+    const dep = JSON.parse(JSON.stringify(DEP))
+    const leg = inboundAt(PAIRS[0].inbound_arrival_s)
+    /* Take the inbound leg away, so the departure has neither a bus nor a leg
+     * and falls to the last rung of the ladder. */
+    dep.departures[TURN] = dep.departures[TURN].filter(
+      ([, i]) => dep.trips[i].id !== leg.id)
+
+    const m = p.resolve(AT_TURNAROUND, dep, EMPTY_ROUTE, NOW)
+    const d = m.departures.find((x) => x.trip.id === outboundAt(PAIRS[0].outbound_departure_s).id)
+
+    expect(m.is_turnaround, 'not a turnaround, so the wording under test never fires').toBe(true)
+    expect(d.boarding).toBe('none')
+    expect(p.boardingText(d, m))
+      .toBe('No bus is reporting on this trip yet, and the schedule does not say which one brings it in.')
+  })
+
+  t('and an ordinary stop with nothing reporting says that is normal', (p) => {
+    const m = p.resolve(
+      { route_id: '4', direction_id: 1, stop_id: '2106', window: 'all' }, DEP, EMPTY_ROUTE, NOW)
+    expect(m.is_turnaround).toBe(false)
+    expect(p.boardingText(m.departures[0], m))
+      .toBe('No bus is reporting on this trip yet. That is normal until it starts its run.')
+  })
+})
+
+/* ------------------------------------------------------------------------- */
+
+/*
+ * TWO RENDERERS OF ONE MODEL.
+ *
+ * CLAUDE.md states the rule for two producers of one value - stop-names.mjs
+ * against stopnames.php, gtfsrt.php against CapMetro's JSON export - and the
+ * reason it gives is that a divergence is invisible until the day it matters.
+ * The stops view is the same shape one level up: it consumes stopboard's
+ * per-departure model and then renders it again in its own vocabulary, so every
+ * rendering decision stopboard documented has to be restated here correctly.
+ *
+ * Two of them had already come apart before anyone looked. The badge was
+ * suppressed on a feed-sourced row in one renderer and not the other. The
+ * section 4 hedge was computed twice and could call one departure a likelihood
+ * on one screen and a fact on the other, in the same second, about the same bus.
+ *
+ * So this is the differential: one model, both renderers, asserting they agree
+ * about the two things they are each free to get wrong. It is deliberately not
+ * a copy of either one's expected text - it compares them to each other, which
+ * is the only assertion that cannot be satisfied by updating one side.
+ */
+describe('the route row and the stop card cannot disagree about one departure', () => {
+  /* Late enough that only the last pair is still upcoming, so the card holds one
+   * departure and the comparison is unambiguous. */
+  const LAST = PAIRS[PAIRS.length - 1]
+  const LATE_NOW = START + LAST.outbound_departure_s - 120
+  const OUT = outboundAt(LAST.outbound_departure_s)
+  const LEG = inboundAt(LAST.inbound_arrival_s)
+  /* Four stops along the outbound, because a turnaround stop is that trip's
+   * FIRST stop - a bus on the trip is never ahead of it, so no feed prediction
+   * for it can ever exist and a from_feed case anchored there proves nothing. */
+  const MID = '2106'
+
+  const bothRenderings = (p, cmb, route, entry) => {
+    const m = p.resolve(entry, DEP, route, LATE_NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+    expect(d, 'the departure under test is not on the card').toBeTruthy()
+
+    /* The SAME object into both. plan.js's model is stopboard's, extended - so
+     * departureRow can read it directly, which is what makes this a differential
+     * rather than two fixtures that happen to look alike. */
+    const routeHost = cmb.states.el('div', 'host')
+    routeHost.appendChild(cmb.stopboard.departureRow(d))
+    const cardHost = p.render(client.document.createElement('div'), [m], {})
+
+    return {
+      d,
+      route: { text: textDeep(routeHost), badges: all(routeHost, 'badge').length },
+      stops: { text: textDeep(cardHost), badges: all(cardHost, 'badge').length },
+    }
+  }
+
+  const agree = (out) => {
+    expect(out.stops.badges > 0, 'one renderer drew a lateness badge and the other did not')
+      .toBe(out.route.badges > 0)
+    expect(out.stops.text.includes('likely'),
+      'one renderer hedged the continuation and the other stated it as fact')
+      .toBe(out.route.text.includes('likely'))
+  }
+
+  t('when the bus on the trip is timed from the feed for this stop', (p, cmb) => {
+    const rows = cmb.fmt.stopTimesForTrip(DEP, OUT.id)
+    const anchor = rows[1]
+    const here = rows.find((r) => r.stop_id === MID)
+    const v = bus({ id: 'B9', trip: OUT, seconds: 600, stopId: anchor.stop_id })
+    v.progress.current_stop_sequence = 2
+    v.adherence.against = {
+      stop_id: anchor.stop_id, stop_name: anchor.stop_id,
+      scheduled_at: anchor.scheduled_at, predicted_at: anchor.scheduled_at + 600,
+    }
+    v.predictions = [[4, MID, here.scheduled_at + 60]]
+
+    const out = bothRenderings(p, cmb, routeWith(v),
+      { route_id: '4', direction_id: 1, stop_id: MID, window: 'all' })
+    /* The premise. Without it the badges agree trivially and this test is a
+     * pair of empty strings compared to each other. */
+    expect(out.d.from_feed, 'not a feed-sourced row, so there is nothing to disagree about')
+      .toBe(true)
+    expect(out.d.view.state, 'and no badge would have been drawn either way').toBe('very_late')
+    agree(out)
+  })
+
+  t('when nothing is on the trip and the feed confirmed which bus continues onto it', (p, cmb) => {
+    const out = bothRenderings(p, cmb,
+      routeWith(bus({ id: 'B1', trip: LEG, seconds: 300, nextTripId: OUT.id })), AT_TURNAROUND)
+    expect(out.d.predictor, 'the route row takes its predictor branch').toBeTruthy()
+    expect(out.d.inbound.confirmed).toBe(true)
+    agree(out)
+  })
+
+  t('when the feed graded that continuation low', (p, cmb) => {
+    const v = bus({ id: 'B1', trip: LEG, seconds: 300, nextTripId: OUT.id })
+    v.block.confidence = 'low'
+    const out = bothRenderings(p, cmb, routeWith(v), AT_TURNAROUND)
+    expect(out.d.inbound.confirmed).toBe(false)
+    agree(out)
+  })
+
+  /*
+   * And the branch /route falls to when timingFor DECLINES the predictor, which
+   * is where the two used to come apart hardest: the coverage wording stated the
+   * continuation as fact at any confidence while the card was hedging it.
+   */
+  t('when the route board declined to call that bus a predictor at all', (p, cmb) => {
+    const v = bus({ id: 'B1', trip: LEG, seconds: 300, nextTripId: OUT.id })
+    v.block.confidence = 'low'
+    v.adherence = { state: 'unknown', seconds: null, glyph: 'question', reason: 'no_trip_update' }
+    const out = bothRenderings(p, cmb, routeWith(v), AT_TURNAROUND)
+    expect(out.d.predictor, 'predictor still set, so the coverage branch never ran').toBeNull()
+    expect(out.route.text, 'the coverage branch did not name the bus either').toContain('B1')
+    agree(out)
+  })
+
+  t('when the feed named a continuation onto some other trip', (p, cmb) => {
+    const out = bothRenderings(p, cmb,
+      routeWith(bus({ id: 'B1', trip: LEG, seconds: 300, nextTripId: 'some-other-trip' })),
+      AT_TURNAROUND)
+    agree(out)
   })
 })

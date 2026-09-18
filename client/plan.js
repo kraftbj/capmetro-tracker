@@ -561,9 +561,28 @@
     return null;
   }
 
-  function atStop(vehicle, stopId) {
+  /*
+   * Is this bus actually standing at this stop?
+   *
+   * `current_status` alone is not enough, and this card is the worst place to
+   * take it at its word. GTFS-RT publishes the status beside a position and the
+   * two can disagree: bus 2354 on 2026-09-02 reported STOPPED_AT stop 6243 —
+   * Campbell/5th, the turnaround this whole view was built for — while its own
+   * coordinates put it 5,715 m away at the Pleasant Valley yard, assigned to a
+   * run it had not begun. Read literally that is "Bus 2354 is standing at this
+   * stop now", which is the one sentence on the card that sends somebody out of
+   * the door at a run.
+   *
+   * fmt.stoppedAtGap is the check rows.js and allbuses.js already make against
+   * the same feed, with the same 250 m tolerance, for the same reason. It
+   * answers null when it cannot tell — another status, no fix, or a stop this
+   * document cannot place — so a route payload without positions leaves the
+   * behaviour exactly as it was rather than refusing every bus.
+   */
+  function atStop(route, vehicle, stopId) {
     var p = vehicle && vehicle.progress;
-    return !!(p && p.current_stop_id === stopId && p.current_status === 'STOPPED_AT');
+    if (!(p && p.current_stop_id === stopId && p.current_status === 'STOPPED_AT')) return false;
+    return !fmt.stoppedAtGap(route, vehicle);
   }
 
   /* ---- resolution ------------------------------------------------------ */
@@ -782,7 +801,7 @@
         seconds_until: fDue === null ? null : fDue - now,
         vehicle: feeder,
         view: fView,
-        at_stop: atStop(feeder, entry.stop_id),
+        at_stop: atStop(route, feeder, entry.stop_id),
         canceled: legCanceled(shownLeg, route),
         confidence: confidence,
         confirmed: confirmed,
@@ -796,7 +815,7 @@
       };
     }
 
-    var here = atStop(vehicle, entry.stop_id);
+    var here = atStop(route, vehicle, entry.stop_id);
     /*
      * LIVE EVIDENCE OUTRANKS THE SCHEDULE'S CANCELLATION.
      *
