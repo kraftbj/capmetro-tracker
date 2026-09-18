@@ -158,7 +158,8 @@ check_units() {
       # that exists and could not be read, and asserting the wrong cause sends someone to
       # install a package they already have.
       loud "cannot fingerprint the systemd units, so they were not checked"
-      loud "no sha256sum or shasum, or a unit file could not be read. Nothing else is wrong."
+      loud "no sha256sum or shasum, a unit file could not be read, or the list holds a name"
+      loud "this record format cannot represent. Nothing else is wrong."
       return 0
       ;;
     "${CM_DRIFT_FOUND:-1}") ;;
@@ -217,9 +218,9 @@ check_units() {
 # no offline board, and health.json still ok:true, so the documented post-deploy health check
 # cannot see it either.
 #
-# Why it does NOT change the exit code. 3 is documented, in CLAUDE.md and in install.sh's own
-# output, as "deployed, but the committed SYSTEMD UNITS are not the ones installed, so run
-# install.sh" -- a specific condition with a specific remedy. A vhost needs a different
+# Why it does NOT change the exit code. 3 is documented in CLAUDE.md -- there and nowhere
+# else; install.sh discusses drift at length but never names the exit code -- as "deployed,
+# but the committed SYSTEMD UNITS are not the ones installed, so run install.sh" -- a specific condition with a specific remedy. A vhost needs a different
 # remedy, and widening 3 to mean "some config is stale" would make the one number ambiguous
 # for whatever eventually reads it, which is the exact mistake EXIT_UNIT_DRIFT was split from
 # 1 to avoid. The notice goes to stdout and therefore to the journal on every run, which is
@@ -293,7 +294,12 @@ check_vhost() {
       # one. check_units takes a context for this same reason, seven lines after its own
       # reset. The rc=1 branch below is fine on that path: it fingerprints whatever is
       # actually checked out.
-      local changed=0
+      # `f` is declared HERE, not only in the rc=1 loop below: this branch returns before
+      # ever reaching that declaration, so its own read loop was assigning a GLOBAL. update.sh
+      # is sourceable -- the tests source it and call these functions directly -- so a global
+      # leaking out of a diagnostic is a name a later function could read without knowing
+      # where it came from.
+      local changed=0 f
       if [ "$context" = deployed ] \
          && [ -n "${BEFORE:-}" ] && [ -n "${AFTER:-}" ] && [ "${BEFORE:-}" != "${AFTER:-}" ]; then
         git -C "$SRC_DIR" diff --quiet "${BEFORE:-}" "${AFTER:-}" -- \
@@ -330,7 +336,7 @@ check_vhost() {
       # for cm_systemd_live, cm_unit_drift and cm_unit_stamp_path, never for cm_vhost_drift,
       # so against the pre-branch units.sh (the rollback path, or any older --src-from tree)
       # it finds all three, reports nothing, and this returns 91 in silence: vhost checking
-      # is simply off and nothing says so. That is the right behaviour -- never fatal, and
+      # is simply off and nothing says so. That is the right behavior -- never fatal, and
       # the alternative is a line on every run of every box that predates the feature -- but
       # the reason had to stop being a claim about another function that is not true.
       return 0
@@ -424,7 +430,7 @@ fi
 say "$BEFORE -> $AFTER"
 
 # --delete is deliberately absent: api/ lives in the webroot and belongs to the
-# cron, not to the client. Deleting what rsync does not recognise would wipe it.
+# cron, not to the client. Deleting what rsync does not recognize would wipe it.
 say "republishing the client"
 rsync -a --exclude 'NOTES.md' "$SRC_DIR/client/" "$WEBROOT/"
 chown -R "$RUN_USER:$RUN_USER" "$WEBROOT"
@@ -467,7 +473,7 @@ fi
 
 # Both commits fail, so the cause is not the code: a feed is down, the shards
 # are gone, the disk is full. The atomic writes mean the last good JSON is
-# still being served and ageing visibly, which is the designed behaviour.
+# still being served and ageing visibly, which is the designed behavior.
 loud "rollback to $BEFORE ALSO fails to generate; this is not a code problem"
 loud "the last good JSON is still in $WEBROOT and its staleness is climbing"
 # Cheap, and occasionally the answer: a generator that cannot start on either commit may be

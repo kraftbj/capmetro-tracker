@@ -1122,7 +1122,8 @@ describe('update.sh actually reports vhost drift, and does not change its exit c
 
 	it('returns 0 even on confirmed drift, so exit 3 keeps meaning the units', () => {
 		/*
-		 * 3 is documented in CLAUDE.md and printed by install.sh as "the committed SYSTEMD
+		 * 3 is documented in CLAUDE.md, and only there -- install.sh never names the
+		 * exit code -- as "the committed SYSTEMD
 		 * UNITS are not the ones installed, run install.sh" -- one condition, one remedy.
 		 * A vhost needs a different remedy, and widening 3 to "some config is stale" would
 		 * make the number ambiguous for whatever eventually reads it, which is the mistake
@@ -1447,5 +1448,46 @@ describe('after a rollback, the notice must not describe a change that is gone',
 			.not.toMatch(/this deploy changed the web server config/)
 		expect(rolled.stdout, 'check_vhost aborted on the rollback path').toMatch(/EXIT_UNIT_DRIFT_AFTER=/)
 		expect(rolled.code).toBe(0)
+	})
+})
+
+describe('the guards that only matter when the record is already wrong', () => {
+	it('rejects a stamp naming the same file twice, instead of accusing the other one', () => {
+		/*
+		 * The duplicate-name guard. A record carrying two lines for nginx-capmetro.conf and
+		 * none for apache-capmetro.conf passes both count checks -- the right number of
+		 * well-formed lines, the right total -- so without this guard apache has no recorded
+		 * hash, compares unequal to itself, and is reported as drifted. A confident,
+		 * specific, false accusation about a file nobody touched, which is precisely what
+		 * the four-outcome contract exists to forbid. Deleting the guard left all 90 tests
+		 * green before this.
+		 */
+		writeVhostStamp()
+		const stamp = path.join(work, 'conf/installed-vhost.sha256')
+		const lines = readFileSync(stamp, 'utf8').trim().split('\n')
+		expect(lines).toHaveLength(2)
+		/* Same count, same shape, one name twice. */
+		const hash = lines[0].split(/\s+/)[0]
+		writeFileSync(stamp, `${ hash }  ${ VHOSTS[0] }\n${ hash }  ${ VHOSTS[0] }\n`)
+		const r = sh(`cm_vhost_drift '${ work }/src/deploy' '${ stamp }' ${ VHOSTS.join(' ') }`)
+		expect(r.code, 'a duplicated name must be NO_STAMP (2), never a drift verdict').toBe(2)
+		expect(r.stdout.trim(), 'it named a file as drifted on a corrupt record').toBe('')
+	})
+
+	it('refuses to hash at all when neither hashing tool exists', () => {
+		/*
+		 * cm_sha256's last arm, which no test reached: every other test either stubs
+		 * cm_sha256 itself or shadows sha256sum/shasum as a shell FUNCTION -- and
+		 * `command -v` finds a function, so the real "neither binary is installed" path
+		 * never ran. Replacing its return with a literal placeholder hash left all 90 tests
+		 * green, which is the anti-pattern its own comment forbids in as many words: a
+		 * stand-in makes every file compare equal to every other, so drift reads clean
+		 * forever.
+		 *
+		 * PATH is emptied rather than the tools stubbed, so the absence is real.
+		 */
+		const r = sh(`PATH= cm_fingerprint '${ work }/src/deploy' ${ VHOSTS.join(' ') }`)
+		expect(r.code, 'no hashing tool must be NO_TOOL (3)').toBe(3)
+		expect(r.stdout.trim(), 'it emitted a fingerprint with no way to compute one').toBe('')
 	})
 })

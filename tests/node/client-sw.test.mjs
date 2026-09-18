@@ -103,7 +103,10 @@ function typeOf(pathname) {
 }
 
 /** Build a scope, evaluate sw.js in it, and hand back the handlers plus the state. */
-function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
+function makeScope({ files = {}, offline = false, existingCaches = [], failDelete = false } = {}) {
+  /* Set by a test AFTER install, so one response can be shaped without every precache
+     fetch inheriting it -- which would make the assertion pass for the wrong reason. */
+  let override = null
   const stores = new Map()
   for (const name of existingCaches) stores.set(name, new Map())
 
@@ -112,6 +115,7 @@ function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
     const url = new URL(keyOf(req))
     fetched.push(url.pathname)
     if (offline) return Promise.reject(new TypeError('Failed to fetch'))
+    if (override) { const r = override; override = null; return Promise.resolve(r) }
     const body = files[url.pathname]
     if (body === undefined) {
       return Promise.resolve(new Res('not found', {
@@ -132,7 +136,16 @@ function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
           m.set(keyOf(r), res)
         })))
       },
-      put(req, res) { m.set(keyOf(req), res); return Promise.resolve() },
+      put(req, res) {
+        /*
+         * Deferred to a macrotask, because a real Cache.put is. With a synchronously
+         * resolved promise every write lands in the same microtask drain whether or not
+         * anything awaited it -- so "the write is tied to the event lifetime" could not be
+         * distinguished from "the write happened to finish first", and
+         * `event.waitUntil(Promise.resolve())` scored a pass.
+         */
+        return new Promise((resolve) => setImmediate(() => { m.set(keyOf(req), res); resolve() }))
+      },
       match(req) { return Promise.resolve(m.get(keyOf(req))) },
     }
   }
@@ -140,7 +153,9 @@ function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
   const caches = {
     open: (name) => Promise.resolve(cacheFor(name)),
     keys: () => Promise.resolve([...stores.keys()]),
-    delete: (name) => Promise.resolve(stores.delete(name)),
+    delete: (name) => (failDelete
+      ? Promise.reject(new Error('quota'))
+      : Promise.resolve(stores.delete(name))),
     match(req) {
       for (const m of stores.values()) {
         const hit = m.get(keyOf(req))
@@ -165,20 +180,32 @@ function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
   vm.runInContext(source, context, { filename: 'client/sw.js' })
 
   /** Dispatch an event and settle everything it started. */
-  async function dispatch(type, init) {
+  async function dispatch(type, init, { settle = true } = {}) {
     const event = { ...init, waited: [], responded: undefined }
     event.waitUntil = (p) => event.waited.push(p)
     event.respondWith = (p) => { event.responded = p }
     handlers[type](event)
     await Promise.all(event.waited)
     if (event.responded) event.responded = await event.responded
-    /* The worker writes to the cache without awaiting, on purpose: a full quota
-       must not turn a successful fetch into a failed one. Let those land. */
-    await new Promise((r) => setImmediate(r))
+    /*
+     * Awaited AGAIN, because store() pushes its write during the respondWith chain -- after
+     * the first Promise.all above has already run over an empty array. Without this second
+     * pass, `settle: false` would prove nothing: the write would not have been awaited at
+     * all and the test would be measuring the setImmediate below instead.
+     */
+    await Promise.all(event.waited)
+    /*
+     * The worker writes to the cache without awaiting into the RESPONSE, on purpose: a full
+     * quota must not turn a successful fetch into a failed one. `settle: false` skips this
+     * final tick so a test can prove the write completed on the strength of
+     * event.waitUntil() alone -- which is the actual property, and is not provable while an
+     * extra tick is handed out for free.
+     */
+    if (settle) await new Promise((r) => setImmediate(r))
     return event
   }
 
-  return { dispatch, stores, caches, claimed, fetched, handlers }
+  return { dispatch, stores, caches, claimed, fetched, handlers, answerNextWith: (r) => { override = r } }
 }
 
 /* Everything the shell asks for, answered. Keys are pathnames under the prefix. */
@@ -273,7 +300,7 @@ describe('the shell list and what index.html actually loads', () => {
      * SERVED, so an unbumped version cannot show old code. What it does is
      * leave a REMOVED entry in the cache forever, because the cache is only
      * ever dropped wholesale on a version change. The date-stamped fixtures in
-     * this list (data/route-4-*.js, data/departures-4-*.js) are ~72 KB together
+     * this list (data/route-4-*.js, data/departures-4-*.js) are ~84 KB together
      * and their names change every time the golden capture is retaken, so the
      * first real occurrence of this is already scheduled.
      *
@@ -444,19 +471,27 @@ describe('with a network', () => {
 
   it('keeps the worker alive until the copy is actually written', async () => {
     /*
-     * The put must not be awaited into the RESPONSE -- a full quota would then
-     * turn a successful fetch into a failed one -- but it must still extend the
-     * event's lifetime, or the browser may terminate the worker as soon as
-     * respondWith settles and drop the write with nothing to observe. Those are
-     * two different things and the code needs both. The most valuable write, the
-     * navigation shell, is the one issued last on a page load, when termination
-     * pressure is highest.
+     * The write must not be awaited into the RESPONSE -- a full quota would then turn a
+     * successful fetch into a failed one -- but it must still extend the event's lifetime,
+     * or the browser may terminate the worker as soon as respondWith settles and drop the
+     * write with nothing anywhere to observe. Two different things; the code needs both.
+     *
+     * Proved by settling ONLY the waitUntil promises and then reading the cache. The earlier
+     * version asserted `event.waited.length > 0`, which shows waitUntil was CALLED and
+     * nothing about what was handed to it -- `event.waitUntil(Promise.resolve())` passed it.
+     * Reading the cache back makes the promise's identity the thing under test.
      */
-    const scope = makeScope({ files: served })
+    const files = { ...served }
+    const scope = makeScope({ files })
     await scope.dispatch('install', {})
-    const event = await scope.dispatch('fetch', { request: new Req('app.js') })
+    files[new URL('app.js', WORKER).pathname] = 'the newest release'
+
+    const event = await scope.dispatch('fetch', { request: new Req('app.js') }, { settle: false })
     expect(event.waited.length, 'the cache write was not tied to the event lifetime')
       .toBeGreaterThan(0)
+    const cached = await scope.caches.match(new Req('app.js'))
+    expect(cached.body, 'waitUntil resolved without the write having landed')
+      .toBe('the newest release')
   })
 
   it('does not cache a 404, which would freeze a missing file as a real one', async () => {
@@ -618,5 +653,145 @@ describe('with no network', () => {
     const event = await scope.dispatch('fetch', { request: new Req('./', { mode: 'navigate' }) })
     expect(event.responded.status).toBe(503)
     expect(event.responded.body).toContain('offline')
+  })
+})
+
+describe('the branches that only run when something has already gone wrong', () => {
+  it('still claims open pages when evicting an old cache fails', async () => {
+    /*
+     * `.then(claim)` chained after an uncaught Promise.all meant one rejected delete skipped
+     * clients.claim() entirely, so every page open at that moment stayed uncontrolled until
+     * its next navigation -- no offline floor in the meantime, for a reason with nothing to
+     * do with the reader. fromCache() already anticipates this same rejection for the
+     * surviving-cache half of the problem; this is the other half.
+     */
+    const scope = makeScope({ files: served, existingCaches: ['dillo-bus-board-v0'], failDelete: true })
+    await scope.dispatch('install', {})
+    await scope.dispatch('activate', {})
+    expect(scope.claimed.claim, 'a failed eviction cost us the claim').toBe(1)
+  })
+
+  it('does not adopt a redirected navigation as the offline shell', async () => {
+    /*
+     * For a navigate request the Fetch spec leaves tainting `basic`, so a chain ending at
+     * another origin passes cacheable()'s type check AND isDocument()'s type check -- it is
+     * ok, basic and text/html. And a cached response carrying redirected===true, returned
+     * to a navigation, is turned into a network error by the browser: adopting one means
+     * the offline board fails to OPEN rather than falling back, which is worse than serving
+     * the wrong page.
+     */
+    const scope = makeScope({ files: served })
+    await scope.dispatch('install', {})
+    const before = await scope.caches.match(new URL('./', WORKER).href)
+
+    const redirected = new Res("somebody else's page", {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+    redirected.redirected = true
+    scope.answerNextWith(redirected)
+
+    const event = await scope.dispatch('fetch', {
+      request: new Req('route/4/eb', { mode: 'navigate' }),
+    })
+    /* Still handed to the reader -- this is about what we KEEP, not what we serve. */
+    expect(event.responded.body).toBe("somebody else's page")
+
+    const after = await scope.caches.match(new URL('./', WORKER).href)
+    expect(after.body, 'a redirected response became the offline shell').toBe(before.body)
+  })
+
+  it('serves /index.html the refreshed document, not the one frozen at install', async () => {
+    /*
+     * SHELL carries BOTH `./` and `index.html`, deliberately, as two real URLs for one
+     * document. But navigations are only ever STORED under `./`, and `index.html` is written
+     * only by install's addAll -- which re-runs only when this file's own bytes change, and
+     * the header says plainly that it does not do so for ordinary code changes.
+     *
+     * So reading the requested URL first answered a cold `/index.html` from the copy taken
+     * at install and never refreshed since. Measured before the fix: `./` and app.js at
+     * release 5, `/index.html` at release 1. The same document, four releases apart, and
+     * only for the reader who typed the filename.
+     */
+    const files = { ...served }
+    const online = makeScope({ files })
+    await online.dispatch('install', {})
+
+    /* Four ordinary online visits, each a newer release of the document. */
+    for (const release of ['r2', 'r3', 'r4', 'r5']) {
+      files[new URL('./', WORKER).pathname] = release
+      files[new URL('route/4/eb', WORKER).pathname] = release
+      await online.dispatch('fetch', { request: new Req('route/4/eb', { mode: 'navigate' }) })
+    }
+
+    const offline = makeScope({ files: served, offline: true })
+    for (const [name, store] of online.stores) {
+      const c = await offline.caches.open(name)
+      for (const [url, res] of store) await c.put(url, res)
+    }
+
+    const event = await offline.dispatch('fetch', {
+      request: new Req('index.html', { mode: 'navigate' }),
+    })
+    expect(event.responded.body, '/index.html answered from the install-time copy').toBe('r5')
+  })
+
+  it('answers an uncached font with an error rather than rejecting', async () => {
+    /*
+     * The font branch was the only one in the file that could hand respondWith a REJECTED
+     * promise: cache miss plus no network and it threw instead of degrading. Every other
+     * branch catches. A missing typeface is bounded damage, but a branch that fails
+     * differently from its three siblings for no stated reason is how the next person
+     * reasons wrongly about all four.
+     */
+    const scope = makeScope({ files: {}, offline: true })
+    const event = await scope.dispatch('fetch', { request: new Req('fonts/ibm-plex-sans.woff2') })
+    await expect(Promise.resolve(event.responded)).resolves.toBeDefined()
+    expect(event.responded.status, 'an uncached offline font should be an error response').toBe(0)
+  })
+
+  it('answers an uncached offline asset with an error, never an empty 200', async () => {
+    /*
+     * An empty 200 for a stylesheet or a script renders an unstyled or broken board and
+     * reads as a code bug; a failed request is something the page already knows how to be
+     * honest about. The branch said so in a comment and nothing checked it -- replacing
+     * Response.error() with an empty 200 left the suite green.
+     */
+    const scope = makeScope({ files: {}, offline: true })
+    const event = await scope.dispatch('fetch', { request: new Req('app.js') })
+    expect(event.responded.status).toBe(0)
+    expect(event.responded.body, 'an empty 200 would render a broken board silently').toBeNull()
+  })
+
+  it('refuses to cache an opaque cross-origin response', async () => {
+    /*
+     * cacheable()'s `res.type === 'basic'` clause, which had no coverage at all -- deleting
+     * it left every test green, because the stub always produced `basic`. An opaque
+     * response caches as a 0-status body that later reads back as a successful EMPTY file:
+     * an unstyled board or a missing namespace, presenting as a code bug.
+     *
+     * Shaped per-request rather than scope-wide: making every fetch opaque would poison
+     * install too, and the assertion would then pass because the cache was never correctly
+     * filled in the first place.
+     */
+    const scope = makeScope({ files: served })
+    await scope.dispatch('install', {})
+    scope.answerNextWith(new Res('opaque body', { type: 'opaque' }))
+    await scope.dispatch('fetch', { request: new Req('app.js') })
+    const cached = await scope.caches.match(new Req('app.js'))
+    expect(cached.body, 'an opaque response was written into the cache').toBe('body of app.js')
+  })
+
+  it('declines a percent-encoded api path, which a raw substring test cannot see', async () => {
+    /*
+     * `/api%2Froute/4.json` arrives with the escape intact, so `pathname.indexOf('/api/')`
+     * does not match and the request would have been handled -- and cached -- as an ordinary
+     * asset. Nothing the client builds spells a URL that way and this origin 404s it, so it
+     * is a guard rather than a live hole; but the rule it enforces is the one this project
+     * treats as absolute.
+     */
+    const scope = makeScope({ files: served })
+    await scope.dispatch('install', {})
+    const event = await scope.dispatch('fetch', { request: new Req('api%2Froute/4.json') })
+    expect(event.responded, 'the worker answered for an encoded api path').toBeUndefined()
   })
 })

@@ -17,14 +17,14 @@
  * client/tokens.css by anybody with node installed.
  *
  * The mark is the board's own string-line: a spine with three dots offset by
- * how late each bus is -- early left, on time centre, late right. It is drawn
- * from the board's own colours, which is why it reads as this board and not as
+ * how late each bus is -- early left, on time center, late right. It is drawn
+ * from the board's own colors, which is why it reads as this board and not as
  * a generic bus: the three adherence hexes (--adh-early, --adh-ontime,
  * --adh-late) plus --surface and --hairline, all quoted from tokens.css, and
  * one derived value -- `spine` -- that is no token at all. See PALETTE below,
  * which says which is which. tests/node/client-installable.test.mjs checks the
  * five quoted hexes still match tokens.css, so a repalette cannot leave the
- * home screen showing the old colours, and also asserts that every committed
+ * home screen showing the old colors, and also asserts that every committed
  * icon is byte-for-byte what this script draws.
  *
  * Antialiasing is 4x supersampling and a box downsample. Nothing here needs
@@ -79,11 +79,11 @@ function roundRect(buf, x, y, w, h, r, color) {
   const rad = Math.min(r, w / 2, h / 2);
   for (let py = Math.floor(y); py < Math.ceil(y + h); py++) {
     for (let px = Math.floor(x); px < Math.ceil(x + w); px++) {
-      /* Sample the pixel centre. At SS=4 that is 16 samples per output pixel. */
+      /* Sample the pixel center. At SS=4 that is 16 samples per output pixel. */
       const cx = px + 0.5;
       const cy = py + 0.5;
       if (cx < x || cy < y || cx > x + w || cy > y + h) continue;
-      /* Distance from the nearest corner centre, but only inside a corner box. */
+      /* Distance from the nearest corner center, but only inside a corner box. */
       const nx = Math.min(Math.max(cx, x + rad), x + w - rad);
       const ny = Math.min(Math.max(cy, y + rad), y + h - rad);
       const dx = cx - nx;
@@ -154,14 +154,14 @@ function chunk(type, data) {
 }
 
 /** 8-bit RGBA, non-interlaced. Sub filter on every row: these images are long
-    horizontal runs of one colour and Sub costs nothing to compute. */
+    horizontal runs of one color and Sub costs nothing to compute. */
 /*
  * PNG, indexed where it can be and RGBA where it cannot.
  *
  * These are flat fills cut from a six-entry palette, antialiased: every icon
- * lands between 61 and 103 distinct colours, so one index byte per pixel does
+ * lands between 61 and 103 distinct colors, so one index byte per pixel does
  * the work of four RGBA bytes and the file halves -- 23,692 bytes across the
- * five icons down to 10,814, losslessly. Three of them are fully opaque and
+ * five icons down to 10,810, losslessly. Three of them are fully opaque and
  * were carrying an alpha channel that said 255 everywhere. That saving matters
  * here for one specific reason: the worker precaches these, and the icons are
  * the only part of the shell the HTTP cache cannot hand over on a first visit
@@ -173,7 +173,7 @@ function chunk(type, data) {
  * runs deflate would otherwise find. Filter 1 stays for RGBA, where
  * neighbouring pixels really are numerically close.
  *
- * The RGBA path is kept and is not dead: the >256-colour fallback is what makes
+ * The RGBA path is kept and is not dead: the >256-color fallback is what makes
  * this safe to leave in place if the mark ever gains a gradient.
  */
 export function encodePng(buf) {
@@ -209,7 +209,7 @@ export function encodePng(buf) {
       raw[o] = 0; /* filter: None */
       for (let x = 0; x < n; x++) raw[o + 1 + x] = idx[y * n + x];
     }
-    ihdr[9] = 3; /* colour type: indexed */
+    ihdr[9] = 3; /* color type: indexed */
     const plte = Buffer.alloc(order.length * 3);
     for (let i = 0; i < order.length; i++) {
       plte[i * 3] = order[i][0];
@@ -240,7 +240,7 @@ export function encodePng(buf) {
       raw[o + 1 + x] = (v - left) & 0xff;
     }
   }
-  ihdr[9] = 6; /* colour type: RGBA */
+  ihdr[9] = 6; /* color type: RGBA */
   return Buffer.concat([
     magic,
     chunk('IHDR', ihdr),
@@ -259,7 +259,7 @@ export function encodeIco(png, size) {
   head[7] = size === 256 ? 0 : size;
   head[8] = 0;                        /* palette size: not paletted */
   head[9] = 0;                        /* reserved */
-  head.writeUInt16LE(1, 10);          /* colour planes */
+  head.writeUInt16LE(1, 10);          /* color planes */
   /* 32 even though the payload is now an indexed PNG. For a PNG-compressed
      entry these directory fields are informational -- every reader since Vista
      takes the dimensions and format from the embedded PNG's own IHDR -- and 32
@@ -276,7 +276,7 @@ export function encodeIco(png, size) {
 /*
  * Geometry in a unit square, so every size is the same drawing. The three dots
  * sit at a quarter, a half and three quarters of the spine, offset by the
- * lateness each colour stands for. Their bounding box is 0.64 x 0.80, whose
+ * lateness each color stands for. Their bounding box is 0.64 x 0.80, whose
  * diagonal is 1.02 -- which is what sets the maskable scale below.
  */
 const DOTS = [
@@ -289,7 +289,7 @@ const SPINE_W = 0.045;
 const SPINE_TOP = 0.13;
 const SPINE_BOTTOM = 0.87;
 
-/** Draw the mark into the centred box of side `scale` (a fraction of the canvas). */
+/** Draw the mark into the centered box of side `scale` (a fraction of the canvas). */
 function mark(buf, scale) {
   const n = buf.n;
   const s = n * scale;

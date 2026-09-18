@@ -14,7 +14,7 @@
  * /styles.css and /api/health.json. Verified after: all four present on all five paths.
  *
  * This is a text assertion rather than a live one on purpose. Running the real server
- * proves the behaviour once, but it needs Docker, and this repo's suite deliberately
+ * proves the behavior once, but it needs Docker, and this repo's suite deliberately
  * needs nothing but node, php and python. What the text can pin is the invariant that
  * actually broke: any location that sets a header must set all of them.
  *
@@ -287,8 +287,18 @@ describe('the vhosts let the board be installed', () => {
   })
 
   it('serves the manifest as application/manifest+json in both', () => {
-    expect(nginx).toMatch(/location = \/manifest\.webmanifest \{/)
-    expect(nginx).toMatch(/default_type application\/manifest\+json;/)
+    /*
+     * Scoped to the manifest's own location block. Two independent whole-file regexes are
+     * the "any-one-of-N-copies suffices" shape this file's header calls out: moving
+     * `default_type application/manifest+json;` into the unrelated /api/ block, leaving the
+     * manifest block untyped, satisfied both patterns and left the suite green. The manifest
+     * would then go out as octet-stream under nosniff, which Safari refuses -- the exact
+     * failure this test exists to prevent.
+     */
+    const block = locationBlocks(nginx).find((b) => b.name === '= /manifest.webmanifest')
+    expect(block, 'nginx has no manifest location block').toBeDefined()
+    expect(block.body, 'the manifest block does not set its own type')
+      .toMatch(/default_type application\/manifest\+json;/)
     expect(apache).toMatch(/^\s*AddType application\/manifest\+json \.webmanifest$/m)
   })
 

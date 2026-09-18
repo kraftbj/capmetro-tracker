@@ -39,7 +39,7 @@ CM_UNIT_FILES='capmetro-generate.service capmetro-generate.timer capmetro-update
 # the wrong hour and the board still renders, while a stale vhost can refuse the manifest and
 # the service worker outright -- no install prompt, no offline board, health.json still
 # ok:true, and every test in the repo green. That is the failure mode this whole deployment is
-# organised around not having.
+# organized around not having.
 #
 # Fingerprinted the same way and for the same reason as the units: these two files carry
 # @WEBROOT@ and @DOMAIN@ placeholders that install.sh substitutes, so what is in

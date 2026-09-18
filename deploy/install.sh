@@ -409,9 +409,12 @@ else
       warn "could not create a temp file in $CONF_DIR (read-only filesystem, or full?), so
      there is no vhost drift record. Everything else is installed."
     else
-      warn "could not fingerprint the vhost sources (no sha256sum or shasum?), so there is
-     no vhost drift record at $(cm_vhost_stamp_path "$CONF_DIR").
-     Everything else is installed. A later vhost change will deploy without a notice."
+      warn "could not fingerprint the vhost sources, so there is no drift record at
+     $(cm_vhost_stamp_path "$CONF_DIR"). Either no sha256sum or shasum is installed, a
+     source file could not be read, or the list holds a name the record format cannot
+     represent -- CM_DRIFT_NO_TOOL covers all three and does not say which, so check the
+     cheap one first. Everything else is installed; a later vhost change will deploy
+     without a notice."
     fi
   fi
 fi

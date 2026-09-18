@@ -990,10 +990,10 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 }
 /*
  * An unconfirmed continuation, marked the way .chip--hedged already marks one:
- * a dashed edge, not a colour. §4 lets a `low` grade be said hedged or not at
+ * a dashed edge, not a color. §4 lets a `low` grade be said hedged or not at
  * all, and the clock on this row is derived from it, so the row has to carry
  * the hedge somewhere a glance can catch. The sentence says it in words too --
- * this is the redundant channel, per the colour-is-never-alone rule in D1.
+ * this is the redundant channel, per the color-is-never-alone rule in D1.
  */
 .nextbus__bus--hedged {
   padding-left: 8px;
@@ -1135,9 +1135,9 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 .near__foot { margin: 10px 0 0; font-size: var(--fs-chrome); color: var(--ink-chrome); }
 
 /*
- * The marked row. A left border alone would collide with the adherence colour
+ * The marked row. A left border alone would collide with the adherence color
  * that border already carries, so the marker is a ring plus a written label —
- * the same never-colour-alone rule the badges follow.
+ * the same never-color-alone rule the badges follow.
  */
 .vrow.is-yours { box-shadow: inset 0 0 0 1px var(--accent); position: relative; }
 .vrow__yours {
@@ -1192,7 +1192,7 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 }
 .trip__bus:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 /* A deadhead is a normal state, not a fault — dimmed and grey, never the
-   danger colour a broken control would use. */
+   danger color a broken control would use. */
 .trip__bus[disabled] {
   cursor: default; opacity: 0.6; border-left-color: var(--adh-dead);
 }
@@ -1283,7 +1283,7 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 }
 /*
  * An estimated time must read as different in grayscale, so the signal is
- * shape and weight, never colour alone: a dashed border in place of the solid
+ * shape and weight, never color alone: a dashed border in place of the solid
  * one every other row carries, the row dimmed, and the predicted time itself
  * dropped to regular weight and a dimmer ink.
  */

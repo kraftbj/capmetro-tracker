@@ -9,7 +9,7 @@
  * cache in front of it shows stale positions while looking current, which is
  * the one failure this whole project is built to avoid. Requests under an
  * `api/` segment fall straight through to the network with no respondWith(), so
- * the browser does exactly what the page asked for. Do not "optimise" that into
+ * the browser does exactly what the page asked for. Do not "optimize" that into
  * a stale-while-revalidate. A bus that is not where the board says it is, is
  * worse than a board that will not load.
  *
@@ -103,7 +103,20 @@ var NAV_FALLBACK = new URL('./', self.location.href).href;
 
 /** Under an `api/` segment, at any depth, is the live feed. */
 function isApi(url) {
-  return url.pathname.indexOf('/api/') !== -1;
+  /*
+   * Decoded before testing. `/api%2Froute/4.json` reaches here with the escape intact, so a
+   * raw substring test does not see the segment and the request would be handled -- and
+   * cached -- as an ordinary asset. Nothing the client builds looks like that, and this
+   * origin answers 404 for it today, so it is a guard rather than a live hole; but the rule
+   * this function exists to enforce is the one rule the project treats as absolute, and it
+   * should not rest on how a path happens to be spelled.
+   *
+   * Over-broad on purpose, and it fails safe: a path that merely contains `/api/` after
+   * decoding is left to the network, which is the conservative direction.
+   */
+  var path = url.pathname;
+  try { path = decodeURIComponent(path); } catch (e) { /* malformed escape: test as-is */ }
+  return path.indexOf('/api/') !== -1;
 }
 
 function isFont(url) {
@@ -221,6 +234,13 @@ self.addEventListener('activate', function (event) {
         if (k !== CACHE && k.indexOf('dillo-bus-board-') === 0) return caches.delete(k);
         return null;
       }));
+    }).catch(function () {
+      /* An eviction that fails must not also cost us the claim. `.then(claim)` chained
+         after an uncaught Promise.all meant one rejected delete skipped clients.claim()
+         entirely, leaving every open page uncontrolled until its next navigation -- so a
+         reader who had the board open got no offline floor at all, for a reason that has
+         nothing to do with them. fromCache() already anticipates this same rejection for
+         the surviving-cache half; this is the other half. */
     }).then(function () {
       return self.clients.claim();
     })
@@ -251,11 +271,26 @@ self.addEventListener('fetch', function (event) {
          * `/route/4/eb`, `/trip/1234` and `/buses` separately would be three
          * copies of one file and none of them the one a cold `/` needs.
          */
-        if (cacheable(res) && isDocument(res)) store(event, NAV_FALLBACK, res);
+        /* `!res.redirected` is the third clause and it is not decoration. For a navigate
+           request the Fetch spec leaves tainting `basic`, so a chain ending somewhere else
+           is still basic, ok and text/html -- it passes both other guards. And a cached
+           response carrying redirected===true, handed back to a navigation, is turned into
+           a network error by the browser: the offline board would then fail to OPEN rather
+           than fall back, which is worse than the poisoning it looks like. */
+        if (cacheable(res) && !res.redirected && isDocument(res)) {
+          store(event, NAV_FALLBACK, res);
+        }
         return res;
       }).catch(function () {
-        return fromCache(request).then(function (hit) {
-          return hit || fromCache(NAV_FALLBACK);
+        /* NAV_FALLBACK FIRST, and the order is the whole point. Navigations are only ever
+           STORED under NAV_FALLBACK, while SHELL carries both `./` and `index.html` as real
+           URLs for the same document -- and `index.html` is written only by install's
+           addAll, which re-runs only when this file's own bytes change. Reading the request
+           first therefore answered a cold `/index.html` from the copy taken at install and
+           never refreshed since: measured at release 1 while `./` and app.js were at
+           release 5. Same document, many releases apart, offline. */
+        return fromCache(NAV_FALLBACK).then(function (hit) {
+          return hit || fromCache(request);
         }).then(function (hit) {
           /*
            * Nothing cached and no network: say so in words. This is reachable
@@ -280,6 +315,13 @@ self.addEventListener('fetch', function (event) {
         return hit || fetch(request).then(function (res) {
           return cacheable(res) ? store(event, request, res) : res;
         });
+      }).catch(function () {
+        /* The one branch in this file that could reject. Every other path catches and
+           degrades; this one handed a rejected promise to respondWith, so a font that was
+           not cached and could not be fetched failed the request outright instead of
+           becoming an ordinary network error. Bounded -- it is a typeface, not the board --
+           but it made this branch behave unlike its three siblings for no stated reason. */
+        return Response.error();
       })
     );
     return;

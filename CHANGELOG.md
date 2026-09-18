@@ -107,7 +107,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
     over the whole input space, rather than only through a fully built chain.
 
     22 tests had been passing an empty routes map, which is what let this stay
-    hidden: the suite had normalised "no live evidence" as the ordinary grading
+    hidden: the suite had normalized "no live evidence" as the ordinary grading
     fixture. Each now says which state it means — a live feed with no bus, which
     the timetable may legitimately stand in for, or nothing loaded, which refuses.
 
@@ -187,7 +187,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 - **Installable on a phone, and it opens with no signal.** A web app manifest, a
   set of icons cut from the board's own palette, the Apple meta tags iOS reads
   instead of the manifest, and a service worker. Added to a home screen the board
-  runs without browser chrome, in its own task, at its own colour.
+  runs without browser chrome, in its own task, at its own color.
 
   The worker exists for one reason: to make the board OPEN at a bus stop with one
   bar. It caches the document, the scripts, the stylesheet, the fonts and the
@@ -260,7 +260,7 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   board's own string-line — a spine with three dots placed by how late each bus
   is, in the same `--adh-early`/`--adh-ontime`/`--adh-late` hexes the board uses.
   A test pins those hexes to `tokens.css`, so a repalette cannot leave the old
-  colours on somebody's home screen, where they are not next to the board and
+  colors on somebody's home screen, where they are not next to the board and
   nobody would notice.
 
   The service worker is **driven rather than read** by its tests: it is evaluated

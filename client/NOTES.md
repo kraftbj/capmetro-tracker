@@ -78,7 +78,7 @@ for keeps the saved one rather than retrying forever.
 
 **Every fetch hangs off a derived base, never a hardcoded `/api/`.** The client
 fetches relative to the page, so `api/route/4.json` read from `/trip/1234` asks
-for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognised app path to
+for `/trip/api/route/4.json`. `urls.baseFor()` strips a recognized app path to
 get the directory the board is served from. Hardcoding `/api/` would break every
 browser test in this repo, because `tests/e2e/server.mjs` serves the whole client
 under a scenario prefix.
@@ -238,7 +238,7 @@ trade. The mark is the board's own string-line: a spine with three dots offset
 by how late each bus is, drawn in the same `--adh-early`, `--adh-ontime` and
 `--adh-late` hexes `tokens.css` publishes.
 `tests/node/client-installable.test.mjs` pins those hexes to `tokens.css`, so a
-repalette cannot leave the old colours on a home screen where nobody is looking
+repalette cannot leave the old colors on a home screen where nobody is looking
 at them next to the board.
 
 `maskable-*.png` are separate files rather than `purpose: "any maskable"` on the
@@ -255,7 +255,10 @@ with it.
 
 ### Safe-area padding
 
-Four declarations at the end of `styles.css`. Standalone mode has no browser
+Four declarations. The horizontal pair sits at the end of `styles.css`; the
+vertical two are folded into `.topbar` and `.foot`'s own `padding` shorthands so
+each base value is written once, rather than restated in a later override that
+would win unconditionally and make editing the original do nothing. Standalone mode has no browser
 chrome to absorb a notch or a home indicator and the viewport meta has said
 `viewport-fit=cover` since before any of this. `env()` is 0 in a tab and on
 every device without an inset, so the 412px design does not move — the
@@ -338,7 +341,7 @@ anything ever groups by stop.
 
 **5. Stop-name shortening (task D8) has a capitalisation artefact.** `"8Th/Lavaca"`
 in the fixture. Rule 3 of §7 standardises directional suffixes but nothing
-normalises an intercapped ordinal. Cosmetic, build-side.
+normalizes an intercapped ordinal. Cosmetic, build-side.
 
 **6. Not built, and out of the four-panel hierarchy I was given:** the watchlist
 (`/api/watch/{id}.json`, §9) and the all-buses view (`/api/all.json`, §8). The
@@ -409,7 +412,7 @@ no tile server, no geocoder, no key, no network call.
   that used to hold — the row prints an arrival, a scheduled time and a badge,
   so a reader can subtract, and 1,438 of 4,205 rendered rows would have been
   off by more than two minutes with 325 pointing opposite ways. On a
-  feed-sourced row the badge, the state colour and the signed number go; the
+  feed-sourced row the badge, the state color and the signed number go; the
   scheduled time is printed always instead, since it becomes the only thing
   saying how late the bus is *here*. The bus's overall state survives as a
   phrase — "running very late" — because a word can carry the scope a bare

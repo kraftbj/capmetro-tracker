@@ -4,8 +4,8 @@
  *
  * Every failure in this area is silent. A manifest with a relative URL turned
  * absolute still parses, still validates, and installs a shortcut that 404s. An
- * icon renamed but not re-listed installs as a blank square. A theme colour that
- * drifts from tokens.css shows as a strip of the wrong colour behind the status
+ * icon renamed but not re-listed installs as a blank square. A theme color that
+ * drifts from tokens.css shows as a strip of the wrong color behind the status
  * bar on somebody's home screen and nowhere else. None of it is visible in a
  * browser tab, which is where all the other tests look.
  */
@@ -93,12 +93,12 @@ describe('the web app manifest', () => {
     expect(manifest.id, 'id resolves against the origin and cannot be prefix-safe').toBeUndefined()
   })
 
-  it('takes both colours from tokens.css, so the home screen matches the board', () => {
+  it('takes both colors from tokens.css, so the home screen matches the board', () => {
     const surface = (tokens.match(/--surface:\s*(#[0-9a-f]{6})/i) || [])[1]
     expect(surface).toBe('#0b0d12')
     expect(manifest.theme_color).toBe(surface)
     expect(manifest.background_color).toBe(surface)
-    /* And the tab colour the browser reads before the manifest is fetched. */
+    /* And the tab color the browser reads before the manifest is fetched. */
     expect(meta('theme-color')).toBe(surface)
   })
 
@@ -249,11 +249,11 @@ describe('the safe-area padding an installed board needs', () => {
 })
 
 describe('the icons and the palette they were cut from', () => {
-  it('draws the mark in the adherence colours tokens.css publishes', () => {
+  it('draws the mark in the adherence colors tokens.css publishes', () => {
     /*
      * The icon is the board's own string-line: a spine with three dots placed by
      * how late each bus is. If tokens.css is ever repalletted, this fails rather
-     * than leaving the old colours on somebody's home screen -- where they are
+     * than leaving the old colors on somebody's home screen -- where they are
      * not next to the board and nobody would notice the difference.
      */
     const token = (name) => (tokens.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i')) || [])[1]
@@ -276,12 +276,12 @@ describe('the icons and the palette they were cut from', () => {
       expect(png.depth, `${file} is not 8 bits per sample`).toBe(8)
       /*
        * Indexed, not RGBA. These are flat fills from a six-entry palette and
-       * land at 61-103 distinct colours, so one index byte per pixel halves
+       * land at 61-103 distinct colors, so one index byte per pixel halves
        * every file losslessly -- which matters because the worker precaches
        * them and they are the one part of the shell served with a real max-age
        * rather than must-revalidate, so they are most of what a first install
-       * still transfers. encodePng falls back to colour type 6 above 256
-       * colours, so this is an assertion about these icons, not about the
+       * still transfers. encodePng falls back to color type 6 above 256
+       * colors, so this is an assertion about these icons, not about the
        * encoder's only capability.
        */
       expect(png.color, `${file} is not an indexed PNG`).toBe(3)
@@ -313,7 +313,7 @@ describe('the committed icons are what the generator draws', () => {
   /*
    * Six binary blobs in a public repo, and until this block nothing checked
    * that any of them was the output of client/icons/regenerate.js. The other
-   * icon tests assert PNG bit depth, colour type and the .ico container's
+   * icon tests assert PNG bit depth, color type and the .ico container's
    * fields -- all of which a completely different image satisfies. So editing
    * the geometry or the palette and forgetting to re-run the generator was
    * invisible, and so was a hand-substituted file.
@@ -351,25 +351,25 @@ describe('the committed icons are what the generator draws', () => {
   })
 })
 
-describe('the encoder above 256 colours, which no committed icon reaches', () => {
+describe('the encoder above 256 colors, which no committed icon reaches', () => {
   /*
    * encodePng indexes when it can and falls back to RGBA when it cannot. The five icons
-   * land at 61-103 distinct colours, so neither the boundary nor the fallback is exercised
+   * land at 61-103 distinct colors, so neither the boundary nor the fallback is exercised
    * by anything else in this suite -- mutating the bail-out from 256 to 255 leaves it
    * entirely green.
    *
    * The harmless direction is a needless fallback. The dangerous one is off by one the
-   * other way: a 257th colour accepted into the palette writes index 256 into a Uint8Array,
+   * other way: a 257th color accepted into the palette writes index 256 into a Uint8Array,
    * which truncates to 0, and emits a PLTE of 257 entries. That is an invalid PNG carrying
    * silently wrong pixels -- the exact failure the byte-equality tests above cannot see,
    * because the generator would produce the same wrong bytes twice.
    */
-  const synthetic = (colours) => {
-    /* A square big enough to hold `colours` distinct RGBA values, one per pixel. */
-    const n = Math.ceil(Math.sqrt(colours))
+  const synthetic = (colors) => {
+    /* A square big enough to hold `colors` distinct RGBA values, one per pixel. */
+    const n = Math.ceil(Math.sqrt(colors))
     const px = new Uint8Array(n * n * 4)
     for (let i = 0; i < n * n; i++) {
-      const c = i % colours
+      const c = i % colors
       px[i * 4] = c & 0xff
       px[i * 4 + 1] = (c >> 8) & 0xff
       px[i * 4 + 2] = 0x40
@@ -378,8 +378,8 @@ describe('the encoder above 256 colours, which no committed icon reaches', () =>
     return { n, px }
   }
 
-  /** IHDR colour type, read back off the encoded bytes. */
-  const colourType = (buf) => buf[25]
+  /** IHDR color type, read back off the encoded bytes. */
+  const colorType = (buf) => buf[25]
   const chunks = (buf) => {
     const out = []
     let i = 8
@@ -391,16 +391,16 @@ describe('the encoder above 256 colours, which no committed icon reaches', () =>
     return out
   }
 
-  it('indexes at exactly 256 colours, the most an 8-bit index can address', () => {
+  it('indexes at exactly 256 colors, the most an 8-bit index can address', () => {
     const png = Buffer.from(encodePng(synthetic(256)))
-    expect(colourType(png), '256 distinct colours must still index').toBe(3)
+    expect(colorType(png), '256 distinct colors must still index').toBe(3)
     const plte = chunks(png).filter((c) => c === 'PLTE')
     expect(plte).toHaveLength(1)
   })
 
   it('falls back to RGBA at 257, rather than writing an index it cannot store', () => {
     const png = Buffer.from(encodePng(synthetic(257)))
-    expect(colourType(png), '257 distinct colours must fall back to RGBA').toBe(6)
+    expect(colorType(png), '257 distinct colors must fall back to RGBA').toBe(6)
     expect(chunks(png), 'an RGBA png must carry no palette').not.toContain('PLTE')
   })
 
