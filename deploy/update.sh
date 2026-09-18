@@ -230,60 +230,77 @@ check_units() {
 check_vhost() {
   local lib="$SRC_DIR/deploy/lib/units.sh"
   [ -f "$lib" ] || return 0
-  # shellcheck source=deploy/lib/units.sh
-  if ! . "$lib"; then
-    return 0   # check_units already said so; one message about one broken lib is enough
-  fi
 
-  # The lib on disk can predate the code reading it -- after a rollback it certainly does.
-  # Missing functions mean this version does not know about vhosts, which is not drift.
-  local fn
-  for fn in cm_vhost_drift cm_vhost_stamp_path; do
-    command -v "$fn" >/dev/null 2>&1 || return 0
-  done
+  # SOURCED IN A SUBSHELL, and that is the whole reason this is written as a command
+  # substitution rather than the obvious `. "$lib"` at function scope.
+  #
+  # check_units takes `local exit_drift="$EXIT_UNIT_DRIFT"` before its own source, because a
+  # pulled units.sh that assigned that name would zero its verdict -- its comment calls that
+  # the third variant of the same bug. That defense only holds while check_units' source is
+  # the FIRST one in the shell. This function runs immediately before it at every call site,
+  # so sourcing here would have moved the attack surface in front of the snapshot and
+  # reopened the hole from the outside. Inside `$( )` nothing units.sh assigns, defines or
+  # exports can reach the parent shell at all, which closes it for good rather than by
+  # ordering.
+  #
+  # The two private statuses are outside cm_drift's 0..3 contract on purpose, so "the lib
+  # could not be loaded" can never be read as a drift verdict.
+  local drift rc=0
+  drift=$(
+    . "$lib" >/dev/null 2>&1 || exit 90
+    command -v cm_vhost_drift >/dev/null 2>&1 || exit 91
+    command -v cm_vhost_stamp_path >/dev/null 2>&1 || exit 91
+    cm_vhost_drift "$SRC_DIR/deploy" "$(cm_vhost_stamp_path "$CONF_DIR")"
+  ) || rc=$?
 
-  local stamp drift rc=0
-  stamp="$(cm_vhost_stamp_path "$CONF_DIR")"
-  drift=$(cm_vhost_drift "$SRC_DIR/deploy" "$stamp") || rc=$?
-
+  # Compared against literals, not against CM_DRIFT_*: those constants live in the lib, which
+  # is now deliberately out of reach. The numbers are cm_drift's published contract and are
+  # named here so the arms stay readable.
   case "$rc" in
-    "${CM_DRIFT_SAME:-0}") return 0 ;;
-    "${CM_DRIFT_FOUND:-1}") ;;
-    *)
-      # No stamp, no hashing tool, or a status this function does not know. All of them are
-      # "cannot tell", and check_units has already explained the cause of whichever it is in
-      # its own words; repeating it about the vhosts would be noise on every single run of
-      # every box that predates this feature.
-      return 0
-      ;;
+    0) return 0 ;;   # the configs agree
+    1) ;;            # confirmed drift, names on stdout
+    *) return 0 ;;   # 2 no record, 3 cannot hash, 90/91 lib unusable -- all "cannot tell",
+                     # and check_units explains whichever it is in its own words
   esac
 
-  # rc says drift; the names are what make it actionable. An empty list means the answer is
-  # not known, so it is not reported as an accusation.
-  if [ -z "$drift" ]; then
+  [ -n "$drift" ] || return 0   # never an accusation with nothing in it
+
+  loud "the web server config in the checkout has changed since install.sh last ran:"
+  local f nginx_drifted="" apache_drifted=""
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    loud "    $f"
+    case "$f" in
+      nginx-*) nginx_drifted=1 ;;
+      apache-*) apache_drifted=1 ;;
+    esac
+  done <<< "$drift"
+
+  # Which SERVER this box runs, and which FILE actually moved, are two different questions,
+  # and answering the second with the first told an nginx box to reload apache. Only speak
+  # about a file that is in the list above.
+  local mine=""
+  if command -v nginx >/dev/null 2>&1 && [ -n "$nginx_drifted" ]; then mine=1; fi
+  if { command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; } \
+     && [ -n "$apache_drifted" ]; then mine=1; fi
+
+  if [ -z "$mine" ]; then
+    loud "none of those is the config this box serves from, so there is nothing to do here."
     return 0
   fi
 
-  loud "the web server config in the checkout has changed since install.sh last ran:"
-  local f
-  while IFS= read -r f; do
-    [ -n "$f" ] && loud "    $f"
-  done <<< "$drift"
   loud "the box is still serving the OLD one. Nothing here installs it."
   loud "A stale vhost can refuse the manifest and the service worker with nothing on screen"
-  loud "to say so, and health.json still reads ok:true, so check this by hand:"
-  if command -v nginx >/dev/null 2>&1; then
-    loud "    sudo cp $SRC_DIR/deploy/nginx-capmetro.conf /etc/nginx/sites-available/capmetro"
-    loud "    sudo nginx -t && sudo systemctl reload nginx"
-    loud "(that copy keeps @WEBROOT@/@DOMAIN@ literal -- substitute them as install.sh prints.)"
-  elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
-    loud "    sudo cp $SRC_DIR/deploy/apache-capmetro.conf /etc/apache2/sites-available/capmetro.conf"
-    loud "    sudo apache2ctl configtest && sudo systemctl reload apache2"
-    loud "(that copy keeps @WEBROOT@/@DOMAIN@ literal -- substitute them as install.sh prints.)"
-  else
-    loud "    no nginx or apache found here; apply it to whatever serves $WEBROOT"
-  fi
-  loud "then record it:  sudo $SRC_DIR/deploy/install.sh"
+  loud "to say so, and health.json still reads ok:true, so this will not show up anywhere else."
+  # DELIBERATELY NOT a copy-paste `cp`. These files ship with @DOMAIN@ and @WEBROOT@ still in
+  # them, and nginx accepts both as literals: `nginx -t` on an unsubstituted config reports
+  # "test is successful", the reload succeeds, and every URL including /api/health.json then
+  # 404s -- with the working config already overwritten. Verified against real nginx. A
+  # remedy that can take the board down is worse than one extra command to run, and this
+  # function does not know $DOMAIN anyway.
+  loud "Run install.sh: it prints the exact sed for this box, with the placeholders filled."
+  loud "    sudo $SRC_DIR/deploy/install.sh"
+  loud "It also re-records the config, which is what stops this repeating every run."
   return 0
 }
 

@@ -103,19 +103,34 @@ check_units ${ env.context ?? '' } || exit $?
  * Calls the REAL check_vhost out of the real update.sh. No systemd overrides: a box on cron
  * still serves the board over HTTP, so this check deliberately does not gate on systemd.
  *
- * PATH is inherited, NOT emptied. Emptying it also hides sha256sum/shasum, so cm_sha256
- * cannot answer, the check correctly takes its cannot-tell branch, and the test then proves
- * nothing while looking like it passed. Which remedy gets printed depends on whether the
- * developer has nginx installed, so the assertions below only touch the lines every branch
- * shares.
+ * `server` puts a stub `nginx` or `apache2ctl` on PATH, because check_vhost decides which
+ * remedy to print by probing for them, and the answer has to be controlled rather than
+ * inherited: macOS ships /usr/sbin/httpd, so a developer's real PATH silently makes every
+ * box "an apache box" and the which-file-drifted test passes for the wrong reason.
+ *
+ * PATH is therefore the stub dir plus /usr/bin and /bin only. Those hold sha256sum or
+ * shasum -- without a hasher cm_sha256 cannot answer, the check correctly takes its
+ * cannot-tell branch, and the test proves nothing while looking green -- and they do NOT
+ * hold /usr/sbin, where both nginx and apache2ctl/httpd live on the platforms this runs on.
  */
-function checkVhost(env = {}) {
+function checkVhost({ server = null, lib = null } = {}) {
+	const bin = path.join(work, 'stubbin')
+	mkdirSync(bin, { recursive: true })
+	for (const name of ['nginx', 'apache2ctl', 'httpd']) {
+		rmSync(path.join(bin, name), { force: true })
+	}
+	if (server) {
+		writeFileSync(path.join(bin, server), '#!/bin/sh\nexit 0\n')
+		execFileSync('chmod', ['+x', path.join(bin, server)])
+	}
+	if (lib !== null) writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), lib)
 	const script = `
 set -euo pipefail
 export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf" WEBROOT="${ work }/www"
-${ env.PATH === undefined ? '' : `export PATH="${ env.PATH }"` }
+export PATH="${ bin }:/usr/bin:/bin"
 . "${ UPDATE }"
 check_vhost || exit $?
+echo "EXIT_UNIT_DRIFT_AFTER=\${EXIT_UNIT_DRIFT}"
 `
 	try {
 		const stdout = execFileSync('bash', ['-c', script], {
@@ -1020,7 +1035,7 @@ describe('update.sh actually reports vhost drift, and does not change its exit c
 	it('names the drifted config and the remedy', () => {
 		writeVhostStamp()
 		editVhost(VHOSTS[0])
-		const r = checkVhost()
+		const r = checkVhost({ server: 'nginx' })
 		expect(r.stdout).toMatch(/web server config in the checkout has changed/)
 		expect(r.stdout).toContain(VHOSTS[0])
 		/* The symptom, because there is none on screen and health.json cannot show it. */
@@ -1038,7 +1053,7 @@ describe('update.sh actually reports vhost drift, and does not change its exit c
 		writeVhostStamp()
 		editVhost(VHOSTS[0])
 		editVhost(VHOSTS[1])
-		expect(checkVhost().code).toBe(0)
+		expect(checkVhost({ server: 'nginx' }).code).toBe(0)
 	})
 
 	it('says nothing at all on a box with no record, rather than nagging every run', () => {
@@ -1067,5 +1082,61 @@ describe('update.sh actually reports vhost drift, and does not change its exit c
 		calls.forEach((name, i) => {
 			if (name === 'units') expect(calls[i - 1], `check_units call ${ i } has no check_vhost before it`).toBe('vhost')
 		})
+	})
+})
+
+/*
+ * Three bugs an adversarial pass found in check_vhost itself, after it was written. Each one
+ * is the kind that only shows up on the box: unattended, as root, once, at 04:00.
+ */
+describe('the vhost notice cannot take the board down or lie about which file moved', () => {
+	it('never prints a copy-paste cp of a config that still has placeholders in it', () => {
+		/*
+		 * deploy/*-capmetro.conf ship with @DOMAIN@ and @WEBROOT@ unsubstituted, and nginx
+		 * takes both as literals: `nginx -t` on that file reports "test is successful", the
+		 * reload succeeds, and every URL including /api/health.json then 404s -- with the
+		 * working config already overwritten and no copy of it. Verified against real nginx
+		 * in a container. So the remedy points at install.sh, which prints the correct sed
+		 * for this box, rather than at a cp that config-tests clean and serves nothing.
+		 */
+		writeVhostStamp()
+		editVhost(VHOSTS[0])
+		const r = checkVhost({ server: 'nginx' })
+		expect(r.stdout).not.toMatch(/\bcp\b.*capmetro\.conf/)
+		expect(r.stdout).not.toMatch(/sites-available/)
+		expect(r.stdout).toMatch(/install\.sh/)
+	})
+
+	it('does not tell an nginx box to reload the apache config that drifted', () => {
+		/*
+		 * The remedy used to be chosen by which server is INSTALLED and the drift list is
+		 * per FILE, so a box running nginx, with only apache-capmetro.conf changed, was told
+		 * its config was stale and pointed at the nginx vhost, which had not moved. That is
+		 * the mismatched accusation the empty-list guard exists to prevent, arriving by a
+		 * different route.
+		 */
+		writeVhostStamp()
+		editVhost(VHOSTS.find((v) => v.startsWith('apache')))
+		const r = checkVhost({ server: 'nginx' })
+		expect(r.stdout).toMatch(/nothing to do here/)
+		/* The REMEDY must not be printed. "install.sh" on its own appears in the headline
+		   ("since install.sh last ran"), so matching the bare name asserts nothing. */
+		expect(r.stdout).not.toMatch(/sudo .*install\.sh/)
+		expect(r.stdout).not.toMatch(/still serving the OLD one/)
+	})
+
+	it('cannot be used to zero the unit-drift exit code from the pulled library', () => {
+		/*
+		 * check_units snapshots EXIT_UNIT_DRIFT before its own source, because a units.sh
+		 * that assigned that name would silently zero its verdict. That defense only held
+		 * while its source was the first in the shell -- and check_vhost now runs before it
+		 * at every call site. Sourcing at function scope here would have reopened the hole
+		 * from outside the function that closed it, so check_vhost sources inside a command
+		 * substitution and nothing the lib assigns reaches this shell.
+		 */
+		const hostile = readFileSync(LIB, 'utf8') + '\nEXIT_UNIT_DRIFT=0\n'
+		writeVhostStamp()
+		const r = checkVhost({ server: 'nginx', lib: hostile })
+		expect(r.stdout).toMatch(/EXIT_UNIT_DRIFT_AFTER=3/)
 	})
 })
