@@ -139,28 +139,17 @@ function downsample(big, n) {
 
 /* ---- PNG ------------------------------------------------------------------ */
 
-const CRC_TABLE = (() => {
-  const t = new Int32Array(256);
-  for (let i = 0; i < 256; i++) {
-    let c = i;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    t[i] = c;
-  }
-  return t;
-})();
 
-function crc32(buf) {
-  let c = -1;
-  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
-  return (c ^ -1) >>> 0;
-}
 
 function chunk(type, data) {
   const len = Buffer.alloc(4);
   len.writeUInt32BE(data.length, 0);
   const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
   const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(body), 0);
+  /* node's own, rather than a table here: same polynomial, and one less
+     hand-rolled thing in a file whose point is having no dependencies.
+     Added in node 20.15, which is why engines asks for that. */
+  crc.writeUInt32BE(zlib.crc32(body), 0);
   return Buffer.concat([len, body, crc]);
 }
 
