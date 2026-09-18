@@ -18,10 +18,14 @@
  *
  * The mark is the board's own string-line: a spine with three dots offset by
  * how late each bus is -- early left, on time centre, late right. It is drawn
- * from the SAME six adherence hexes tokens.css publishes, which is why it reads
- * as this board and not as a generic bus. tests/node/client-icons.test.mjs
- * checks the hexes here still match tokens.css, so a repalette cannot leave the
- * home screen showing the old colours.
+ * from the board's own colours, which is why it reads as this board and not as
+ * a generic bus: the three adherence hexes (--adh-early, --adh-ontime,
+ * --adh-late) plus --surface and --hairline, all quoted from tokens.css, and
+ * one derived value -- `spine` -- that is no token at all. See PALETTE below,
+ * which says which is which. tests/node/client-installable.test.mjs checks the
+ * five quoted hexes still match tokens.css, so a repalette cannot leave the
+ * home screen showing the old colours, and also asserts that every committed
+ * icon is byte-for-byte what this script draws.
  *
  * Antialiasing is 4x supersampling and a box downsample. Nothing here needs
  * scanline coverage: the shapes are a rounded rectangle and three circles.
@@ -189,7 +193,7 @@ export function encodePng(buf) {
 }
 
 /** A single-image .ico wrapping a PNG. Windows has taken PNG payloads since Vista. */
-function encodeIco(png, size) {
+export function encodeIco(png, size) {
   const head = Buffer.alloc(22);
   head.writeUInt16LE(0, 0);           /* reserved */
   head.writeUInt16LE(1, 2);           /* type: icon */
@@ -276,7 +280,7 @@ export function render(size, kind) {
  * the rasters cannot drift. It carries no rounded tile: a tab favicon is shown
  * at 16 CSS pixels and the ground reads better full bleed at that size.
  */
-function favicon() {
+export function favicon() {
   const pct = (u) => +(u * 100).toFixed(2);
   const dots = DOTS.map(
     (d) => `  <circle cx="${pct(0.5 + d.dx)}" cy="${pct(d.y)}" r="${pct(DOT_R)}" fill="${PALETTE[d.color]}"/>`,
@@ -302,8 +306,11 @@ export const ICONS = [
   { file: 'apple-touch-icon.png', size: 180, kind: 'apple' },
 ];
 
-/* Only when run directly. The test imports render() and asserts against the
-   committed files instead of rewriting them. */
+/* Only when run directly. tests/node/client-installable.test.mjs imports
+   render(), encodePng() and ICONS and compares their output against the
+   committed files rather than rewriting them, so the bytes in the repo cannot
+   drift from this script without a test failing. That is what the three
+   exports are for. */
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   for (const icon of ICONS) {
     const png = encodePng(render(icon.size, icon.kind));

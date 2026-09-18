@@ -217,6 +217,23 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   because standalone mode has no browser chrome to absorb a notch and the
   viewport meta has said `viewport-fit=cover` all along.
 
+  **This needs a one-time vhost change**, and unlike the last one there is
+  nothing on screen to tell you it was skipped. `update.sh` delivers the client
+  and deliberately does not install vhosts; only `install.sh` prints them. Until
+  the new conf is installed by hand and the server reloaded, the board is served
+  against the OLD policy, `default-src 'none'` refuses both
+  `manifest.webmanifest` and `sw.js`, and the result is a board that is not
+  installable and does not open offline — with `health.json` still reading
+  `ok:true`, every test in the repo green, and one console line per refusal as
+  the only evidence anywhere:
+
+      sudo cp /srv/capmetro/src/deploy/nginx-capmetro.conf \
+        /etc/nginx/sites-available/capmetro
+      sudo nginx -t && sudo systemctl reload nginx
+
+  There is still no drift detection for vhosts the way there is for systemd
+  units, which is filed in TODOS.md rather than fixed here.
+
   Every URL in the manifest and every `href` added to `index.html` is relative,
   for the reason the `<base>` bootstrap exists: the board reads its own directory
   out of the path, and `tests/e2e/server.mjs` serves the whole client under a

@@ -51,7 +51,12 @@ button { font: inherit; color: inherit; }
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--hairline);
-  padding: 8px var(--pad-band) 10px;
+  /* The top inset lives in this shorthand rather than in a later override, so
+     the 8px is written once. Sticky at top: 0, so on a notched device in
+     standalone mode the first row would otherwise sit under the status bar.
+     env() is 0 in a browser tab and on every device without an inset, so the
+     412px design does not move. See the installed-board block at the end. */
+  padding: calc(8px + env(safe-area-inset-top, 0px)) var(--pad-band) 10px;
 }
 .topbar__row { display: flex; align-items: center; gap: 8px; }
 .topbar__row--brand { justify-content: space-between; margin-bottom: 8px; }
@@ -461,7 +466,9 @@ button { font: inherit; color: inherit; }
 /* ===== footer ========================================================= */
 .foot {
   display: flex; flex-direction: column; gap: 4px;
-  padding: 16px var(--pad-band) 40px;
+  /* Bottom inset in the shorthand for the same reason: the 40px is written
+     once, and the home indicator sits over this, the last thing on the page. */
+  padding: 16px var(--pad-band) calc(40px + env(safe-area-inset-bottom, 0px));
   font-size: 12px; color: var(--ink-chrome);
 }
 
@@ -1315,24 +1322,24 @@ h3.subband__head { font: inherit; margin: 0 0 8px; }
 /*
  * Standalone mode has no browser chrome to absorb a notch or a home indicator,
  * and the viewport meta already says `viewport-fit=cover`, so an installed
- * board is laid out edge to edge on any device that has either. These four
- * declarations are the whole accommodation. `env()` resolves to 0 on every
- * device without an inset and in every browser tab, so nothing about the 412px
- * design moves -- including the horizontal-overflow checks in the e2e suite.
+ * board is laid out edge to edge on any device that has either. `env()`
+ * resolves to 0 on every device without an inset and in every browser tab, so
+ * nothing about the 412px design moves -- including the horizontal-overflow
+ * checks in the e2e suite.
  *
- * Last in the file because two of them override a `padding` shorthand declared
- * earlier at the same specificity, and the desktop media query above sets
- * padding-left/right on the same selectors without touching top or bottom.
+ * The vertical insets are NOT here. They are folded into `.topbar` and `.foot`'s
+ * own padding shorthands, because as separate later overrides they had to
+ * restate the 8px and the 40px those shorthands already declared -- and being
+ * later at the same specificity they won unconditionally, so editing the
+ * original shorthand's top or bottom value had no effect on anything, on any
+ * device. One number, one place.
  *
  * Horizontally the inset sits on <body> rather than on --pad-band: the panels
  * are full-width bands on one continuous surface, and the strip beside a
  * landscape notch has to be that same surface rather than a gap cut into it.
+ * It stays here because <body> declares no padding of its own to fold into.
  */
 body {
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
 }
-/* Sticky at top: 0, so without this the first row sits under the status bar. */
-.topbar { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
-/* The footer is the last thing on the page and the home indicator sits over it. */
-.foot { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }

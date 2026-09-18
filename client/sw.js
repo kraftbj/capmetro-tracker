@@ -118,6 +118,24 @@ function cacheable(res) {
   return !!res && res.ok && res.type === 'basic';
 }
 
+/**
+ * The app document, as opposed to any other file this origin serves.
+ *
+ * A navigation is not necessarily a navigation TO THE BOARD. A top-level link
+ * from anywhere to https://bus.dillo.dev/favicon.svg is a navigate-mode request
+ * that this origin answers 200, and adopting it as the shell replaces the
+ * offline board with an SVG on that device until the next successful ONLINE
+ * navigation -- which is exactly when the cache is not needed. Checked by
+ * content type rather than against the app verbs because the verb list is
+ * already written in four places and a fifth copy here would be one more thing
+ * to forget: the vhosts serve the document as text/html and every other file as
+ * something else, so the type IS the question being asked.
+ */
+function isDocument(res) {
+  var type = res && res.headers ? res.headers.get('Content-Type') : null;
+  return !!type && String(type).toLowerCase().indexOf('text/html') === 0;
+}
+
 function store(request, res) {
   var copy = res.clone();
   /* Deliberately not awaited into the response path: a full quota must not turn
@@ -189,7 +207,7 @@ self.addEventListener('fetch', function (event) {
          * `/route/4/eb`, `/trip/1234` and `/buses` separately would be three
          * copies of one file and none of them the one a cold `/` needs.
          */
-        if (cacheable(res)) store(NAV_FALLBACK, res);
+        if (cacheable(res) && isDocument(res)) store(NAV_FALLBACK, res);
         return res;
       }).catch(function () {
         return caches.match(request).then(function (hit) {

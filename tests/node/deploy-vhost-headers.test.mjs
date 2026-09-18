@@ -137,10 +137,25 @@ describe('the inline bootstrap and its CSP hash', () => {
     expect(inline, 'no inline <script> found in client/index.html').not.toBeNull()
   })
 
-  it('is admitted by its own hash in both vhosts', () => {
+  it('is admitted by its own hash in EVERY policy, not just somewhere in the file', () => {
+    /*
+     * Per policy, not per file. nginx repeats the whole policy string in eight
+     * places -- server level plus seven location blocks -- against apache's
+     * one, and `expect(conf).toContain(hash)` is satisfied by any single
+     * occurrence. Editing the bootstrap and updating eight of those nine copies
+     * left this green while one block served a stale hash, and if the missed
+     * block were `location = /index.html` the browser would refuse the
+     * bootstrap and the board would render nothing at every pretty URL -- which
+     * is the exact hazard the comment in the vhost says this test removes.
+     */
     const hash = 'sha256-' + createHash('sha256').update(inline[1], 'utf8').digest('base64')
     for (const [name, conf] of [['nginx', nginx], ['apache', apache]]) {
-      expect(conf, `${name} does not carry the current bootstrap hash`).toContain(hash)
+      const found = [...conf.matchAll(/Content-Security-Policy[" ]+([^"]+)"/g)].map((m) => m[1])
+      expect(found.length, `${name} declares no CSP`).toBeGreaterThan(0)
+      found.forEach((policy, i) => {
+        expect(policy, `${name} policy ${i + 1} of ${found.length} carries a stale or missing bootstrap hash`)
+          .toContain(hash)
+      })
     }
   })
 

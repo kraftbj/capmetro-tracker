@@ -39,10 +39,25 @@ class Res {
     /* `basic` is what a same-origin fetch yields. The worker refuses to cache
        anything else, so the stub has to model it. */
     this.type = init.type ?? 'basic'
-    this.headers = init.headers ?? {}
+    /*
+     * A Headers-like, not a plain object, because the worker calls
+     * `.get('Content-Type')` on it -- that is how it tells the app document
+     * apart from every other file the origin serves. With a plain `{}` here the
+     * call throws inside the navigate handler's `.then`, the promise rejects,
+     * the handler's own `.catch` serves the cached shell instead, and the whole
+     * file stays green while the check it is testing does not run at all.
+     */
+    this._headers = init.headers ?? {}
+    this.headers = {
+      get: (name) => {
+        const k = Object.keys(this._headers)
+          .find((x) => x.toLowerCase() === String(name).toLowerCase())
+        return k === undefined ? null : this._headers[k]
+      },
+    }
   }
   clone() {
-    return new Res(this.body, { status: this.status, type: this.type, headers: this.headers })
+    return new Res(this.body, { status: this.status, type: this.type, headers: this._headers })
   }
 }
 
@@ -57,6 +72,31 @@ class Req {
 
 const keyOf = (x) => (typeof x === 'string' ? new URL(x, WORKER).href : x.url)
 
+/*
+ * What this origin would answer with, by extension. Only the html/not-html
+ * distinction is load-bearing -- the worker adopts a navigation as the app
+ * shell only when the response IS the document -- but the rest are spelled out
+ * so a test cannot accidentally get text/html for a stylesheet.
+ */
+const TYPES = {
+  '.css': 'text/css',
+  '.js': 'application/javascript; charset=utf-8',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json',
+}
+function typeOf(pathname) {
+  if (pathname.endsWith('/') || pathname.endsWith('.html')) return 'text/html; charset=utf-8'
+  const dot = pathname.lastIndexOf('.')
+  /* An extensionless path is an app path: both vhosts answer /route/4/eb and
+     friends with index.html via try_files, so the document is what comes back. */
+  if (dot === -1) return 'text/html; charset=utf-8'
+  return TYPES[pathname.slice(dot)] ?? 'application/octet-stream'
+}
+
 /** Build a scope, evaluate sw.js in it, and hand back the handlers plus the state. */
 function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
   const stores = new Map()
@@ -68,8 +108,12 @@ function makeScope({ files = {}, offline = false, existingCaches = [] } = {}) {
     fetched.push(url.pathname)
     if (offline) return Promise.reject(new TypeError('Failed to fetch'))
     const body = files[url.pathname]
-    if (body === undefined) return Promise.resolve(new Res('not found', { status: 404 }))
-    return Promise.resolve(new Res(body))
+    if (body === undefined) {
+      return Promise.resolve(new Res('not found', {
+        status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      }))
+    }
+    return Promise.resolve(new Res(body, { headers: { 'Content-Type': typeOf(url.pathname) } }))
   }
 
   function cacheFor(name) {
@@ -336,6 +380,47 @@ describe('with a network', () => {
     await scope.dispatch('install', {})
     await scope.dispatch('fetch', { request: new Req('not-a-file.js') })
     expect(await scope.caches.match(new Req('not-a-file.js'))).toBeUndefined()
+  })
+
+  it('adopts a navigation to the board as the offline shell', async () => {
+    /*
+     * The positive half, and it is here to keep the negative half below honest.
+     * Without this, an `isDocument` that throws or returns false for everything
+     * loses the shell update silently: the navigate handler's own `.catch`
+     * answers from the cache the install already filled, so every offline test
+     * still passes and nothing notices that no navigation is ever stored.
+     */
+    const files = { ...served }
+    const scope = makeScope({ files })
+    await scope.dispatch('install', {})
+    /* What the vhosts do: every app path is answered with the one document. */
+    files[new URL('route/4/eb', WORKER).pathname] = 'the new document'
+    await scope.dispatch('fetch', { request: new Req('route/4/eb', { mode: 'navigate' }) })
+    const shell = await scope.caches.match(new URL('./', WORKER).href)
+    expect(shell.body, 'a navigation to an app path did not refresh the shell').toBe('the new document')
+  })
+
+  it('does not adopt a navigation to a non-document as the offline shell', async () => {
+    /*
+     * A navigation is not necessarily a navigation TO THE BOARD. A top-level
+     * link from any site to /favicon.svg, or a redirect landing on
+     * /styles.css, is a navigate-mode request this origin answers 200. Adopting
+     * it replaced the offline board with that file on the device, persisted
+     * after the tab closed, and healed only on the next successful ONLINE
+     * navigation -- which is exactly when the cache is not wanted. Reproduced
+     * against the unfixed worker: an offline navigation afterwards returned
+     * `body{}` as text/css.
+     */
+    const scope = makeScope({ files: served })
+    await scope.dispatch('install', {})
+    const before = await scope.caches.match(new URL('./', WORKER).href)
+
+    const event = await scope.dispatch('fetch', { request: new Req('styles.css', { mode: 'navigate' }) })
+    /* Still served to the reader who asked for it -- this is not about refusing. */
+    expect(event.responded.body).toBe('body of styles.css')
+
+    const after = await scope.caches.match(new URL('./', WORKER).href)
+    expect(after.body, 'the stylesheet replaced the app shell').toBe(before.body)
   })
 })
 

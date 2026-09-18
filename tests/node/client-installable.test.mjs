@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { ROOT } from './helpers/optional.mjs'
-import { PALETTE } from '../../client/icons/regenerate.js'
+import { PALETTE, ICONS, render, encodePng, encodeIco, favicon } from '../../client/icons/regenerate.js'
 
 const CLIENT = path.join(ROOT, 'client')
 const html = readFileSync(path.join(CLIENT, 'index.html'), 'utf8')
@@ -258,5 +258,47 @@ describe('the icons and the palette they were cut from', () => {
     for (const color of [PALETTE.surface, PALETTE.spine, PALETTE.early, PALETTE.ontime, PALETTE.late]) {
       expect(svg, `favicon.svg does not use ${color}`).toContain(color)
     }
+  })
+})
+
+describe('the committed icons are what the generator draws', () => {
+  /*
+   * Six binary blobs in a public repo, and until this block nothing checked
+   * that any of them was the output of client/icons/regenerate.js. The other
+   * icon tests assert PNG bit depth, colour type and the .ico container's
+   * fields -- all of which a completely different image satisfies. So editing
+   * the geometry or the palette and forgetting to re-run the generator was
+   * invisible, and so was a hand-substituted file.
+   *
+   * Byte equality rather than a pixel comparison: the generator is
+   * deterministic, uses node's own zlib, and takes no input, so there is
+   * nothing for the bytes to vary on between runs on one node version. If a
+   * future node changes zlib's output this fails loudly with a clear cause,
+   * which is the right way for that to surface -- the fix is re-running the
+   * generator and committing the result, and the diff will be the same images.
+   */
+  for (const icon of ICONS) {
+    it(`draws ${icon.file} exactly as committed`, () => {
+      const committed = readFileSync(path.join(CLIENT, 'icons', icon.file))
+      const drawn = encodePng(render(icon.size, icon.kind))
+      expect(drawn.equals(committed),
+        `client/icons/${icon.file} is not what regenerate.js draws ` +
+        `(committed ${committed.length} bytes, generator ${drawn.length}). ` +
+        'Re-run `node client/icons/regenerate.js` and commit the result.').toBe(true)
+    })
+  }
+
+  it('draws favicon.ico exactly as committed', () => {
+    /* 32px, which is what a browser asking for /favicon.ico with no <link> wants. */
+    const committed = readFileSync(path.join(CLIENT, 'favicon.ico'))
+    const drawn = encodeIco(encodePng(render(32, 'any')), 32)
+    expect(drawn.equals(committed),
+      'client/favicon.ico is not what regenerate.js draws. ' +
+      'Re-run `node client/icons/regenerate.js` and commit the result.').toBe(true)
+  })
+
+  it('draws favicon.svg exactly as committed', () => {
+    const committed = readFileSync(path.join(CLIENT, 'favicon.svg'), 'utf8')
+    expect(favicon()).toBe(committed)
   })
 })
