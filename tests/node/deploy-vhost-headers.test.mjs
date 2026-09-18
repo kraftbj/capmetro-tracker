@@ -61,14 +61,27 @@ describe('the nginx vhost does not lose inherited headers', () => {
 	it('finds the location blocks it means to check', () => {
 		const names = blocks.map((b) => b.name)
 		expect(names).toContain('= /index.html')
-		expect(names).toContain('/api/')
+		/* `^~` on purpose: a plain prefix loses to any regex location that also
+		   matches, which would let the icon rule answer /api/*.png. Spelled out
+		   here so dropping the modifier fails rather than quietly re-opening it. */
+		expect(names).toContain('^~ /api/')
+		expect(names).toContain('^~ /api/departures/')
 		expect(names).toContain('/')
 		/* If this ever drops, the loop below is asserting over nothing. */
 		expect(blocks.length).toBeGreaterThanOrEqual(6)
 	})
 
 	it('declares every security header at server level', () => {
-		const serverLevel = nginx.slice(0, nginx.indexOf('location /api/'))
+		/*
+		 * Cut at the first location block, whatever it is called. Finding it by
+		 * the literal string `location /api/` broke silently the day that block
+		 * gained its `^~`: indexOf returned -1, slice(0, -1) handed back almost
+		 * the whole file, and every assertion below passed against the location
+		 * blocks' own repeated headers instead of the server-level ones.
+		 */
+		const firstLocation = nginx.search(/^\s*location\s/m)
+		expect(firstLocation, 'no location block found in the nginx conf').toBeGreaterThan(0)
+		const serverLevel = nginx.slice(0, firstLocation)
 		for (const h of SECURITY_HEADERS) {
 			expect(serverLevel).toMatch(new RegExp(`^\\s*add_header ${h}\\b`, 'm'))
 		}
