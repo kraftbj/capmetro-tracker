@@ -259,8 +259,47 @@ check_vhost() {
   case "$rc" in
     0) return 0 ;;   # the configs agree
     1) ;;            # confirmed drift, names on stdout
-    *) return 0 ;;   # 2 no record, 3 cannot hash, 90/91 lib unusable -- all "cannot tell",
-                     # and check_units explains whichever it is in its own words
+    2)
+      # No record. Normally silent: it is the state of every box installed before this
+      # existed, and nagging four times a day for a condition no amount of re-running
+      # clears is how a notice becomes wallpaper.
+      #
+      # With one exception, which is the case that actually matters. The justification for
+      # staying quiet was "check_units has already explained a missing stamp" -- and that
+      # fails precisely when a deploy changes a vhost and no unit, because then check_units
+      # finds its own stamp intact, returns 0 silently, and nobody is ever told to run
+      # install.sh. That is this very branch: it changes both vhosts and no unit file, so
+      # the first deploy carrying vhost detection could not have announced itself.
+      #
+      # So: if THIS deploy changed a vhost and there is no record, say so once.
+      # Exactly 1, never `! git ... --quiet`. git answers 0 for "no differences" and 1 for
+      # "differences", but 128 for "not a repository" and other failures -- and `!` turns
+      # every one of those into "the vhost changed", so a checkout git could not read would
+      # print this notice on every run forever.
+      # The revision guard runs FIRST, and every expansion is `${X:-}`. check_vhost is
+      # sourceable and the tests call it directly, where BEFORE and AFTER are simply not
+      # set -- a bare `$BEFORE` under `set -u` aborts the function there, which is the
+      # not-fatal contract broken by the defensive fix meant to protect it.
+      local changed=0
+      if [ -n "${BEFORE:-}" ] && [ -n "${AFTER:-}" ] && [ "${BEFORE:-}" != "${AFTER:-}" ]; then
+        git -C "$SRC_DIR" diff --quiet "${BEFORE:-}" "${AFTER:-}" -- \
+          deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null || changed=$?
+      fi
+      if [ "$changed" = 1 ]; then
+        loud "this deploy changed the web server config, and there is no record of which"
+        loud "one is installed, so the change could not be checked -- but it is real:"
+        git -C "$SRC_DIR" diff --name-only "$BEFORE" "$AFTER" -- \
+          deploy/nginx-capmetro.conf deploy/apache-capmetro.conf 2>/dev/null \
+          | while IFS= read -r f; do [ -n "$f" ] && loud "    $f"; done
+        loud "Nothing here installs it, and health.json will read ok:true either way."
+        loud "    sudo $SRC_DIR/deploy/install.sh"
+        loud "prints the exact sed for this box and records the config, which also stops"
+        loud "this message. The installed vhost may have been rewritten by certbot, so"
+        loud "diff it before overwriting rather than copying the committed file over it."
+      fi
+      return 0
+      ;;
+    *) return 0 ;;   # 3 cannot hash, 90/91 lib unusable -- check_units explains those
   esac
 
   [ -n "$drift" ] || return 0   # never an accusation with nothing in it
@@ -301,6 +340,10 @@ check_vhost() {
   loud "Run install.sh: it prints the exact sed for this box, with the placeholders filled."
   loud "    sudo $SRC_DIR/deploy/install.sh"
   loud "It also re-records the config, which is what stops this repeating every run."
+  # Not just the placeholders. nginx-capmetro.conf says certbot rewrites the installed block
+  # to add the 443 server and the redirect, so on a TLS box -- which production is -- the
+  # installed file is not the committed one and copying over it destroys the cert config.
+  loud "The installed vhost has been rewritten by certbot, so diff it before overwriting."
   return 0
 }
 

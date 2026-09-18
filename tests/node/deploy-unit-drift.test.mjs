@@ -27,6 +27,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 const REPO = new URL('../../', import.meta.url).pathname
 const LIB = path.join(REPO, 'deploy/lib/units.sh')
 const UPDATE = path.join(REPO, 'deploy/update.sh')
+/* The merge base: deploy/lib/units.sh as it stood before this branch touched it, which is
+   the genuine "older tree" an --src-from rsync can leave behind. */
+const BASE = execFileSync('git', ['merge-base', 'origin/trunk', 'HEAD'],
+	{ cwd: REPO, encoding: 'utf8' }).trim()
 
 /*
  * The unit list is read out of units.sh, never restated here. units.sh's own reason for
@@ -113,7 +117,7 @@ check_units ${ env.context ?? '' } || exit $?
  * cannot-tell branch, and the test proves nothing while looking green -- and they do NOT
  * hold /usr/sbin, where both nginx and apache2ctl/httpd live on the platforms this runs on.
  */
-function checkVhost({ server = null, lib = null } = {}) {
+function checkVhost({ server = null, lib = null, before = null, after = null } = {}) {
 	const bin = path.join(work, 'stubbin')
 	mkdirSync(bin, { recursive: true })
 	for (const name of ['nginx', 'apache2ctl', 'httpd']) {
@@ -128,6 +132,8 @@ function checkVhost({ server = null, lib = null } = {}) {
 set -euo pipefail
 export SRC_DIR="${ work }/src" CONF_DIR="${ work }/conf" WEBROOT="${ work }/www"
 export PATH="${ bin }:/usr/bin:/bin"
+${ before ? `BEFORE="${ before }"` : '' }
+${ after ? `AFTER="${ after }"` : '' }
 . "${ UPDATE }"
 check_vhost || exit $?
 echo "EXIT_UNIT_DRIFT_AFTER=\${EXIT_UNIT_DRIFT}"
@@ -958,9 +964,64 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	})
 
 	it('changes nothing on disk', () => {
+		/*
+		 * Weak on its own and kept for what it does cover: CONF_DIR is hardcoded at the top
+		 * of install.sh with no flag and no env fallback, so work/conf is a directory the
+		 * script never touches and this passes regardless of what it writes. The real
+		 * assertion is the one below, which watches what the script SAYS it is doing.
+		 */
 		const before = readdirSync(path.join(work, 'conf'))
 		runInstall()
 		expect(readdirSync(path.join(work, 'conf'))).toEqual(before)
+	})
+
+	it('does not write the vhost drift record under --dry-run', () => {
+		/*
+		 * The units stamp write has always been inside `if [ "$DRY_RUN" = 0 ]`; the vhost
+		 * one was added outside it, so `--dry-run` -- a mode whose whole promise is that it
+		 * changes nothing -- wrote /etc/capmetro/installed-vhost.sha256 recording the
+		 * COMMITTED vhosts as installed. Every later update.sh then reported no drift for a
+		 * vhost that had never been applied: "cannot tell" laundered into a durable false
+		 * "clean", which is the one outcome the NO_STAMP / NO_TOOL split exists to prevent.
+		 *
+		 * Asserted on the announced action rather than on the file, because CONF_DIR is not
+		 * redirectable and /etc/capmetro is not this test's to write.
+		 */
+		const r = runInstall()
+		expect(r.out, 'dry run did not announce the vhost record as a would-run')
+			.toMatch(/would run: record the vhost drift fingerprint/)
+		expect(r.out, 'dry run reported actually writing the record')
+			.not.toMatch(/could not write the vhost drift record/)
+	})
+
+	it('survives a pulled units.sh that predates the vhost helper', () => {
+		/*
+		 * What this DOES prove: a dry run against a tree carrying the pre-branch units.sh
+		 * completes, exits 0, and prints no shell error.
+		 *
+		 * What it does NOT prove, stated here rather than implied: that install.sh guards
+		 * the helper on `command -v cm_write_vhost_stamp` rather than on the file existing.
+		 * Verified by mutation -- reverting that guard to `[ -r .../units.sh ]` leaves this
+		 * green -- because under --dry-run the DRY_RUN arm answers before the call is ever
+		 * reached, and the real path needs root and a real /etc/capmetro. The guard is still
+		 * written the strict way, for the reason the units block gives twelve lines up: the
+		 * file existing is not the question being asked. It is simply unverified here.
+		 */
+		/*
+		 * The REAL older file out of git, not a synthetic one. Deleting the function's first
+		 * line by regex leaves an orphan body, which is a syntax error rather than an old
+		 * library -- `.` then fails and install.sh aborts under set -euo pipefail, which is
+		 * a different bug being tested by accident.
+		 */
+		const older = execFileSync('git', ['show', `${ BASE }:deploy/lib/units.sh`],
+			{ cwd: REPO, encoding: 'utf8' })
+		expect(older, 'the base copy already has the vhost helper; pick an older base')
+			.not.toMatch(/cm_write_vhost_stamp/)
+		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), older)
+		const r = runInstall()
+		expect(r.code).toBe(0)
+		expect(r.out).not.toMatch(/command not found/)
+		expect(r.out).not.toMatch(/vhost drift record \(\)/)
 	})
 })
 
@@ -1138,5 +1199,81 @@ describe('the vhost notice cannot take the board down or lie about which file mo
 		writeVhostStamp()
 		const r = checkVhost({ server: 'nginx', lib: hostile })
 		expect(r.stdout).toMatch(/EXIT_UNIT_DRIFT_AFTER=3/)
+	})
+})
+
+describe('the deploy that carries a vhost change, on a box with no record yet', () => {
+	/*
+	 * The case the detector was written for, and the one it originally could not announce.
+	 *
+	 * The vhost stamp is written only by install.sh; update.sh never runs install.sh. So on
+	 * the first deploy carrying this feature there is no record, and the no-record branch is
+	 * silent on the stated grounds that "check_units has already explained a missing stamp".
+	 * That premise fails exactly when a deploy changes a vhost and NO unit file -- which is
+	 * what the branch introducing vhost detection does -- because check_units then finds its
+	 * own stamp intact, returns 0 silently, and nobody is ever told to run install.sh.
+	 *
+	 * Result without this: code and client land, the vhost does not, both checks say
+	 * nothing, exit 0, health.json ok:true, and the board is quietly not installable.
+	 */
+	function repoWithVhostChange({ touchVhost }) {
+		const src = path.join(work, 'src')
+		const git = (...args) => execFileSync('git', args, { cwd: src, encoding: 'utf8' })
+		git('init', '-q')
+		git('config', 'user.email', 't@example.test')
+		git('config', 'user.name', 'test')
+		git('add', '-A')
+		git('commit', '-qm', 'before')
+		const before = git('rev-parse', 'HEAD').trim()
+		if (touchVhost) editVhost(VHOSTS[0], "add_header X-Test 1;\n")
+		else writeFileSync(path.join(src, 'deploy', 'something-else.txt'), 'unrelated\n')
+		git('add', '-A')
+		git('commit', '-qm', 'after')
+		return { before, after: git('rev-parse', 'HEAD').trim() }
+	}
+
+	it('says so when this deploy changed a vhost and nothing has ever recorded one', () => {
+		const { before, after } = repoWithVhostChange({ touchVhost: true })
+		const r = checkVhost({ server: 'nginx', before, after })
+		expect(r.code).toBe(0)
+		expect(r.stdout).toMatch(/this deploy changed the web server config/)
+		expect(r.stdout).toContain(VHOSTS[0])
+		expect(r.stdout).toMatch(/install\.sh/)
+		/* certbot rewrites the installed nginx block, so a plain copy destroys the TLS
+		   config even with the placeholders filled. Never print a bare cp. */
+		expect(r.stdout).toMatch(/certbot/)
+		expect(r.stdout).not.toMatch(/sudo cp /)
+	})
+
+	it('stays quiet when the deploy changed no vhost, so it is not wallpaper', () => {
+		const { before, after } = repoWithVhostChange({ touchVhost: false })
+		const r = checkVhost({ server: 'nginx', before, after })
+		expect(r.stdout).not.toMatch(/web server config/)
+	})
+
+	it('stays quiet when git cannot answer, rather than nagging forever', () => {
+		/*
+		 * git exits 129 in a directory that is not a repository, and `! git diff --quiet`
+		 * turns that into "the vhost changed" -- so a checkout git could not read would
+		 * print this on every single run. The status is read explicitly; only 1 counts.
+		 */
+		const r = checkVhost({ server: 'nginx', before: 'deadbee', after: 'f00ba12' })
+		expect(r.stdout).not.toMatch(/this deploy changed the web server config/)
+	})
+})
+
+describe('the drift contract is written in two files and must not desynchronize', () => {
+	it('keeps CM_DRIFT_* at the numbers update.sh compares against', () => {
+		/*
+		 * check_vhost reads cm_drift's status with literals rather than the CM_DRIFT_*
+		 * constants, on purpose: those constants come from the pulled library, and reading
+		 * them from the code under inspection is the same class of hole as letting it
+		 * reassign EXIT_UNIT_DRIFT -- a units.sh with CM_DRIFT_FOUND=0 would make "they
+		 * agree" and "they differ" the same answer. The cost of literals is that the
+		 * contract now lives in two files, so it is pinned here.
+		 */
+		const got = sh('printf "%s %s %s %s\\n" "$CM_DRIFT_SAME" "$CM_DRIFT_FOUND" ' +
+			'"$CM_DRIFT_NO_STAMP" "$CM_DRIFT_NO_TOOL"')
+		expect(got.stdout.trim()).toBe('0 1 2 3')
 	})
 })

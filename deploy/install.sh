@@ -373,7 +373,27 @@ fi
 # change landing in a later deploy with nothing to announce it.
 #
 # Not inside the systemd branch above: a box on cron still serves the board over HTTP.
-if [ -r "$SRC_DIR/deploy/lib/units.sh" ]; then
+# `--dry-run` must not write it. The units stamp is already inside a DRY_RUN guard and this
+# was not, so a mode whose whole promise is "changes nothing" recorded the COMMITTED vhosts
+# as installed -- and every later update.sh then reported no drift for a vhost that had
+# never been applied. That is "cannot tell" laundered into a durable false "clean", which is
+# the one outcome the CM_DRIFT_NO_STAMP / NO_TOOL split exists to prevent.
+#
+# Guarded on the FUNCTION, not on the file, for the reason the units block gives twelve
+# lines up: a source tree carrying an older units.sh has the file and not the function, and
+# calling it anyway is a command-not-found -- which would then be evaluated a second time
+# inside the warning below, printing an empty path next to a raw shell error.
+# The function check comes FIRST so a dry run reports it too: "this tree cannot record the
+# vhost fingerprint" is exactly the kind of thing a dry run exists to surface, and putting
+# the DRY_RUN arm first made that branch unreachable in the only mode that can be tested
+# without root.
+if ! command -v cm_write_vhost_stamp >/dev/null 2>&1; then
+  warn "this source tree cannot record a vhost drift fingerprint:
+     $SRC_DIR/deploy/lib/units.sh is absent or predates it. Everything else still installs;
+     a later vhost change will simply deploy without a notice."
+elif [ "$DRY_RUN" = 1 ]; then
+  printf '   would run: record the vhost drift fingerprint in %s\n' "$CONF_DIR"
+else
   VHOST_STAMP_RC=0
   cm_write_vhost_stamp "$SRC_DIR/deploy" "$CONF_DIR" || VHOST_STAMP_RC=$?
   if [ "$VHOST_STAMP_RC" != 0 ]; then

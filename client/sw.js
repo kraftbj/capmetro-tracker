@@ -136,13 +136,41 @@ function isDocument(res) {
   return !!type && String(type).toLowerCase().indexOf('text/html') === 0;
 }
 
-function store(request, res) {
+/**
+ * Look in THIS worker's cache, not across all of them.
+ *
+ * `caches.match()` is CacheStorage's, and it iterates every cache on the origin
+ * in CREATION order and returns the first hit -- so the OLDEST surviving cache
+ * wins. activate deletes the older ones, but that delete sits in a Promise.all
+ * whose rejection is not caught and does not stop activation: one transient
+ * storage error and `dillo-bus-board-v1` outlives the bump to v2. Every offline
+ * read on that device then comes out of v1 for good, because activate only
+ * fires on a version change and never retries. Unobservable from the device and
+ * from the server both.
+ */
+function fromCache(request) {
+  return caches.open(CACHE).then(function (cache) {
+    return cache.match(request);
+  });
+}
+
+/**
+ * Write a copy into the cache.
+ *
+ * `event.waitUntil` keeps the worker alive until the put lands, WITHOUT putting
+ * it in the response path -- those are two different things and the code needs
+ * both. Awaiting it into the response would let a full quota turn a successful
+ * fetch into a failed one; not extending the lifetime at all meant the browser
+ * could terminate the worker as soon as respondWith settled and silently drop
+ * the write. The most valuable one, the navigation shell, is issued last on a
+ * page load, which is exactly when termination pressure is highest.
+ */
+function store(event, request, res) {
   var copy = res.clone();
-  /* Deliberately not awaited into the response path: a full quota must not turn
-     a successful fetch into a failed one. */
-  caches.open(CACHE).then(function (cache) {
+  var wrote = caches.open(CACHE).then(function (cache) {
     return cache.put(request, copy);
   }).catch(function () {});
+  if (event && typeof event.waitUntil === 'function') event.waitUntil(wrote);
   return res;
 }
 
@@ -223,11 +251,11 @@ self.addEventListener('fetch', function (event) {
          * `/route/4/eb`, `/trip/1234` and `/buses` separately would be three
          * copies of one file and none of them the one a cold `/` needs.
          */
-        if (cacheable(res) && isDocument(res)) store(NAV_FALLBACK, res);
+        if (cacheable(res) && isDocument(res)) store(event, NAV_FALLBACK, res);
         return res;
       }).catch(function () {
-        return caches.match(request).then(function (hit) {
-          return hit || caches.match(NAV_FALLBACK);
+        return fromCache(request).then(function (hit) {
+          return hit || fromCache(NAV_FALLBACK);
         }).then(function (hit) {
           /*
            * Nothing cached and no network: say so in words. This is reachable
@@ -248,9 +276,9 @@ self.addEventListener('fetch', function (event) {
 
   if (isFont(url)) {
     event.respondWith(
-      caches.match(request).then(function (hit) {
+      fromCache(request).then(function (hit) {
         return hit || fetch(request).then(function (res) {
-          return cacheable(res) ? store(request, res) : res;
+          return cacheable(res) ? store(event, request, res) : res;
         });
       })
     );
@@ -259,9 +287,9 @@ self.addEventListener('fetch', function (event) {
 
   event.respondWith(
     fetch(request).then(function (res) {
-      return cacheable(res) ? store(request, res) : res;
+      return cacheable(res) ? store(event, request, res) : res;
     }).catch(function () {
-      return caches.match(request).then(function (hit) {
+      return fromCache(request).then(function (hit) {
         /*
          * A miss has to be an error rather than an empty 200. An empty
          * stylesheet or script would render an unstyled or broken board and

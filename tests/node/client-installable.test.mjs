@@ -205,6 +205,43 @@ describe('the safe-area padding an installed board needs', () => {
     }
   })
 
+  it('puts each inset on the property and selector that inset is for', () => {
+    /*
+     * Presence is not placement, and nothing else here can tell the difference.
+     * Swapping left with right, or top with bottom, leaves all four substrings
+     * in the file and passes the test above; the e2e companion cannot help
+     * because env() resolves to 0 in a browser tab, so it measures a layout
+     * where none of these contribute anything. The whole feature is which edge
+     * gets the padding, and on the devices that have insets nobody runs the
+     * suite.
+     *
+     * Found by mutation: left<->right on body and top<->bottom on .topbar/.foot
+     * left the entire node suite and every e2e test green.
+     */
+    /* EVERY rule for the selector, concatenated. `body` is declared twice -- the
+       main one near the top and the installed-board one at the end -- and
+       matching only the first asserted against the wrong block. */
+    const rule = (selector) => {
+      const re = new RegExp(`(?:^|\\n)${selector.replace('.', '\\.')}\\s*\\{([^}]*)\\}`, 'g')
+      const all = [...css.matchAll(re)].map((m) => m[1])
+      expect(all.length, `no ${selector} rule found in styles.css`).toBeGreaterThan(0)
+      return all.join('\n')
+    }
+    /* Horizontal insets belong to the page surface, not to a band. */
+    const body = rule('body')
+    expect(body, 'body does not pad LEFT with the left inset')
+      .toMatch(/padding-left:\s*env\(safe-area-inset-left, 0px\)/)
+    expect(body, 'body does not pad RIGHT with the right inset')
+      .toMatch(/padding-right:\s*env\(safe-area-inset-right, 0px\)/)
+    /* Vertical insets are folded into the two rules that own those edges: the
+       topbar is sticky at top: 0 under the status bar, and .foot is the last
+       thing on the page, under the home indicator. */
+    expect(rule('.topbar'), '.topbar does not add the TOP inset to its top padding')
+      .toMatch(/padding:\s*calc\(8px \+ env\(safe-area-inset-top, 0px\)\)/)
+    expect(rule('.foot'), '.foot does not add the BOTTOM inset to its bottom padding')
+      .toMatch(/calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\)\s*;/)
+  })
+
   it('still asks for viewport-fit=cover, without which none of it resolves', () => {
     expect(html).toMatch(/<meta name="viewport"[^>]*viewport-fit=cover/)
   })

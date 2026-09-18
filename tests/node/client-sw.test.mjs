@@ -415,6 +415,23 @@ describe('with a network', () => {
     expect(scope.fetched.length, 'the font went to the network').toBe(before)
   })
 
+  it('keeps the worker alive until the copy is actually written', async () => {
+    /*
+     * The put must not be awaited into the RESPONSE -- a full quota would then
+     * turn a successful fetch into a failed one -- but it must still extend the
+     * event's lifetime, or the browser may terminate the worker as soon as
+     * respondWith settles and drop the write with nothing to observe. Those are
+     * two different things and the code needs both. The most valuable write, the
+     * navigation shell, is the one issued last on a page load, when termination
+     * pressure is highest.
+     */
+    const scope = makeScope({ files: served })
+    await scope.dispatch('install', {})
+    const event = await scope.dispatch('fetch', { request: new Req('app.js') })
+    expect(event.waited.length, 'the cache write was not tied to the event lifetime')
+      .toBeGreaterThan(0)
+  })
+
   it('does not cache a 404, which would freeze a missing file as a real one', async () => {
     const scope = makeScope({ files: served })
     await scope.dispatch('install', {})
@@ -461,6 +478,53 @@ describe('with a network', () => {
 
     const after = await scope.caches.match(new URL('./', WORKER).href)
     expect(after.body, 'the stylesheet replaced the app shell').toBe(before.body)
+  })
+})
+
+describe('an older cache that outlived its eviction', () => {
+  /*
+   * activate deletes older dillo-bus-board-* caches, but that delete sits in a
+   * Promise.all inside waitUntil whose rejection is neither caught nor allowed to
+   * stop activation. One transient storage error and v1 survives the bump to v2.
+   *
+   * That matters because CacheStorage.match() iterates every cache on the origin
+   * in CREATION order and returns the first hit, so the OLDEST survivor answers.
+   * The worker would then serve the previous release's shell offline for the life
+   * of that device -- activate only fires on a version change, so it never
+   * retries -- and nothing on the device or the server could see it.
+   */
+  async function withStaleOlderCache() {
+    const online = makeScope({ files: served })
+    await online.dispatch('install', {})
+    const filled = online.stores
+
+    const offline = makeScope({ files: served, offline: true })
+    /* Created FIRST, so CacheStorage order puts it ahead of the real one. */
+    const stale = await offline.caches.open('dillo-bus-board-v0')
+    await stale.put(new URL('./', WORKER).href, new Res('THE PREVIOUS RELEASE', {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    }))
+    await stale.put(new Req('app.js'), new Res('the previous app.js'))
+    for (const [name, store] of filled) {
+      const c = await offline.caches.open(name)
+      for (const [url, res] of store) await c.put(url, res)
+    }
+    return offline
+  }
+
+  it('serves the document from its own cache, not from the older survivor', async () => {
+    const scope = await withStaleOlderCache()
+    const event = await scope.dispatch('fetch', {
+      request: new Req('route/4/eb', { mode: 'navigate' }),
+    })
+    expect(event.responded.body, 'the offline board came out of a previous release\'s cache')
+      .toBe('body of ./')
+  })
+
+  it('serves a script from its own cache, not from the older survivor', async () => {
+    const scope = await withStaleOlderCache()
+    const event = await scope.dispatch('fetch', { request: new Req('app.js') })
+    expect(event.responded.body).toBe('body of app.js')
   })
 })
 

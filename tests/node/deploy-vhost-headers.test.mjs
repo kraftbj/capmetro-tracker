@@ -55,6 +55,21 @@ function locationBlocks(conf) {
 	return out
 }
 
+/*
+ * Apache's equivalent of locationBlocks. Needed because asserting on the whole file lets a
+ * directive in ANY block satisfy a check meant for one: both apache cache rules could be
+ * flipped to `immutable, max-age=31536000` -- including the one that serves sw.js, the file
+ * whose staleness the worker cannot fix for itself -- with the suite green, because the
+ * test only asserted that the block existed.
+ */
+function apacheBlock(conf, open) {
+	const i = conf.indexOf(open)
+	if (i === -1) return null
+	const close = open.startsWith('<Files ') && !open.startsWith('<FilesMatch') ? '</Files>' : '</FilesMatch>'
+	const j = conf.indexOf(close, i)
+	return j === -1 ? null : conf.slice(i, j)
+}
+
 describe('the nginx vhost does not lose inherited headers', () => {
 	const blocks = locationBlocks(nginx)
 
@@ -144,9 +159,17 @@ describe('the inline bootstrap and its CSP hash', () => {
   it('is the only inline script in the document', () => {
     /* The hash admits one snippet. A second would need its own, and would more
        likely be an accident than a decision. */
-    /* A bare <script> with no attributes is an inline one; every other script
-       tag in this document carries a src. */
-    expect(html.match(/<script>/g) ?? []).toHaveLength(1)
+    /*
+     * Counted as "script tags with no src", not "tags with no attributes". `/<script>/g`
+     * matches only the attribute-less spelling, so a second inline script written as
+     * <script type="module"> -- the realistic way one gets added -- was invisible here. It
+     * would get no hash of its own and be silently refused by the CSP, which is precisely
+     * the state this test exists to make impossible.
+     */
+    const stripped = html.replace(/<!--[\s\S]*?-->/g, '')
+    const noSrc = [...stripped.matchAll(/<script\b([^>]*)>/gi)]
+      .filter((m) => !/\bsrc\s*=/i.test(m[1]))
+    expect(noSrc, 'index.html no longer has exactly one inline script').toHaveLength(1)
     expect(inline, 'no inline <script> found in client/index.html').not.toBeNull()
   })
 
@@ -290,8 +313,14 @@ describe('the vhosts let the board be installed', () => {
       expect(block.body, `nginx serves ${name} in a way the worker install could freeze`)
         .toMatch(revalidates)
     }
-    /* Apache says the same thing with FilesMatch rather than location. */
-    expect(apache).toMatch(/<FilesMatch "\\\.\(js\|css\)\$">[\s\S]*?max-age=0, must-revalidate/)
+    /* Apache says the same thing with FilesMatch rather than location. Sliced to the block,
+       not scanned across the file: a lazy `[\s\S]*?` finds the first matching directive
+       AFTER the opening tag, which can belong to a later block entirely. */
+    const jsBlock = apacheBlock(apache, '<FilesMatch "\\.(js|css)$">')
+    expect(jsBlock, 'apache has no js|css FilesMatch block').not.toBeNull()
+    expect(jsBlock, 'apache serves js/css in a way the worker install could freeze')
+      .toMatch(revalidates.source.replace('Cache-Control', 'Header always set Cache-Control')
+        ? /Header always set Cache-Control "public, max-age=0, must-revalidate"/ : revalidates)
   })
 
   it('does not let the manifest or the worker script cache past a deploy', () => {
@@ -299,14 +328,30 @@ describe('the vhosts let the board be installed', () => {
      * The manifest names every icon and the start URL, and sw.js is the one file
      * whose staleness the worker cannot fix for itself -- it is what decides
      * what everything else does.
+     *
+     * Both halves assert the DIRECTIVE now. The apache half used to assert only that the
+     * block existed, so `<Files "manifest.webmanifest">` and the `<FilesMatch "\.(js|css)$">`
+     * that serves sw.js could both be flipped to `immutable, max-age=31536000` -- pinning
+     * the worker on every device for a year -- with this test green. Found by mutation.
      */
+    const revalidate = /Cache-Control "public, max-age=0, must-revalidate"/
     const manifestBlock = locationBlocks(nginx).find((b) => b.name === '= /manifest.webmanifest')
-    expect(manifestBlock).toBeDefined()
-    expect(manifestBlock.body).toMatch(/Cache-Control "public, max-age=0, must-revalidate"/)
+    expect(manifestBlock, 'nginx has no manifest location').toBeDefined()
+    expect(manifestBlock.body).toMatch(revalidate)
     /* sw.js is served by the js|css rule, which already revalidates. */
-    const scripts = locationBlocks(nginx).find((b) => b.name === '~* \\.(js|css)$')
-    expect(scripts.body).toMatch(/Cache-Control "public, max-age=0, must-revalidate"/)
-    expect(apache).toMatch(/<Files "manifest\.webmanifest">/)
+    const jsBlock = locationBlocks(nginx).find((b) => b.name === '~* \\.(js|css)$')
+    expect(jsBlock, 'nginx has no js|css location').toBeDefined()
+    expect(jsBlock.body).toMatch(revalidate)
+
+    for (const [label, open] of [
+      ['manifest', '<Files "manifest.webmanifest">'],
+      ['js/css (which serves sw.js)', '<FilesMatch "\\.(js|css)$">'],
+    ]) {
+      const body = apacheBlock(apache, open)
+      expect(body, `apache has no ${label} block`).not.toBeNull()
+      expect(body, `apache lets ${label} cache past a deploy`)
+        .toMatch(/Header always set Cache-Control "public, max-age=0, must-revalidate"/)
+    }
   })
 
   it('keeps the deny blocks above the icon location, like every other asset rule', () => {
