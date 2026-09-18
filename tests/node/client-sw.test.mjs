@@ -260,11 +260,22 @@ describe('installing', () => {
       .toEqual(SHELL.map((u) => new URL(u, WORKER).href).sort())
   })
 
-  it('asks for each file bypassing the http cache, so it cannot precache the old release', async () => {
-    /* update.sh rsyncs new client files and restarts nothing. Without
-       cache: 'reload' an install can pick the PREVIOUS release out of the
-       browser's own cache and freeze it as the offline copy. */
-    expect(source).toContain("cache: 'reload'")
+  it('precaches every shell entry, and asks for each one exactly once', async () => {
+    /*
+     * This replaced an assertion on the source text -- `toContain("cache:
+     * 'reload'")` -- which is the shape this file's header calls worthless, and
+     * which pinned a decision that has since been reversed for costing ~290 KB
+     * of re-download on every first visit. What actually has to hold is that
+     * the install asks for the whole shell and nothing twice; that the copies
+     * it gets are current is a property of the vhost headers, pinned in
+     * tests/node/deploy-vhost-headers.test.mjs where it can be checked.
+     */
+    const scope = makeScope({ files: served })
+    await scope.dispatch('install', {})
+    const asked = scope.fetched
+    const wanted = SHELL.map((u) => new URL(u, WORKER).pathname)
+    expect([...asked].sort()).toEqual([...wanted].sort())
+    expect(asked.length, 'a shell entry was fetched more than once').toBe(new Set(asked).size)
   })
 
   it('fails the whole install when one file is missing, rather than half-caching', async () => {

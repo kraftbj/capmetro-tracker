@@ -153,14 +153,30 @@ self.addEventListener('install', function (event) {
    * opens offline and renders nothing, and a failed install leaves the previous
    * worker (or no worker) in place, which is strictly better.
    *
-   * `reload` on each request so an install cannot pick a stale copy out of the
-   * HTTP cache and precache the previous release.
+   * The HTTP cache is used rather than bypassed, and that is a deliberate
+   * reversal. `cache: 'reload'` here made the install re-download every byte
+   * the page had fetched seconds earlier -- 34 unconditional requests, ~290 KB,
+   * starting on `load` while app.js was issuing its first feed request. On the
+   * phone this worker exists for, that is most of a minute of saturated link
+   * spent fetching what the browser already had.
+   *
+   * It is safe because of what the vhosts send, not by luck: the document is
+   * `no-cache` and the scripts, stylesheets and manifest are
+   * `max-age=0, must-revalidate`, so the browser must revalidate every one of
+   * them before reuse and a precache cannot come from the previous release.
+   * Fonts are `immutable`, which is the one set worth taking from cache
+   * outright. That dependency is pinned by
+   * tests/node/deploy-vhost-headers.test.mjs -- give the scripts a long
+   * max-age and it fails there, because it would silently make this install
+   * capable of freezing an old release as the offline copy.
+   *
+   * The icons are `max-age=86400`, so a precache can hold one up to a day old.
+   * They are regenerated roughly never and network-first replaces them on the
+   * next load, so that is the whole cost.
    */
   event.waitUntil(
     caches.open(CACHE).then(function (cache) {
-      return cache.addAll(SHELL.map(function (u) {
-        return new Request(u, { cache: 'reload' });
-      }));
+      return cache.addAll(SHELL);
     }).then(function () {
       /* No update prompt: the strategies below are network-first, so a waiting
          worker would only delay the offline floor being correct. */

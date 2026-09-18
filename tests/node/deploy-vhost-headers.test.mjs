@@ -253,6 +253,34 @@ describe('the vhosts let the board be installed', () => {
     expect(apache).toMatch(/^\s*AddType application\/manifest\+json \.webmanifest$/m)
   })
 
+  it('lets the worker install from the http cache without risking a stale release', () => {
+    /*
+     * client/sw.js precaches the shell with the browser's own HTTP cache rather
+     * than bypassing it, which is what stopped a first visit re-downloading
+     * ~290 KB it had just fetched. That is only safe because of what is
+     * asserted here: every entry the shell needs is served must-revalidate or
+     * no-cache, so the browser has to check with the origin before reusing a
+     * copy and the install cannot freeze the previous release as the offline
+     * board.
+     *
+     * Give the scripts or the document a long max-age and this fails -- which
+     * is the point. The failure would otherwise appear weeks later, on one
+     * phone, as a board serving old code with no way to tell.
+     *
+     * Fonts are deliberately exempt: `immutable`, content-addressed by name,
+     * and the one set worth taking from cache outright.
+     */
+    const revalidates = /Cache-Control "(no-cache|public, max-age=0, must-revalidate)"/
+    for (const name of ['= /index.html', '~* \\.(js|css)$', '= /manifest.webmanifest']) {
+      const block = locationBlocks(nginx).find((b) => b.name === name)
+      expect(block, `nginx has no ${name} block`).toBeDefined()
+      expect(block.body, `nginx serves ${name} in a way the worker install could freeze`)
+        .toMatch(revalidates)
+    }
+    /* Apache says the same thing with FilesMatch rather than location. */
+    expect(apache).toMatch(/<FilesMatch "\\\.\(js\|css\)\$">[\s\S]*?max-age=0, must-revalidate/)
+  })
+
   it('does not let the manifest or the worker script cache past a deploy', () => {
     /*
      * The manifest names every icon and the start URL, and sw.js is the one file
