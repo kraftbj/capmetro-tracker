@@ -68,7 +68,13 @@ test.describe('a run whose bus is still finishing the trip before', () => {
     await page.goto(AT_ORIGIN)
     const predictor = page.locator('.nextbus', { hasText: 'becomes this run' }).first()
 
-    const spoken = await predictor.locator('.sr-only').allInnerTexts()
+    /*
+     * textContent, not innerText. `.sr-only` is clipped to a 1px box with
+     * `clip-path: inset(50%)` and `overflow: hidden`, and innerText is computed
+     * from layout, so it comes back empty depending on when the read lands. This
+     * test flaked exactly once that way before the assertion was changed.
+     */
+    const spoken = await predictor.locator('.sr-only').allTextContents()
     const said = spoken.join(' ')
     expect(said).toContain('Bus 8007')
     expect(said).toContain('becomes this run')
