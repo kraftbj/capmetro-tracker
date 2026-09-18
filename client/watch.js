@@ -477,13 +477,13 @@
    * Between 17:04:30 (its time, plus the 90s grace) and 17:14 the board did not
    * list it at all, and a rider at 5th/Guadalupe was shown the 17:33 as their
    * next bus while their actual bus was ten minutes away. The capture is in
-   * .local/captures/837-nb-inbound-drop-20260917/.
+   * tests/fixtures/capture-20260917-837/, with its MANIFEST.json.
    *
    * The payload already answered it. coverageFor() finds the bus that published
    * `next_trip.trip_id == this trip`, and that bus's own lateness is the best
    * estimate of how late this run will begin. Measured against that capture:
    * at 17:12:36 the extrapolation said 17:15:28; 8007 actually took the run at
-   * 17:14:15 running 681s late, i.e. 17:14:21 at the origin. About a minute out,
+   * 17:13:56 running 681s late, i.e. 17:14:21 at the origin. About a minute out,
    * against a row that was not on the board at all.
    *
    * Only `runs_ahead === 1` — coverageFor's exact successor claim, the bus's own
@@ -492,7 +492,7 @@
    * says little about a departure half an hour out with layovers in between. That
    * stays unpredicted rather than confidently wrong.
    */
-  function timingFor(dep, route, trip, scheduledAt, now, coverage) {
+  function timingFor(dep, route, trip, scheduledAt, now, coverage, canceled) {
     var onIt = vehicleForTrip(route, trip && trip.id);
     var predictor = null;
     /*
@@ -501,12 +501,17 @@
      * 3010826_22741 while bus 8010 went on naming it in next_trip. Extrapolating
      * there says when a bus that is not coming would have arrived, and the
      * canceled row leads with due_at, so it moved the one number a rider uses to
-     * recognise which run was canceled. Theirs said 17:30; the board would have
+     * recognize which run was canceled. Theirs said 17:30; the board would have
      * said 17:44.
      */
-    if (!onIt && !isCanceled(trip, route)) {
+    var isOff = canceled === undefined ? isCanceled(trip, route) : !!canceled;
+    if (!onIt && !isOff) {
       /* The caller may already hold it; coverageFor walks the vehicle list and
-         the block's trips, and the stop board asks per row per stop. */
+         the block's trips, and the stop board asks per row per stop. Measured:
+         dropping this argument doubles a panel render, 11.3ms to 21.7ms. Same
+         reason `canceled` is threaded above — the stop board already knows both
+         answers for this row, and recomputing them here took isCanceled from 69
+         to 378 linear scans per panel. Both must be for THIS trip at THIS now. */
       var cov = coverage || coverageFor(dep, route, trip, now);
       if (cov.state === 'inbound' && cov.runs_ahead === 1 && cov.vehicle) {
         predictor = cov.vehicle;
@@ -529,8 +534,17 @@
      * running undefined". With this null the row falls back to the coverage
      * wording, which names the same bus without attaching a time to it. Caught by
      * a differential over all 71 live routes, not by a unit test.
+     *
+     * The view goes with it, and that is not tidiness. `view` is what the stop
+     * board colours the row from (`d.view ? d.view.state : 'scheduled'`), so
+     * handing back the successor's `unknown` view restyled every such row from
+     * `nextbus--scheduled` to `nextbus--unknown` — an "unknown lateness" row
+     * where the honest reading is "no prediction yet". Nothing is on this trip
+     * and nothing was predicted for it, so there is no state to report. A bus
+     * that IS on the trip keeps its view whatever its adherence says: that case
+     * never reaches here, because `predictor` was never set for it.
      */
-    if (predictedAt === null) { predictor = null; }
+    if (predictedAt === null && !onIt) { predictor = null; view = null; }
     return {
       /* The bus ON this trip. Callers key "live" off this and must not see the
          successor here: it is running something else right now. */
@@ -538,6 +552,21 @@
       /* The bus that WILL run it, when nothing is on it yet. Named separately so
          a row can say "becomes this run" rather than claiming it is under way. */
       predictor: predictor,
+      /*
+       * Whether that continuation is one the build could only grade `low`, in
+       * which case §4 of the contract governs how it may be said: hedged, or not
+       * at all. It is never dropped here — a low grade is a statement about how
+       * confident the chaining is, not about whether the bus exists, and 20% of
+       * predictor rows on the live system carry one. Dropping them would put a
+       * fifth of these runs back on a scheduled time that has already passed,
+       * which is the bug this whole change is about.
+       *
+       * So the time stands and the sentence hedges. rows.js, allbuses.js and
+       * trip.js read the same field for the same reason; this is the fourth
+       * reader and the first where the grade also governs a clock.
+       */
+      predictor_hedged: !!predictor &&
+        !(predictor.block && predictor.block.confidence === 'high'),
       view: view,
       predicted_at: predictedAt,
       due_at: predictedAt === null ? scheduledAt : predictedAt
@@ -604,6 +633,8 @@
        * the bus was minutes away.
        */
       predictor: timing.predictor,
+      /* §4: a `low` continuation may be hedged but never stated as fact. */
+      predictor_hedged: timing.predictor_hedged,
       view: view,
       shifted: match.shifted,
       drift: match.drift,
@@ -709,7 +740,10 @@
       box.appendChild(el('p', 'watchcard__detail',
         'Scheduled ' + fmt.clock(model.scheduled_at) + ' · bus ' +
         (model.predictor.label || model.predictor.vehicle_id) +
-        ' has not started it yet and is running ' + model.view.label + '.'));
+        ' has not started it yet and is running ' + model.view.label + '.' +
+        (model.predictor_hedged
+          ? ' The feed does not confirm this bus takes this run.'
+          : '')));
     } else if (model.state === 'no-vehicle') {
       line.textContent = fmt.clock(model.scheduled_at) + ' · ' + untilText(model.seconds_until);
       box.appendChild(line);
@@ -760,7 +794,10 @@
               ? 'Due ' + fmt.clockSpoken(model.due_at) + ', scheduled ' +
                 fmt.clockSpoken(model.scheduled_at) + '. Bus ' +
                 (model.predictor.label || model.predictor.vehicle_id) +
-                ' has not started it yet and is running ' + model.view.label + '.'
+                ' has not started it yet and is running ' + model.view.label + '.' +
+                (model.predictor_hedged
+                  ? ' The feed does not confirm this bus takes this run.'
+                  : '')
               : (model.detail || 'Nothing to show.'));
     var sr = el('p', 'sr-only', spoken);
     box.appendChild(sr);

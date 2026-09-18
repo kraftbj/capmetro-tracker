@@ -138,16 +138,21 @@
        * the whole object, and coverageFor walks both the vehicle list and the
        * block's trips on every call.
        */
+      var canceled = W.isCanceled(row.trip, route);
       var coverage = W.coverageFor(dep, route, row.trip, now);
       /*
        * Through W.timingFor, not the three lines this used to inline. It is the
-       * one producer of a departure's due time, and it is what knows that a run
-       * nobody has started yet can still be timed from the bus that is inbound
-       * to run it — the whole reason the 17:03 below stays on the board.
+       * one producer of a departure's extrapolated lateness, and it is what knows
+       * that a run nobody has started yet can still be timed from the bus that is
+       * inbound to run it — the whole reason the 17:03 below stays on the board.
+       *
+       * Called unconditionally, including with a null `route`. It guards a missing
+       * route end to end and returns the same all-null shape this call site used to
+       * spell out by hand, and a second hand-written copy of its contract is the
+       * drift this consolidation exists to remove: add a field there and the copy
+       * silently answers undefined for it.
        */
-      var timing = route
-        ? W.timingFor(dep, route, row.trip, scheduledAt, now, coverage)
-        : { vehicle: null, predictor: null, view: null, predicted_at: null, due_at: scheduledAt };
+      var timing = W.timingFor(dep, route, row.trip, scheduledAt, now, coverage, canceled);
       var vehicle = timing.vehicle;
       var view = timing.view;
 
@@ -210,7 +215,6 @@
        * also `overdue` by coverageFor's reading and would otherwise take the longer
        * window by accident. See CANCELED_KEEP_S.
        */
-      var canceled = W.isCanceled(row.trip, route);
       var keep = canceled
         ? dueAt > now - CANCELED_KEEP_S
         : coverage.state === 'overdue' && dueAt > now - OVERDUE_KEEP_S;
@@ -235,6 +239,8 @@
          * the row names it rather than leaving a shifted time unexplained.
          */
         predictor: timing.predictor,
+        /* Whether §4 requires that continuation be hedged rather than stated. */
+        predictor_hedged: timing.predictor_hedged,
         view: view,
         suppressed: suppressed,
         scheduled_at: scheduledAt,
@@ -374,11 +380,13 @@
        * the identity that decides the badge everywhere in this file.
        */
       var named = d.vehicle || d.predictor;
-      row.appendChild(el('p', 'nextbus__bus',
-        'bus ' + (named.label || named.vehicle_id) + ' · ' +
-        (d.predictor ? 'becomes this run, running ' + d.view.label
-          : d.from_feed ? 'running ' + d.view.label
-            : d.view.label)));
+      var role = d.predictor
+        ? (d.predictor_hedged ? 'likely becomes this run, running ' : 'becomes this run, running ')
+        : d.from_feed ? 'running ' : '';
+      var busLine = el('p', 'nextbus__bus' + (d.predictor_hedged ? ' nextbus__bus--hedged' : ''),
+        'bus ' + (named.label || named.vehicle_id) + ' · ' + role + d.view.label +
+        (d.predictor_hedged ? ' — the feed does not confirm this' : ''));
+      row.appendChild(busLine);
     } else if (d.suppressed) {
       row.appendChild(el('p', 'nextbus__sched', 'scheduled · lateness unavailable'));
     } else {
@@ -449,10 +457,14 @@
             ' is running ' + d.view.label + ' overall'
           : d.predictor
             /* Same scoping as the printed line: the bus has not started this run,
-               and a spoken "eleven minutes late" alone would say it had. */
+               and a spoken "eleven minutes late" alone would say it had. The hedge
+               is spoken too — a screen reader must not be the one reader told a
+               low-confidence continuation as fact. */
             ? ', scheduled ' + fmt.clockSpoken(d.scheduled_at) + '. Bus ' +
               (d.predictor.label || d.predictor.vehicle_id) +
-              ' becomes this run and is running ' + d.view.label
+              (d.predictor_hedged ? ' likely becomes' : ' becomes') +
+              ' this run and is running ' + d.view.label +
+              (d.predictor_hedged ? '. The feed does not confirm this continuation' : '')
             : ', ' + d.view.spoken + ', scheduled ' + fmt.clockSpoken(d.scheduled_at))
         : ', scheduled, no live prediction') + '.'));
     return row;

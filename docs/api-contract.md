@@ -604,6 +604,20 @@ feed.
 The client renders `low` confidence continuations with hedged language ("likely becomes the
 10:21 EB") or not at all. It never presents a `low` continuation as fact.
 
+**A departure time may be derived from a `low` continuation, hedged.** The stop board and the
+saved cards time a run nobody has started yet from the bus that is inbound to run it, which
+means the grade governs a clock and not only a sentence. Dropping the low-graded ones was
+considered and rejected: on the live system 1,811 of 8,859 such rows (20.4%) carry a `low`
+grade, and refusing them puts a fifth of those runs back on a scheduled time that has already
+passed — the failure the prediction exists to remove. A `low` grade states how confident the
+chaining is, not whether the bus exists.
+
+So the time stands and the sentence hedges: "bus 2867 · likely becomes this run, running very
+late — the feed does not confirm this", with the same dashed marking `chip--hedged` uses, and
+the same hedge in the spoken line. A `high` continuation keeps the unhedged wording. What is
+still forbidden is the unmarked case: a clock derived from a `low` continuation beside a
+sentence that asserts the handoff.
+
 ### Why the grade is what it is — `spans_routes` and `route_ids`
 
 A `low` grade used to arrive unexplained: a bus could be on time, in service, and graded `low`

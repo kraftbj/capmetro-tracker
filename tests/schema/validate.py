@@ -92,6 +92,27 @@ def main() -> int:
     doc = json.loads(golden.read_text())
     validate("the committed route 4 golden output", doc, "route-state.schema.json", store, reg)
 
+    # The 2026-09-17 route 837 capture. Four real payloads that 27 client tests
+    # treat as ground truth, so they have to keep matching the contract they were
+    # generated against — an unvalidated fixture is how a schema change quietly
+    # stops being tested against real output.
+    capture = ROOT / "tests" / "fixtures" / "capture-20260917-837"
+    for name, schema in (
+        ("departures-837.json", "departures.schema.json"),
+        ("route-837-pending.json", "route-state.schema.json"),
+        ("route-837-handover.json", "route-state.schema.json"),
+        ("route-837-canceled-stack.json", "route-state.schema.json"),
+    ):
+        f = capture / name
+        if f.exists():
+            validate(
+                f"the 837 capture's {name}",
+                json.loads(f.read_text()),
+                schema,
+                store,
+                reg,
+            )
+
     dead = ROOT / "tests" / "fixtures" / "synthetic" / "route-4-dead-cron.json"
     if dead.exists():
         validate(

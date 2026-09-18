@@ -74,6 +74,38 @@ fix and the same acronym allowlist, applied wherever a route long_name is shorte
 **Priority:** P3
 **Depends on:** None
 
+### Decide whether a bus whose next run is canceled should chain past it
+
+**What:** `coverageFor` attaches a bus to the trip it publishes in `block.next_trip`, and
+it does that even when that trip has since been canceled. The bus's real next work is then
+the trip AFTER the canceled one, which gets only the weaker block-mate match and so never
+earns a predicted time. Open question: should the claimant walk forward past canceled
+successors?
+
+**Why:** Not acted on, because the evidence does not yet support it. A sweep of all 71 live
+routes on 2026-09-17 at 17:28 found 46 cancellations, and 45 of them sat on a block with no
+bus reporting at all — a block nobody is operating, where there is no bus to chain. Exactly
+one had a bus on its block: route 800 bus 8010, `very_late` by 856s, still claiming the
+canceled 17:50 with the 19:00 next on its block. One case is not a pattern, and the likeliest
+reading of that one is a stale `next_trip` rather than a reassignment, since 8010 was 14
+minutes late against a run 22 minutes out with a ~100 minute block gap ahead of it.
+
+**Context:** Raised while fixing the inbound-predictor bug — the thought was that an agency
+might cancel a run so a late bus can pick up a later one, which would make a canceled
+successor a routine thing to chain through rather than an anomaly. The data above says
+cancellations here are mostly missing buses, not recovery moves, but that is one snapshot on
+one afternoon and peak disruption may look different. Worth re-running the sweep during a
+real incident before building anything. The sweep script shape is in the investigation notes
+for `.local/captures/837-nb-inbound-drop-20260917/`.
+
+`timingFor` already refuses to predict for a canceled trip at all, so the current behavior
+is conservative rather than wrong: the canceled row keeps the time it was canceled from, and
+the run after it shows "no bus reporting yet" instead of a made-up time.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** A capture taken while cancellations are actually being used to recover
+
 ### Finish the test coverage on the client panels
 
 **What:** The ship coverage audit on 2026-08-19 put the time-axis branch at about 30% of

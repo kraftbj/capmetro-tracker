@@ -55,9 +55,74 @@ const NB = 1
 const SCHEDULED_AT = 1789682580 /* 17:03:00 */
 const PREDICTOR = '8007'
 
+/* The saved trip a rider would actually keep for this run. One copy: the stale
+   test's whole point is that the SAME trip stops predicting, so a second literal
+   is how one of them quietly stops being the same trip. */
+const SAVED = {
+  route_id: '837', stop_id: ORIGIN, direction_id: NB, scheduled_time: '17:03:00',
+  day_type: 'weekday', stop_name: '5th/Guadalupe', direction_tag: 'NB',
+}
+
 const rowFor = (sb, route, stopId, tripId, now, count = 2) =>
   sb.upcoming(DEP, route, stopId, NB, now ?? route.generated_at, count)
     .find((d) => String(d.trip.id) === tripId)
+
+/*
+ * What the capture has to contain for anything below to mean what it says.
+ *
+ * Every assertion in this file hard-codes 820, 8007, the target trip id and the
+ * stop count, and reads them back out of the fixture. If a re-capture loses one of
+ * those facts, the tests keep passing while testing something else. This is the
+ * same discipline fixture-invariants.test.mjs applies to feeds-20260819: pin the
+ * input truth, so a fixture change fails as a fixture change.
+ */
+describe('the capture still says what these tests assume', () => {
+  t('has the target trip, uncanceled, in every snapshot', () => {
+    expect(DEP.trips.some((t2) => String(t2.id) === TARGET)).toBe(true)
+    for (const [label, snap] of [['pending', PENDING], ['handover', HANDOVER], ['stack', STACK]]) {
+      expect(snap.schedule.canceled_trips, label).not.toContain(TARGET)
+    }
+  })
+
+  t('has 8007 publishing the target as its next run, 820s late, before the handover', () => {
+    const v = PENDING.vehicles.find((x) => x.vehicle_id === PREDICTOR)
+    expect(v, 'bus 8007 must be in the pending snapshot').toBeDefined()
+    /* On the SOUTHBOUND trip, not the target: that is the whole situation. */
+    expect(v.trip.trip_id).not.toBe(TARGET)
+    expect(v.trip.direction_id).toBe(0)
+    expect(v.block.next_trip.trip_id).toBe(TARGET)
+    expect(v.adherence.seconds).toBe(820)
+    expect(v.adherence.state).toBe('very_late')
+    /* high, or the predictor gate declines it and half this file is vacuous. */
+    expect(v.block.confidence).toBe('high')
+  })
+
+  t('has 8007 on the target run, 681s late, after the handover', () => {
+    const v = HANDOVER.vehicles.find((x) => x.vehicle_id === PREDICTOR)
+    expect(v.trip.trip_id).toBe(TARGET)
+    expect(v.trip.direction_id).toBe(NB)
+    expect(v.adherence.seconds).toBe(681)
+  })
+
+  t('has the 16:53 canceled and 27 minutes gone in the stack snapshot', () => {
+    expect(STACK.schedule.canceled_trips).toContain('3012263_24413')
+    expect(STACK.schedule.canceled_trips).toContain('3012265_24385')
+    expect(STACK.schedule.canceled_trips.length).toBe(7)
+    const sched1653 = DEP.service_day_start_epoch + 16 * 3600 + 53 * 60
+    expect(STACK.generated_at - sched1653).toBeGreaterThan(sb_CANCELED_KEEP_S())
+  })
+
+  t('serves the target at 24 northbound stops', () => {
+    const serving = DEP.stops
+      .filter((s2) => s2.direction_id === NB)
+      .filter((s2) => client.cmb.watch.departuresAt(DEP, s2.stop_id, NB)
+        .some((r) => String(r.trip.id) === TARGET))
+    expect(serving.length).toBe(24)
+  })
+})
+
+/* Read through the export so the number lives in one place. */
+const sb_CANCELED_KEEP_S = () => client.cmb.stopboard.CANCELED_KEEP_S
 
 describe('a pending run whose bus is still finishing the trip before', () => {
   t('is listed at its origin stop after its scheduled time has passed', (sb) => {
@@ -139,7 +204,10 @@ describe('a pending run whose bus is still finishing the trip before', () => {
       .filter((s) => client.cmb.watch.departuresAt(DEP, s.stop_id, NB)
         .some((r) => String(r.trip.id) === TARGET))
 
-    expect(serving.length).toBe(24)
+    /* Non-trivial rather than exact: the real claim is the empty `missing` list
+       below, and pinning 24 here fails at the wrong name when the capture is
+       re-taken. The exact count is asserted in the fixture-invariant block. */
+    expect(serving.length).toBeGreaterThan(5)
     /* count 99 so the two-row trim cannot be mistaken for the drop being fixed. */
     const missing = serving.filter((s) => !rowFor(sb, PENDING, s.stop_id, TARGET, now, 99))
     expect(missing.map((s) => s.stop_id)).toEqual([])
@@ -196,11 +264,6 @@ describe('the successor claim is only trusted one run out', () => {
  * here would be the two panels disagreeing about one departure on one screen.
  */
 describe('a saved trip for the same run', () => {
-  const SAVED = {
-    route_id: '837', stop_id: ORIGIN, direction_id: NB, scheduled_time: '17:03:00',
-    day_type: 'weekday', stop_name: '5th/Guadalupe', direction_tag: 'NB',
-  }
-
   t('is due when the bus will really leave, not when it was booked', (sb, cmb) => {
     const m = cmb.watch.resolve(SAVED, DEP, PENDING, PENDING.generated_at)
 
@@ -211,15 +274,21 @@ describe('a saved trip for the same run', () => {
     expect(m.seconds_until).toBeGreaterThan(0)
   })
 
-  t('does not call itself gone while the bus is still on its way', (sb, cmb) => {
-    const m = cmb.watch.resolve(SAVED, DEP, PENDING, PENDING.generated_at)
-    /* The handover really happened at 17:13:56. The card must still be alive then. */
-    const atHandover = cmb.watch.resolve(SAVED, DEP, PENDING, HANDOVER.generated_at)
+  t('does not call itself gone once the booked time plus AFTER_S has passed', (sb, cmb) => {
+    /*
+     * 17:19, and the instant matters. Booked 17:03 with AFTER_S of 900, the old
+     * reading expired at 17:18 — so asked at 17:07 or even at the 17:13:56
+     * handover this assertion passes on the very bug it is named after. It has to
+     * be asked after 17:18, where the schedule-based card is `passed` and the
+     * predicted one is not.
+     */
+    const now = SCHEDULED_AT + cmb.watch.AFTER_S + 60
+    const m = cmb.watch.resolve(SAVED, DEP, PENDING, now)
 
+    expect(now).toBeGreaterThan(SCHEDULED_AT + cmb.watch.AFTER_S)
     expect(m.state).not.toBe('passed')
-    expect(atHandover.state).not.toBe('passed')
-    /* Booked 17:03, so the old reading expired at 17:18 — before this. */
-    expect(m.due_at + cmb.watch.AFTER_S).toBeGreaterThan(HANDOVER.generated_at)
+    expect(m.predictor.vehicle_id).toBe(PREDICTOR)
+    expect(m.due_at).toBe(SCHEDULED_AT + 820)
   })
 
   t('agrees with the stop board about one departure', (sb, cmb) => {
@@ -230,6 +299,100 @@ describe('a saved trip for the same run', () => {
     expect(m.scheduled_at).toBe(row.scheduled_at)
     expect(m.predictor.vehicle_id).toBe(row.predictor.vehicle_id)
   })
+
+  /* What the card BUILDS, not just what resolve() computed. The model carrying a
+     predictor and the card printing it are two different claims, and the second
+     one is the only one a rider ever sees. */
+  const drawCard = (model) => {
+    const host = client.document.createElement('section')
+    client.cmb.watch.render(host, [model], {})
+    return host
+  }
+
+  t('leads the card with the time the bus will really leave, not the booked one', (sb, cmb) => {
+    const m = cmb.watch.resolve(SAVED, DEP, PENDING, PENDING.generated_at)
+    const host = drawCard(m)
+    const text = textDeep(host).replace(/\s+/g, ' ')
+
+    /*
+     * The two numbers have to be the SAME departure. `seconds_until` counts to
+     * due_at, so printing it beside the scheduled time read "5:03p · in 9
+     * minutes" — nine minutes apart on one line. They agreed only while an
+     * unstarted run had no prediction at all, which is the bug above.
+     */
+    expect(all(host, 'watchcard__due').map(textDeep)).toEqual(['5:16p'])
+    expect(all(host, 'watchcard__until').map(textDeep)).toEqual(['in 9 minutes'])
+    /* Scheduled second, and the bus scoped to what it is actually doing. */
+    expect(text).toContain('Scheduled 5:03p')
+    expect(text).toContain('bus 8007 has not started it yet')
+    expect(text).toContain('running very late')
+    /*
+     * And NOT the sentence this card used to print, which says a prediction is
+     * unavailable on the one card that now has one.
+     */
+    expect(text).not.toContain('No bus is reporting on this trip yet')
+  })
+
+  t('keeps the badge, because due_at IS scheduled plus that badge', (sb, cmb) => {
+    const m = cmb.watch.resolve(SAVED, DEP, PENDING, PENDING.generated_at)
+    const badges = all(drawCard(m), 'badge')
+
+    expect(badges.length).toBe(1)
+    expect(textDeep(badges[0])).toContain('+14m')
+    expect(m.due_at - m.scheduled_at).toBe(820)
+  })
+
+  t('speaks it, rather than falling through to "Nothing to show"', (sb, cmb) => {
+    /*
+     * The spoken chain had no arm for `no-vehicle` with a predictor, so the card
+     * with the most to say — a time, a badge and a named bus — reached a screen
+     * reader as "Nothing to show." sr-only text is held to the same factual
+     * standard as the visible text on this board.
+     */
+    const m = cmb.watch.resolve(SAVED, DEP, PENDING, PENDING.generated_at)
+    const spoken = all(drawCard(m), 'sr-only').map(textDeep).join(' ')
+
+    expect(spoken).not.toContain('Nothing to show')
+    expect(spoken).toContain('Due 5:16 PM')
+    expect(spoken).toContain('scheduled 5:03 PM')
+    expect(spoken).toContain('Bus 8007 has not started it yet')
+    expect(spoken).toContain('running very late')
+  })
+})
+
+/*
+ * A prediction is an assertion about the world, and coverageFor already refuses
+ * to make one from a snapshot that stopped updating — `suppress_adherence`
+ * returns `unknown` before any vehicle is looked at. timingFor reads coverage,
+ * so the refusal has to carry through to the predictor as well: a dead feed and
+ * a bus that is genuinely late produce the identical observation, and shifting a
+ * departure by a deviation measured nobody-knows-when would read that silence as
+ * news about a bus.
+ */
+describe('a snapshot that has stopped updating predicts nothing', () => {
+  const stale = () => {
+    const copy = JSON.parse(JSON.stringify(PENDING))
+    copy.staleness = { level: 'dead', suppress_adherence: true, reason: 'cron down' }
+    return copy
+  }
+
+  t('names no predictor and leaves the saved card on the schedule', (sb, cmb) => {
+    const m = cmb.watch.resolve(SAVED, DEP, stale(), PENDING.generated_at)
+
+    /* The same payload predicts 17:16:40 when it is fresh. */
+    expect(m.predictor).toBeNull()
+    expect(m.predicted_at).toBeNull()
+    expect(m.due_at).toBe(SCHEDULED_AT)
+  })
+
+  t('says so through timingFor directly, whichever panel is asking', (sb, cmb) => {
+    const trip = DEP.trips.find((tr) => String(tr.id) === TARGET)
+    const timing = cmb.watch.timingFor(DEP, stale(), trip, SCHEDULED_AT, PENDING.generated_at)
+
+    expect(timing.predictor).toBeNull()
+    expect(timing.predicted_at).toBeNull()
+    expect(timing.due_at).toBe(SCHEDULED_AT)
+  })
 })
 
 /*
@@ -239,25 +402,31 @@ describe('a saved trip for the same run', () => {
  * shapes stay real, with only the vehicle list synthesized, which is the pattern
  * client-stopboard.test.mjs already uses.
  */
-describe('a successor that cannot be timed', () => {
-  /** A bus inbound to TARGET on its block, with the adherence the caller chooses. */
-  const inboundWith = (adherence, canceledTrips = []) => ({
-    staleness: { level: 'fresh', suppress_adherence: false },
-    schedule: { canceled_trips: canceledTrips },
-    vehicles: [{
-      vehicle_id: '9001', label: '9001', in_service: true,
-      route_id: '837',
-      position: { lat: 30.26, lon: -97.74 },
-      position_at: 1789682850,
-      trip: { trip_id: '3012136_24864', direction_id: 0, start_epoch: 1789678380 },
-      adherence,
-      block: {
-        block_id: '837001', confidence: 'high',
-        next_trip: { trip_id: TARGET, route_id: '837', direction_id: 1, start_time: '17:03:00' },
-      },
-    }],
-  })
+/**
+ * A bus inbound to TARGET on its block, with the adherence the caller chooses.
+ *
+ * At module scope because the retention tests further down need the same shape:
+ * a canceled row whose block still has a bus on it is `inbound`, never
+ * `overdue`, and that is exactly the row the old keep rule threw away.
+ */
+const inboundWith = (adherence, canceledTrips = [], confidence = 'high') => ({
+  staleness: { level: 'fresh', suppress_adherence: false },
+  schedule: { canceled_trips: canceledTrips },
+  vehicles: [{
+    vehicle_id: '9001', label: '9001', in_service: true,
+    route_id: '837',
+    position: { lat: 30.26, lon: -97.74 },
+    position_at: 1789682850,
+    trip: { trip_id: '3012136_24864', direction_id: 0, start_epoch: 1789678380 },
+    adherence,
+    block: {
+      block_id: '837001', confidence,
+      next_trip: { trip_id: TARGET, route_id: '837', direction_id: 1, start_time: '17:03:00' },
+    },
+  }],
+})
 
+describe('a successor that cannot be timed', () => {
   t('is not named as a predictor when it has no deviation of its own', (sb, cmb) => {
     /*
      * Bus 2817 on route 466: inbound, in service, and `adherence.state` unknown
@@ -295,7 +464,7 @@ describe('a successor that cannot be timed', () => {
     /*
      * Route 800's 3010826_22741 was canceled by CapMetro while bus 8010 went on
      * publishing it in next_trip. A canceled row leads with due_at, so predicting
-     * there moved the one number a rider uses to recognise which run was canceled:
+     * there moved the one number a rider uses to recognize which run was canceled:
      * theirs said 17:30, the board would have said 17:44.
      */
     const route = inboundWith(
@@ -344,5 +513,164 @@ describe('an announced cancellation is not an unannounced no-show', () => {
     /* And it does not consume one of the two live answers being asked for. */
     const two = sb.upcoming(DEP, STACK, ORIGIN, NB, STACK.generated_at, 2)
     expect(two.filter((d) => !d.canceled && (d.coverage || {}).state !== 'overdue').length).toBe(2)
+  })
+
+  /*
+   * The other half of the rewritten keep rule, and the half the 837 capture
+   * cannot reach. Every canceled row in that snapshot whose time had passed was
+   * also `overdue`, so it was exempt either way and only the LENGTH of the
+   * window changed. A cancellation on a block that still has a bus on it is
+   * `inbound` — never `overdue` — and the old rule offered it no exemption at
+   * all: it dropped 90 seconds after its time, taking the only sentence that
+   * explained why nothing came with it. That is the same silence CANCELED_KEEP_S
+   * exists to fill, so the rule now keys off the cancellation and not off a
+   * coverage state that happened to coincide with it.
+   */
+  const stillOnTheBlock = (canceledTrips) =>
+    inboundWith({ state: 'very_late', seconds: 856, glyph: 'square', reason: null }, canceledTrips)
+
+  t('keeps one whose block still has a bus on it, which used to vanish at 90 seconds', (sb, cmb) => {
+    const route = stillOnTheBlock([TARGET])
+    const now = SCHEDULED_AT + 300
+    const row = sb.upcoming(DEP, route, ORIGIN, NB, now, 99)
+      .find((d) => String(d.trip.id) === TARGET)
+
+    /* Past GRACE_S, and not overdue, which is what made it disappear. */
+    expect(now - SCHEDULED_AT).toBeGreaterThan(sb.GRACE_S)
+    expect(cmb.watch.coverageFor(DEP, route, row.trip, now).state).toBe('inbound')
+    expect(row.canceled).toBe(true)
+    expect(textDeep(sb.departureRow(row))).toContain('CANCELED')
+  })
+
+  t('drops it on its own clock, not the overdue one', (sb) => {
+    const route = stillOnTheBlock([TARGET])
+    const listAt = (now) => sb.upcoming(DEP, route, ORIGIN, NB, now, 99)
+      .some((d) => String(d.trip.id) === TARGET)
+
+    /* The boundary itself, against the exported constant rather than 600. */
+    expect(listAt(SCHEDULED_AT + sb.CANCELED_KEEP_S - 1)).toBe(true)
+    expect(listAt(SCHEDULED_AT + sb.CANCELED_KEEP_S + 1)).toBe(false)
+    /* And it is gone well inside the window an unannounced no-show would get. */
+    expect(listAt(SCHEDULED_AT + sb.OVERDUE_KEEP_S - 1)).toBe(false)
+  })
+
+  t('keeps it on a stale feed too, because a cancellation is published, not inferred', (sb) => {
+    /*
+     * suppress_adherence makes coverageFor say `unknown` about everything, so a
+     * stale feed is the other route to a canceled row with no overdue exemption.
+     * isCanceled does not read staleness at all and should not: CapMetro SAID
+     * this trip is not running, and a snapshot going quiet does not unsay it.
+     */
+    const route = stillOnTheBlock([TARGET])
+    route.staleness = { level: 'dead', suppress_adherence: true, reason: 'cron down' }
+    const row = sb.upcoming(DEP, route, ORIGIN, NB, SCHEDULED_AT + 300, 99)
+      .find((d) => String(d.trip.id) === TARGET)
+
+    expect(row).toBeDefined()
+    expect(row.canceled).toBe(true)
+    expect(row.coverage.state).toBe('unknown')
+  })
+})
+
+/*
+ * §4 of the contract: the client never presents a `low` confidence continuation
+ * as fact. This is the first place where the grade governs a CLOCK and not just
+ * a sentence, so the rule needed restating there — see the §4 note on hedged
+ * departure times. The time stands, because refusing it puts a fifth of these
+ * runs (1,811 of 8,859 measured live) back on a scheduled time already gone; the
+ * sentence hedges instead.
+ */
+describe('a continuation the build could only grade low', () => {
+  const LATE = { state: 'very_late', seconds: 820, glyph: 'square', reason: null }
+
+  t('is still timed — the grade is about the chaining, not whether the bus exists', (sb) => {
+    const row = rowFor(sb, inboundWith(LATE, [], 'low'), ORIGIN, TARGET, SCHEDULED_AT + 300, 99)
+
+    expect(row, 'a low-graded continuation must not drop the row').toBeDefined()
+    expect(row.predictor.vehicle_id).toBe('9001')
+    expect(row.predicted_at).toBe(SCHEDULED_AT + 820)
+    expect(row.predictor_hedged).toBe(true)
+  })
+
+  t('says "likely", and says the feed does not confirm it', (sb) => {
+    const row = rowFor(sb, inboundWith(LATE, [], 'low'), ORIGIN, TARGET, SCHEDULED_AT + 300, 99)
+    const text = textDeep(sb.departureRow(row)).replace(/\s+/g, ' ')
+
+    expect(text).toContain('likely becomes this run')
+    expect(text).toContain('the feed does not confirm this')
+  })
+
+  t('marks the line for a glance, not by colour alone', (sb) => {
+    const row = rowFor(sb, inboundWith(LATE, [], 'low'), ORIGIN, TARGET, SCHEDULED_AT + 300, 99)
+    const hedged = all(sb.departureRow(row), 'nextbus__bus--hedged')
+
+    expect(hedged.length).toBe(1)
+    /* And the words carry it too, so the marking is never the only channel. */
+    expect(textDeep(hedged[0])).toContain('does not confirm')
+  })
+
+  t('hedges the spoken line too', (sb) => {
+    const row = rowFor(sb, inboundWith(LATE, [], 'low'), ORIGIN, TARGET, SCHEDULED_AT + 300, 99)
+    const spoken = all(sb.departureRow(row), 'sr-only').map(textDeep).join(' ')
+
+    expect(spoken).toContain('likely becomes')
+    expect(spoken).toContain('does not confirm this continuation')
+  })
+
+  t('the control: a high-graded continuation is stated plainly', (sb) => {
+    const row = rowFor(sb, inboundWith(LATE, [], 'high'), ORIGIN, TARGET, SCHEDULED_AT + 300, 99)
+    const text = textDeep(sb.departureRow(row)).replace(/\s+/g, ' ')
+
+    expect(row.predictor_hedged).toBe(false)
+    expect(text).toContain('becomes this run')
+    expect(text).not.toContain('likely becomes')
+    expect(text).not.toContain('does not confirm')
+    expect(all(sb.departureRow(row), 'nextbus__bus--hedged').length).toBe(0)
+  })
+
+  t('the real capture is high-graded, so the rest of this file is not vacuous', () => {
+    const v = PENDING.vehicles.find((x) => x.vehicle_id === PREDICTOR)
+    expect(v.block.confidence).toBe('high')
+  })
+})
+
+/*
+ * The block index is memoized on the departures document's identity, which is the
+ * one thing that makes it safe: a document is immutable once fetched and replaced
+ * wholesale at the service-day roll. These pin both halves — that a second
+ * document is not served the first one's index, and that callers cannot corrupt
+ * the cache through the array they are handed.
+ */
+describe('the block index memo', () => {
+  t('answers a different departures document from its own trips', (sb, cmb) => {
+    const first = cmb.watch.tripsInBlock(DEP, '837001')
+    expect(first.length).toBeGreaterThan(1)
+
+    /* A different document, same block id, one trip. */
+    const other = { service_day_start_epoch: DEP.service_day_start_epoch, trips: [
+      { id: 'X_1', block_id: '837001', direction_id: 1, start_time: '06:00:00' },
+    ] }
+    expect(cmb.watch.tripsInBlock(other, '837001').map((t2) => t2.id)).toEqual(['X_1'])
+    /* And back again, so the memo is a cache and not a one-shot. */
+    expect(cmb.watch.tripsInBlock(DEP, '837001').length).toBe(first.length)
+  })
+
+  t('hands out a fresh array, so a caller cannot sort the index itself', (sb, cmb) => {
+    const a = cmb.watch.tripsInBlock(DEP, '837001')
+    expect(a.length).toBeGreaterThan(1)
+    a.length = 0
+    expect(cmb.watch.tripsInBlock(DEP, '837001').length).toBeGreaterThan(1)
+  })
+
+  t('keeps each block in running order', (sb, cmb) => {
+    const seq = cmb.watch.tripsInBlock(DEP, '837001')
+    const times = seq.map((t2) => t2.start_time)
+    expect(times.slice().sort()).toEqual(times)
+    for (const t2 of seq) expect(String(t2.block_id)).toBe('837001')
+  })
+
+  t('is empty for a block the document does not have', (sb, cmb) => {
+    expect(cmb.watch.tripsInBlock(DEP, 'no-such-block')).toEqual([])
+    expect(cmb.watch.tripsInBlock(DEP, null)).toEqual([])
   })
 })
