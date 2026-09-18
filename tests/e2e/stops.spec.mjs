@@ -894,6 +894,40 @@ test.describe('pasting a link into a tab that is already open', () => {
     await expect(page.getByText('Campbell/5th').first()).toBeVisible()
   })
 
+  test('keeps the address bar in step after an edit, even when the link arrived by paste', async ({ page }) => {
+    /*
+     * syncFragment() rewrites the fragment after an edit, and nothing exercised it on a
+     * plan that ARRIVED by paste rather than by a cold load. Without it the address bar
+     * keeps the pre-edit fragment, so this reload brings back the stop that was just
+     * removed -- the board undoing an edit by itself. Verified: disabling syncFragment
+     * fails this test and one other.
+     *
+     * What this does NOT pin, said plainly because I went looking for it: the
+     * `state.plan.fromLink = true` inside the hashchange handler's same-set branch. I could
+     * not construct a case where removing it changes anything, and tracing the three
+     * assignments says why -- adoptPlan sets it on every cold load carrying a link, the
+     * only thing that clears it is emptying the plan entirely, and an emptied plan cannot
+     * then match `sameSet` against an incoming one. So by the time that branch runs the
+     * flag is already true. It looks like defensive code rather than a live guard; left
+     * alone rather than deleted on an argument, and recorded here so the next person does
+     * not have to redo the trace.
+     */
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* Leave, then have the same link arrive by paste -- the same-set hashchange branch. */
+    await page.goto('/turnaround/index.html')
+    await page.evaluate((plan) => { window.location.hash = `plan=${plan}` }, PLAN)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    await page.locator('.stopcard').first().getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    /* The fragment must have followed the edit, or this reload brings it back. */
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+  })
+
   test('does not re-open a declined offer when some other fragment changes', async ({ page }) => {
     await page.goto(LINK)
     await page.getByRole('button', { name: 'Just this once' }).click()
