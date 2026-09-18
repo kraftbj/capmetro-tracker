@@ -877,6 +877,15 @@
       var ra = RANK[a.state] === undefined ? 9 : RANK[a.state];
       var rb = RANK[b.state] === undefined ? 9 : RANK[b.state];
       if (ra !== rb) return ra - rb;
+      /*
+       * Both absent is the only way either can be absent by the time we get
+       * here: a card with nothing upcoming is `done` or `unserved`, so it has
+       * already lost on rank above. Saying 0 rather than leaving it as
+       * `Infinity - Infinity`, which is NaN and outside what sort() accepts —
+       * V8 happens to answer `NaN > 0` exactly as it answers `0 > 0`, so this
+       * changes no order today. It is the contract, not a rendering fix.
+       */
+      if (!a.next && !b.next) return 0;
       var sa = a.next ? a.next.seconds_until : Infinity;
       var sb = b.next ? b.next.seconds_until : Infinity;
       return sa - sb;

@@ -762,12 +762,20 @@ describe('a continuation the feed has not confirmed is said as one', () => {
     adherence: { state: 'late', seconds: 200, glyph: 'up-triangle', reason: null },
   })
 
-  t('the 837 fixture carries the pairs the hedge is exercised against', () => {
-    /* The fixture holds `confidence: low` deliberately, for the routes still
-     * reporting it. It is no longer what the real 2026-08-19 capture carries —
-     * the block-chaining fix moved 2,791 continuations to `high`, 837's twelve
-     * among them — so this asserts the fixture, which is all it ever checked. */
-    expect(DEP837._expected.pairs.length).toBeGreaterThan(0)
+  t('the 837 fixture is the shape these tests need it to be', (p) => {
+    /*
+     * It used to be named for a claim it could not check — "every 837 block in
+     * the capture is low confidence" — against a SCHEDULE document, which
+     * carries no `confidence` field at all. Every confidence in this block is
+     * hand-supplied by bus837(). It would have passed against a fixture with no
+     * turnaround and no cancellation in it, so it now asserts the three
+     * properties the tests below actually lean on.
+     */
+    expect(DEP837._expected.pairs.length, 'no inbound/outbound pairs to reason about')
+      .toBeGreaterThan(0)
+    expect(DEP837._expected.canceled_departure_s, 'no cancellation to render').toHaveLength(1)
+    expect(p.resolve(AT_837, DEP837, EMPTY_ROUTE, NOW837).is_turnaround,
+      'not a turnaround, so the whole block is about something else').toBe(true)
   })
 
   t('states a high-confidence continuation plainly', (p) => {
@@ -1305,5 +1313,201 @@ describe('a departure timed from the feed does not also wear a badge', () => {
     expect(d.from_feed).toBe(false)
     expect(all(p.render(client.document.createElement('div'), [m], {}), 'badge').length)
       .toBeGreaterThan(0)
+  })
+})
+
+/* ------------------------------------------------------------------------- */
+
+/*
+ * THE MUTATIONS THAT USED TO SURVIVE.
+ *
+ * Every test below was written because the rule it covers could be deleted from
+ * plan.js and the whole suite stayed green. They are not new behaviour; they are
+ * the clauses that were already load-bearing and already unpinned, which is the
+ * more dangerous shape — a comment explaining why something matters, above code
+ * nothing would notice the loss of.
+ */
+describe('the clauses that nothing was holding down', () => {
+  const OUT = outboundAt(PAIRS[0].outbound_departure_s)
+  const LEG = inboundAt(PAIRS[0].inbound_arrival_s)
+
+  /* A deep copy, so one edited fixture cannot leak into the next test. */
+  const copyDep = () => JSON.parse(JSON.stringify(DEP))
+
+  /*
+   * `current_status === 'STOPPED_AT'` is the whole difference between a bus you
+   * can see out of the window and one still driving towards you. Dropping it
+   * turned every bus whose last reported stop is this one into "is standing at
+   * this stop now" — a false certainty on the card built to avoid exactly that.
+   */
+  t('a bus heading for the turnaround is not standing at it', (p) => {
+    const approaching = bus({
+      id: 'B1', trip: LEG, seconds: 120, stopId: TURN,
+      status: 'IN_TRANSIT_TO', nextTripId: OUT.id,
+    })
+    const m = p.resolve(AT_TURNAROUND, DEP, routeWith(approaching), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.at_stop).toBe(false)
+    expect(d.boarding).toBe('inbound')
+    expect(p.boardingText(d, m)).not.toContain('standing at this stop')
+  })
+
+  t('and the same bus, stopped, is', (p) => {
+    const standing = bus({
+      id: 'B1', trip: LEG, seconds: 120, stopId: TURN,
+      status: 'STOPPED_AT', nextTripId: OUT.id,
+    })
+    const m = p.resolve(AT_TURNAROUND, DEP, routeWith(standing), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.at_stop).toBe(true)
+    expect(d.boarding).toBe('waiting')
+    expect(p.boardingText(d, m)).toContain('standing at this stop now')
+  })
+
+  /*
+   * "Turns around here" is a claim about the STOP, so one departure that merely
+   * happens to start here does not earn it. Both fixtures are pure turnarounds,
+   * so `some` and `every` agree on them and the difference needed a stop built
+   * to disagree: one boarding departure that starts somewhere else.
+   */
+  t('is not a turnaround when only SOME of its departures start here', (p) => {
+    const dep = copyDep()
+    const through = dep.trips.find((x) => x.id === OUT.id)
+    /* Its published start is now earlier than its arrival here, so this stop is
+     * somewhere it passes through rather than somewhere it begins. */
+    through.start_time = '06:00:00'
+
+    expect(p.resolve(AT_TURNAROUND, DEP, EMPTY_ROUTE, NOW).is_turnaround).toBe(true)
+    expect(p.resolve(AT_TURNAROUND, dep, EMPTY_ROUTE, NOW).is_turnaround).toBe(false)
+  })
+
+  /*
+   * The tie-break the comment calls the honest link. No block in either fixture
+   * touches this stop twice before its departure, so "latest arrival not after
+   * ours" and "earliest" pick the same row and the rule went unpinned. A block
+   * that does touch it twice is an ordinary layover-then-return.
+   */
+  t('takes the LATEST inbound arrival on the block, not the first one found', (p) => {
+    const dep = copyDep()
+    const earlier = JSON.parse(JSON.stringify(LEG))
+    earlier.id = LEG.id + '-earlier'
+    earlier.start_time = '13:30:00'
+    dep.trips.push(earlier)
+    /* Same block, same direction, arriving here an hour before the real leg. */
+    dep.departures[TURN].push([PAIRS[0].inbound_arrival_s - 3600, dep.trips.length - 1])
+
+    const picked = p.inboundLeg(dep, TURN, 1, OUT, PAIRS[0].outbound_departure_s)
+    expect(picked.trip.id, 'the earlier arrival won, so the tie-break is inverted')
+      .toBe(LEG.id)
+    expect(picked.seconds).toBe(PAIRS[0].inbound_arrival_s)
+  })
+
+  /*
+   * The stop table carries a row per direction, and the two can be named
+   * differently — "Simond SB" is a real one. Taking whichever row matched the id
+   * first put the other direction's name on the card. Neither fixture names a
+   * stop per direction, so nothing saw it.
+   */
+  t('names the stop in the direction being asked about', (p) => {
+    const dep = copyDep()
+    dep.stops.forEach(function (row) {
+      if (row.stop_id === TURN) row.stop_name = 'Campbell/5th ' + (row.direction_id === 1 ? 'EB' : 'WB')
+    })
+    expect(p.resolve(AT_TURNAROUND, dep, EMPTY_ROUTE, NOW).stop_name).toBe('Campbell/5th EB')
+  })
+
+  /*
+   * Two cards with nothing upcoming used to reach `Infinity - Infinity`, so the
+   * comparator returned NaN and their order was whatever the sort did with it.
+   */
+  /*
+   * The ordering rule around an absent departure. The `Infinity - Infinity`
+   * this replaced returned NaN, which is outside sort()'s contract — but V8
+   * answers `NaN > 0` exactly as it answers `0 > 0`, so no arrangement of this
+   * fixture can tell the two apart, and no test here should claim to. What IS
+   * observable, and is a real rule, is that a card with nothing upcoming sorts
+   * below one that has a bus, and that two of them stay in the order they came.
+   */
+  t('sorts a stop with nothing upcoming below one that still has a bus', (p) => {
+    const ended = NOW + 12 * 3600
+    /* Both 'all', so they cannot differ on in_window and the comparator has to
+     * reach the clause under test rather than being decided above it. */
+    const a = p.resolve(
+      { route_id: '4', direction_id: 1, stop_id: TURN, window: 'all' }, DEP, EMPTY_ROUTE, ended)
+    const b = p.resolve(
+      { route_id: '4', direction_id: 1, stop_id: '2106', window: 'all' }, DEP, EMPTY_ROUTE, ended)
+
+    expect(a.in_window, 'decided above the clause under test').toBe(b.in_window)
+    expect(a.state, 'likewise').toBe(b.state)
+    expect(a.next, 'both cards must have nothing upcoming or this proves nothing').toBeFalsy()
+    expect(b.next).toBeFalsy()
+    /* Equal on every key, so they come back in the order they went in. */
+    expect(p.sortModels([a, b]).map((m) => m.entry.stop_id)).toEqual([TURN, '2106'])
+    expect(p.sortModels([b, a]).map((m) => m.entry.stop_id)).toEqual(['2106', TURN])
+
+    /*
+     * A card with a bus outranks one without, and that is decided ABOVE this
+     * clause, on state: anything with nothing upcoming is `done` or `unserved`.
+     * Asserted here so the ordering is pinned somewhere, and noted as belonging
+     * to the rank rather than to the seconds — a test that claimed otherwise
+     * would be pointing at the wrong line.
+     */
+    const running = p.resolve(
+      { route_id: '4', direction_id: 1, stop_id: TURN, window: 'all' }, DEP, EMPTY_ROUTE, NOW)
+    expect(running.next).toBeTruthy()
+    expect(running.state).toBe('ok')
+    expect(p.sortModels([b, running]).map((m) => m.entry.stop_id)).toEqual([TURN, '2106'])
+  })
+})
+
+describe('the screen reader hears the hedge too', () => {
+  const AT_837 = { route_id: '837', direction_id: 1, stop_id: '2112', window: 'all' }
+  const spokenOf = (p, model) =>
+    textDeep(all(p.render(client.document.createElement('div'), [model], {}), 'sr-only')[0])
+
+  /*
+   * Contract section 4 governs the CLAIM, not the medium it is made in. The
+   * visual hedge was covered three times over; the spoken copy of the same
+   * sentence could be deleted outright and nothing went red, which would leave a
+   * screen-reader user the one reader told a low-confidence continuation as fact.
+   */
+  t('speaks the caveat when the continuation is not confirmed', (p) => {
+    const pair = DEP837._expected.pairs[0]
+    const out = DEP837.trips[DEP837.departures['2112']
+      .find(([s, i]) => s === pair.outbound_departure_s && DEP837.trips[i].direction_id === 1)[1]]
+    const inb = DEP837.trips[DEP837.departures['2112']
+      .find(([s, i]) => s === pair.inbound_arrival_s && DEP837.trips[i].direction_id === 0)[1]]
+    const v = {
+      vehicle_id: '8021', label: '8021', route_id: '837', route_short_name: '837',
+      in_service: true, position: { lat: 30.27, lon: -97.74, bearing: null, speed: null },
+      position_at: DEP837._now,
+      trip: {
+        trip_id: inb.id, start_time: inb.start_time,
+        start_epoch: DEP837.service_day_start_epoch, direction_id: inb.direction_id,
+        headsign: inb.headsign, schedule_relationship: 'SCHEDULED',
+      },
+      progress: { current_stop_sequence: 4, current_stop_id: '6502', current_status: 'IN_TRANSIT_TO' },
+      pattern: { is_baseline: true, is_special: false, trips_in_pattern: 40, adds: [], skips: [] },
+      block: { block_id: inb.block_id, confidence: 'low', next_trip: { trip_id: out.id } },
+      adherence: { state: 'late', seconds: 200, glyph: 'up-triangle', reason: null },
+    }
+    const m = p.resolve(AT_837, DEP837,
+      { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [v] }, DEP837._now)
+    const d = m.departures.find((x) => x.inbound && x.inbound.vehicle)
+    expect(d.inbound.confirmed, 'nothing to caveat, so this proves nothing').toBe(false)
+
+    const said = spokenOf(p, m)
+    expect(said).toContain('likely')
+    expect(said, 'the spoken line dropped the caveat the printed card carries')
+      .toContain('has not confirmed which bus')
+  })
+
+  /* And the lateness, which could also be deleted from the spoken path alone. */
+  t('speaks how late the next bus is', (p) => {
+    const m = p.resolve(AT_TURNAROUND, DEP,
+      routeWith(bus({ id: 'B1', trip: outboundAt(PAIRS[0].outbound_departure_s), seconds: 400 })), NOW)
+    expect(spokenOf(p, m)).toMatch(/minutes late/)
   })
 })
