@@ -18,6 +18,7 @@
  */
 import { describe, expect, it, beforeEach } from 'vitest'
 import { readFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import vm from 'node:vm'
 import { ROOT } from './helpers/optional.mjs'
@@ -243,6 +244,34 @@ describe('the shell list and what index.html actually loads', () => {
     /* An absolute entry precaches the origin root rather than the directory the
        board is served from, so under the e2e prefix the install 404s and fails. */
     for (const u of SHELL) expect(u, `${u} is absolute`).not.toMatch(/^([a-z]+:)?\//i)
+  })
+
+  it('carries a cache version that was bumped the last time this list changed', () => {
+    /*
+     * client/sw.js says "bump VERSION when the SHELL list changes", and nothing
+     * enforced it. This does, the same way the repo already pins the CSP
+     * bootstrap hash and the installed systemd units: a fingerprint of the list
+     * committed next to the thing it is supposed to move with.
+     *
+     * Why it matters, precisely: network-first means a stale file is never
+     * SERVED, so an unbumped version cannot show old code. What it does is
+     * leave a REMOVED entry in the cache forever, because the cache is only
+     * ever dropped wholesale on a version change. The date-stamped fixtures in
+     * this list (data/route-4-*.js, data/departures-4-*.js) are ~72 KB together
+     * and their names change every time the golden capture is retaken, so the
+     * first real occurrence of this is already scheduled.
+     *
+     * When this fails: bump VERSION in client/sw.js, then put the new digest
+     * below. Both, in that order -- the digest is the record of what the bump
+     * was for.
+     */
+    const digest = createHash('sha256').update(JSON.stringify(SHELL)).digest('hex').slice(0, 12)
+    const version = source.match(/var VERSION = '([^']+)'/)
+    expect(version, 'client/sw.js no longer declares a VERSION').not.toBeNull()
+    expect({ version: version[1], shell: digest }).toEqual({
+      version: 'v1',
+      shell: 'c31c99998b71',
+    })
   })
 
   it('lists no api document, which is the rule this worker exists under', () => {
