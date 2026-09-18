@@ -718,18 +718,13 @@
 
   global.CMB.ladder = {
     render: render,
-    yForSequence: yForSequence,
     layout: layout,
-    timepointsFor: timepointsFor,
     scheduleWindow: scheduleWindow,
     scheduleDirection: scheduleDirection,
     timeScale: timeScale,
     axisTicks: axisTicks,
     tripPoints: tripPoints,
     xAtY: xAtY,
-    stemAnchorX: stemAnchorX,
-    PITCH: PITCH,
-    LABEL_W: LABEL_W,
-    _expanded: expanded
+    stemAnchorX: stemAnchorX
   };
 })(window);
