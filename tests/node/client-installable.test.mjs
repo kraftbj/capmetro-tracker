@@ -235,8 +235,18 @@ describe('the icons and the palette they were cut from', () => {
       'icons/apple-touch-icon.png',
     ]) {
       const png = pngSize(path.join(CLIENT, file))
-      expect(png.depth, `${file} is not 8-bit`).toBe(8)
-      expect(png.color, `${file} is not RGBA`).toBe(6)
+      expect(png.depth, `${file} is not 8 bits per sample`).toBe(8)
+      /*
+       * Indexed, not RGBA. These are flat fills from a six-entry palette and
+       * land at 61-103 distinct colours, so one index byte per pixel halves
+       * every file losslessly -- which matters because the worker precaches
+       * them and they are the one part of the shell served with a real max-age
+       * rather than must-revalidate, so they are most of what a first install
+       * still transfers. encodePng falls back to colour type 6 above 256
+       * colours, so this is an assertion about these icons, not about the
+       * encoder's only capability.
+       */
+      expect(png.color, `${file} is not an indexed PNG`).toBe(3)
     }
   })
 
