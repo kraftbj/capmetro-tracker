@@ -1,0 +1,1500 @@
+/**
+ * The stops link, end to end, at 412 pixels.
+ *
+ * The unit suite proves the join and the turnaround pairing. These prove the
+ * thing that actually happens: a link arrives in a message, gets tapped, and has
+ * to land on a board that is already answering — then has to still be there
+ * tomorrow when the link is not.
+ *
+ * Two properties here are not cosmetic and have their own tests:
+ *
+ *   the plan lives in the fragment, which browsers never send, so bus.dillo.dev's
+ *   access log cannot accumulate a description of a child's routine (contract §9);
+ *
+ *   a turnaround stop names the bus coming the OTHER way, because at Campbell/5th
+ *   there is no eastbound bus to see approaching, ever.
+ *
+ * Route 4 is served here by departures-4-turnaround.json and route 800 by the
+ * ordinary mid-route trim, so both card shapes are on screen together.
+ */
+import { expect, test } from '@playwright/test'
+
+/* Campbell/5th eastbound and Simond southbound, both all-day so neither falls
+ * into the "later today" section on a fixture clock fixed at 10:10am. */
+const PLAN = '1;4.1.6243.all;800.1.6293.all'
+/*
+ * The turnaround scenario, not /fresh/. Route 4's schedule here is the turnaround
+ * trim this view exists for; under /fresh/ it is the whole golden service day
+ * the trip view is asserted against, and neither can stand in for the other.
+ * The live payload is the ordinary fresh one either way.
+ */
+const LINK = `/turnaround/index.html#plan=${PLAN}`
+
+test.describe('opening a stops link', () => {
+  test('lands on the stops view with the stops already resolved', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.getByText('Simond SB').first()).toBeVisible()
+  })
+
+  test('names the westbound bus that becomes the eastbound departure', async ({ page }) => {
+    await page.goto(LINK)
+    const card = page.locator('.stopcard').filter({ hasText: 'Campbell/5th' })
+    await expect(card).toBeVisible()
+    await expect(card.locator('.stopcard__turn')).toHaveText('turnaround')
+    /* The sentence the whole feature exists for. Without it this card is a time
+     * and a stop with no bus in sight, which is the blank the design doc calls
+     * the failure this board is built to avoid. */
+    await expect(card.locator('.stopdep__note').first()).toContainText(/comes in on the .* WB/i)
+  })
+
+  test('names the live bus running the inbound leg, hedged as the feed requires', async ({ page }) => {
+    /*
+     * Republic Square, with a route payload whose vehicle really is on the
+     * southbound leg that becomes this northbound departure. Every route 837
+     * block in the 2026-08-19 capture is confidence "low", so the sentence has
+     * to read as a likelihood — contract section 4.
+     */
+    await page.goto('/turnaround/index.html#plan=1;837.1.2112.all')
+    const card = page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })
+    await expect(card).toBeVisible()
+    await expect(card).toContainText(/Bus 8021 likely brings it in on the .* SB/)
+    await expect(card).toContainText('due here in')
+    /* The word is the hedge on every line; the explanation is once per card. */
+    await expect(card.locator('.stopcard__caveat')).toHaveCount(1)
+    await expect(card.locator('.stopcard__caveat')).toContainText('has not confirmed which bus')
+  })
+
+  test('does not claim a turnaround at a stop that is not one', async ({ page }) => {
+    await page.goto(LINK)
+    const card = page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+    await expect(card).toBeVisible()
+    await expect(card.locator('.stopcard__turn')).toHaveCount(0)
+  })
+
+  test('shows more than one departure, because which bus gets caught is decided on the day', async ({ page }) => {
+    await page.goto(LINK)
+    const card = page.locator('.stopcard').filter({ hasText: 'Campbell/5th' })
+    expect(await card.locator('.stopdep').count()).toBeGreaterThan(1)
+    await expect(card.locator('.stopdep--next')).toHaveCount(1)
+  })
+
+  test('does not scroll sideways at 412 pixels', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )
+    expect(overflow).toBeLessThanOrEqual(0)
+  })
+})
+
+test.describe('the offer to keep them', () => {
+  test('offers, and keeps them when asked', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.offer')).toBeVisible()
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /* The point of keeping them: the same board with no link in the address. */
+    await page.goto('/turnaround/index.html')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  test('still shows the stops when the offer is declined, and forgets them on reload', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+
+    await page.goto('/turnaround/index.html')
+    await page.getByRole('button', { name: 'Stops' }).click()
+    await expect(page.getByText('No stops on this phone yet')).toBeVisible()
+  })
+
+  test('does not offer a link that is already kept', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    /*
+     * reload(), not goto(LINK) again. The address bar is already at LINK, so a
+     * second goto to the same URL is a same-document no-op: nothing re-boots,
+     * and the assertions below read the DOM the FIRST load left behind — which
+     * still has no offer on it because the button was just clicked. The test
+     * passed with the dedupe deleted. It has to be a real load or it is not
+     * testing the second visit at all.
+     */
+    await page.reload()
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+})
+
+test.describe('the plan never reaches the server', () => {
+  test('hands out a link whose stops are in the fragment, not the query', async ({ page }) => {
+    await page.goto(LINK)
+    const shared = await page.locator('.share__field').inputValue()
+    expect(shared).toContain('#plan=')
+    expect(shared.split('#')[0]).not.toContain('plan')
+    expect(shared.split('#')[0]).not.toContain('?')
+  })
+
+  /*
+   * AND IT IS MOVED BEFORE THE FIRST REQUEST GOES OUT, NOT MERELY BEFORE THE
+   * SECOND REPAINT.
+   *
+   * A Referer header carries the query string of the page that issued the
+   * request. Every fetch made while '?plan=' is still in the address bar can
+   * therefore hand a legible description of a child's routine to whatever it was
+   * addressed to. index.html and the vhost both declare no-referrer, so this is
+   * the third lock on the same door — but it is the one boot() controls, and it
+   * is free.
+   *
+   * Nothing pinned it. adoptPlan() could be moved below loadCatalog() and the
+   * whole suite stayed green, because by the time anything is on screen the
+   * scrub has happened either way. So this watches the address bar at the moment
+   * each request leaves, which is the only moment that decides it.
+   */
+  test('scrubs the query before the first request leaves, not after', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__leaks = []
+      const realFetch = window.fetch
+      window.fetch = function (...args) {
+        window.__leaks.push({
+          kind: 'fetch',
+          url: String(args[0]),
+          search: window.location.search,
+        })
+        return realFetch.apply(this, args)
+      }
+      const realReplace = window.History.prototype.replaceState
+      window.History.prototype.replaceState = function (...args) {
+        const out = realReplace.apply(this, args)
+        window.__leaks.push({ kind: 'scrub', search: window.location.search })
+        return out
+      }
+    })
+
+    await page.goto(`/turnaround/index.html?plan=${encodeURIComponent(PLAN)}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const events = await page.evaluate(() => window.__leaks)
+    const fetches = events.filter((e) => e.kind === 'fetch')
+    expect(fetches.length, 'nothing was fetched, so nothing was proved').toBeGreaterThan(0)
+
+    /* The scrub is first, and every request after it went out clean. */
+    expect(events[0].kind, 'a request left before the query string was scrubbed').toBe('scrub')
+    for (const f of fetches) {
+      expect(f.search, `${f.url} was requested with the plan still in the query`)
+        .not.toContain('plan')
+    }
+  })
+
+  test('moves a plan out of the query string, so a reload stops leaking it', async ({ page }) => {
+    await page.goto(`/turnaround/index.html?plan=${encodeURIComponent(PLAN)}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    expect(page.url()).not.toContain('?plan=')
+    expect(page.url()).toContain('#plan=')
+    /* And it says so, rather than tidying up silently — the reader needs to know
+     * which link to share next time. */
+    await expect(page.locator('.offer')).toContainText('web address')
+  })
+
+  /*
+   * The two shapes that used to keep leaking.
+   *
+   * The scrub ran only when the query was the parameter the plan was read FROM.
+   * A '?plan=' the parser rejected, and a '?plan=' arriving beside a '#plan='
+   * that won, both took the early exit and stayed in the address bar — and
+   * because keptSearch() does not own 'plan', every later syncUrl() wrote the
+   * query straight back out. Nothing on screen says it is still there, so the
+   * only thing that can catch it is a test that reads the bar.
+   *
+   * An unreadable plan is not an unreadable list of stops. '2;4.1.6243.all' is
+   * refused for its format digit alone and still names the stop in the clear.
+   */
+  test('takes an unreadable plan out of the query, and leaves the rest of it', async ({ page }) => {
+    await page.goto('/turnaround/index.html?plan=2%3B4.1.6243.all&ref=sms')
+    await expect(page.locator('.viewtabs__btn').first()).toBeVisible()
+
+    const url = new URL(page.url())
+    expect(url.search, 'a plan the parser refused is still a legible stop id')
+      .not.toContain('plan')
+    expect(url.search, 'the scrub took an unrelated parameter with it').toContain('ref=sms')
+    expect(url.hash, 'a plan that does not parse must not be promoted to the fragment')
+      .not.toContain('plan')
+  })
+
+  test('takes the query plan out even when the fragment plan is the one that won', async ({ page }) => {
+    await page.goto(
+      `/turnaround/index.html?plan=${encodeURIComponent('1;837.1.2112.all')}#plan=${PLAN}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const url = new URL(page.url())
+    expect(url.search, 'the losing plan stayed in the query, where it is sent').not.toContain('plan')
+    /* And the winner is untouched. Promoting the query plan here would replace
+     * the plan on screen with the one that lost. */
+    expect(decodeURIComponent(url.hash)).toBe(`#plan=${PLAN}`)
+    await expect(page.locator('.stopcard').filter({ hasText: 'Campbell/5th' })).toBeVisible()
+    await expect(page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })).toHaveCount(0)
+  })
+})
+
+/*
+ * The fetch-and-render loop, which is the bug most likely to be quietly undone.
+ *
+ * loadRouteData and loadDepartures both call render() from their callbacks, and
+ * the views that need them call those loaders from inside paint(). Any status
+ * other than 'idle' therefore has to stop a re-fetch, or a route that had already
+ * resolved gets asked for again by the very paint its own response triggered.
+ *
+ * The guard reads like an optimization and is not one, so the assertion here is
+ * the REQUEST COUNT rather than anything on screen. Unfixed, this loop issues a
+ * request per animation frame — roughly sixty a second — so the gap between pass
+ * and fail is two versus hundreds, not a number that needs a tolerance.
+ */
+test.describe('a resolved route is fetched once, not once per frame', () => {
+  const countRequests = async (page, url) => {
+    const seen = new Map()
+    page.on('request', (r) => {
+      const u = new URL(r.url()).pathname
+      if (!/\/api\/(route|departures)\//.test(u)) return
+      seen.set(u, (seen.get(u) ?? 0) + 1)
+    })
+    await page.goto(url)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(2500)
+    return seen
+  }
+
+  test('on the success path', async ({ page }) => {
+    const seen = await countRequests(page, LINK)
+    expect(seen.size).toBeGreaterThan(0)
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+
+  test('on the failure path, where the rejection is immediate', async ({ page }) => {
+    /* Route 999 has no schedule and no route file: both fetches 404. An errored
+     * status must stop the retry just as a resolved one does. */
+    const seen = await countRequests(page, '/missing/index.html#plan=1;4.1.6243.all;999.1.1.all')
+    /* Nothing fetched is not the same as nothing fetched twice: an empty map
+     * satisfies the loop below without exercising anything. */
+    expect(seen.size).toBeGreaterThan(0)
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+
+  test('on a schedule that describes a service day that is not today', async ({ page }) => {
+    /*
+     * 'stale-day' is served a document dated 20260818 while the route payload
+     * says 20260819. The client must not trust it for the session, and must not
+     * spin evicting and re-fetching it either.
+     *
+     * The id is the fixture server's, not a real route. It used to be '7' — one
+     * of the six watched routes — and answering that under every scenario
+     * shadowed the real thing; the name moved with the fix, and this test has to
+     * move with the name or it stops describing a stale day at all while still
+     * passing, because its assertion is a request count.
+     */
+    const seen = await countRequests(
+      page, '/turnaround/index.html#plan=1;4.1.6243.all;stale-day.1.847.all')
+    expect(seen.size).toBeGreaterThan(0)
+    expect([...seen.keys()].some((u) => u.includes('stale-day')),
+      'the stale-day schedule was never requested, so nothing was tested')
+      .toBe(true)
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+})
+
+test.describe('a canceled trip on a stops card', () => {
+  /* Republic Square: route 837 turns around here, and CapMetro canceled the
+   * 10:13 northbound in the 2026-08-19 capture. */
+  const CANCELED = '/turnaround/index.html#plan=1;837.1.2112.all'
+
+  test('says the word rather than reading as a bus that has not started', async ({ page }) => {
+    await page.goto(CANCELED)
+    const card = page.locator('.stopcard').filter({ hasText: '5th/Guadalupe' })
+    await expect(card).toBeVisible()
+    const canceled = card.locator('.stopdep--canceled')
+    await expect(canceled).toHaveCount(1)
+    await expect(canceled).toContainText('CANCELED')
+    await expect(canceled).toContainText('No bus is coming for it')
+    await expect(canceled).not.toContainText('reporting')
+  })
+
+  test('never claims a bus is bringing in a trip that is not running', async ({ page }) => {
+    await page.goto(CANCELED)
+    const canceled = page.locator('.stopdep--canceled')
+    await expect(canceled).toHaveCount(1)
+    await expect(canceled).not.toContainText('brings it in')
+  })
+})
+
+test.describe('the board never claims a save it did not make', () => {
+  test('says storage refused instead of announcing success', async ({ page }) => {
+    await page.addInitScript(() => {
+      /* Safari private browsing, an exhausted quota, storage switched off. */
+      const real = Storage.prototype.setItem
+      Storage.prototype.setItem = function (k, v) {
+        if (String(k).indexOf('cmb.plan') === 0) throw new Error('QuotaExceededError')
+        return real.call(this, k, v)
+      }
+    })
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    await expect(page.getByText('Nothing could be saved on this phone.')).toBeVisible()
+    /* The offer stays up, because the link in the address bar is still the way
+     * back to these stops. */
+    await expect(page.locator('.offer')).toBeVisible()
+  })
+
+  /*
+   * A DELETE IS A WRITE, AND CAN BE REFUSED THE SAME WAY.
+   *
+   * Both of these announced that something had been removed, and left it in
+   * storage. The stops came back on the next load having been declared gone,
+   * which is the same lie as claiming a save that never happened, told in the
+   * other direction — and it was told by the two call sites the save fix did not
+   * reach.
+   */
+  const refuseWrites = (page, kinds) =>
+    page.addInitScript((k) => {
+      const setItem = Storage.prototype.setItem
+      const removeItem = Storage.prototype.removeItem
+      if (k.includes('set')) {
+        Storage.prototype.setItem = function (key, v) {
+          if (String(key).indexOf('cmb.plan') === 0) throw new Error('QuotaExceededError')
+          return setItem.call(this, key, v)
+        }
+      }
+      if (k.includes('remove')) {
+        Storage.prototype.removeItem = function (key) {
+          if (String(key).indexOf('cmb.plan') === 0) throw new Error('SecurityError')
+          return removeItem.call(this, key)
+        }
+      }
+    }, kinds)
+
+  test('says storage refused instead of announcing stops were forgotten', async ({ page }) => {
+    /* Kept first, with writes still working, so there is something real to
+     * refuse to remove. */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await refuseWrites(page, ['remove'])
+    await page.reload()
+    await page.getByRole('button', { name: 'Forget these stops' }).click()
+
+    await expect(page.getByText('Nothing could be saved on this phone.')).toBeVisible()
+    /* Still kept, and still SAYING it is kept — the button is the proof, because
+     * it only appears for a set that storage holds. */
+    await expect(page.getByRole('button', { name: 'Forget these stops' })).toBeVisible()
+
+    /* And they really are still there, which is the half the reader would have
+     * discovered tomorrow. */
+    await page.goto('/turnaround/index.html')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  test('says storage refused instead of announcing a stop was removed', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    await refuseWrites(page, ['set'])
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+
+    await expect(page.getByText('Nothing could be saved on this phone.')).toBeVisible()
+    /* The stop stays on screen, because it stayed in storage. Taking it off and
+     * then discarding the refusal put it back on the next load, which reads as
+     * the board undoing an edit by itself. */
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await expect(page.getByText('Simond SB').first()).toBeVisible()
+  })
+})
+
+test.describe('a link is untrusted input', () => {
+  test('a stop id naming something on Object.prototype does not blank the board', async ({ page }) => {
+    const errors = []
+    page.on('pageerror', (e) => errors.push(e.message))
+    await page.goto('/turnaround/index.html#plan=1;4.1.constructor.all;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await page.waitForTimeout(1000)
+    expect(errors, errors.join('; ')).toHaveLength(0)
+  })
+
+  test('a ROUTE id naming something on Object.prototype does not kill the fixture server', async ({ page }) => {
+    /*
+     * The sibling of the test above, one field to the left, and it did not fail
+     * here — it failed everywhere else.
+     *
+     * A route id becomes a request for api/departures/{id}.json, and the fixture
+     * server looked that id up in a bare object. `DEPARTURES['constructor']` is
+     * the Object function: truthy, so the 404 branch never fired, and path.join()
+     * was then handed a function and threw inside the request handler. That takes
+     * the node process down, so this one link killed the server and every test
+     * scheduled after it failed for reasons of its own — which is the worst way
+     * for a suite to break, because nothing points at the cause.
+     */
+    const errors = []
+    page.on('pageerror', (e) => errors.push(e.message))
+    await page.goto('/turnaround/index.html#plan=1;constructor.1.6243.all;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(500)
+    expect(errors, errors.join('; ')).toHaveLength(0)
+
+    /* The part that actually mattered: the server is still there for whatever
+     * runs next. */
+    const after = await page.request.get('/fresh/api/departures/4.json')
+    expect(after.status(), 'the fixture server did not survive the link').toBe(200)
+  })
+
+  test('the fixture server answers hostile paths rather than dying on them', async ({ page }) => {
+    for (const url of [
+      '/fresh/api/departures/constructor.json',
+      '/fresh/api/departures/toString.json',
+      '/fresh/api/departures/__proto__.json',
+      '/constructor/api/route/4.json',
+      '/toString/index.html',
+    ]) {
+      const res = await page.request.get(url)
+      expect(res.status(), `${url} took the server down or was answered as real`)
+        .toBeGreaterThanOrEqual(400)
+    }
+    expect((await page.request.get('/fresh/api/departures/4.json')).status()).toBe(200)
+  })
+
+  test('a link with hundreds of stops is capped rather than fetched in full', async ({ page }) => {
+    const routes = new Set()
+    page.on('request', (r) => {
+      const m = /\/api\/departures\/([^/]+)\.json/.exec(r.url())
+      if (m) routes.add(m[1])
+    })
+    const many = Array.from({ length: 300 }, (_, i) => `r${i}.1.6243.all`).join(';')
+    await page.goto(`/turnaround/index.html#plan=1;${many}`)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(1500)
+    /* Plus the open route board's own schedule, which is not part of the plan. */
+    expect(routes.size).toBeLessThanOrEqual(7)
+  })
+})
+
+test.describe('the link and the screen stay in step', () => {
+  /*
+   * The path says which view is on screen; the fragment says which stops a link
+   * is proposing. Both are in the address bar and neither may erase the other.
+   *
+   * They are separate for a reason that is not tidiness: a path is sent to the
+   * server and turns up in a Referer, and what the plan describes is where a
+   * child stands and at what time. That half stays after the `#`, which browsers
+   * do not send.
+   */
+  test('the address bar names the stops view, and still carries the stops', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const url = new URL(page.url())
+    /* Not `/route/4/...`, which is what the board would say. Sharing that would
+     * send the recipient somewhere other than what the sender was looking at —
+     * the failure the URL work already fixed once for the legacy query links. */
+    expect(url.pathname, 'the path should describe the view on screen').toMatch(/\/stops$/)
+    expect(url.hash, 'and the stops should still be in the fragment').toContain('plan=')
+    /* And never in the part that reaches the server. */
+    expect(url.search).not.toContain('plan=')
+  })
+
+  test('opens the stops view on a second visit, after the stops are kept', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /*
+     * Then go and look at the route board, which is what somebody does between
+     * one commute and the next, and which is what the board REMEMBERS.
+     *
+     * Both halves of this setup are load-bearing. A second goto(LINK) while the
+     * address bar is already at LINK navigates nothing at all — the assertions
+     * would read the DOM the first load left. And leaving the remembered view on
+     * Stops lets the tab land on Stops out of memory, so the test held even with
+     * the link's own switch deleted. The link has to win against a remembered
+     * view pointing elsewhere or it is not being tested.
+     */
+    await page.locator('.viewtabs__btn[data-view="board"]').click()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+
+    /* The switch used to hang off the offer, so once "Keep on this phone" had
+     * been tapped there was nothing to offer, nothing switched the view, and the
+     * same bookmarked link landed on the route board looking inert. */
+    await page.reload()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  test('rewrites the fragment when a stop is removed, so a reload does not restore it', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    expect(page.url()).not.toContain('6293')
+
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    await expect(page.getByText('Simond SB')).toHaveCount(0)
+  })
+
+  /*
+   * And the rest of the query survives that rewrite.
+   *
+   * linkFor() strips '?' as well as '#' from whatever base it is given, which is
+   * right for a link somebody is about to share and wrong for the address bar.
+   * Handing it location.href dropped ?stop= and ?state= on every edit, and the
+   * loss was permanent: the next syncUrl() reads the search that is now empty.
+   * keptSearch() preserves those keys everywhere else in the file.
+   */
+  test('an edit does not drop the rest of the query from the address bar', async ({ page }) => {
+    await page.goto(`${LINK.split('#')[0]}?ref=sms${LINK.slice(LINK.indexOf('#'))}`)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    const url = new URL(page.url())
+    expect(url.search, 'the edit rewrote the bar without the query').toContain('ref=sms')
+    expect(url.hash, 'and the fragment still describes what is on screen').not.toContain('6293')
+  })
+
+  /*
+   * The second lock on contract section 9. planFromLocation() takes 'plan' out of
+   * the query on the way in; PATH_OWNED makes sure no repaint can put it back,
+   * whatever reaches the address bar afterwards.
+   */
+  test('a plan pushed into the query after boot is not re-emitted by a repaint', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    /* Straight past the boot scrub, the way a browser extension or a hand-edited
+     * URL would put it there. */
+    await page.evaluate(() => {
+      window.history.replaceState(null, '', `${window.location.pathname}?plan=1;800.1.6293.am${window.location.hash}`)
+    })
+    expect(new URL(page.url()).search).toContain('plan')
+
+    /* Any interaction that repaints the URL. */
+    await page.getByRole('button', { name: 'All buses' }).click()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('All buses')
+
+    expect(new URL(page.url()).search, 'a repaint carried the plan back into the query')
+      .not.toContain('plan')
+  })
+})
+
+test.describe('a failed route fetch must not destroy a good schedule', () => {
+  /*
+   * The chain the second review traced: a dropped `api/route` request swaps in the
+   * bundled 20260819 fixture, and if that frozen date is read as "today" then every
+   * cached schedule looks expired. Evicting one before its replacement arrives then
+   * loses a whole service day to a connection that has just proved it cannot fetch.
+   *
+   * Route 4 is the default and the only bundled fixture, so this was the ordinary
+   * user on the ordinary route.
+   */
+  test('keeps the cached schedule when the route payload falls back to the fixture', async ({ page }) => {
+    /* /missing/ 500s every api/route request, so the client is on the fixture.
+     * A 'flaky*' schedule loads once, is dated 20260818, and 500s thereafter —
+     * one counter per route id, so this test owns 'flaky-kept' outright. */
+    await page.goto('/missing/index.html#plan=1;flaky-kept.1.6243.all')
+
+    const card = page.locator('.stopcard').first()
+    await expect(card).toBeVisible()
+    await expect(card.locator('.stopdep').first()).toBeVisible()
+
+    /* Long enough for a repaint or two to have thrown it away. */
+    await page.waitForTimeout(2000)
+    await expect(card.locator('.stopdep').first()).toBeVisible()
+    await expect(page.getByText('Schedule not loaded')).toHaveCount(0)
+
+    /*
+     * And the schedule is not merely surviving — it was never judged against the
+     * fixture's frozen date in the first place. Without that guard the document
+     * is marked 'stale' and re-requested every 60 seconds forever, on a route
+     * whose schedule is in fact perfectly current. Asserting the decision rather
+     * than waiting out a timer.
+     */
+    const status = await page.evaluate(() => window.CMB.app.state.depStatus['flaky-kept'])
+    expect(status, 'the bundled fixture was read as today').not.toBe('stale')
+  })
+
+  test('does not spin re-requesting it either', async ({ page }) => {
+    const seen = new Map()
+    page.on('request', (r) => {
+      const u = new URL(r.url()).pathname
+      if (!/\/api\/departures\//.test(u)) return
+      seen.set(u, (seen.get(u) ?? 0) + 1)
+    })
+    await page.goto('/missing/index.html#plan=1;flaky-spin.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(2000)
+    for (const [url, n] of seen) {
+      expect(n, `${url} was fetched ${n} times`).toBeLessThanOrEqual(2)
+    }
+  })
+})
+
+/*
+ * A DEPARTURES DOCUMENT DESCRIBES ONE SERVICE DAY, AND IS KEPT FOR EXACTLY THAT
+ * LONG.
+ *
+ * It is a whole service day of scheduled stop times, so it is fetched once and
+ * held. It used to be held for the life of the tab: a phone left on the counter
+ * overnight and picked up at seven still had yesterday's, with every stop reading
+ * "the last one today has gone" on the surface someone consults at breakfast and
+ * has no reason to doubt.
+ *
+ * The eviction that fixed it had no test at all — the whole block, and the
+ * scheduleExpired line in retryDepartures, could be deleted and the suite stayed
+ * green. The three cases below are the three the code actually distinguishes, and
+ * the third is the one that matters most: a replacement that FAILS must leave the
+ * document that is already there. The first attempt at this deleted before it
+ * fetched, which loses a whole service day to a connection that has just proved
+ * it cannot fetch anything.
+ *
+ * The service date comes from the LIVE route payload, never a device clock, so
+ * these drive the two documents against each other rather than touching a clock.
+ * Requests are answered per page — no shared server state, nothing another test
+ * running beside this one can disturb.
+ */
+test.describe('a schedule is kept for the service day it describes, and no longer', () => {
+  const TODAY = '20260819' /* what the golden route payload says it is */
+  const YESTERDAY = '20260818'
+  const TOMORROW = '20260820'
+  const STOPS = '/turnaround/index.html#plan=1;4.1.6243.all'
+
+  /*
+   * The two real fixtures, read once up front rather than through route.fetch()
+   * inside each handler. A handler that awaits the network can still be running
+   * when the page it was serving has gone, and the response it was holding is
+   * disposed out from under it — a flake, and a flake in a test about a dead
+   * connection is worse than no test.
+   */
+  const fixtures = async (page) => ({
+    route: await (await page.request.get('/fresh/api/route/4.json')).json(),
+    departures: await (await page.request.get('/fresh/api/departures/4.json')).json(),
+  })
+
+  /*
+   * Serve api/departures/4.json through a handler that may change its mind.
+   *
+   * The first answer is held until the live route payload has actually landed in
+   * the client. That is not a convenience: the live payload is the only thing
+   * that says what service day it is, and a schedule judged before one has
+   * arrived is deliberately judged against nothing and marked 'ok'. Which of two
+   * independent requests returns first would otherwise decide the state every
+   * assertion below starts from. Holding it pins the ordinary case — the one
+   * where the board knows what day it is — and leaves the other to the test that
+   * is actually about it.
+   */
+  const departuresServedBy = async (page, answer) => {
+    let n = 0
+    await page.route('**/api/departures/4.json', async (route) => {
+      n += 1
+      if (n === 1) {
+        await page.waitForFunction(() => !!(window.CMB && window.CMB.app && window.CMB.app.state.data))
+      }
+      await answer(route, n)
+    })
+    return () => n
+  }
+
+  /** The real fixture, re-dated. */
+  const dated = (route, doc, date) => route.fulfill({ json: { ...doc, service_date: date } })
+
+  const statusOf = (page) => page.evaluate(() => window.CMB.app.state.depStatus['4'])
+  const dateHeld = (page) =>
+    page.evaluate(() => {
+      const d = window.CMB.app.state.departures['4']
+      return d ? d.service_date : null
+    })
+  const tick = (page, times = 1) =>
+    page.evaluate((n) => {
+      for (let i = 0; i < n; i += 1) window.CMB.app.refreshTick()
+    }, times)
+
+  test('keeps one dated today, and does not ask for it again', async ({ page }) => {
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route) => dated(route, fix.departures, TODAY))
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    expect(await statusOf(page)).toBe('ok')
+
+    await tick(page, 3)
+    await page.waitForTimeout(400)
+    expect(asked(), 'a current schedule was re-fetched').toBe(1)
+    expect(await statusOf(page)).toBe('ok')
+    expect(await dateHeld(page)).toBe(TODAY)
+  })
+
+  test('replaces one describing a service day that has passed', async ({ page }) => {
+    /* Yesterday's on the first ask, today's on the second — so a swap is visible
+     * as a swap rather than as the same bytes arriving twice. */
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route, n) =>
+      dated(route, fix.departures, n === 1 ? YESTERDAY : TODAY),
+    )
+    await page.goto(STOPS)
+    /* Held, so a failed replacement cannot lose it — but not believed, so the
+     * card says it is out of date instead of answering out of it. */
+    await expect(page.locator('.stopcard')).toContainText('Schedule out of date')
+    expect(await statusOf(page)).toBe('stale')
+    expect(await dateHeld(page)).toBe(YESTERDAY)
+
+    await tick(page)
+    await expect.poll(() => dateHeld(page)).toBe(TODAY)
+    expect(asked()).toBe(2)
+    expect(await statusOf(page)).toBe('ok')
+    /* And the card answers again the moment a current document arrives. */
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+  })
+
+  test('a replacement that fails leaves the schedule already in hand', async ({ page }) => {
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route, n) =>
+      n === 1
+        ? dated(route, fix.departures, YESTERDAY)
+        : route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"gone"}' }),
+    )
+    await page.goto(STOPS)
+    const card = page.locator('.stopcard').first()
+    await expect(card).toContainText('Schedule out of date')
+    expect(await statusOf(page)).toBe('stale')
+
+    await tick(page)
+    await expect.poll(() => statusOf(page)).toBe('error')
+    expect(asked()).toBe(2)
+
+    /*
+     * The whole point. On a dead connection the old code deleted a good schedule
+     * and then could not fetch one back.
+     *
+     * The two outcomes are distinguishable on screen, which is what makes this a
+     * test and not an inspection of a variable: a document that is still there
+     * reads "Schedule out of date", and one that was destroyed reads "Schedule
+     * not loaded" — the card having nothing at all to describe.
+     */
+    expect(await dateHeld(page), 'the schedule was destroyed by a failed refetch')
+      .toBe(YESTERDAY)
+    await expect(card).toContainText('Schedule out of date')
+    await expect(page.getByText('Schedule not loaded')).toHaveCount(0)
+  })
+
+  test('does not treat a document from the FUTURE as expired', async ({ page }) => {
+    /*
+     * Older, not merely different. Around the service-day roll the live payload
+     * can still be from before it while a schedule fetched a moment later is from
+     * after; testing for `!==` called the fresher of the two expired and re-asked
+     * for it every sixty seconds until the live payload caught up. Any skew in
+     * that direction has the same shape.
+     */
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, (route) => dated(route, fix.departures, TOMORROW))
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    expect(await statusOf(page), 'a schedule from ahead of today was called expired').toBe('ok')
+    await tick(page, 3)
+    await page.waitForTimeout(400)
+    expect(asked()).toBe(1)
+  })
+
+  test('an out-of-date schedule never claims today’s service is over', async ({ page }) => {
+    /*
+     * The sentence at issue is "The last one today has gone. Back tomorrow."
+     *
+     * A document from a previous service day measures its times from yesterday's
+     * midnight, so nothing on it is ever upcoming and every stop falls through to
+     * that sentence — a claim about TODAY made out of a document that does not
+     * describe today. On a board left open overnight and picked up at breakfast,
+     * it is the sentence that sends somebody home.
+     */
+    const fix = await fixtures(page)
+    await departuresServedBy(page, (route) =>
+      route.fulfill({
+        json: {
+          ...fix.departures,
+          service_date: YESTERDAY,
+          /* Genuinely yesterday's document: the day start goes back with the
+             date, which is what puts every departure behind the clock. */
+          service_day_start_epoch: fix.departures.service_day_start_epoch - 86400,
+        },
+      }),
+    )
+    await page.goto(STOPS)
+    const card = page.locator('.stopcard').first()
+    await expect(card).toBeVisible()
+
+    await expect(card).not.toContainText('Back tomorrow')
+    await expect(card).not.toContainText('Nothing left today')
+    await expect(card).toContainText('Schedule out of date')
+    await expect(card).toContainText('earlier service day')
+    /* And it is not passed off as a schedule that has not arrived, which would
+     * have the reader waiting for something already on the phone. */
+    await expect(card).not.toContainText('Schedule not loaded')
+  })
+
+  test('re-asks when the service day rolls over under a document that fetched cleanly', async ({ page }) => {
+    /*
+     * The one case the 'stale' marking does not cover: the document was current
+     * when it arrived and stopped being so while the tab stayed open. Only the
+     * timer may clear an 'ok' status — paint() calls loadDepartures, so a status
+     * paint could clear is a fetch-and-render loop — which is why this lives in
+     * retryDepartures and not anywhere a repaint can reach.
+     */
+    const fix = await fixtures(page)
+    let routeAsked = 0
+    await page.route('**/api/route/4.json', (route) => {
+      routeAsked += 1
+      route.fulfill({
+        json: routeAsked > 1
+          ? { ...fix.route, service_day: { ...fix.route.service_day, date: TOMORROW } }
+          : fix.route,
+      })
+    })
+    const asked = await departuresServedBy(page, (route) => dated(route, fix.departures, TODAY))
+
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    expect(await statusOf(page)).toBe('ok')
+    expect(asked()).toBe(1)
+
+    /* One turn to pick up the new date, one to act on it. */
+    await tick(page)
+    await expect.poll(() =>
+      page.evaluate(() => window.CMB.app.state.data.service_day.date)).toBe(TOMORROW)
+    await tick(page)
+    /*
+     * Asked AGAIN, rather than asked exactly twice.
+     *
+     * Two mechanisms now act on the roll and both are wanted: the route
+     * payload's own handler re-checks the schedule the moment the new date
+     * lands, so the board does not read yesterday's times for a further full
+     * minute, and the timer's sweep asks again after that. This fixture keeps
+     * serving the same out-of-date document, so every turn is entitled to
+     * another attempt — which is the point, since the day it describes has
+     * ended. Pinning the count to 2 pinned it to one of the two mechanisms.
+     *
+     * The loop this could become is covered next door: a repaint may not ask,
+     * and a request already in flight may not be duplicated.
+     */
+    await expect.poll(() => asked(), { message: 'yesterday was kept for the life of the tab' })
+      .toBeGreaterThanOrEqual(2)
+  })
+
+  /*
+   * A stops card names the bus bringing your trip in — "Bus 2867 brings it in on
+   * the 3:04p WB, due here in 4 minutes". That sentence is made of a live
+   * payload, and only the route on the board is refreshed by the poll, while a
+   * plan names up to six. A frozen one leaves that bus four minutes away for as
+   * long as the tab stays open, which is a live prediction that stopped being
+   * live without saying so.
+   *
+   * This exists because a merge dropped exactly that refresh and every test in
+   * this file still passed.
+   */
+  test('refreshes the live payload of every route the plan names, not just the open one', async ({ page }) => {
+    const asked = {}
+    await page.route('**/api/route/*.json', async (route) => {
+      const id = new URL(route.request().url()).pathname.split('/').pop().replace('.json', '')
+      asked[id] = (asked[id] || 0) + 1
+      await route.continue()
+    })
+
+    /* Two routes, so there is one the board is not already polling. */
+    await page.goto('/turnaround/index.html#plan=1;4.1.6243.all;800.1.6293.all')
+    await expect(page.locator('.stopcard .stopdep').first()).toBeVisible()
+    await page.waitForTimeout(300)
+    const before = { ...asked }
+    const other = Object.keys(asked).find((id) => id !== '4')
+    expect(other, 'the plan should name a route other than the open one').toBeTruthy()
+
+    await tick(page)
+    await expect
+      .poll(() => asked[other] || 0, { message: 'a plan route stopped being refreshed' })
+      .toBeGreaterThan(before[other] || 0)
+  })
+
+  test('does not fire a second request while one is still in flight', async ({ page }) => {
+    /*
+     * The retry runs once a minute against a document that is still expired,
+     * because the request replacing it has not come back yet. Clearing the status
+     * there fired a duplicate alongside it, then a third — and with nothing
+     * tracking any of them the older response could land last and reinstate what
+     * the newer one had already replaced. A slow connection is the only place
+     * this happens, and is exactly the place it must not.
+     */
+    const fix = await fixtures(page)
+    const asked = await departuresServedBy(page, async (route, n) => {
+      if (n > 1) await new Promise((resolve) => setTimeout(resolve, 1500))
+      await dated(route, fix.departures, YESTERDAY)
+    })
+    await page.goto(STOPS)
+    await expect(page.locator('.stopcard')).toContainText('Schedule out of date')
+    expect(await statusOf(page)).toBe('stale')
+
+    await tick(page)
+    await page.waitForFunction(() => window.CMB.app.state.depStatus['4'] === 'loading')
+    /*
+     * One more turn, deliberately not four.
+     *
+     * The retry must not duplicate a request that is still running, and that is
+     * what this asserts. A request outstanding for TWO turns is a different case
+     * with its own rule — the board gives up on it, bumps the generation so the
+     * abandoned answer cannot land later, and asks again — because a fetch has no
+     * deadline of its own and one outstanding when a phone suspends may never
+     * settle at all. Ticking past that threshold here would be testing the
+     * give-up, which has its own tests, and would read as this rule failing.
+     */
+    await tick(page)
+    await page.waitForTimeout(300)
+    expect(asked(), 'a request in flight was forgotten and re-issued').toBe(2)
+  })
+})
+
+test.describe('pasting a link into a tab that is already open', () => {
+  /*
+   * The commonest way a link actually gets used: the board is open, the link
+   * arrives in a message, it goes in the address bar. Only the fragment changes,
+   * so nothing reloads.
+   */
+  test('switches to the stops view even when those stops are already kept', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    /* Reopen with no plan in the address bar and get onto the route board, which
+     * is the state a tab is in when a link arrives in a message. */
+    await page.goto('/turnaround/index.html')
+    await page.locator('.viewtabs__btn[data-view="board"]').click()
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+
+    await page.evaluate((plan) => { window.location.hash = `plan=${plan}` }, PLAN)
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  test('keeps the address bar in step after an edit, even when the link arrived by paste', async ({ page }) => {
+    /*
+     * syncFragment() rewrites the fragment after an edit, and nothing exercised it on a
+     * plan that ARRIVED by paste rather than by a cold load. Without it the address bar
+     * keeps the pre-edit fragment, so this reload brings back the stop that was just
+     * removed -- the board undoing an edit by itself. Verified: disabling syncFragment
+     * fails this test and one other.
+     *
+     * That trace was wrong, and the note it left is kept here because the way it
+     * was wrong is the useful part. It said the `state.plan.fromLink = true` in the
+     * hashchange same-set branch was unreachable defensive code, because adoptPlan
+     * sets the flag on every cold load carrying a link. It missed the path where
+     * the load carries NO link: keep a set, come back cold, and the entries arrive
+     * from storage with the flag false -- then a paste of the same plan matches
+     * sameSet and that branch is the only thing that sets it. 'I could not
+     * construct a case' is a statement about the search, not about the code.
+     * 'a pasted link that matches the kept set still owns the fragment' below is
+     * that case.
+     */
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* Leave, then have the same link arrive by paste -- the same-set hashchange branch. */
+    await page.goto('/turnaround/index.html')
+    await page.evaluate((plan) => { window.location.hash = `plan=${plan}` }, PLAN)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    await page.locator('.stopcard').first().getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    /* The fragment must have followed the edit, or this reload brings it back. */
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+  })
+
+  test('does not re-open a declined offer when some other fragment changes', async ({ page }) => {
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /* An unrelated fragment must not drag adoptPlan() through a rebuild, which is
+     * what would put the declined offer back on screen. */
+    await page.evaluate(() => { window.location.hash = 'something-else' })
+    await page.waitForTimeout(300)
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  test('kept stops survive an unrelated fragment replacing the plan', async ({ page }) => {
+    /* Once they are on the phone the address bar is not the only copy, so
+     * overwriting the fragment must not take them off screen. */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await page.evaluate(() => { window.location.hash = 'something-else' })
+    await page.waitForTimeout(300)
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  test('leaves an unrelated fragment alone', async ({ page }) => {
+    await page.goto('/turnaround/index.html')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+    await page.evaluate(() => { window.location.hash = 'somewhere-else' })
+    await page.waitForTimeout(300)
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Route')
+  })
+
+  test('an unrelated fragment does not empty a board opened from a link', async ({ page }) => {
+    /*
+     * Declined, so the stops live nowhere but this page. A fragment naming
+     * something else - an in-page anchor, or a Back onto the URL as it was
+     * before the link - used to drag the plan through a rebuild, find no link
+     * and nothing in storage, and replace two stops the reader was looking at
+     * with "No stops on this phone yet". Nothing about that fragment said the
+     * stops had stopped being the right answer.
+     */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    await page.evaluate(() => { window.location.hash = 'somewhere-else' })
+    await page.waitForTimeout(300)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+    await expect(page.getByText('No stops on this phone yet')).toHaveCount(0)
+  })
+
+  test('a declined offer does not come back after a detour through another link', async ({ page }) => {
+    /*
+     * Back onto the same fragment is the easy half, and the early return above
+     * covers it: the plan on screen still matches, so nothing is rebuilt.
+     *
+     * This is the half that needs the decline to be remembered. A second,
+     * DIFFERENT link in between makes the plan on screen no longer match, so
+     * coming back does run adoptPlan() — which builds `offer` from the link and
+     * storage and knows nothing about what the reader has already answered. A
+     * decline is about a set of stops, so it is remembered as one.
+     */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    /* Somewhere else entirely, with its own stops, and offered as it should be. */
+    await page.evaluate(() => { window.location.hash = 'plan=1;837.1.2112.all' })
+    await expect(page.locator('.offer')).toBeVisible()
+
+    await page.goBack()
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.locator('.offer'), 'the declined offer came back').toHaveCount(0)
+  })
+
+  test('a declined offer does not come back on Back', async ({ page }) => {
+    /*
+     * Going somewhere and pressing Back is the ordinary way to arrive at the
+     * link's own URL a second time, and adoptPlan() rebuilds `offer` from
+     * scratch every time it runs. A decline was a property of that one run, so
+     * the offer the reader had just dismissed came straight back. Asking twice
+     * is how a board teaches somebody to stop reading it.
+     */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Just this once' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await page.evaluate(() => { window.location.hash = 'somewhere-else' })
+    await page.waitForTimeout(200)
+    await page.goBack()
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.offer'), 'the declined offer came back').toHaveCount(0)
+  })
+})
+
+/*
+ * A SECOND LINK MUST NOT QUIETLY UNDO THE FIRST.
+ *
+ * The case is a parent with one child's stops kept who opens the other child's
+ * link. save() replaces, so tapping the one obvious button threw the first set
+ * away - no warning, no undo, and the only way back is finding the original
+ * link again. That is the feature destroying the exact thing it exists to keep.
+ */
+test.describe('keeping a second link', () => {
+  const FIRST = '/turnaround/index.html#plan=1;4.1.6243.all'
+  const SECOND = '/turnaround/index.html#plan=1;800.1.6293.all'
+
+  test('adds to the stops already kept instead of replacing them', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await page.goto(SECOND)
+    /* It says what is about to happen, and the button says ADD. */
+    const offer = page.locator('.offer')
+    await expect(offer).toContainText('already keeps 1 stop')
+    await expect(offer).toContainText('Nothing already on this phone is removed')
+    await page.getByRole('button', { name: 'Add to this phone' }).click()
+
+    /* Both sets, on the board with no link in the address bar - which is the
+     * only place the answer actually matters. */
+    await page.goto('/turnaround/index.html')
+    await expect(page.locator('.viewtabs__btn.is-on')).toHaveText('Stops')
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+    await expect(page.getByText('Simond SB').first()).toBeVisible()
+  })
+
+  test('offers plainly to keep, not to add, when nothing is kept yet', async ({ page }) => {
+    await page.goto(FIRST)
+    await expect(page.locator('.offer')).not.toContainText('already keeps')
+    await expect(page.getByRole('button', { name: 'Keep on this phone' })).toBeVisible()
+  })
+
+  test('does not re-offer a link whose stops are all already kept', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await page.reload()
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.offer')).toHaveCount(0)
+  })
+
+  /*
+   * ADDING TO YOUR BOARD MUST NOT REWRITE THE LINK YOU WERE SENT.
+   *
+   * Keeping merges the arriving stops into the ones already on this phone, and
+   * the merged set used to go straight back into the fragment and into the
+   * "Link to these stops" field. So a parent who kept one child's stops, then
+   * accepted the other child's link, was holding a link describing BOTH
+   * children — and would hand it back to the sender, who never had the first
+   * set. Contract section 9 calls the plan a description of somebody's routine;
+   * this is the one path that silently widened whose.
+   */
+  test('the link you can share still describes the link you were sent', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    await page.goto(SECOND)
+    await page.getByRole('button', { name: 'Add to this phone' }).click()
+    /* The board really did merge — otherwise this proves nothing about sharing. */
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    const shared = await page.locator('.share__field').inputValue()
+    expect(shared, 'the shared link carries the second child\'s stop').toContain('800.1.6293')
+    expect(shared, "the shared link picked up the first child's stop").not.toContain('4.1.6243')
+    expect(new URL(page.url()).hash, 'and the address bar is the same link')
+      .not.toContain('4.1.6243')
+  })
+})
+
+/*
+ * THE VIEW WHOSE WHOLE SENTENCE IS "DUE HERE IN 4 MINUTES" HAD NO FRESHNESS SIGNAL.
+ *
+ * The route board, All buses and Saved all draw a staleness banner. This view drew
+ * none, and it read its payloads through liveRoute() rather than liveRouteMap(),
+ * so agedStaleness() never applied either: a tab left open went on grading a
+ * payload by how old it was when the generator wrote it, a number that stops
+ * moving the moment the phone sleeps.
+ *
+ * '/turnarounddead/' is the stale-cron payload. It existed in the fixture server
+ * for this set and no spec had ever asked for it.
+ */
+test.describe('a stops card says when its live data stopped being worth reading', () => {
+  const STALE = '/turnarounddead/index.html#plan=1;4.1.6243.all'
+
+  test('draws a staleness banner, naming the route it is about', async ({ page }) => {
+    await page.goto(STALE)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const banner = page.locator('.savedbanner')
+    await expect(banner.first()).toBeVisible()
+    await expect(banner.first().locator('.savedbanner__route')).toContainText(/\b4\b/)
+  })
+
+  test('and the fresh scenario draws none, so the banner means something', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.savedbanner')).toHaveCount(0)
+  })
+
+  /*
+   * There is deliberately no badge-suppression test here. No departure the stops
+   * fixtures render carries a live vehicle, so `.stopdep .badge` is zero whatever
+   * the code does -- an assertion on it passes with the suppression deleted, and
+   * a green test that cannot fail is worse than an absent one. The rule is
+   * covered where it can actually be exercised: 'a departure timed from the feed
+   * does not also wear a badge' and 'a suppressed feed confirms nothing and
+   * places nobody' in tests/node/client-plan.test.mjs, both mutation-verified.
+   */
+})
+
+/*
+ * THE THREE WAYS THE LINK AND THE BOARD CAME APART.
+ *
+ * `entries` is what the board shows and `linkEntries` is what the link carried;
+ * splitting them stopped a merged set being written back into somebody else's
+ * link. These are the seams that split left behind, plus the affordance that
+ * went missing when a kept set was forgotten.
+ */
+test.describe('the link, the board and the offer stay in step', () => {
+  const FIRST = '/turnaround/index.html#plan=1;4.1.6243.all'
+  const SECOND = '/turnaround/index.html#plan=1;800.1.6293.all'
+
+  /*
+   * An emptied linkEntries was [], which is truthy, so `linkEntries || entries`
+   * went on answering with the empty array: the share box disappeared and the
+   * fragment was written blank, while the stops the reader had kept were still
+   * on the screen in front of them.
+   */
+  test('keeps offering a link after the last of the link\'s own stops is removed', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    await page.goto(SECOND)
+    await page.getByRole('button', { name: 'Add to this phone' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* Remove the one stop the SECOND link carried. The board keeps the first. */
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    const shared = await page.locator('.share__field').inputValue()
+    expect(shared, 'the share box went away while stops were still on screen')
+      .toContain('#plan=')
+    expect(shared, 'and it should describe what is left').toContain('4.1.6243')
+    expect(shared, 'it should not re-offer the stop that was just removed')
+      .not.toContain('800.1.6293')
+
+    /* The fragment going empty here is right, not a second bug: the link's own
+     * stops are gone, so there is no link left to describe and fromLink clears.
+     * What must survive is the board, which lives in storage. */
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  /*
+   * The hashchange same-set fast path sets fromLink. It has to set linkEntries
+   * with it, because the two are one fact: a fromLink with nothing to write makes
+   * syncFragment compute `linkEntries || []` and strip '#plan=' off the bar on the
+   * first edit. Reachable only after a keep, which is why it went unseen: the
+   * board's entries then come from storage with linkEntries null, and a paste of
+   * the same plan matches them.
+   */
+  test('a pasted link that matches the kept set still owns the fragment', async ({ page }) => {
+    /* Two stops, because the divergence only shows once one is removed: with a
+     * one-stop link the fragment goes empty for a legitimate reason and the two
+     * behaviours look identical. */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    /* Cold, no link: entries come from storage and linkEntries is null. */
+    await page.goto('/turnaround/index.html')
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* The same plan arrives by paste and matches what is already on screen --
+     * the same-set fast path, which sets fromLink. */
+    await page.evaluate((plan) => { window.location.hash = `plan=${plan}` }, PLAN)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* Now an edit. syncFragment has fromLink set, so it writes the fragment --
+     * and with no linkEntries to write it wrote an empty one, stripping the plan
+     * off the address bar entirely. */
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    const hash = new URL(page.url()).hash
+    expect(hash, 'the edit stripped the plan off the address bar').toContain('plan=')
+    expect(hash, 'and it should describe what is left').toContain('4.1.6243')
+    expect(hash, 'the removed stop came back').not.toContain('800.1.6293')
+  })
+
+  /*
+   * Forgetting a link-opened set left the cards on screen with neither the Keep
+   * banner nor the Forget button: `offer` was nulled when the set was first kept
+   * and only adoptPlan ever rebuilds it, so the one affordance this view exists
+   * for was missing until the reader thought to reload.
+   */
+  test('offers to keep again after the stops are forgotten', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Forget these stops' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    await expect(page.locator('.offer'), 'no way back on the screen that did it')
+      .toHaveCount(1)
+    await expect(page.getByRole('button', { name: 'Keep on this phone' })).toBeVisible()
+  })
+})
+
+/*
+ * A BANNER MUST SPEAK FOR THE CARDS BESIDE IT.
+ *
+ * Giving the stops view a staleness banner was done by widening savedRouteIds(),
+ * which three callers read -- the saved view's banners, the saved view's FETCH
+ * set, and the refresh tick. So the stops view warned about watch and chain
+ * routes it shows no card for and never loads, which meant the warning could
+ * never clear; the saved view warned about the plan's routes above its own empty
+ * states; and the saved view started fetching them. The fetch set and the banner
+ * set are different questions and are now asked separately.
+ */
+test.describe('each view warns about its own routes and no others', () => {
+  const watchOn800 = async (page) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('cmb.watches', JSON.stringify([{
+        route_id: '800', direction_id: 1, direction_tag: 'SB', stop_id: '6293',
+        stop_name: 'Simond SB', scheduled_time: '07:52:09', day_type: 'weekday',
+      }]))
+    })
+  }
+
+  test('the stops view says nothing about a watched route it shows no card for', async ({ page }) => {
+    await watchOn800(page)
+    await page.goto('/turnaround/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(600)
+
+    const banners = page.locator('.savedbanner')
+    const text = (await banners.count()) ? await banners.allInnerTexts() : []
+    expect(text.join(' '), 'warned about a route with no card on this view')
+      .not.toContain('800')
+  })
+
+  test('the saved view says nothing about the routes only the plan uses', async ({ page }) => {
+    /* A plan is open, and nothing is saved. The saved view's own empty states are
+     * the whole answer; a feed banner about route 4 above them is not. */
+    await page.goto('/turnarounddead/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Saved' }).click()
+    await expect(page.locator('.band--saved')).toBeVisible()
+    await page.waitForTimeout(600)
+
+    const banners = page.locator('.savedbanner')
+    const text = (await banners.count()) ? await banners.allInnerTexts() : []
+    expect(text.join(' '), 'the saved view warned about a route only the plan uses')
+      .not.toContain('ROUTE 4')
+  })
+
+  /* paint() suppresses its own unlabelled route banner on any view that draws
+   * per-route ones. It knew about saved and not about stops, so the identical
+   * sentence was printed twice. */
+  test('and the stale stops view prints that sentence once, not twice', async ({ page }) => {
+    await page.goto('/turnarounddead/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.savedbanner')).toHaveCount(1)
+    /*
+     * And paint()'s own unlabelled one is gone, not merely different. Counted by
+     * subtraction because the labelled banner CONTAINS a .banner--danger of its
+     * own: what must not exist is one outside a .savedbanner, which is the
+     * unlabelled kind that names no route.
+     */
+    const all = await page.locator('.banner--danger').count()
+    const labelled = await page.locator('.savedbanner .banner--danger').count()
+    expect(all - labelled, 'paint() drew its own unlabelled banner as well').toBe(0)
+  })
+})
+
+test.describe('an offer that has nothing left to offer', () => {
+  /*
+   * The same empty-array-is-truthy trap as linkEntries, in the line beside it
+   * that was left alone: removing the last stop while the offer was still up set
+   * `offer` to [], which is truthy, so the banner stayed and read "This link
+   * carries 0 stops."
+   */
+  test('goes away when the last stop is removed', async ({ page }) => {
+    await page.goto('/turnaround/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.offer')).toHaveCount(1)
+
+    await page.locator('.stopcard').first().getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(0)
+
+    const offers = page.locator('.offer')
+    const text = (await offers.count()) ? await offers.allInnerTexts() : []
+    expect(text.join(' '), 'an offer survived with nothing in it').not.toContain('0 stop')
+  })
+})
+
+/*
+ * A PAYLOAD THAT WENT STALE BY BEING HELD, NOT BY ARRIVING STALE.
+ *
+ * agedStaleness() adds the time THIS browser has held a payload to the age the
+ * generator stamped on it. That is the whole reason paintStops reads through
+ * liveRouteMap() rather than liveRoute() -- and no test distinguished the two,
+ * because '/turnarounddead/' is stale as generated, so the held-time path never
+ * ran. Reverting paintStops to liveRoute() left every staleness test green.
+ *
+ * The distinction is not academic: it is the 2026-09-01 shape, where a feed
+ * stops being written and a tab sits open in front of it. The payload was fresh
+ * when it arrived and nothing about it changes; only the holding does.
+ */
+test.describe('a payload can go stale in the reader\'s own hands', () => {
+  const FRESH = '/turnaround/index.html#plan=1;4.1.6243.all'
+
+  /** Wind back when this browser thinks it fetched the route, then repaint. */
+  const hold = (page, seconds) => page.evaluate((s) => {
+    const app = window.CMB.app
+    Object.keys(app.state.routeFetchedAt).forEach((id) => {
+      app.state.routeFetchedAt[id] -= s
+    })
+    /* Through a real view change, so the repaint is the board's own and not a
+     * function this test invented. Route 4 is already open, so loadRouteData
+     * declines and nothing refetches -- which is the point. */
+    app.selectView('buses')
+    app.selectView('stops')
+  }, seconds)
+
+  test('says nothing while the payload is young', async ({ page }) => {
+    await page.goto(FRESH)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.savedbanner')).toHaveCount(0)
+  })
+
+  test('warns once it has been held past the point of being worth reading', async ({ page }) => {
+    await page.goto(FRESH)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    await hold(page, 45 * 60)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    await expect(page.locator('.savedbanner'), 'held 45 minutes and said nothing')
+      .toHaveCount(1)
+    await expect(page.locator('.savedbanner').first()).toContainText(/refresh route 4/i)
+  })
+
+  /*
+   * AND THE CARDS READ THE AGED PAYLOAD, which the banner alone does not prove.
+   *
+   * savedStalenessBanners() calls liveRouteMap() itself, so the banner is aged
+   * whatever paintStops does -- reverting paintStops to liveRoute() left the two
+   * tests above green, exactly as the audit said. What paintStops controls is
+   * the CARDS, and the observable difference is the line each departure grows
+   * when the board decides it can no longer say how late anything is.
+   */
+  test('and the cards stop claiming to know how late anything is', async ({ page }) => {
+    await page.goto(FRESH)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.stopdep__sched')).toHaveCount(0)
+
+    await hold(page, 45 * 60)
+    await expect(page.locator('.savedbanner').first()).toBeVisible()
+
+    const lines = page.locator('.stopdep__sched')
+    expect(await lines.count(), 'the cards were resolved from the unaged payload')
+      .toBeGreaterThan(0)
+    await expect(lines.first()).toContainText('lateness unavailable')
+  })
+})

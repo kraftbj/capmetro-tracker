@@ -228,7 +228,7 @@ describe('the inline bootstrap and its CSP hash', () => {
  * board. Neither shows up in any other test.
  */
 describe('the app-path verbs agree everywhere they are written', () => {
-  const VERBS = ['route', 'buses', 'trip', 'saved']
+  const VERBS = ['route', 'buses', 'trip', 'saved', 'stops']
   const sources = {
     nginx,
     apache,
@@ -236,15 +236,31 @@ describe('the app-path verbs agree everywhere they are written', () => {
     'client/urls.js': readFileSync(new URL('../../client/urls.js', import.meta.url), 'utf8'),
   }
 
-  it('lists the same four in every file that names them', () => {
+  it('lists the same verbs in every file that names them', () => {
     for (const [name, src] of Object.entries(sources)) {
-      const group = src.match(/\(\??:?(route\|buses\|trip\|saved)\)/)
-        || src.match(/route: 1, buses: 1, trip: 1, saved: 1/)
+      const group = src.match(/\(\??:?(route\|buses\|trip\|saved\|stops)\)/)
+        || src.match(/route: 1, buses: 1, trip: 1, saved: 1, stops: 1/)
       expect(group, `${name} does not spell the verb list in the expected shape`).not.toBeNull()
     }
-    /* And the client's own table is exactly those four, no more. */
+    /* And the client's own table is exactly those, no more. */
     const table = sources['client/urls.js'].match(/var VERBS = \{([^}]*)\}/)[1]
     expect(table.match(/(\w+):/g).map((s) => s.slice(0, -1)).sort()).toEqual([...VERBS].sort())
+  })
+
+  /*
+   * The check above matches the fixture server's route REGEX. It has a second,
+   * independent spelling of the same list -- the APP_VERBS array, which decides
+   * whether a scenario name collides with an app verb -- and nothing read it, so
+   * a verb added to one and not the other would have passed. This branch had to
+   * hand-edit both to add 'stops'. Two producers of one value, which CLAUDE.md
+   * already names as the shape to bind rather than to trust.
+   */
+  it('and the fixture server\'s own APP_VERBS array is the same list', () => {
+    const src = sources['tests/e2e/server.mjs']
+    const literal = src.match(/const APP_VERBS = \[([^\]]*)\]/)
+    expect(literal, 'server.mjs no longer spells APP_VERBS as a flat array').not.toBeNull()
+    const names = literal[1].match(/'([^']+)'/g).map((s) => s.slice(1, -1))
+    expect(names.sort()).toEqual([...VERBS].sort())
   })
 })
 
@@ -263,6 +279,38 @@ describe('the app-path verbs agree everywhere they are written', () => {
  * as application/octet-stream -- which Chrome parses anyway and Safari does not,
  * on an origin that sends X-Content-Type-Options: nosniff.
  */
+/*
+ * The one referrer control that survives off the shipped nginx.
+ *
+ * index.html's meta tag carries the no-referrer property for a board opened from
+ * disk, or served by anything other than the two vhosts here -- and contract
+ * section 9 is why it matters: a Referer would put the plan in somebody else's
+ * log. No test saw it, because tests/e2e/server.mjs sends Referrer-Policy itself,
+ * so the whole browser suite stays green with the tag deleted. Every sibling
+ * invariant in this file is pinned against the source; this one was not.
+ */
+describe('index.html carries its own referrer policy', () => {
+  const html = readFileSync(new URL('../../client/index.html', import.meta.url), 'utf8')
+
+  it('declares no-referrer in a meta tag, not only in the vhosts', () => {
+    expect(html).toMatch(/<meta\s+name=["']referrer["']\s+content=["']no-referrer["']\s*\/?>/)
+  })
+
+  it('and declares it before the first subresource the parser would fetch', () => {
+    /* Comments stripped first, and that is not pedantry: the long note at the
+     * top of index.html quotes a <script src="format.js"> to explain the base
+     * tag, and a naive search finds that quotation 2.3 KB before the real one. */
+    const live = html.replace(/<!--[\s\S]*?-->/g, '')
+    const meta = live.search(/<meta\s+name=["']referrer["']/)
+    const firstFetch = live.search(/<(?:link[^>]+href|script[^>]+src)/)
+    expect(meta, 'no referrer meta tag at all').toBeGreaterThan(-1)
+    expect(firstFetch, 'no subresource to race, so this test proves nothing')
+      .toBeGreaterThan(-1)
+    expect(meta, 'a subresource is requested before the policy is declared')
+      .toBeLessThan(firstFetch)
+  })
+})
+
 describe('the vhosts let the board be installed', () => {
   const policies = (conf) =>
     [...conf.matchAll(/Content-Security-Policy[" ]+([^"]+)"/g)].map((m) => m[1])

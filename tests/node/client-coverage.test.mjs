@@ -19,7 +19,7 @@
  * anything — and `unknown`, because a stale feed must never be allowed to produce it.
  */
 import { describe, expect, it } from 'vitest'
-import { renderClient, textDeep } from './helpers/client.mjs'
+import { all, renderClient, textDeep } from './helpers/client.mjs'
 
 const client = renderClient(['format.js', 'adherence.js', 'states.js', 'watch.js', 'stopboard.js'])
 
@@ -199,6 +199,134 @@ describe('what the rider actually reads', () => {
   t('counts the runs when the bus is further out', (cmb) => {
     const text = draw(cmb, row({ state: 'inbound', vehicle: { vehicle_id: '2621', label: '2621' }, runs_ahead: 2 }))
     expect(text).toContain('2 runs away')
+  })
+
+  /*
+   * "BECOMES THIS RUN" IS A CONTINUATION CLAIM AND TAKES SECTION 4'S HEDGE.
+   *
+   * This branch is reached exactly when timingFor declined to make the bus a
+   * predictor — a successor with no usable deviation, or a realtime block_id the
+   * schedule does not match — so it was /route's way of stating as fact the same
+   * continuation /stops was calling a likelihood, about one bus, in one second.
+   * Both now ask W.continuationHedged, which is the only place the rule lives.
+   */
+  const covering = (block) => ({
+    state: 'inbound', runs_ahead: 1,
+    vehicle: { vehicle_id: '2810', label: '2810', block: block },
+  })
+
+  /*
+   * READ OFF THE PRINTED ELEMENT, for the reason the predictor tests below give
+   * and this block originally ignored. Both the printed line and the sr-only line
+   * beside it carry the hedge, so asserting over the row's whole text passes on
+   * the strength of the spoken copy while the visible sentence says the opposite.
+   * Proven, not assumed: deleting the hedge from the printed line alone left all
+   * 32 tests in this file green.
+   */
+  const printedSched = (cmb, d) => {
+    const h = cmb.states.el('div', 'host')
+    h.appendChild(cmb.stopboard.departureRow(d))
+    return all(h, 'nextbus__sched').map(textDeep).join(' ')
+  }
+  const spokenSched = (cmb, d) => {
+    const h = cmb.states.el('div', 'host')
+    h.appendChild(cmb.stopboard.departureRow(d))
+    return all(h, 'sr-only').map(textDeep).join(' ')
+  }
+
+  t('states the continuation plainly when the feed named THIS trip and graded it high', (cmb) => {
+    const printed = printedSched(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'T' } })))
+    expect(printed).toContain('becomes this run')
+    expect(printed).not.toContain('likely')
+    expect(printed).not.toContain('does not confirm')
+  })
+
+  t('hedges a continuation the build could only grade low', (cmb) => {
+    const d = row(covering({ confidence: 'low', next_trip: { trip_id: 'T' } }))
+    expect(printedSched(cmb, d)).toContain('likely becomes this run')
+    expect(printedSched(cmb, d)).toContain('does not confirm')
+    /* And the spoken line carries it independently, so neither reader can lose
+     * the hedge while the other keeps it. */
+    expect(spokenSched(cmb, d)).toContain('does not confirm this continuation')
+  })
+
+  /* The grade is about the trip next_trip NAMES. A bus reached by block order,
+   * whose feed says it runs something else next, has been confirmed onto that
+   * something else — reading its grade as proof of ours is reading a number
+   * about one claim as proof of another. */
+  t('hedges a high grade that is about a different trip', (cmb) => {
+    expect(printedSched(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'SOMETHING-ELSE' } }))))
+      .toContain('likely becomes this run')
+  })
+
+  t('hedges when the feed has named no continuation at all', (cmb) => {
+    expect(printedSched(cmb, row(covering({ confidence: 'high', next_trip: null })))).toContain('likely')
+    expect(printedSched(cmb, row(covering(null)))).toContain('likely')
+  })
+
+  /*
+   * THE PREDICTOR ROW'S OWN HEDGE, which is a different line from the coverage
+   * one above and was pinned by nothing at all: deleting the word from the
+   * printed sentence survived the whole node suite, because the sr-only line
+   * beside it still carried it and nothing read the visible one. Section 4
+   * governs the claim, and a sighted reader is making the same decision.
+   */
+  const predicted = (hedged) => row({
+    state: 'inbound', vehicle: null, runs_ahead: 1,
+  }, {
+    vehicle: null,
+    predictor: { vehicle_id: '2817', label: '2817' },
+    predictor_hedged: hedged,
+    view: { state: 'late', label: 'late', spoken: '3 minutes late', seconds: 180, glyph: 'up-triangle' },
+    predicted_at: at('16:52'), due_at: at('16:52'),
+  })
+
+  /*
+   * Read off the PRINTED element, not off the whole row. The sr-only line beside
+   * it carries the same words, so an assertion over the row's full text passes
+   * on the strength of the spoken copy while the visible sentence says something
+   * else - which is exactly how this line came to be unpinned.
+   */
+  const printedBus = (cmb, d) => {
+    const h = cmb.states.el('div', 'host')
+    h.appendChild(cmb.stopboard.departureRow(d))
+    return all(h, 'nextbus__bus').map(textDeep).join(' ')
+  }
+  const spokenRow = (cmb, d) => {
+    const h = cmb.states.el('div', 'host')
+    h.appendChild(cmb.stopboard.departureRow(d))
+    return all(h, 'sr-only').map(textDeep).join(' ')
+  }
+
+  t('prints the hedge on a predictor row the feed has not confirmed', (cmb) => {
+    const printed = printedBus(cmb, predicted(true))
+    expect(printed).toContain('2817')
+    expect(printed).toContain('likely becomes this run')
+    expect(printed).toContain('does not confirm')
+  })
+
+  t('speaks it too, so neither reader is told a guess as fact', (cmb) => {
+    expect(spokenRow(cmb, predicted(true))).toContain('likely becomes')
+    expect(spokenRow(cmb, predicted(true))).toContain('does not confirm this continuation')
+  })
+
+  t('and states it plainly when the feed has confirmed it', (cmb) => {
+    const printed = printedBus(cmb, predicted(false))
+    expect(printed).toContain('becomes this run')
+    expect(printed).not.toContain('likely')
+    expect(printed).not.toContain('does not confirm')
+    expect(spokenRow(cmb, predicted(false))).not.toContain('likely')
+  })
+
+  /* Two runs away is a position, not a claim about this trip, so there is
+   * nothing to hedge and the word would only add noise. */
+  t('does not hedge a bus that is merely further down the block', (cmb) => {
+    const text = draw(cmb, row({
+      state: 'inbound', runs_ahead: 2,
+      vehicle: { vehicle_id: '2621', label: '2621', block: { confidence: 'low', next_trip: null } },
+    }))
+    expect(text).toContain('2 runs away')
+    expect(text).not.toContain('likely')
   })
 
   t('distinguishes a pull-out with no assignment from a bus that is late', (cmb) => {

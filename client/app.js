@@ -2,8 +2,9 @@
  * app.js — bootstrap, data loading, header, view switching, and the panel order
  * that was decided and is not open: header, VEHICLE ROWS, LADDER, MAP.
  *
- * Three views share one shell:
+ * Four views share one shell:
  *   board  — one route, the original and the default
+ *   stops  — the places this phone waits at, from a link or from storage
  *   all    — every bus in the system, deadheads included
  *   saved  — trips and transfer chains this browser has saved, resolved locally
  *
@@ -52,6 +53,15 @@
     detail: 'This browser would not let the board save the trip — private ' +
       'browsing or storage turned off. Nothing was kept.'
   };
+
+  /*
+   * And the stops view has its own again, because it saves a different thing.
+   * "Nothing was saved" is right for a trip; a stops link is a set of places,
+   * and the link itself still works whatever the store did — which is the one
+   * piece of good news worth giving somebody whose browser refuses to remember.
+   */
+  var STORAGE_REFUSED = 'This browser would not let the board save anything — ' +
+    'private browsing or storage turned off. Nothing was kept. The link still works.';
 
   /*
    * A refused delete needs its own words. "Nothing was saved" would be actively
@@ -103,7 +113,7 @@
   }
 
   var state = {
-    view: 'board',       /* board | all | trip | saved | saved-edit | chain-edit */
+    view: 'board',       /* board | stops | all | trip | saved | saved-edit | chain-edit */
     routeId: null,
     direction: 'both',   /* 0 | 1 | 'both' */
     data: null,
@@ -124,7 +134,8 @@
     all: null,           /* api/all.json, fetched only while the all view is open */
     allStatus: 'idle',   /* idle | loading | ok | error */
     /*
-     * Eight maps keyed by a route id, and `?route=` puts any string in that key.
+     * Eight maps keyed by a route id, and `?route=` or a stops link can put ANY
+     * string in that key.
      * A bare `{}` inherits Object.prototype, so a route id of `constructor` or
      * `toString` reads back a function rather than undefined: the fetch guard
      * sees a cached document that is not one, and never asks for the real thing.
@@ -174,6 +185,28 @@
     pendingBus: null,
     storageError: null,  /* {head, detail} when localStorage refused the last write */
     /*
+     * The stops view. `entries` is what is on screen, whatever its source;
+     * `saved` says whether those entries are the ones in localStorage, which is
+     * what decides between offering to keep them and offering to forget them.
+     * `offer` is the set a link is proposing and is null once it is answered
+     * either way, so the banner does not come back on every repaint.
+     *
+     * `declined` is the set of stops the reader has already said no to, not a
+     * boolean about this page load — see adoptPlan().
+     */
+    /*
+     * `entries` is what the BOARD shows; `linkEntries` is what the LINK carried.
+     * They are the same until a second link is kept, and then they must not be:
+     * keeping merges the arriving stops into the ones already on this phone, and
+     * writing that union back into the fragment turned the address bar and the
+     * "Link to these stops" field into a description of somebody else's board
+     * too — stops the person who sent the first link never had. Storage holds
+     * the union; the link keeps describing the link. Contract section 9 is why
+     * this is worth a second field rather than a comment.
+     */
+    plan: { entries: null, linkEntries: null, saved: false, offer: null, fromQuery: false, fromLink: false,
+      declined: null, storageFailed: false },
+    /*
      * The chain editor builds forwards: `legs` are the ones already fixed, `start`
      * is the part-made first leg and `onward` the part-made next one. It is a
      * separate bag from `editor` because a chain and a saved trip are saved to
@@ -188,12 +221,18 @@
   function store(k, v) { try { localStorage.setItem('cmb.' + k, v); } catch (e) { /* private mode */ } }
   function recall(k) { try { return localStorage.getItem('cmb.' + k); } catch (e) { return null; } }
 
+  /* Same guard, same reason as urls.parseQuery: one truncated escape anywhere in
+     the query must not take the board down on the way in. */
+  function decodeOrRaw(s) {
+    try { return decodeURIComponent(s); } catch (e) { return s; }
+  }
+
   function query() {
     var q = {};
     (global.location.search || '').replace(/^\?/, '').split('&').forEach(function (kv) {
       if (!kv) return;
       var bits = kv.split('=');
-      q[decodeURIComponent(bits[0])] = decodeURIComponent(bits.slice(1).join('=') || '');
+      q[decodeOrRaw(bits[0])] = decodeOrRaw(bits.slice(1).join('=') || '');
     });
     return q;
   }
@@ -593,7 +632,8 @@
    *
    * It is a whole service day of scheduled stop times, about 17 KB gzipped for
    * route 800, so it is worth fetching once and worth not fetching until a saved
-   * trip or the editor actually needs it. But a phone left on the counter
+   * trip, a stop card or the editor actually needs it. But a phone left on the
+   * counter
    * overnight and picked up at seven still held yesterday's document: a saved
    * trip reading "the last one today has gone", or times belonging to the wrong
    * service day entirely, on the exact surface someone consults at breakfast and
@@ -686,6 +726,264 @@
         }
         render();
       });
+  }
+
+  /* ---- the stops plan -------------------------------------------------- */
+
+  /*
+   * Preload, which is half of what a stops link is for.
+   *
+   * Every route the plan names needs two documents before a card can say
+   * anything: the service day's schedule and the live vehicles. Fetching them
+   * when the link opens rather than when the tab is tapped is the difference
+   * between a board that is already answering and one that spends two seconds
+   * saying "loading" at somebody already late for a bus. Both loaders are
+   * idempotent, so calling this on boot, on tab change and on every refresh is
+   * free.
+   */
+  function loadPlanRoutes() {
+    var entries = state.plan.entries;
+    if (!entries || !entries.length) return;
+    global.CMB.plan.routesIn(entries).forEach(function (id) {
+      loadDepartures(id);
+      loadRouteData(id);
+    });
+  }
+
+  /*
+   * What the location bar is proposing, if anything.
+   *
+   * A '?plan=' query is accepted and then moved into the fragment, because the
+   * fragment is the half of a URL browsers never send to the server. That does
+   * not un-send the request that just arrived — the entries are in the access log
+   * already and the banner says so — but it stops the leak repeating on every
+   * reload and on every re-share of whatever is in the address bar.
+   */
+  function planFromLocation() {
+    var found = global.CMB.plan.fromLocation(global.location);
+    if (found && found.fromQuery) rewriteQueryToFragment(found.raw);
+    else dropPlanFromQuery();
+    return found;
+  }
+
+  /*
+   * Put the fragment back in step with what is on screen, after an edit.
+   *
+   * Only when the plan came FROM a link. Removing a stop used to leave the old
+   * fragment in the address bar, so a reload restored the stop that had just
+   * been removed and re-offered a set the reader had already edited. Kept stops
+   * live in localStorage and need no fragment at all.
+   */
+  function syncFragment() {
+    if (!state.plan.fromLink) return;
+    if (!global.history || typeof global.history.replaceState !== 'function') return;
+    var entries = state.plan.linkEntries || [];
+    try {
+      /*
+       * Built here rather than through linkFor(), which strips '?' as well as
+       * '#' from whatever base it is handed. Passing location.href to it wrote
+       * the address bar back without the query, so removing a stop silently
+       * dropped ?stop= and ?state= — and the loss was permanent, because the
+       * next syncUrl() reads the search that is now empty. The empty-entries
+       * branch below always kept the query; the two halves of one function
+       * disagreed about it.
+       */
+      global.history.replaceState(null, '',
+        global.location.pathname + keptSearch() +
+        (entries.length ? '#plan=' + global.CMB.plan.encode(entries) : ''));
+      if (!entries.length) state.plan.fromLink = false;
+    } catch (e) {
+      /* Some browsers refuse replaceState on a file:// URL. The screen is still
+       * right; only the address bar is behind. */
+    }
+  }
+
+  /*
+   * The query with any 'plan' key taken out, without its leading '?'.
+   *
+   * The key is compared decoded, because that is how a browser reads it: a
+   * '?%70lan=' is a plan parameter and is sent to the server as one. Decoding
+   * can throw on a half-written escape, so a key that will not decode is
+   * compared raw rather than allowed to take the boot path down with it.
+   */
+  function searchWithoutPlan() {
+    return String(global.location.search || '').replace(/^\?/, '')
+      .split('&')
+      .filter(function (kv) {
+        if (!kv) return false;
+        var key = kv.split('=')[0];
+        try { key = decodeURIComponent(key); } catch (e) { /* compared raw */ }
+        return key !== 'plan';
+      })
+      .join('&');
+  }
+
+  function rewriteQueryToFragment(raw) {
+    if (!global.history || typeof global.history.replaceState !== 'function') return;
+    var search = searchWithoutPlan();
+    try {
+      global.history.replaceState(null, '',
+        global.location.pathname + (search ? '?' + search : '') + '#plan=' + raw);
+    } catch (e) {
+      /* Some browsers refuse replaceState on a file:// URL. The plan still
+       * renders; only the tidy-up is lost. */
+    }
+  }
+
+  /*
+   * Take 'plan' out of the query and leave the rest of the URL, fragment
+   * included, exactly as it was.
+   *
+   * This is the case where there is nothing to promote. Either the query plan
+   * does not parse, or a fragment plan already won it — and writing '#plan='
+   * here would replace the plan on screen with the one that lost. Both used to
+   * skip the scrub entirely, and because keptSearch() does not own 'plan',
+   * every later syncUrl() wrote the query straight back out. An unreadable
+   * plan is still a legible list of somebody's stops, sent again on every
+   * reload and carried by every re-share of the address bar.
+   */
+  function dropPlanFromQuery() {
+    if (!global.history || typeof global.history.replaceState !== 'function') return;
+    var raw = String(global.location.search || '').replace(/^\?/, '');
+    if (!raw) return;
+    var search = searchWithoutPlan();
+    if (search === raw) return;
+    try {
+      global.history.replaceState(null, '', global.location.pathname +
+        (search ? '?' + search : '') + (global.location.hash || ''));
+    } catch (e) {
+      /* Some browsers refuse replaceState on a file:// URL. The screen is
+       * still right; only the address bar keeps the query. */
+    }
+  }
+
+  /*
+   * Decide what the stops view is looking at, from the link and from storage.
+   *
+   * A link always wins the screen — someone who just opened one is asking to see
+   * it — but it only wins the STORE when they say so. A link that matches what is
+   * already kept is not an offer at all, which is the ordinary case of opening a
+   * bookmark twice.
+   */
+  function adoptPlan() {
+    var saved = global.CMB.plan.stored();
+    var link = planFromLocation();
+
+    state.plan.fromLink = !!link;
+
+    if (link) {
+      state.plan.entries = link.entries;
+      state.plan.linkEntries = link.entries;
+      state.plan.fromQuery = link.fromQuery;
+      state.plan.saved = !!(saved && global.CMB.plan.sameSet(saved, link.entries));
+      /*
+       * `offer` is the unanswered question, and `fromLink` is where the load came
+       * from. They were one flag, and that made the second visit to a bookmarked
+       * link land on the route board: once "Keep on this phone" had been tapped
+       * there was no offer to make, so nothing switched the view and the link
+       * looked like it had done nothing.
+       */
+      /*
+       * A decline is about a SET OF STOPS, not about a page load, so it is
+       * remembered as one. adoptPlan() rebuilds `offer` from scratch, and
+       * anything that sends the reader through it again — going to another
+       * fragment and pressing Back is the ordinary way — put the offer they had
+       * just dismissed back on screen. Asking twice is how a board teaches
+       * somebody to stop reading it.
+       */
+      state.plan.offer = state.plan.saved ||
+        (state.plan.declined && global.CMB.plan.sameSet(state.plan.declined, link.entries))
+        ? null : link.entries;
+    } else if (saved) {
+      state.plan.entries = saved;
+      state.plan.linkEntries = null;
+      state.plan.saved = true;
+      state.plan.offer = null;
+      state.plan.fromQuery = false;
+    } else {
+      state.plan.entries = null;
+      state.plan.linkEntries = null;
+      state.plan.saved = false;
+      state.plan.offer = null;
+      state.plan.fromQuery = false;
+    }
+    loadPlanRoutes();
+  }
+
+  /*
+   * What storage holds that is not already on screen.
+   *
+   * Everything the offer and onKeep need to know about the stops this phone
+   * already keeps, in one place, because reading localStorage twice in a click
+   * handler and once in a paint is how the two get out of step.
+   */
+  function keptOther() {
+    var kept = global.CMB.plan.stored() || [];
+    if (!state.plan.entries || !state.plan.entries.length) return kept;
+    var here = Object.create(null);
+    state.plan.entries.forEach(function (e) { here[global.CMB.plan.keyFor(e)] = true; });
+    return kept.filter(function (e) { return !here[global.CMB.plan.keyFor(e)]; });
+  }
+
+  /*
+   * Let a schedule that failed to fetch be asked for once more.
+   *
+   * The document itself changes about three times a year, so this is not a poll:
+   * it is the only way back from a fetch that failed while the phone was in a
+   * tunnel, on a view that would otherwise stay blank until the tab is closed.
+   */
+  function retryDepartures(routeId) {
+    var status = state.depStatus[routeId];
+    if (status === 'error' || status === 'stale') {
+      state.depStatus[routeId] = 'idle';
+      return;
+    }
+    /*
+     * The service day rolled over under a document that fetched cleanly. Only the
+     * timer may clear an 'ok' status, because paint() calls loadDepartures and a
+     * status that paint could clear is a fetch-and-render loop.
+     *
+     * And never while a fetch is in flight, which is the same rule refreshRoute()
+     * applies to the route payload and for the same reason. A slow connection
+     * holding a request open past sixty seconds is exactly when this fires, and
+     * clearing the status there fired a second request alongside the first, then
+     * a third — with nothing tracking any of them, so the older response could
+     * land last and install the document the newer one had already replaced.
+     */
+    if (state.depStatus[routeId] === 'loading') return;
+    if (scheduleExpired(state.departures[routeId])) state.depStatus[routeId] = 'idle';
+  }
+
+  /*
+   * One route's live payload and schedule, refreshed on the timer.
+   *
+   * The status is only forced back to idle when a fetch is NOT in flight.
+   * Clearing it unconditionally meant a request still outstanding after 60
+   * seconds — a phone on a bad connection, which is exactly when this matters —
+   * got a second one fired alongside it, and then a third, each one still
+   * counted as "loading" by nothing at all.
+   */
+  /*
+   * THE ONLY DECLARATION OF THIS NAME, and it has to stay that way. There were
+   * two in this one closure — this one and a shorter one down beside the saved
+   * banners — and a function declaration appearing LATER wins for every call
+   * site in its scope, including the ones textually above it. So this body had
+   * never run: every caller got the short version, which refreshes the live
+   * payload and nothing else. It was masked rather than visible because the
+   * plan's schedules are fetched again by the generic sweep a few lines below
+   * the one call that needed them. This file has been bitten by exactly this
+   * once before, by a duplicate refreshTick left behind by a merge.
+   *
+   * loadRouteData declines on any status but idle, so calling it while a request
+   * is open is a no-op rather than a second request. The departures loaders
+   * carry their own guard on depStatus — a separate fetch, which must not be
+   * skipped merely because the route payload is still in the air.
+   */
+  function refreshRoute(routeId) {
+    if (state.routeStatus[routeId] !== 'loading') state.routeStatus[routeId] = 'idle';
+    retryDepartures(routeId);
+    loadDepartures(routeId);
+    loadRouteData(routeId);
   }
 
   function load(routeId) {
@@ -861,6 +1159,7 @@
     dom.viewbuttons = [];
     [
       { id: 'board', label: 'Route' },
+      { id: 'stops', label: 'Stops' },
       { id: 'all', label: 'All buses' },
       { id: 'trip', label: 'Trip' },
       { id: 'saved', label: 'Saved' }
@@ -918,8 +1217,28 @@
    * names one route; a chain names two or three, and none of them is necessarily
    * the route on screen.
    */
+  /*
+   * The routes the SAVED view answers for: watches and chains, nothing else.
+   *
+   * It is the fetch set as well as the banner set — loadSavedRoutes and the
+   * refresh tick both read it — which is why the stops plan does not belong in
+   * it. Adding the plan's routes here gave the stops view a banner about a route
+   * it shows no card for and never loads (so the banner never cleared), gave the
+   * saved view a banner about the plan's routes above two empty states, and made
+   * the saved view fetch them. The banner set is now passed in instead.
+   *
+   * Null-prototype because these ids come out of this phone's storage and the
+   * bare object it used to be read 'constructor' back as a function.
+   */
+  /* The routes the stops view is showing cards for, which is what its banners
+     must speak for and nothing more. */
+  function planRouteIds() {
+    var entries = state.plan.entries || [];
+    return entries.length ? global.CMB.plan.routesIn(entries) : [];
+  }
+
   function savedRouteIds() {
-    var wanted = {};
+    var wanted = Object.create(null);
     global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
     global.CMB.chain.list().forEach(function (c) {
       global.CMB.chain.routesIn(c).forEach(function (id) { wanted[id] = true; });
@@ -961,6 +1280,7 @@
     state.pickerOpen = false;
     store('view', id);
     if (id === 'all' && !state.all) loadAll();
+    if (id === 'stops') loadPlanRoutes();
     if (id === 'trip') { loadDepartures(state.routeId); }
     /* Every route either store names, not just the one on screen: a saved trip
      * names one, a chain names two or three. */
@@ -1251,7 +1571,14 @@
    * Everything else is kept verbatim. ?state= in particular is how any
    * interaction state is reached, and it has no path spelling.
    */
-  var PATH_OWNED = { view: 1, route: 1, dir: 1, bus: 1 };
+  /*
+   * 'plan' is here for the opposite reason to the other four: the FRAGMENT owns
+   * it, not the path. The scrub in planFromLocation() takes it out of the query
+   * on the way in, and this makes sure nothing can put it back — a query key
+   * that is never kept cannot be re-emitted by a repaint, whatever reaches the
+   * address bar later. Contract section 9 is the reason it gets a second lock.
+   */
+  var PATH_OWNED = { view: 1, route: 1, dir: 1, bus: 1, plan: 1 };
 
   function keptSearch() {
     var raw = String(global.location.search || '').replace(/^\?/, '');
@@ -1259,7 +1586,13 @@
     var kept = [];
     raw.split('&').forEach(function (kv) {
       if (!kv) return;
-      var key = decodeURIComponent(kv.split('=')[0]);
+      /* Guarded for the reason searchWithoutPlan() gives: a half-written escape
+         makes decodeURIComponent throw, and this runs on every syncUrl(). The
+         throw froze the address bar for the session — a removed stop came back
+         on reload, and PATH_OWNED.plan, the second lock on the query, stopped
+         being applied at all. */
+      var key = kv.split('=')[0];
+      try { key = decodeURIComponent(key); } catch (e) { /* compared raw */ }
       if (!Object.prototype.hasOwnProperty.call(PATH_OWNED, key)) kept.push(kv);
     });
     return kept.length ? '?' + kept.join('&') : '';
@@ -1271,7 +1604,20 @@
     var path = global.CMB.urls.format(
       state.view, state.routeId, directionToken(), state.tripBusId);
     try {
-      global.history.replaceState(null, '', API_PREFIX + path + keptSearch());
+      /*
+       * The fragment is carried, not dropped. The path says which VIEW is on
+       * screen and the fragment says which STOPS a link is proposing, and they
+       * are written by different functions on different occasions — so a sync
+       * that rebuilt the URL from the path alone erased the plan on the next
+       * repaint, and a reload came back to an empty board.
+       *
+       * They are separate on purpose rather than by accident: a path is sent to
+       * the server and turns up in a Referer, and what the plan describes is
+       * where a child stands and at what time. That is the one part of this URL
+       * that must never leave the browser.
+       */
+      global.history.replaceState(null, '',
+        API_PREFIX + path + keptSearch() + (global.location.hash || ''));
     } catch (e) { /* opaque origin, or a browser that refuses; the view is fine */ }
   }
 
@@ -1362,6 +1708,35 @@
     var routes = global.CMB.watch.list().map(function (w) { return w.route_id; });
     if (state.routeId) routes.push(state.routeId);
     if (state.editor.route_id) routes.push(state.editor.route_id);
+    /*
+     * And the routes the stops view is showing. They are in neither store — a
+     * plan a reader has not kept is held only in this tab — so nothing else
+     * sweeps them, and a schedule that was current when it arrived and stopped
+     * being so while the tab stayed open would never be asked for again. Only
+     * the timer may do this: paint() calls loadDepartures, so anything a repaint
+     * could clear is a fetch-and-render loop.
+     */
+    if (state.plan.entries && state.plan.entries.length) {
+      global.CMB.plan.routesIn(state.plan.entries).forEach(function (id) {
+        routes.push(id);
+      });
+    }
+    /*
+     * And their live payloads, not only their schedules.
+     *
+     * A stops card names the bus bringing your trip in — "Bus 2867 brings it in
+     * on the 3:04p WB, due here in 4 minutes" — and a frozen payload leaves that
+     * bus four minutes away for as long as the tab stays open. The schedules
+     * above answer WHEN; these answer WHICH BUS, and the second is the half that
+     * goes stale in a way a reader cannot see.
+     *
+     * Only the route on the board is refreshed by load(), and a plan names up to
+     * six. refreshRoute is the same handshake the saved trips use, and it
+     * declines over a request still in flight.
+     */
+    if (state.view === 'stops' && state.plan.entries && state.plan.entries.length) {
+      global.CMB.plan.routesIn(state.plan.entries).forEach(refreshRoute);
+    }
     routes.filter(function (id, i) { return id && routes.indexOf(id) === i; })
       .forEach(loadDepartures);
     /*
@@ -1552,7 +1927,10 @@
        * or it is not on the screen at all, in which case an unlabelled banner about
        * a route none of the cards belong to is worse than none.
        */
-      var banner = state.view === 'saved'
+      /* Suppressed on any view that draws its own per-route banners, which is
+         now stops as well as saved — otherwise the same sentence is printed
+         twice, once unlabelled by paint() and once labelled beside it. */
+      var banner = state.view === 'saved' || state.view === 'stops'
         ? null
         : S.stalenessBanner(d.staleness, d.feeds, function () { load(state.routeId); });
       if (banner) dom.main.appendChild(banner);
@@ -1567,6 +1945,7 @@
       }
     }
 
+    if (state.view === 'stops') { paintStops(); return; }
     if (state.view === 'all') { paintAll(); return; }
     if (state.view === 'saved') { paintSaved(); return; }
     if (state.view === 'saved-edit') { paintSavedEdit(); return; }
@@ -1657,7 +2036,222 @@
     dom.main.appendChild(footer(d));
   }
 
-  /* ---- the other two views --------------------------------------------- */
+  /* ---- the three views that are not the route board --------------------- */
+
+  /*
+   * Why a route's schedule is missing, in the only place that knows.
+   *
+   * The stops view is the one screen that cannot fall back to the bundled
+   * fixture: the fixture is a route payload, and a stop card needs the whole
+   * service day of scheduled departures, which only exists as a fetched
+   * document. From a file:// URL that is a permanent condition and saying "not
+   * loaded yet" would be a lie with a spinner attached.
+   */
+  function scheduleDetail(routeId) {
+    if (global.location.protocol === 'file:') {
+      return 'A stop card needs the day’s schedule, which is fetched rather than ' +
+        'bundled — so this view needs the board to be served, not opened from a file.';
+    }
+    if (state.depStatus[routeId] === 'error') {
+      return 'The schedule for route ' + routeId + ' could not be fetched. The next ' +
+        'refresh will try again.';
+    }
+    return null;
+  }
+
+  function paintStops() {
+    var band = el('section', 'band band--stops');
+    band.setAttribute('aria-label', 'Stops');
+
+    /*
+     * THE BANNER THIS VIEW WAS MISSING.
+     *
+     * The board, All buses and Saved all draw one; this view drew none, and it is
+     * the one whose whole sentence is "due here in 4 minutes". A tab left open
+     * fifteen minutes went on printing that, and the badge beside it, off a
+     * payload nothing had looked at since.
+     *
+     * Appended ABOVE the band rather than into it, which is where the saved view
+     * puts its own: plan.render() clears the host it is given before drawing the
+     * cards, so a banner placed inside the band ahead of them is wiped by the
+     * very render that draws them, silently and every time.
+     */
+    savedStalenessBanners(planRouteIds()).forEach(function (b) { dom.main.appendChild(b); });
+    dom.main.appendChild(band);
+
+    var entries = state.plan.entries || [];
+    var now = nowEpoch();
+    /*
+     * Read through liveRouteMap(), not liveRoute(): the map applies
+     * agedStaleness(), which adds the time THIS browser has held a payload to the
+     * age the generator stamped on it, and suppresses lateness past the same
+     * threshold every other view uses. Without it the cards graded a payload by
+     * how old it was when it was written, which on a sleeping phone is a number
+     * that stopped moving hours ago.
+     */
+    var live = liveRouteMap();
+    var models = entries.map(function (e) {
+      /* Resolving here rather than only in selectView covers a link opened while
+       * the view is already showing. Both loaders are idempotent. */
+      loadDepartures(e.route_id);
+      loadRouteData(e.route_id);
+      return global.CMB.plan.resolve(
+        e,
+        state.departures[e.route_id] || null,
+        live[e.route_id] || null,
+        now,
+        {
+          schedule_detail: scheduleDetail(e.route_id),
+          /*
+           * Whatever scheduleExpired() decides has to reach the COPY, not only
+           * the fetch logic. A document from a previous service day has every
+           * one of today's times behind it, so nothing is upcoming and the card
+           * said "The last one today has gone. Back tomorrow." — a claim about
+           * today's service, made from a document that does not describe today,
+           * at breakfast, on a board somebody left open overnight.
+           */
+          schedule_expired: scheduleExpired(state.departures[e.route_id])
+        }
+      );
+    });
+
+    global.CMB.plan.render(band, global.CMB.plan.sortModels(models), {
+      offer: state.plan.offer,
+      cameFromQuery: state.plan.fromQuery,
+      saved: state.plan.saved,
+      /* The link that arrived, not the board it was merged into — same reason
+         as syncFragment(). Falls back to what is on screen when this view was
+         not reached by a link at all, which is the ordinary saved-stops case. */
+      link: (function (shared) {
+        return shared.length ? global.CMB.plan.linkFor(shared, global.location.href) : null;
+      })(state.plan.linkEntries || entries),
+      storageFailed: state.plan.storageFailed,
+      /* What is already on the phone, so the offer can say so rather than
+       * quietly deciding what happens to it. */
+      keptCount: keptOther().length,
+      onKeep: function () {
+        /*
+         * ADD, never replace.
+         *
+         * save() overwrites, which is right when the reader is editing the set in
+         * front of them and wrong when a second link arrives. Somebody keeping one
+         * child's stops who opened the other child's link and tapped the obvious
+         * button lost the first set, with nothing on screen having mentioned it
+         * and no way back but the original link. plan.merge() puts the existing
+         * ones first so a cap can only ever bite what is arriving.
+         */
+        var merged = global.CMB.plan.merge(keptOther(), state.plan.entries);
+        /*
+         * The write is allowed to fail, so its answer decides what is said. This
+         * used to dismiss the offer and announce success on a save that never
+         * happened — the stops were gone on the next load with nothing on screen
+         * having suggested anything went wrong. The offer stays up on a refusal,
+         * because the link in the address bar is still the way back.
+         */
+        if (!global.CMB.plan.save(merged.entries)) {
+          state.plan.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.plan.storageFailed = false;
+        state.plan.entries = merged.entries;
+        state.plan.saved = true;
+        state.plan.offer = null;
+        state.plan.declined = null;
+        syncFragment();
+        announce('Kept ' + fmt.plural(merged.entries.length, 'stop', 'stops') +
+          ' on this phone.' + (merged.dropped
+            ? ' ' + fmt.plural(merged.dropped, 'stop', 'stops') +
+              ' could not be added: this phone keeps at most ' +
+              global.CMB.plan.MAX_ENTRIES + ' stops on at most ' +
+              global.CMB.plan.MAX_ROUTES + ' routes.'
+            : ''));
+        render();
+      },
+      onDismiss: function () {
+        state.plan.declined = state.plan.offer;
+        state.plan.offer = null;
+        render();
+      },
+      onForget: function () {
+        /*
+         * A delete is a write and can be refused the same way a save can, and the
+         * two must be equally honest. This announced that the stops were no
+         * longer kept, cleared the flag that says they are, and left them sitting
+         * in storage — so they came back on the next load, having been declared
+         * gone. The save path was already fixed for exactly this; these are its
+         * siblings and were missed.
+         */
+        if (!global.CMB.plan.clear()) {
+          state.plan.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.plan.storageFailed = false;
+        state.plan.saved = false;
+        /* The link, if there is one, is still on screen: forgetting is about the
+         * store, not about what is being looked at. */
+        var stillLinked = global.CMB.plan.fromLocation(global.location);
+        if (!stillLinked) state.plan.entries = null;
+        /*
+         * And the offer comes back, because the way to undo this has to be on the
+         * screen that did it. `offer` was nulled when the set was first kept and
+         * nothing restored it, so after Forget the cards sat there with neither
+         * the Keep banner nor the Forget button — the one affordance this view
+         * exists for, missing until the reader thought to reload. The decline is
+         * cleared with it: tapping Forget is not declining the offer, it is
+         * asking for it.
+         */
+        if (stillLinked) {
+          state.plan.offer = state.plan.linkEntries || state.plan.entries;
+          state.plan.declined = null;
+        }
+        announce('These stops are no longer kept on this phone.');
+        render();
+      },
+      onRemove: function (key) {
+        var left = (state.plan.entries || []).filter(function (e) {
+          return global.CMB.plan.keyFor(e) !== key;
+        });
+        /*
+         * Same rule as onForget, and the state is not touched until the write has
+         * agreed. Taking the stop off screen first and then discarding a refusal
+         * put it back on the next load, which reads as the board undoing an edit
+         * on its own.
+         */
+        if (state.plan.saved && !global.CMB.plan.save(left)) {
+          state.plan.storageFailed = true;
+          announce(STORAGE_REFUSED);
+          render();
+          return;
+        }
+        state.plan.entries = left;
+        /* The link describes the same stops minus the one just removed, or the
+           fragment would restore it on the next load. */
+        if (state.plan.linkEntries) {
+          var leftInLink = state.plan.linkEntries.filter(function (e) {
+            return global.CMB.plan.keyFor(e) !== key;
+          });
+          /* Back to null, not to []. An empty array is truthy, so
+             `linkEntries || entries` kept answering with it: the share box went
+             away, and syncFragment wrote a URL with no fragment at all, while the
+             stops the reader kept were still on the screen. */
+          state.plan.linkEntries = leftInLink.length ? leftInLink : null;
+        }
+        /* Same empty-array-is-truthy trap as linkEntries above, in the line that
+           was left alone: removing the last stop while the offer was up left an
+           offer reading "This link carries 0 stops." */
+        if (state.plan.offer) {
+          state.plan.offer = state.plan.entries.length ? state.plan.entries : null;
+        }
+        syncFragment();
+        render();
+      }
+    });
+    dom.main.appendChild(footer(state.data));
+  }
 
   function paintAll() {
     var band = el('section', 'band band--all');
@@ -1790,7 +2384,9 @@
      * state, and rendering it for four routes while silently trusting a fifth is
      * the same failure the whole staleness machinery exists to prevent.
      */
-    savedStalenessBanners().forEach(function (b) { dom.main.appendChild(b); });
+    savedStalenessBanners(Object.keys(savedRouteIds())).forEach(function (b) {
+      dom.main.appendChild(b);
+    });
 
     /*
      * Chains sit above saved trips. A chain is the higher-stakes item on this
@@ -1906,20 +2502,6 @@
    * board never had that problem — it only ever shows one route.
    */
   /*
-   * Permit one more fetch for a route, without disturbing one in flight.
-   *
-   * Resetting to 'idle' unconditionally defeats loadRouteData's own single-flight
-   * guard: the reset lands while a request is open, the next paint starts a second,
-   * and the older response can arrive last and revert a verdict to stale data. Same
-   * helper and same condition as PR 2, so the two do not drift.
-   */
-  function refreshRoute(routeId) {
-    if (state.routeStatus[routeId] === 'loading') return;
-    state.routeStatus[routeId] = 'idle';
-    loadRouteData(routeId);
-  }
-
-  /*
    * Permit one more fetch of a schedule that stopped: a failed request, or a
    * document evicted for belonging to another service day. Same handshake and same
    * in-flight condition as refreshRoute, so the two do not drift.
@@ -1959,7 +2541,7 @@
    * route the board has failed to refresh on its own (agedStaleness raises its
    * level, and its reason names it) falls into its own bucket and keeps its own.
    */
-  function savedStalenessBanners() {
+  function savedStalenessBanners(ids) {
     var live = liveRouteMap();
     var order = [];
     var buckets = Object.create(null);
@@ -1981,7 +2563,7 @@
      * is the case most in need of one: a leg the board knows nothing about rendered
      * identically to a leg running exactly on schedule.
      */
-    Object.keys(savedRouteIds()).sort().forEach(function (id) {
+    (ids || []).slice().sort().forEach(function (id) {
       var d = live[id];
       if (!d) {
         /*
@@ -2119,7 +2701,11 @@
    * about which routes are still worth believing.
    */
   function liveRouteMap() {
-    var map = {};
+    /* Null-prototype for the same reason as every other route-id-keyed map in
+     * this file: a route id of '__proto__' would set this object's prototype on
+     * assignment rather than becoming an entry, and chain resolution reads the
+     * result by route id. */
+    var map = Object.create(null);
     var age = function (d, id) {
       if (!d) return d;
       var st = agedStaleness(d, id);
@@ -2330,6 +2916,17 @@
     return foot;
   }
 
+  /*
+   * One turn of the refresh timer.
+   *
+   * A named function rather than the interval's own body, because the rules it
+   * enforces — a schedule is re-asked for once a minute and only here, where a
+   * retry cannot become a render loop — are the ones most easily lost, and the
+   * end-to-end suite has no way to observe them if the only way to take a turn
+   * is to wait sixty seconds for one. It is exported for that, and calling it is
+   * the same thing the timer does, not a shortcut around it.
+   */
+
   /* ---- boot ----------------------------------------------------------- */
   function boot() {
     var u = global.CMB.urls.parse(global.location.pathname, global.location.search);
@@ -2366,6 +2963,25 @@
     var routeId = u.route_id || recall('route') || '4';
     state.routeId = routeId;
     state.stopId = q.stop || recall('stop.' + routeId);
+
+    /*
+     * BEFORE ANY FETCH, AND THAT ORDERING IS THE POINT.
+     *
+     * A '?plan=' link is scrubbed into the fragment in here, and any request
+     * issued while the query string is still in the address bar can carry it
+     * onward in a Referer header — a legible description of a child's daily
+     * routine, arriving at whatever the request was addressed to. The vhost and
+     * the meta tag in index.html both say no-referrer; ordering is the part this
+     * file controls, and it costs nothing to put the scrub first.
+     *
+     * So nothing below this line may move above it. load(), loadDepartures() and
+     * loadCatalog() all reach getJson, and moving adoptPlan() after any of them
+     * reopens the leak while changing nothing on screen. That is exactly why it
+     * has a test of its own rather than only a comment — stops.spec.mjs watches
+     * the address bar at the moment the first request leaves.
+     */
+    adoptPlan();
+
     load(routeId);
     /*
      * Boot does not go through selectRoute, so it has to ask for the schedule
@@ -2401,7 +3017,13 @@
      * unresolved for the session.
      */
     var view = u.view || recall('view');
-    if (view === 'all' || view === 'trip' || view === 'saved') selectView(view);
+    if (view === 'all' || view === 'trip' || view === 'saved' || view === 'stops') selectView(view);
+    /*
+     * A link beats a remembered view. Someone who has just opened a stops link is
+     * asking for the stops, whatever tab they happened to leave the board on, and
+     * whether or not those stops are already kept on this phone.
+     */
+    if (state.plan.fromLink) selectView('stops');
 
     /* Live refresh only makes sense when something can actually change. */
     if (global.location.protocol !== 'file:' && !state.scenario) {
@@ -2419,6 +3041,49 @@
        */
       setInterval(refreshTick, REFRESH_MS);
     }
+
+    /*
+     * Pasting a stops link into a tab that is already open only changes the
+     * fragment, so nothing reloads and nothing would happen without this — and
+     * that is the commonest way a link actually gets used: the board is open, the
+     * link arrives in a message, it goes in the address bar.
+     *
+     * What decides the view is whether the hash CARRIES A PLAN, not whether the
+     * plan changed. Comparing against what was on screen and returning early made
+     * pasting an already-kept link do nothing at all, which is the same "the link
+     * looks inert" symptom the boot path was just fixed for, surviving on the
+     * other entry point.
+     *
+     * The comparison still earns its keep for one thing: an identical plan skips
+     * adoptPlan(), which rebuilds `offer` from scratch and would otherwise
+     * resurrect an offer the reader had already declined.
+     */
+    global.addEventListener('hashchange', function () {
+      var found = global.CMB.plan.fromLocation(global.location);
+      /*
+       * A fragment that carries no plan is not about this view, so nothing here
+       * reacts to it.
+       *
+       * It used to rebuild the plan from scratch whenever the board had been
+       * opened from a link, which emptied the screen: an in-page anchor, or a
+       * Back onto the URL as it was before the link, took a set of stops the
+       * reader was looking at and replaced it with "No stops on this phone yet".
+       * The stops are still the right answer — they were a moment ago, and a
+       * fragment naming something else says nothing to the contrary. Kept ones
+       * are in storage and unaffected either way.
+       */
+      if (!found) return;
+      if (state.plan.entries && global.CMB.plan.sameSet(state.plan.entries, found.entries)) {
+        state.plan.fromLink = true;
+        /* And WHICH entries the link carries, or syncFragment has a fromLink
+           with nothing to write and strips '#plan=' off the bar on the first
+           edit. The two are one fact and have to be set together. */
+        state.plan.linkEntries = found.entries;
+      } else {
+        adoptPlan();
+      }
+      selectView('stops');
+    });
 
     var resizeTimer = null;
     global.addEventListener('resize', function () {
@@ -2452,6 +3117,13 @@
     currentServiceDate: currentServiceDate,
     scheduleExpired: scheduleExpired,
     usableDepartures: usableDepartures,
+    /*
+     * The one the timer runs, and therefore the one the suite must drive. There
+     * used to be a second tick alongside it, left by a merge — setInterval ran
+     * this one while the stops tests drove the other, so those tests were
+     * exercising a function the board never called and could not have seen a
+     * regression in the one it did.
+     */
     refreshTick: refreshTick,
     /* Exported for the suite alone: the generation guard is only observable by
      * letting an abandoned request answer, which needs a fetch under test

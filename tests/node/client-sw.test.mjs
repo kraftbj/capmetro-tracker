@@ -312,8 +312,8 @@ describe('the shell list and what index.html actually loads', () => {
     const version = source.match(/var VERSION = '([^']+)'/)
     expect(version, 'client/sw.js no longer declares a VERSION').not.toBeNull()
     expect({ version: version[1], shell: digest }).toEqual({
-      version: 'v1',
-      shell: 'c31c99998b71',
+      version: 'v2',
+      shell: '2645041b129e',
     })
   })
 
