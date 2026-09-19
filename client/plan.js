@@ -852,13 +852,20 @@
      * stays hedged whatever its own block says about whatever it runs next.
      */
     /*
-     * And a suppressed snapshot confirms nothing. `suppress_adherence` means the
-     * feed is too old to say how late anything is; coverageFor honours it and
-     * returns early, so /route names no bus at all. vehicleFeeding reads
-     * route.vehicles with no such gate, so without this the card printed
-     * "Scheduled · lateness unavailable" and, directly under it, "Bus B1 is
-     * standing at this stop now ... and goes back out as this trip" — stated as
-     * fact, off a payload the board had already declared too old to read.
+     * And a suppressed snapshot confirms nothing.
+     *
+     * A SECOND LOCK, said plainly rather than left to look load-bearing:
+     * coverageFor already returns early under suppress_adherence, so d.predictor
+     * is null and `fromPredictor` above has made this false before the clause is
+     * reached. Deleting `!d.suppressed` from this line changes no behaviour
+     * today, which a mutation audit confirmed.
+     *
+     * It stays because the two guards answer different questions — one is "did
+     * the route board vouch for this bus", the other is "is this payload
+     * readable at all" — and the day a feeder is sourced differently again, the
+     * second is the one still standing. The at_stop and `here` gates below are
+     * NOT redundant: they are what stops "is standing at this stop now" being
+     * printed off a four-hour-old snapshot, and each fails its own mutation.
      */
     var confirmed = fromPredictor && !d.suppressed && !!feeder &&
       !W.continuationHedged(feeder, trip.id);

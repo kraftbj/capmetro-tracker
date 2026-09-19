@@ -1227,13 +1227,15 @@ test.describe('a stops card says when its live data stopped being worth reading'
     await expect(page.locator('.savedbanner')).toHaveCount(0)
   })
 
-  test('stops printing a lateness it can no longer stand behind', async ({ page }) => {
-    await page.goto(STALE)
-    await expect(page.locator('.stopcard').first()).toBeVisible()
-    /* suppress_adherence is the board's own verdict on the payload; when it is
-     * set no card may print a signed number, here or anywhere else. */
-    await expect(page.locator('.stopdep .badge')).toHaveCount(0)
-  })
+  /*
+   * There is deliberately no badge-suppression test here. No departure the stops
+   * fixtures render carries a live vehicle, so `.stopdep .badge` is zero whatever
+   * the code does -- an assertion on it passes with the suppression deleted, and
+   * a green test that cannot fail is worse than an absent one. The rule is
+   * covered where it can actually be exercised: 'a departure timed from the feed
+   * does not also wear a badge' and 'a suppressed feed confirms nothing and
+   * places nobody' in tests/node/client-plan.test.mjs, both mutation-verified.
+   */
 })
 
 /*
@@ -1423,5 +1425,76 @@ test.describe('an offer that has nothing left to offer', () => {
     const offers = page.locator('.offer')
     const text = (await offers.count()) ? await offers.allInnerTexts() : []
     expect(text.join(' '), 'an offer survived with nothing in it').not.toContain('0 stop')
+  })
+})
+
+/*
+ * A PAYLOAD THAT WENT STALE BY BEING HELD, NOT BY ARRIVING STALE.
+ *
+ * agedStaleness() adds the time THIS browser has held a payload to the age the
+ * generator stamped on it. That is the whole reason paintStops reads through
+ * liveRouteMap() rather than liveRoute() -- and no test distinguished the two,
+ * because '/turnarounddead/' is stale as generated, so the held-time path never
+ * ran. Reverting paintStops to liveRoute() left every staleness test green.
+ *
+ * The distinction is not academic: it is the 2026-09-01 shape, where a feed
+ * stops being written and a tab sits open in front of it. The payload was fresh
+ * when it arrived and nothing about it changes; only the holding does.
+ */
+test.describe('a payload can go stale in the reader\'s own hands', () => {
+  const FRESH = '/turnaround/index.html#plan=1;4.1.6243.all'
+
+  /** Wind back when this browser thinks it fetched the route, then repaint. */
+  const hold = (page, seconds) => page.evaluate((s) => {
+    const app = window.CMB.app
+    Object.keys(app.state.routeFetchedAt).forEach((id) => {
+      app.state.routeFetchedAt[id] -= s
+    })
+    /* Through a real view change, so the repaint is the board's own and not a
+     * function this test invented. Route 4 is already open, so loadRouteData
+     * declines and nothing refetches -- which is the point. */
+    app.selectView('buses')
+    app.selectView('stops')
+  }, seconds)
+
+  test('says nothing while the payload is young', async ({ page }) => {
+    await page.goto(FRESH)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.savedbanner')).toHaveCount(0)
+  })
+
+  test('warns once it has been held past the point of being worth reading', async ({ page }) => {
+    await page.goto(FRESH)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    await hold(page, 45 * 60)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    await expect(page.locator('.savedbanner'), 'held 45 minutes and said nothing')
+      .toHaveCount(1)
+    await expect(page.locator('.savedbanner').first()).toContainText(/refresh route 4/i)
+  })
+
+  /*
+   * AND THE CARDS READ THE AGED PAYLOAD, which the banner alone does not prove.
+   *
+   * savedStalenessBanners() calls liveRouteMap() itself, so the banner is aged
+   * whatever paintStops does -- reverting paintStops to liveRoute() left the two
+   * tests above green, exactly as the audit said. What paintStops controls is
+   * the CARDS, and the observable difference is the line each departure grows
+   * when the board decides it can no longer say how late anything is.
+   */
+  test('and the cards stop claiming to know how late anything is', async ({ page }) => {
+    await page.goto(FRESH)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.stopdep__sched')).toHaveCount(0)
+
+    await hold(page, 45 * 60)
+    await expect(page.locator('.savedbanner').first()).toBeVisible()
+
+    const lines = page.locator('.stopdep__sched')
+    expect(await lines.count(), 'the cards were resolved from the unaged payload')
+      .toBeGreaterThan(0)
+    await expect(lines.first()).toContainText('lateness unavailable')
   })
 })

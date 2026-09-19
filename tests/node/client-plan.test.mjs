@@ -1837,8 +1837,25 @@ describe('an ordinary stop does not get the turnaround narrative', () => {
   })
 
   t('and prints no inbound ETA under a departure it could not belong to', (p) => {
-    const card = p.render(client.document.createElement('div'), [p.resolve(AT_THROUGH, DEP, EMPTY_ROUTE, NOW)], {})
-    expect(textDeep(card)).not.toContain('due here in')
+    /*
+     * With a FEEDER present. The first version used EMPTY_ROUTE, where there is
+     * no bus to take a deviation from, so the ETA was null whether or not the
+     * gate worked -- the fixture guaranteed the assertion, not the code.
+     */
+    const m0 = p.resolve(AT_THROUGH, DEP, EMPTY_ROUTE, NOW)
+    const feeder = bus({ id: 'B7', trip: inboundAt(PAIRS[0].inbound_arrival_s), seconds: 300,
+      nextTripId: m0.departures[0].trip.id })
+    const m = p.resolve(AT_THROUGH, DEP, routeWith(feeder), NOW)
+    expect(m.departures.some((d) => d.inbound && d.inbound.vehicle),
+      'no feeder reached the card, so the ETA is null for the wrong reason').toBe(true)
+    /*
+     * 'due here', not 'due here in'. Ungated, the leg this stop resolves to
+     * arrived BEFORE now, so the sentence came out "due here 18 minutes ago" --
+     * an inbound bus overdue by a quarter of an hour, under a departure
+     * three quarters of an hour away. The narrower string missed it.
+     */
+    expect(textDeep(p.render(client.document.createElement('div'), [m], {})))
+      .not.toContain('due here')
   })
 
   /*
@@ -2066,15 +2083,30 @@ describe('what comes back out of storage clears the same bar a link does', () =>
     expect(p.stored()).toHaveLength(1)
   })
 
-  t('applies the caps a link is held to', (p) => {
+  t('applies the ROUTE cap a link is held to', (p) => {
     const many = []
-    for (let i = 0; i < p.MAX_ENTRIES + 6; i++) {
+    for (let i = 0; i < p.MAX_ROUTES + 4; i++) {
       many.push({ route_id: String(i), direction_id: 1, stop_id: String(i), window: 'all' })
     }
     put(many)
+    expect(p.routesIn(p.stored()).length).toBeLessThanOrEqual(p.MAX_ROUTES)
+  })
+
+  /*
+   * And the ENTRY cap, which needs entries that SHARE a route: with a distinct
+   * route each, the six-route cap binds long before the twelve-entry one can,
+   * so a single loop over distinct ids tests one cap twice and the other never.
+   */
+  t('applies the ENTRY cap too, which needs stops on one route to reach', (p) => {
+    const many = []
+    for (let i = 0; i < p.MAX_ENTRIES + 4; i++) {
+      many.push({ route_id: '4', direction_id: 1, stop_id: String(i), window: 'all' })
+    }
+    put(many)
     const out = p.stored()
-    expect(out.length).toBeLessThanOrEqual(p.MAX_ENTRIES)
-    expect(p.routesIn(out).length).toBeLessThanOrEqual(p.MAX_ROUTES)
+    expect(p.routesIn(out).length, 'more than one route, so the entry cap is not what bound')
+      .toBe(1)
+    expect(out.length).toBe(p.MAX_ENTRIES)
   })
 
   t('and an empty or unreadable store is still an absent one', (p) => {
