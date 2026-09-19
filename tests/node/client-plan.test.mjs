@@ -841,6 +841,41 @@ describe('a continuation the feed has not confirmed is said as one', () => {
    * could be timed. That is the wrong invariant, and it is the one that let this
    * through.
    */
+  /*
+   * The OTHER way the route board refuses, and the one the first fix missed.
+   *
+   * coverageFor matches a vehicle's realtime block_id against the schedule's;
+   * vehicleFeeding matches next_trip and applies no block filter at all. So a
+   * bus whose feed disagrees with the timetable about which block it is running
+   * makes coverageFor answer 'unassigned' and timingFor return no predictor and
+   * no time -- /route names nobody and prints the booked departure -- while this
+   * file found it anyway and, because fromPredictor gated only `confirmed` and
+   * not the clock, gave it a live ETA underneath that booked time.
+   *
+   * It may still be named. Naming is a weaker claim than timing, and this card
+   * exists for the stop where no approaching bus can be seen.
+   */
+  t('names, but does not time, a bus whose block the schedule does not agree with', (p) => {
+    const out = outboundAt(PAIRS[0].outbound_departure_s)
+    const leg = inboundAt(PAIRS[0].inbound_arrival_s)
+    const v = bus({ id: 'B9', trip: leg, seconds: 240, nextTripId: out.id })
+    /* The feed says one block, the schedule says another. */
+    v.block.block_id = '9999'
+
+    const m = p.resolve(AT_TURNAROUND, DEP, routeWith(v), NOW)
+    const d = m.departures.find((x) => x.trip.id === out.id)
+
+    expect(d.predictor, 'the route board vouched for it, so the branch is untested').toBeNull()
+    expect(d.inbound.vehicle.vehicle_id, 'the bus should still be named').toBe('B9')
+    expect(d.inbound.confirmed).toBe(false)
+    expect(d.inbound.due_at, 'timed a bus the route board would not name').toBeNull()
+
+    const said = p.boardingText(d, m)
+    expect(said).toContain('B9')
+    expect(said).toContain('likely')
+    expect(said, 'a live ETA survived for an unvouched bus').not.toContain('due here')
+  })
+
   t('does not time a bus the route board refused to time', (p) => {
     const pair = pairFor()
     const out = tripAt837(pair.outbound_departure_s, 1)

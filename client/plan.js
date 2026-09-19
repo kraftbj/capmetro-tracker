@@ -908,13 +908,30 @@
       var fSched = shownLeg ? dep.service_day_start_epoch + shownLeg.seconds : null;
       var fLate = fView && fView.seconds !== null && fView.seconds !== undefined ? fView.seconds : null;
       /*
-       * No deviation, no ETA. This used to fall back to the booked time, which
+       * ONLY THE ROUTE BOARD'S OWN BUS GETS A CLOCK.
+       *
+       * Two rules, and the second was claimed before it was written. No
+       * deviation, no ETA: this used to fall back to the booked time, which
        * prints through untilText() as "due here in 4 minutes" — a timetable
-       * entry indistinguishable from a live estimate. The scheduled time is
-       * already said by the leg's own name ("in on the 3:04p WB"); saying it
-       * twice, once disguised, is the thing to avoid.
+       * entry indistinguishable from a live estimate, said twice, once
+       * disguised, when the leg's own name already gives the scheduled time.
+       *
+       * And no vouching, no ETA. `fromPredictor` gated `confirmed` and not this,
+       * so a feeder vehicleFeeding turned up — which applies no block filter
+       * where coverageFor does — still got a live clock. A bus whose realtime
+       * block_id does not match the schedule's makes coverageFor answer
+       * 'unassigned' and timingFor return no predictor and no time, so /route
+       * names nobody and prints the booked departure; /stops printed "Bus 9001
+       * likely brings it in on the 5:24a WB — due here in 3 minutes", a live
+       * inbound ETA directly under a departure shown at its booked time.
+       *
+       * It may still be NAMED — this card exists for the stop where no
+       * approaching bus is visible, and the feed's own next_trip is the best
+       * answer there is — but naming is a weaker claim than timing, and only
+       * the one the rest of the board has vouched for earns the clock.
        */
-      var fDue = (fSched === null || fLate === null) ? null : fSched + fLate;
+      var fDue = (fSched === null || fLate === null || !fromPredictor)
+        ? null : fSched + fLate;
       inbound = {
         trip: shownLeg ? shownLeg.trip : null,
         scheduled_at: fSched,
