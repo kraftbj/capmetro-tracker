@@ -1969,6 +1969,35 @@ describe('what the card is ranked by, and what it says about a bus from the yard
     expect(m.departures[0].trip.id).toBe(OUT.id)
   })
 
+  /*
+   * And the case that actually dominates. A row past its time with nothing
+   * reporting on its block is kept for OVERDUE_KEEP_S, because "no bus is
+   * running this" is the warning that path exists for -- but it is not a bus
+   * anyone can catch, and ranking by it is the same mistake as ranking by a
+   * cancellation. It is the COMMON one: a payload carrying no vehicle on those
+   * trips grades every past row overdue, which is every route for the first
+   * moments after the view opens. On the 837 capture at 10:17 every card ranked
+   * on one.
+   */
+  t('ranks by a bus that can be caught, not one nothing is running', (p) => {
+    const AT_866 = { route_id: '837', direction_id: 1, stop_id: '866', window: 'all' }
+    const now = DEP837.service_day_start_epoch + 37020
+    const m = p.resolve(AT_866, DEP837,
+      { staleness: { level: 'fresh', suppress_adherence: false }, vehicles: [] }, now)
+
+    const lead = m.departures[0]
+    expect(lead.coverage && lead.coverage.state,
+      'nothing overdue at the head, so the ranking is untested').toBe('overdue')
+    expect(lead.canceled, 'canceled instead of overdue -- the other case').toBe(false)
+    expect(lead.seconds_until, 'the lead row should be in the past').toBeLessThan(0)
+
+    expect(m.next.seconds_until, 'ranked by a bus nothing is running')
+      .toBeGreaterThan(0)
+    expect(m.next.coverage && m.next.coverage.state).not.toBe('overdue')
+    /* The card still LEADS with the overdue row; only the ranking key moved. */
+    expect(m.departures[0]).toBe(lead)
+  })
+
   t('still ranks a stop whose every departure is canceled, rather than dropping it', (p) => {
     const all = routeWith()
     all.schedule = { canceled_trips: DEP.trips.map((x) => x.id) }

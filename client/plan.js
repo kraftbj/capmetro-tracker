@@ -707,15 +707,29 @@
     /*
      * Ranked by the soonest bus that is actually RUNNING.
      *
-     * stopboard keeps a canceled departure at the head of the list on purpose,
-     * without letting it consume a slot — the cancellation is the first thing the
-     * card has to say. But `next` is what sortModels ranks the whole card by, so
-     * taking models[0] put a stop at the top of the phone screen on the strength
-     * of a 3:09p that is not coming, while the first bus that is runs 25 minutes
-     * later. The rendered list is untouched; only the ranking changes, and a stop
-     * whose every departure is canceled still ranks rather than falling out.
+     * stopboard keeps two kinds of departure at the head of the list on purpose,
+     * neither of which is a bus anyone can catch. A CANCELED one leads because
+     * the cancellation is the first thing the card has to say. An OVERDUE one —
+     * past its time with nothing reporting on its block — is kept for
+     * OVERDUE_KEEP_S because "no bus is running this" is the warning that whole
+     * path exists for.
+     *
+     * But `next` is what sortModels ranks the entire card by, and it was
+     * models[0]. So a stop climbed to the top of the phone screen on the strength
+     * of a departure nobody is coming for. The overdue case is the common one,
+     * not the cancellation: a route whose payload carries no vehicle on those
+     * trips grades every past row overdue, which is every route for the first
+     * moments after the view opens and any route in the 2026-09-01 stall. On the
+     * 837 capture at 10:17 every single card ranked on one — stop 866 on a bus
+     * 7.6 minutes past due while its real next bus was twelve minutes out.
+     *
+     * The rendered list does not change. Only the ranking does, and a card with
+     * nothing but canceled or overdue rows still ranks rather than dropping out.
      */
-    var running = models.filter(function (m) { return !m.canceled; });
+    var catchable = function (m) {
+      return !m.canceled && !(m.coverage && m.coverage.state === 'overdue');
+    };
+    var running = models.filter(catchable);
     return extend(base, { state: 'ok', next: running.length ? running[0] : models[0] });
   }
 
@@ -800,8 +814,18 @@
      * The deferral was also arithmetic: `!d.predictor_hedged` expanded to the
      * same expression as the local test it was meant to override, so it decided
      * nothing in the cases where it did fire. Both halves are gone. Stopboard
-     * names the bus, W.continuationHedged grades it, and the two views cannot
-     * disagree because there is nothing left to disagree with.
+     * names the bus and W.continuationHedged grades it, so the two views cannot
+     * differ on whether a continuation may be stated as FACT, nor on whether it
+     * may be given a time.
+     *
+     * They can still differ on whether a bus is named at all. vehicleFeeding
+     * applies no block filter, so this view can name one the route panel's
+     * coverage line does not — hedged, untimed, but named. That is a deliberate
+     * remainder rather than a closed case: this card exists for the stop where no
+     * approaching bus is visible, so naming the one the feed says runs this trip
+     * next is the answer it is for. Said plainly here because an earlier version
+     * of this comment claimed the two could not disagree at all, which was more
+     * than the code did.
      */
     /*
      * WHERE THE FEEDER CAME FROM DECIDES WHAT MAY BE SAID ABOUT IT.
