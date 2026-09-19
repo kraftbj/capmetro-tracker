@@ -1908,3 +1908,152 @@ describe('a suppressed feed confirms nothing and places nobody', () => {
     expect(text).not.toContain('standing at this stop now')
   })
 })
+
+/* ------------------------------------------------------------------------- */
+
+describe('the window form a link may carry', () => {
+  /*
+   * The hasOwnProperty guard above windowRange closed the WINDOWS['constructor']
+   * hole. The numeric form beside it stayed open: two digits accepted hours up to
+   * 99 and minutes up to 99, and the result was not rejected but merely
+   * uninhabitable -- a range starting after it ends, false at every instant, with
+   * a label that reads like a real window. decode() kept the entry, onKeep wrote
+   * it to storage, and the card sat under "Later today" for good.
+   */
+  t('refuses an hour or a minute that does not exist', (p) => {
+    expect(p.windowRange('9999-0000')).toBeNull()
+    expect(p.windowRange('2500-0100')).toBeNull()
+    expect(p.windowRange('1260-1300')).toBeNull()
+    expect(p.windowRange('0860-0900')).toBeNull()
+  })
+
+  t('refuses a span of no length rather than turning it into a whole day', (p) => {
+    expect(p.windowRange('0000-0000')).toBeNull()
+    expect(p.windowRange('0930-0930')).toBeNull()
+  })
+
+  t('still accepts the real forms, including one that wraps past midnight', (p) => {
+    expect(p.windowRange('0800-1000')).toEqual([28800, 36000])
+    expect(p.windowRange('2300-0100')).toEqual([82800, 90000])
+    expect(p.windowRange('am')).toBeTruthy()
+    expect(p.windowRange('all')).toBeTruthy()
+  })
+
+  /* And a link carrying one is dropped at the door, not kept and rendered. */
+  t('drops an entry whose window could never contain a departure', (p) => {
+    expect(p.decode('1;4.1.6243.9999-0000')).toBeNull()
+    expect(p.decode('1;4.1.6243.9999-0000;800.1.6293.am')).toEqual([
+      { route_id: '800', direction_id: 1, stop_id: '6293', window: 'am' },
+    ])
+  })
+})
+
+describe('what the card is ranked by, and what it says about a bus from the yard', () => {
+  const OUT = outboundAt(PAIRS[0].outbound_departure_s)
+
+  /*
+   * stopboard keeps a canceled departure at the head of the list deliberately --
+   * the cancellation is the first thing the card must say -- but `next` is what
+   * sortModels ranks the whole card by, so the stop climbed to the top of the
+   * screen on the strength of a bus that is not coming.
+   */
+  t('ranks a stop by the soonest bus that is actually running', (p) => {
+    const canceled = routeWith()
+    canceled.schedule = { canceled_trips: [OUT.id] }
+    const m = p.resolve(AT_TURNAROUND, DEP, canceled, NOW)
+
+    expect(m.departures[0].canceled, 'nothing canceled, so the ranking is untested').toBe(true)
+    expect(m.next.canceled, 'ranked by a departure that is not coming').toBe(false)
+    expect(m.next.seconds_until).toBeGreaterThan(m.departures[0].seconds_until)
+    /* And the card still LEADS with the cancellation, which is stopboard's rule. */
+    expect(m.departures[0].trip.id).toBe(OUT.id)
+  })
+
+  t('still ranks a stop whose every departure is canceled, rather than dropping it', (p) => {
+    const all = routeWith()
+    all.schedule = { canceled_trips: DEP.trips.map((x) => x.id) }
+    const m = p.resolve(AT_TURNAROUND, DEP, all, NOW)
+    expect(m.departures.every((x) => x.canceled)).toBe(true)
+    expect(m.next, 'the card fell out of the ranking entirely').toBeTruthy()
+  })
+
+  /*
+   * "It is finishing another one first" tells a reader the bus is busy, which
+   * they take as a reason to expect it late. A pull-out is the opposite: out of
+   * the yard, on no trip, empty and heading straight here.
+   */
+  t('does not say a bus leaving the yard is finishing another trip', (p) => {
+    const pullout = bus({ id: 'D1', trip: OUT, seconds: 0, nextTripId: OUT.id })
+    pullout.trip = null
+    pullout.in_service = false
+    pullout.adherence = { state: 'deadhead', seconds: null, glyph: 'ring', reason: null }
+    const m = p.resolve(AT_TURNAROUND, DEP, routeWith(pullout), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound && d.inbound.vehicle, 'no feeder, so the wording is untested').toBeTruthy()
+    const said = p.boardingText(d, m)
+    expect(said, 'a bus on nothing was said to be finishing something')
+      .not.toContain('finishing another one first')
+    expect(said).toContain('on its way to start it')
+  })
+})
+
+describe('what comes back out of storage clears the same bar a link does', () => {
+  /*
+   * stored() checked three fields and took the rest on trust, while decode()
+   * validates the window and merge() enforces both caps. One store, two
+   * standards: an entry could sit in localStorage carrying a window a link would
+   * have been refused for, and windowLabel prints an unknown name raw, so it
+   * became the card's label.
+   */
+  /*
+   * renderClient's window is deliberately thin and carries no localStorage --
+   * that stub belongs to bootClient. plan.js reads global.localStorage at call
+   * time, so handing this window one here is enough, and keeps the store local
+   * to this block rather than shared with every other test in the file.
+   */
+  const store = new Map()
+  client.window.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => void store.set(k, String(v)),
+    removeItem: (k) => void store.delete(k),
+  }
+  const put = (value) => client.window.localStorage.setItem(
+    client.cmb.plan.STORE_KEY, JSON.stringify(value))
+
+  t('drops a stored entry whose window a link would have been refused for', (p) => {
+    put([
+      { route_id: '4', direction_id: 1, stop_id: '6243', window: '__proto__' },
+      { route_id: '4', direction_id: 1, stop_id: '6243', window: '9999-0000' },
+      { route_id: '800', direction_id: 1, stop_id: '6293', window: 'am' },
+    ])
+    expect(p.stored()).toEqual([
+      { route_id: '800', direction_id: 1, stop_id: '6293', window: 'am' },
+    ])
+  })
+
+  t('keeps a missing window, which means all day, exactly as decode does', (p) => {
+    put([{ route_id: '4', direction_id: 1, stop_id: '6243' }])
+    expect(p.stored()).toHaveLength(1)
+  })
+
+  t('applies the caps a link is held to', (p) => {
+    const many = []
+    for (let i = 0; i < p.MAX_ENTRIES + 6; i++) {
+      many.push({ route_id: String(i), direction_id: 1, stop_id: String(i), window: 'all' })
+    }
+    put(many)
+    const out = p.stored()
+    expect(out.length).toBeLessThanOrEqual(p.MAX_ENTRIES)
+    expect(p.routesIn(out).length).toBeLessThanOrEqual(p.MAX_ROUTES)
+  })
+
+  t('and an empty or unreadable store is still an absent one', (p) => {
+    put([])
+    expect(p.stored()).toBeNull()
+    client.window.localStorage.setItem(p.STORE_KEY, 'not json')
+    expect(p.stored()).toBeNull()
+    client.window.localStorage.removeItem(p.STORE_KEY)
+    expect(p.stored()).toBeNull()
+  })
+})

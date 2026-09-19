@@ -350,11 +350,19 @@
       var raw = global.localStorage.getItem(STORE_KEY);
       var list = raw ? JSON.parse(raw) : null;
       if (Object.prototype.toString.call(list) !== '[object Array]') return null;
+      /*
+       * The same bar a link has to clear. decode() validates the window and
+       * enforces both caps; this checked three fields and took the rest on
+       * trust, so a stored entry could carry a window decode() would have
+       * refused — printed raw as the card's label — or more entries than the
+       * caps allow. One store, two standards.
+       */
       var clean = list.filter(function (e) {
         return e && e.route_id && e.stop_id &&
-          (e.direction_id === 0 || e.direction_id === 1);
+          (e.direction_id === 0 || e.direction_id === 1) &&
+          windowRange(e.window || 'all') !== null;
       });
-      return clean.length ? clean : null;
+      return clean.length ? merge([], clean).entries : null;
     } catch (e) {
       /* Private mode, disabled storage, a value someone edited by hand. An
        * unreadable store is an absent one; it never takes the board down. */
@@ -453,11 +461,26 @@
      * stop-id lookup rowsFor() closed, one field over.
      */
     if (Object.prototype.hasOwnProperty.call(WINDOWS, name)) return WINDOWS[name];
-    var m = /^(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(String(name || ''));
+    /*
+     * BOUNDED TO TIMES THAT EXIST, for the reason the note above gives, one
+     * field further over again. `\d{2}` accepted hours up to 99 and minutes up
+     * to 99, so '9999-0000' parsed to [362340, 86400] — a range beginning after
+     * it ends, false at every instant of every day. The card then sat under
+     * "Later today" for good, labelled '4:39a–12:00a', which reads like a real
+     * morning window rather than a broken one; decode() kept the entry because
+     * this returned non-null, and onKeep wrote it to storage, so permanently.
+     * '2500-0100' and '1260-1300' were the same shape with better disguises.
+     *
+     * A zero-length span goes too. It used to become a full day through the wrap
+     * below and print as '12:00a–12:00a'; `all` already says that, and says it
+     * legibly.
+     */
+    var m = /^([01]\d|2[0-3])([0-5]\d)-([01]\d|2[0-3])([0-5]\d)$/.exec(String(name || ''));
     if (!m) return null;
     var from = parseInt(m[1], 10) * 3600 + parseInt(m[2], 10) * 60;
     var to = parseInt(m[3], 10) * 3600 + parseInt(m[4], 10) * 60;
-    if (to <= from) to += 86400;
+    if (to === from) return null;
+    if (to < from) to += 86400;
     return [from, to];
   }
 
@@ -681,7 +704,19 @@
       return extend(base, { state: 'done',
         detail: 'The last one today has gone. Back tomorrow.' });
     }
-    return extend(base, { state: 'ok', next: models[0] });
+    /*
+     * Ranked by the soonest bus that is actually RUNNING.
+     *
+     * stopboard keeps a canceled departure at the head of the list on purpose,
+     * without letting it consume a slot — the cancellation is the first thing the
+     * card has to say. But `next` is what sortModels ranks the whole card by, so
+     * taking models[0] put a stop at the top of the phone screen on the strength
+     * of a 3:09p that is not coming, while the first bus that is runs 25 minutes
+     * later. The rendered list is untouched; only the ranking changes, and a stop
+     * whose every departure is canceled still ranks rather than falling out.
+     */
+    var running = models.filter(function (m) { return !m.canceled; });
+    return extend(base, { state: 'ok', next: running.length ? running[0] : models[0] });
   }
 
   /*
@@ -1104,7 +1139,15 @@
       return (leg && !legCanceledHere
         ? feederName + verb + leg + eta + late + '.'
         : feederName + (sure ? ' runs this trip next' : ' likely runs this trip next') +
-          '; it is finishing another one first' + late + '.') +
+          /*
+           * "Finishing another one first" is a claim that the bus is busy, and a
+           * reader takes it as a reason to expect it late. A pull-out is the
+           * opposite: `trip: null`, deadheading out of the yard, empty and headed
+           * straight here. Split on whether the feeder is on a trip at all, not on
+           * whether we found a leg for it.
+           */
+          (feederOnTrip(m) ? '; it is finishing another one first'
+            : '; it is on its way to start it') + late + '.') +
         canceledClause(m);
     }
     if (m.boarding === 'scheduled') {
@@ -1139,6 +1182,13 @@
     if (!m.inbound || !m.inbound.canceled) return '';
     var name = legName(m);
     return ' The ' + (name || 'inbound trip') + ' it was scheduled to come in on is canceled.';
+  }
+
+  /* Is the bus we have named actually on a trip right now? A pull-out is not:
+     it has left the yard for this run and is on nothing yet. */
+  function feederOnTrip(m) {
+    var v = m && m.inbound && m.inbound.vehicle;
+    return !!(v && v.trip && v.trip.trip_id);
   }
 
   /* ", running 4 minutes late" — but "and on time", because "running on time to
