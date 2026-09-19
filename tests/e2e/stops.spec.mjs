@@ -251,7 +251,7 @@ test.describe('the plan never reaches the server', () => {
  * other than 'idle' therefore has to stop a re-fetch, or a route that had already
  * resolved gets asked for again by the very paint its own response triggered.
  *
- * The guard reads like an optimisation and is not one, so the assertion here is
+ * The guard reads like an optimization and is not one, so the assertion here is
  * the REQUEST COUNT rather than anything on screen. Unfixed, this loop issues a
  * request per animation frame — roughly sixty a second — so the gap between pass
  * and fail is two versus hundreds, not a number that needs a tolerance.
@@ -1193,5 +1193,44 @@ test.describe('keeping a second link', () => {
     expect(shared, "the shared link picked up the first child's stop").not.toContain('4.1.6243')
     expect(new URL(page.url()).hash, 'and the address bar is the same link')
       .not.toContain('4.1.6243')
+  })
+})
+
+/*
+ * THE VIEW WHOSE WHOLE SENTENCE IS "DUE HERE IN 4 MINUTES" HAD NO FRESHNESS SIGNAL.
+ *
+ * The route board, All buses and Saved all draw a staleness banner. This view drew
+ * none, and it read its payloads through liveRoute() rather than liveRouteMap(),
+ * so agedStaleness() never applied either: a tab left open went on grading a
+ * payload by how old it was when the generator wrote it, a number that stops
+ * moving the moment the phone sleeps.
+ *
+ * '/turnarounddead/' is the stale-cron payload. It existed in the fixture server
+ * for this set and no spec had ever asked for it.
+ */
+test.describe('a stops card says when its live data stopped being worth reading', () => {
+  const STALE = '/turnarounddead/index.html#plan=1;4.1.6243.all'
+
+  test('draws a staleness banner, naming the route it is about', async ({ page }) => {
+    await page.goto(STALE)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    const banner = page.locator('.savedbanner')
+    await expect(banner.first()).toBeVisible()
+    await expect(banner.first().locator('.savedbanner__route')).toContainText(/\b4\b/)
+  })
+
+  test('and the fresh scenario draws none, so the banner means something', async ({ page }) => {
+    await page.goto(LINK)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.savedbanner')).toHaveCount(0)
+  })
+
+  test('stops printing a lateness it can no longer stand behind', async ({ page }) => {
+    await page.goto(STALE)
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    /* suppress_adherence is the board's own verdict on the payload; when it is
+     * set no card may print a signed number, here or anywhere else. */
+    await expect(page.locator('.stopdep .badge')).toHaveCount(0)
   })
 })

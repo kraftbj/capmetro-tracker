@@ -89,12 +89,29 @@
     return split(pathname).base;
   }
 
+  /*
+   * A malformed escape is a bad query, not a dead board.
+   *
+   * decodeURIComponent throws URIError on a truncated escape — '?plan=1%3B4.1.6%'
+   * is one, and a link cut short by a messaging app is exactly the shape the
+   * '?plan=' rescue path exists for. boot() opens with urls.parse(), so the throw
+   * blanked the whole board AND stopped adoptPlan() ever running, which left the
+   * plan sitting in the query to be re-sent on every reload: the privacy failure
+   * and the visible one at once, from one bad character.
+   *
+   * A key or value that will not decode is kept raw. It cannot match any field
+   * the board reads, so it is ignored exactly as an unknown parameter is.
+   */
+  function decodeOrRaw(s) {
+    try { return decodeURIComponent(s); } catch (e) { return s; }
+  }
+
   function parseQuery(search) {
     var q = {};
     String(search || '').replace(/^\?/, '').split('&').forEach(function (kv) {
       if (!kv) return;
       var bits = kv.split('=');
-      q[decodeURIComponent(bits[0])] = decodeURIComponent(bits.slice(1).join('=') || '');
+      q[decodeOrRaw(bits[0])] = decodeOrRaw(bits.slice(1).join('=') || '');
     });
     return q;
   }

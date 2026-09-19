@@ -299,6 +299,35 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **A stop the bus only passes through was given the whole turnaround story.**
+  The card's own header has always said it answers "does this trip START here, and
+  if so which bus is bringing it in" — the second half was written and the gate was
+  not. At any stop served in both directions the inbound search found a leg, because
+  "same block, other direction, earlier, inside the interline gap" is satisfied by an
+  ordinary there-and-back. Pleasant Valley/5th in the shipped fixture read "Comes in
+  on the 2:37p WB. No bus is reporting on that trip yet." — a leg that had ended 23
+  minutes earlier — above a departure an hour and a half away, with an ETA derived
+  from it. The leg is now named only where the trip begins. Which bus will run the
+  trip next is still said anywhere, because that is a fair thing to say and is what
+  the route board already says.
+- **The stops view had no way of telling you its live data had gone cold.** Every
+  other view draws a staleness banner; this one drew none, and it read its payloads
+  without the ageing the others apply — so it graded a feed by how old it was when
+  the generator wrote it, a number that stops moving the moment the phone sleeps. A
+  tab left open went on printing "due here in 4 minutes" and a lateness badge beside
+  it. It now draws the same banner, on the same rule, and ages the payload the same
+  way.
+- **A feed too old to time was still good enough to place a bus at your stop.** When
+  the board suppresses lateness it has decided the snapshot cannot say how late
+  anything is; the route board honours that and names no bus. The stops card read the
+  vehicle list directly, so it printed "Scheduled · lateness unavailable" and, right
+  underneath, a named bus standing at the stop and going back out as this trip —
+  stated as fact, off the payload the line above had just disowned.
+- **One mistyped character in the address bar could blank the board and keep the
+  plan in the query.** A truncated percent-escape makes the URL parser throw, and
+  that parse is the first thing the board does — so nothing rendered, and the scrub
+  that moves a `?plan=` into the fragment never ran either, leaving it to be re-sent
+  on every reload. A link cut short by a messaging app is exactly that shape.
 - **One departure could be a likelihood on the stops view and a fact on the route
   board, in the same second, about the same bus.** Contract section 4 — a
   continuation the build could only grade `low` is said as a likelihood or not at

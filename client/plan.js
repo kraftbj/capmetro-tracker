@@ -577,7 +577,7 @@
    * the same feed, with the same 250 m tolerance, for the same reason. It
    * answers null when it cannot tell — another status, no fix, or a stop this
    * document cannot place — so a route payload without positions leaves the
-   * behaviour exactly as it was rather than refusing every bus.
+   * behavior exactly as it was rather than refusing every bus.
    */
   function atStop(route, vehicle, stopId) {
     var p = vehicle && vehicle.progress;
@@ -709,7 +709,29 @@
     }
 
     var vehicle = d.vehicle;
-    var leg = inboundLeg(dep, entry.stop_id, entry.direction_id, trip, arrivalS);
+    /*
+     * ONLY WHERE THE TRIP STARTS. The comment above this function has always said
+     * "does it START here, and if so which bus is bringing it in" — the gate was
+     * described and never written, so the whole turnaround narrative ran at every
+     * stop, including ordinary mid-route ones served in both directions.
+     *
+     * At a stop the trip merely passes THROUGH, the bus that brings this
+     * departure in is the bus already on it: there is no other leg to name, and
+     * naming one is a claim about a different vehicle on a different trip. Stop
+     * 1368 in the shipped fixture is served both ways, and the card read "Comes
+     * in on the 2:37p WB. No bus is reporting on that trip yet." — a leg that had
+     * ended 23 minutes earlier — above a departure an hour and a half away, with
+     * an inbound ETA derived from it. INTERLINE_GAP_S cannot help: 70 minutes
+     * between opposite-direction calls at a mid-route stop is an ordinary
+     * there-and-back, not an interline.
+     *
+     * The feeder below is NOT gated. "Which bus will run this trip next" is a
+     * fair question at any stop and is what /route already answers; it is only
+     * the inbound LEG — the turnaround-specific half — that has no meaning here.
+     */
+    var leg = startsHere(trip, arrivalS)
+      ? inboundLeg(dep, entry.stop_id, entry.direction_id, trip, arrivalS)
+      : null;
 
     /*
      * Two ways to find the bus, and they are not equally certain.
@@ -754,7 +776,16 @@
      * inbound leg has made no continuation claim for the feed to grade, so it
      * stays hedged whatever its own block says about whatever it runs next.
      */
-    var confirmed = !!feeder && !W.continuationHedged(feeder, trip.id);
+    /*
+     * And a suppressed snapshot confirms nothing. `suppress_adherence` means the
+     * feed is too old to say how late anything is; coverageFor honours it and
+     * returns early, so /route names no bus at all. vehicleFeeding reads
+     * route.vehicles with no such gate, so without this the card printed
+     * "Scheduled · lateness unavailable" and, directly under it, "Bus B1 is
+     * standing at this stop now ... and goes back out as this trip" — stated as
+     * fact, off a payload the board had already declared too old to read.
+     */
+    var confirmed = !d.suppressed && !!feeder && !W.continuationHedged(feeder, trip.id);
     /*
      * IS THE FEEDER ACTUALLY ON THAT LEG?
      *
@@ -801,7 +832,9 @@
         seconds_until: fDue === null ? null : fDue - now,
         vehicle: feeder,
         view: fView,
-        at_stop: atStop(route, feeder, entry.stop_id),
+        /* Same gate: "is standing at this stop now" is a present-tense claim, and
+           a snapshot too old to time is too old to make one. */
+        at_stop: !d.suppressed && atStop(route, feeder, entry.stop_id),
         canceled: legCanceled(shownLeg, route),
         confidence: confidence,
         confirmed: confirmed,
@@ -815,7 +848,7 @@
       };
     }
 
-    var here = atStop(route, vehicle, entry.stop_id);
+    var here = !d.suppressed && atStop(route, vehicle, entry.stop_id);
     /*
      * LIVE EVIDENCE OUTRANKS THE SCHEDULE'S CANCELLATION.
      *
@@ -932,7 +965,7 @@
     line.appendChild(el('span', 'stopdep__due', fmt.clock(m.due_at)));
     if (m.canceled) {
       /*
-       * The word, not a colour and not a strike-through — stopboard's rule, for
+       * The word, not a color and not a strike-through — stopboard's rule, for
        * the reason stopboard gives: a struck-out time is ambiguous at a glance
        * and invisible to a screen reader, and this is the one line on the card
        * that must not be misread. A kid waited at a stop for a bus that was

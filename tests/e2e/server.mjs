@@ -230,7 +230,7 @@ const STOPS_DEPARTURES = {
  * answer keyed by a number CapMetro also uses shadows the real thing. This used
  * to be '7' — one of the six watched routes, and the one CLAUDE.md names as the
  * source of both bugs the 2026-08-19 QA found — and it fires before any scenario
- * check, so every scenario's route 7 schedule was route 4's trim relabelled and
+ * check, so every scenario's route 7 schedule was route 4's trim relabeled and
  * dated to a service day that has ended. Latent rather than failing, because no
  * spec asks this server for route 7's schedule today. An id no agency issues
  * cannot go latent again, which is the same guarantee `flaky*` already has.

@@ -207,3 +207,33 @@ describe('a path that could become an off-origin base', () => {
     expect(urls.baseFor('/fresh//route/4')).toBe('/fresh/')
   })
 })
+
+/*
+ * A MALFORMED ESCAPE IS A BAD QUERY, NOT A DEAD BOARD.
+ *
+ * decodeURIComponent throws URIError on a truncated escape. parse() is the first
+ * thing boot() calls, so the throw took the whole board down before anything
+ * rendered -- and, worse for a feature whose entire design is about not leaking,
+ * it stopped adoptPlan() ever running, so a '?plan=' stayed in the query and was
+ * re-sent on every reload. A link cut short by a messaging app is exactly the
+ * shape the '?plan=' rescue path exists to handle.
+ */
+describe('a query nobody could decode', () => {
+  t('parses instead of throwing, and still reads the path', (urls) => {
+    expect(() => urls.parse('/stops', '?plan=1%3B4.1.6243.p%')).not.toThrow()
+    expect(urls.parse('/stops', '?plan=1%3B4.1.6243.p%').view).toBe('stops')
+    expect(() => urls.parse('/stops', '?%ZZ=1')).not.toThrow()
+    expect(() => urls.parse('/route/4/eb', '?state=%')).not.toThrow()
+  })
+
+  t('keeps the undecodable text raw rather than dropping the parameter', (urls) => {
+    expect(urls.parse('/stops', '?plan=1%3B4.1.6243.p%').query.plan)
+      .toBe('1%3B4.1.6243.p%')
+    expect(urls.parse('/stops', '?%ZZ=1').query['%ZZ']).toBe('1')
+  })
+
+  t('and a well-formed query is still decoded', (urls) => {
+    expect(urls.parse('/stops', '?plan=1%3B4.1.6243.pm').query.plan).toBe('1;4.1.6243.pm')
+    expect(urls.parse('/', '?view=stops&route=4').route_id).toBe('4')
+  })
+})

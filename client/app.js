@@ -221,12 +221,18 @@
   function store(k, v) { try { localStorage.setItem('cmb.' + k, v); } catch (e) { /* private mode */ } }
   function recall(k) { try { return localStorage.getItem('cmb.' + k); } catch (e) { return null; } }
 
+  /* Same guard, same reason as urls.parseQuery: one truncated escape anywhere in
+     the query must not take the board down on the way in. */
+  function decodeOrRaw(s) {
+    try { return decodeURIComponent(s); } catch (e) { return s; }
+  }
+
   function query() {
     var q = {};
     (global.location.search || '').replace(/^\?/, '').split('&').forEach(function (kv) {
       if (!kv) return;
       var bits = kv.split('=');
-      q[decodeURIComponent(bits[0])] = decodeURIComponent(bits.slice(1).join('=') || '');
+      q[decodeOrRaw(bits[0])] = decodeOrRaw(bits.slice(1).join('=') || '');
     });
     return q;
   }
@@ -957,6 +963,22 @@
    * got a second one fired alongside it, and then a third, each one still
    * counted as "loading" by nothing at all.
    */
+  /*
+   * THE ONLY DECLARATION OF THIS NAME, and it has to stay that way. There were
+   * two in this one closure — this one and a shorter one down beside the saved
+   * banners — and a function declaration appearing LATER wins for every call
+   * site in its scope, including the ones textually above it. So this body had
+   * never run: every caller got the short version, which refreshes the live
+   * payload and nothing else. It was masked rather than visible because the
+   * plan's schedules are fetched again by the generic sweep a few lines below
+   * the one call that needed them. This file has been bitten by exactly this
+   * once before, by a duplicate refreshTick left behind by a merge.
+   *
+   * loadRouteData declines on any status but idle, so calling it while a request
+   * is open is a no-op rather than a second request. The departures loaders
+   * carry their own guard on depStatus — a separate fetch, which must not be
+   * skipped merely because the route payload is still in the air.
+   */
   function refreshRoute(routeId) {
     if (state.routeStatus[routeId] !== 'loading') state.routeStatus[routeId] = 'idle';
     retryDepartures(routeId);
@@ -1195,12 +1217,25 @@
    * names one route; a chain names two or three, and none of them is necessarily
    * the route on screen.
    */
+  /*
+   * Every route some view on this board is currently answering for.
+   *
+   * Null-prototype, and that matters more since the stops plan joined: watch and
+   * chain ids come from this phone's own storage, but a plan's come straight off
+   * a link, so a route id of 'constructor' would have read back as a function
+   * rather than undefined in the bare object this used to be.
+   */
   function savedRouteIds() {
-    var wanted = {};
+    var wanted = Object.create(null);
     global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
     global.CMB.chain.list().forEach(function (c) {
       global.CMB.chain.routesIn(c).forEach(function (id) { wanted[id] = true; });
     });
+    /* The stops view reads live vehicle data exactly as the saved view does, so
+       it needs the same banner when that data stops being worth reading. */
+    if (state.plan.entries && state.plan.entries.length) {
+      global.CMB.plan.routesIn(state.plan.entries).forEach(function (id) { wanted[id] = true; });
+    }
     return wanted;
   }
 
@@ -1544,7 +1579,13 @@
     var kept = [];
     raw.split('&').forEach(function (kv) {
       if (!kv) return;
-      var key = decodeURIComponent(kv.split('=')[0]);
+      /* Guarded for the reason searchWithoutPlan() gives: a half-written escape
+         makes decodeURIComponent throw, and this runs on every syncUrl(). The
+         throw froze the address bar for the session — a removed stop came back
+         on reload, and PATH_OWNED.plan, the second lock on the query, stopped
+         being applied at all. */
+      var key = kv.split('=')[0];
+      try { key = decodeURIComponent(key); } catch (e) { /* compared raw */ }
       if (!Object.prototype.hasOwnProperty.call(PATH_OWNED, key)) kept.push(kv);
     });
     return kept.length ? '?' + kept.join('&') : '';
@@ -2011,10 +2052,34 @@
   function paintStops() {
     var band = el('section', 'band band--stops');
     band.setAttribute('aria-label', 'Stops');
+
+    /*
+     * THE BANNER THIS VIEW WAS MISSING.
+     *
+     * The board, All buses and Saved all draw one; this view drew none, and it is
+     * the one whose whole sentence is "due here in 4 minutes". A tab left open
+     * fifteen minutes went on printing that, and the badge beside it, off a
+     * payload nothing had looked at since.
+     *
+     * Appended ABOVE the band rather than into it, which is where the saved view
+     * puts its own: plan.render() clears the host it is given before drawing the
+     * cards, so a banner placed inside the band ahead of them is wiped by the
+     * very render that draws them, silently and every time.
+     */
+    savedStalenessBanners().forEach(function (b) { dom.main.appendChild(b); });
     dom.main.appendChild(band);
 
     var entries = state.plan.entries || [];
     var now = nowEpoch();
+    /*
+     * Read through liveRouteMap(), not liveRoute(): the map applies
+     * agedStaleness(), which adds the time THIS browser has held a payload to the
+     * age the generator stamped on it, and suppresses lateness past the same
+     * threshold every other view uses. Without it the cards graded a payload by
+     * how old it was when it was written, which on a sleeping phone is a number
+     * that stopped moving hours ago.
+     */
+    var live = liveRouteMap();
     var models = entries.map(function (e) {
       /* Resolving here rather than only in selectView covers a link opened while
        * the view is already showing. Both loaders are idempotent. */
@@ -2023,7 +2088,7 @@
       return global.CMB.plan.resolve(
         e,
         state.departures[e.route_id] || null,
-        liveRoute(e.route_id),
+        live[e.route_id] || null,
         now,
         {
           schedule_detail: scheduleDetail(e.route_id),
@@ -2400,20 +2465,6 @@
    * them the warning is about, or therefore which card to stop trusting. The route
    * board never had that problem — it only ever shows one route.
    */
-  /*
-   * Permit one more fetch for a route, without disturbing one in flight.
-   *
-   * Resetting to 'idle' unconditionally defeats loadRouteData's own single-flight
-   * guard: the reset lands while a request is open, the next paint starts a second,
-   * and the older response can arrive last and revert a verdict to stale data. Same
-   * helper and same condition as PR 2, so the two do not drift.
-   */
-  function refreshRoute(routeId) {
-    if (state.routeStatus[routeId] === 'loading') return;
-    state.routeStatus[routeId] = 'idle';
-    loadRouteData(routeId);
-  }
-
   /*
    * Permit one more fetch of a schedule that stopped: a failed request, or a
    * document evicted for belonging to another service day. Same handshake and same

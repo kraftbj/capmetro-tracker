@@ -45,3 +45,43 @@ describe('the client script list the sandboxes load', () => {
     expect(CLIENT_SCRIPTS.some((s) => s.startsWith('data/'))).toBe(false)
   })
 })
+
+/*
+ * ONE NAME, ONE FUNCTION, PER FILE.
+ *
+ * Every client script is a single top-level closure, so two `function foo()`
+ * declarations in one file are not two functions -- they are one, and it is the
+ * LAST one, for every call site in the file including the ones written above it.
+ * The earlier body becomes unreachable while still reading as live code, comment
+ * and all.
+ *
+ * This file has shipped that bug twice. A merge once left a duplicate
+ * `refreshTick`, and the tests exercised the copy that was not running. Then this
+ * branch added a second `refreshRoute` beside the existing one: the new body --
+ * the one that also refreshes the plan's schedules, with fifteen lines of comment
+ * explaining why -- never executed once, and both copies carried a comment
+ * claiming the two "do not drift".
+ *
+ * Nothing catches it at runtime, because the surviving body is usually a near
+ * relative of the dead one and something else compensates. So it is caught here,
+ * in the source, where it is unambiguous.
+ */
+describe('no client script declares one function name twice', () => {
+  const declarations = (src) =>
+    [...src.matchAll(/^[ \t]*function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map((m) => m[1])
+
+  it.each(CLIENT_SCRIPTS)('%s', (script) => {
+    const src = readFileSync(path.join(ROOT, 'client', script), 'utf8')
+    const names = declarations(src)
+    const seen = new Map()
+    for (const n of names) seen.set(n, (seen.get(n) ?? 0) + 1)
+    const dupes = [...seen].filter(([, n]) => n > 1).map(([name, n]) => `${name} x${n}`)
+    expect(dupes, `${script} declares the same function name more than once`).toEqual([])
+  })
+
+  it('and the scan actually found declarations, or it is asserting over nothing', () => {
+    const src = readFileSync(path.join(ROOT, 'client/app.js'), 'utf8')
+    expect(declarations(src).length).toBeGreaterThan(20)
+    expect(declarations(src)).toContain('refreshRoute')
+  })
+})

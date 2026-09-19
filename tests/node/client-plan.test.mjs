@@ -1322,7 +1322,7 @@ describe('a departure timed from the feed does not also wear a badge', () => {
  * THE MUTATIONS THAT USED TO SURVIVE.
  *
  * Every test below was written because the rule it covers could be deleted from
- * plan.js and the whole suite stayed green. They are not new behaviour; they are
+ * plan.js and the whole suite stayed green. They are not new behavior; they are
  * the clauses that were already load-bearing and already unpinned, which is the
  * more dangerous shape — a comment explaining why something matters, above code
  * nothing would notice the loss of.
@@ -1768,5 +1768,120 @@ describe('the route row and the stop card cannot disagree about one departure', 
       routeWith(bus({ id: 'B1', trip: LEG, seconds: 300, nextTripId: 'some-other-trip' })),
       AT_TURNAROUND)
     agree(out)
+  })
+})
+
+/* ------------------------------------------------------------------------- */
+
+/*
+ * A STOP THE TRIP PASSES THROUGH IS NOT A TURNAROUND.
+ *
+ * The header on decorate() always said "does it START here, and if so which bus
+ * is bringing it in". The gate was described and never written, so the inbound
+ * reasoning ran everywhere -- and at an ordinary stop served both ways it found
+ * a leg, because "same block, other direction, arrives before us, inside the
+ * interline gap" is satisfied by any ordinary there-and-back.
+ *
+ * Stop 1368 (Pleasant Valley/5th) in the shipped fixture is that stop. All four
+ * westbound departures start there; none of the three eastbound ones do, and
+ * each has a westbound call on its own block 68 to 71 minutes earlier -- inside
+ * INTERLINE_GAP_S, so the leg search reached it and the card named it.
+ */
+describe('an ordinary stop does not get the turnaround narrative', () => {
+  const THROUGH = '1368'
+  const AT_THROUGH = { route_id: '4', direction_id: 1, stop_id: THROUGH, window: 'all' }
+
+  t('the fixture really is served both ways and passed through, or this proves nothing', (p) => {
+    const m = p.resolve(AT_THROUGH, DEP, EMPTY_ROUTE, NOW)
+    expect(m.departures.length).toBeGreaterThan(0)
+    expect(m.is_turnaround, 'a turnaround, so the wrong stop was chosen').toBe(false)
+    expect(m.departures.every((d) => d.starts_here === false),
+      'some departure starts here, so this is not the pass-through case').toBe(true)
+    /* And the leg search WOULD find one here -- same block, other direction,
+     * before us, inside the gap. That is what makes the gate load-bearing. */
+    const d0 = m.departures[0]
+    expect(p.inboundLeg(DEP, THROUGH, 1, d0.trip, d0.scheduled_at - START),
+      'no leg to suppress, so the gate is untested').toBeTruthy()
+  })
+
+  t('names no inbound leg, because the bus arrives on this very trip', (p) => {
+    const m = p.resolve(AT_THROUGH, DEP, EMPTY_ROUTE, NOW)
+    for (const d of m.departures) {
+      expect(d.inbound, `${d.trip.id} was given an inbound leg at a pass-through stop`).toBeNull()
+      expect(p.boardingText(d, m)).not.toContain('Comes in on')
+      expect(p.boardingText(d, m)).not.toContain('brings it in')
+    }
+  })
+
+  t('and prints no inbound ETA under a departure it could not belong to', (p) => {
+    const card = p.render(client.document.createElement('div'), [p.resolve(AT_THROUGH, DEP, EMPTY_ROUTE, NOW)], {})
+    expect(textDeep(card)).not.toContain('due here in')
+  })
+
+  /*
+   * The bus that will run the trip next is still a fair thing to say here -- it
+   * is what /route says -- so the feeder is deliberately NOT gated. Only the
+   * inbound LEG, which is the turnaround-specific half, is.
+   */
+  t('still names the bus that will run the trip, without claiming a leg', (p) => {
+    const m0 = p.resolve(AT_THROUGH, DEP, EMPTY_ROUTE, NOW)
+    const target = m0.departures[0].trip
+    const feeder = bus({ id: 'B7', trip: inboundAt(PAIRS[0].inbound_arrival_s), seconds: 120,
+      nextTripId: target.id })
+    const m = p.resolve(AT_THROUGH, DEP, routeWith(feeder), NOW)
+    const d = m.departures.find((x) => x.trip.id === target.id)
+
+    expect(d.inbound.vehicle.vehicle_id).toBe('B7')
+    expect(d.inbound.trip, 'a leg was named at a pass-through stop').toBeNull()
+    expect(d.inbound.due_at, 'an ETA was derived from a leg that is not ours').toBeNull()
+    expect(p.boardingText(d, m)).toContain('finishing another one first')
+  })
+})
+
+/*
+ * A SNAPSHOT TOO OLD TO TIME IS TOO OLD TO ASSERT FROM.
+ *
+ * suppress_adherence means the board has decided the feed cannot say how late
+ * anything is. coverageFor honours it and returns early, so /route names no bus.
+ * vehicleFeeding reads route.vehicles with no such gate, so the card printed
+ * "Scheduled - lateness unavailable" and, directly beneath it, a bus standing at
+ * the stop and going back out as this trip, stated as fact.
+ */
+describe('a suppressed feed confirms nothing and places nobody', () => {
+  const OUT = outboundAt(PAIRS[0].outbound_departure_s)
+  const LEG = inboundAt(PAIRS[0].inbound_arrival_s)
+  const stale = (...vehicles) => ({
+    staleness: { level: 'stale', suppress_adherence: true, oldest_feed_age_s: 14400 },
+    vehicles,
+  })
+
+  t('does not state the continuation as fact off a suppressed payload', (p) => {
+    const v = bus({ id: 'B1', trip: LEG, seconds: 300, nextTripId: OUT.id })
+    const m = p.resolve(AT_TURNAROUND, DEP, stale(v), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.suppressed, 'not suppressed, so this proves nothing').toBe(true)
+    expect(d.inbound.confirmed).toBe(false)
+    expect(p.boardingText(d, m)).toContain('likely')
+  })
+
+  t('does not say a bus is standing here on the strength of an old snapshot', (p) => {
+    const v = bus({ id: 'B1', trip: LEG, seconds: 300, stopId: TURN, status: 'STOPPED_AT',
+      nextTripId: OUT.id })
+    const m = p.resolve(AT_TURNAROUND, DEP, stale(v), NOW)
+    const d = m.departures.find((x) => x.trip.id === OUT.id)
+
+    expect(d.inbound.at_stop).toBe(false)
+    expect(d.boarding).not.toBe('waiting')
+    expect(p.boardingText(d, m)).not.toContain('standing at this stop now')
+  })
+
+  t('and the card does not contradict its own lateness line', (p) => {
+    const v = bus({ id: 'B1', trip: LEG, seconds: 300, stopId: TURN, status: 'STOPPED_AT',
+      nextTripId: OUT.id })
+    const text = textDeep(p.render(client.document.createElement('div'),
+      [p.resolve(AT_TURNAROUND, DEP, stale(v), NOW)], {}))
+    expect(text).toContain('lateness unavailable')
+    expect(text).not.toContain('standing at this stop now')
   })
 })
