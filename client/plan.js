@@ -768,6 +768,22 @@
      * names the bus, W.continuationHedged grades it, and the two views cannot
      * disagree because there is nothing left to disagree with.
      */
+    /*
+     * WHERE THE FEEDER CAME FROM DECIDES WHAT MAY BE SAID ABOUT IT.
+     *
+     * `d.predictor` is a bus the route board has already agreed to name AND to
+     * time. vehicleFeeding is this file reaching past that judgement into the
+     * raw vehicle list, and it re-adopts exactly what timingFor threw out: the
+     * documented bus-2817 shape, where a claimant has no usable deviation, so
+     * timingFor nulls the predictor and /route prints "scheduled · bus B1
+     * becomes this run" with no time attached at all. /stops answered the same
+     * state with "Bus B1 brings it in on the 3:04p WB — due here in 4 minutes",
+     * stated as fact — and those four minutes were the raw timetable, because
+     * with no deviation to add the arithmetic below falls through to the booked
+     * time. A scheduled arrival wearing a live label, for a bus the rest of the
+     * board had just declared untimeable.
+     */
+    var fromPredictor = !vehicle && !!d.predictor;
     var feeder = vehicle ? null : (d.predictor || vehicleFeeding(route, trip.id));
     var confidence = feeder && feeder.block ? feeder.block.confidence : null;
     /*
@@ -785,7 +801,8 @@
      * standing at this stop now ... and goes back out as this trip" — stated as
      * fact, off a payload the board had already declared too old to read.
      */
-    var confirmed = !d.suppressed && !!feeder && !W.continuationHedged(feeder, trip.id);
+    var confirmed = fromPredictor && !d.suppressed && !!feeder &&
+      !W.continuationHedged(feeder, trip.id);
     /*
      * IS THE FEEDER ACTUALLY ON THAT LEG?
      *
@@ -824,7 +841,14 @@
       var fView = feeder ? adhLib.view(feeder, route && route.staleness) : null;
       var fSched = shownLeg ? dep.service_day_start_epoch + shownLeg.seconds : null;
       var fLate = fView && fView.seconds !== null && fView.seconds !== undefined ? fView.seconds : null;
-      var fDue = fSched === null ? null : (fLate === null ? fSched : fSched + fLate);
+      /*
+       * No deviation, no ETA. This used to fall back to the booked time, which
+       * prints through untilText() as "due here in 4 minutes" — a timetable
+       * entry indistinguishable from a live estimate. The scheduled time is
+       * already said by the leg's own name ("in on the 3:04p WB"); saying it
+       * twice, once disguised, is the thing to avoid.
+       */
+      var fDue = (fSched === null || fLate === null) ? null : fSched + fLate;
       inbound = {
         trip: shownLeg ? shownLeg.trip : null,
         scheduled_at: fSched,

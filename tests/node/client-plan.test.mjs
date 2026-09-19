@@ -826,7 +826,22 @@ describe('a continuation the feed has not confirmed is said as one', () => {
    * while /route was hedging it. Same feed, same second, same vehicle, two
    * answers. Both now ask W.continuationHedged and cannot come apart.
    */
-  t('agrees with the route board about a bus whose deviation is unusable', (p, cmb) => {
+  /*
+   * A bus /route WILL NOT TIME is a bus /stops may not time either.
+   *
+   * timingFor nulls the predictor when the claimant has no usable deviation --
+   * the documented bus-2817 shape -- so the route board names the bus in its
+   * coverage line and attaches no time at all. This file reached past that into
+   * the raw vehicle list, called the continuation confirmed because the block
+   * grade was fine, and printed "due here in 4 minutes": the booked time, with
+   * no deviation to add, presented as a live estimate.
+   *
+   * The first version of this test asserted only that the two agree on the hedge
+   * PREDICATE, which they did -- while still disagreeing about whether the bus
+   * could be timed. That is the wrong invariant, and it is the one that let this
+   * through.
+   */
+  t('does not time a bus the route board refused to time', (p) => {
     const pair = pairFor()
     const out = tripAt837(pair.outbound_departure_s, 1)
     const inb = tripAt837(pair.inbound_arrival_s, 0)
@@ -836,10 +851,18 @@ describe('a continuation the feed has not confirmed is said as one', () => {
 
     const m = p.resolve(AT_837, DEP837, route, NOW837)
     const d = m.departures.find((x) => x.inbound && x.inbound.vehicle)
-    /* The premise: /route declined to make it a predictor, which is the state
-     * that used to let this file answer on its own. */
-    expect(d.predictor, 'no predictor, so the old local branch is what ran').toBeNull()
-    expect(d.inbound.confirmed).toBe(!cmb.watch.continuationHedged(v, d.trip.id))
+
+    /* The premise: /route declined to make it a predictor. Without this the test
+     * is about some other state entirely. */
+    expect(d.predictor, 'a predictor, so the branch under test never ran').toBeNull()
+
+    expect(d.inbound.confirmed, 'stated as fact what /route would not even time').toBe(false)
+    expect(d.inbound.due_at, 'the booked time was dressed up as a live ETA').toBeNull()
+    expect(d.inbound.seconds_until).toBeNull()
+
+    const said = p.boardingText(d, m)
+    expect(said).toContain('likely')
+    expect(said, 'an ETA survived for a bus with no usable deviation').not.toContain('due here in')
   })
 
   t('hedges the schedule-only fallback too, since the feed confirmed nothing there', (p) => {

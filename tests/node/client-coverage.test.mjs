@@ -215,17 +215,39 @@ describe('what the rider actually reads', () => {
     vehicle: { vehicle_id: '2810', label: '2810', block: block },
   })
 
+  /*
+   * READ OFF THE PRINTED ELEMENT, for the reason the predictor tests below give
+   * and this block originally ignored. Both the printed line and the sr-only line
+   * beside it carry the hedge, so asserting over the row's whole text passes on
+   * the strength of the spoken copy while the visible sentence says the opposite.
+   * Proven, not assumed: deleting the hedge from the printed line alone left all
+   * 32 tests in this file green.
+   */
+  const printedSched = (cmb, d) => {
+    const h = cmb.states.el('div', 'host')
+    h.appendChild(cmb.stopboard.departureRow(d))
+    return all(h, 'nextbus__sched').map(textDeep).join(' ')
+  }
+  const spokenSched = (cmb, d) => {
+    const h = cmb.states.el('div', 'host')
+    h.appendChild(cmb.stopboard.departureRow(d))
+    return all(h, 'sr-only').map(textDeep).join(' ')
+  }
+
   t('states the continuation plainly when the feed named THIS trip and graded it high', (cmb) => {
-    const text = draw(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'T' } })))
-    expect(text).toContain('becomes this run')
-    expect(text).not.toContain('likely')
-    expect(text).not.toContain('does not confirm')
+    const printed = printedSched(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'T' } })))
+    expect(printed).toContain('becomes this run')
+    expect(printed).not.toContain('likely')
+    expect(printed).not.toContain('does not confirm')
   })
 
   t('hedges a continuation the build could only grade low', (cmb) => {
-    const text = draw(cmb, row(covering({ confidence: 'low', next_trip: { trip_id: 'T' } })))
-    expect(text).toContain('likely becomes this run')
-    expect(text).toContain('does not confirm')
+    const d = row(covering({ confidence: 'low', next_trip: { trip_id: 'T' } }))
+    expect(printedSched(cmb, d)).toContain('likely becomes this run')
+    expect(printedSched(cmb, d)).toContain('does not confirm')
+    /* And the spoken line carries it independently, so neither reader can lose
+     * the hedge while the other keeps it. */
+    expect(spokenSched(cmb, d)).toContain('does not confirm this continuation')
   })
 
   /* The grade is about the trip next_trip NAMES. A bus reached by block order,
@@ -233,13 +255,13 @@ describe('what the rider actually reads', () => {
    * something else — reading its grade as proof of ours is reading a number
    * about one claim as proof of another. */
   t('hedges a high grade that is about a different trip', (cmb) => {
-    const text = draw(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'SOMETHING-ELSE' } })))
-    expect(text).toContain('likely becomes this run')
+    expect(printedSched(cmb, row(covering({ confidence: 'high', next_trip: { trip_id: 'SOMETHING-ELSE' } }))))
+      .toContain('likely becomes this run')
   })
 
   t('hedges when the feed has named no continuation at all', (cmb) => {
-    expect(draw(cmb, row(covering({ confidence: 'high', next_trip: null })))).toContain('likely')
-    expect(draw(cmb, row(covering(null)))).toContain('likely')
+    expect(printedSched(cmb, row(covering({ confidence: 'high', next_trip: null })))).toContain('likely')
+    expect(printedSched(cmb, row(covering(null)))).toContain('likely')
   })
 
   /*

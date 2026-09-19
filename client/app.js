@@ -2183,7 +2183,21 @@
         state.plan.saved = false;
         /* The link, if there is one, is still on screen: forgetting is about the
          * store, not about what is being looked at. */
-        if (!global.CMB.plan.fromLocation(global.location)) state.plan.entries = null;
+        var stillLinked = global.CMB.plan.fromLocation(global.location);
+        if (!stillLinked) state.plan.entries = null;
+        /*
+         * And the offer comes back, because the way to undo this has to be on the
+         * screen that did it. `offer` was nulled when the set was first kept and
+         * nothing restored it, so after Forget the cards sat there with neither
+         * the Keep banner nor the Forget button — the one affordance this view
+         * exists for, missing until the reader thought to reload. The decline is
+         * cleared with it: tapping Forget is not declining the offer, it is
+         * asking for it.
+         */
+        if (stillLinked) {
+          state.plan.offer = state.plan.linkEntries || state.plan.entries;
+          state.plan.declined = null;
+        }
         announce('These stops are no longer kept on this phone.');
         render();
       },
@@ -2207,9 +2221,14 @@
         /* The link describes the same stops minus the one just removed, or the
            fragment would restore it on the next load. */
         if (state.plan.linkEntries) {
-          state.plan.linkEntries = state.plan.linkEntries.filter(function (e) {
+          var leftInLink = state.plan.linkEntries.filter(function (e) {
             return global.CMB.plan.keyFor(e) !== key;
           });
+          /* Back to null, not to []. An empty array is truthy, so
+             `linkEntries || entries` kept answering with it: the share box went
+             away, and syncFragment wrote a URL with no fragment at all, while the
+             stops the reader kept were still on the screen. */
+          state.plan.linkEntries = leftInLink.length ? leftInLink : null;
         }
         if (state.plan.offer) state.plan.offer = state.plan.entries;
         syncFragment();
@@ -3039,6 +3058,10 @@
       if (!found) return;
       if (state.plan.entries && global.CMB.plan.sameSet(state.plan.entries, found.entries)) {
         state.plan.fromLink = true;
+        /* And WHICH entries the link carries, or syncFragment has a fromLink
+           with nothing to write and strips '#plan=' off the bar on the first
+           edit. The two are one fact and have to be set together. */
+        state.plan.linkEntries = found.entries;
       } else {
         adoptPlan();
       }

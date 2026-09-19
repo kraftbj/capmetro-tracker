@@ -1002,15 +1002,16 @@ test.describe('pasting a link into a tab that is already open', () => {
      * removed -- the board undoing an edit by itself. Verified: disabling syncFragment
      * fails this test and one other.
      *
-     * What this does NOT pin, said plainly because I went looking for it: the
-     * `state.plan.fromLink = true` inside the hashchange handler's same-set branch. I could
-     * not construct a case where removing it changes anything, and tracing the three
-     * assignments says why -- adoptPlan sets it on every cold load carrying a link, the
-     * only thing that clears it is emptying the plan entirely, and an emptied plan cannot
-     * then match `sameSet` against an incoming one. So by the time that branch runs the
-     * flag is already true. It looks like defensive code rather than a live guard; left
-     * alone rather than deleted on an argument, and recorded here so the next person does
-     * not have to redo the trace.
+     * That trace was wrong, and the note it left is kept here because the way it
+     * was wrong is the useful part. It said the `state.plan.fromLink = true` in the
+     * hashchange same-set branch was unreachable defensive code, because adoptPlan
+     * sets the flag on every cold load carrying a link. It missed the path where
+     * the load carries NO link: keep a set, come back cold, and the entries arrive
+     * from storage with the flag false -- then a paste of the same plan matches
+     * sameSet and that branch is the only thing that sets it. 'I could not
+     * construct a case' is a statement about the search, not about the code.
+     * 'a pasted link that matches the kept set still owns the fragment' below is
+     * that case.
      */
     await page.goto(LINK)
     await expect(page.locator('.stopcard')).toHaveCount(2)
@@ -1232,5 +1233,107 @@ test.describe('a stops card says when its live data stopped being worth reading'
     /* suppress_adherence is the board's own verdict on the payload; when it is
      * set no card may print a signed number, here or anywhere else. */
     await expect(page.locator('.stopdep .badge')).toHaveCount(0)
+  })
+})
+
+/*
+ * THE THREE WAYS THE LINK AND THE BOARD CAME APART.
+ *
+ * `entries` is what the board shows and `linkEntries` is what the link carried;
+ * splitting them stopped a merged set being written back into somebody else's
+ * link. These are the seams that split left behind, plus the affordance that
+ * went missing when a kept set was forgotten.
+ */
+test.describe('the link, the board and the offer stay in step', () => {
+  const FIRST = '/turnaround/index.html#plan=1;4.1.6243.all'
+  const SECOND = '/turnaround/index.html#plan=1;800.1.6293.all'
+
+  /*
+   * An emptied linkEntries was [], which is truthy, so `linkEntries || entries`
+   * went on answering with the empty array: the share box disappeared and the
+   * fragment was written blank, while the stops the reader had kept were still
+   * on the screen in front of them.
+   */
+  test('keeps offering a link after the last of the link\'s own stops is removed', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    await page.goto(SECOND)
+    await page.getByRole('button', { name: 'Add to this phone' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* Remove the one stop the SECOND link carried. The board keeps the first. */
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    const shared = await page.locator('.share__field').inputValue()
+    expect(shared, 'the share box went away while stops were still on screen')
+      .toContain('#plan=')
+    expect(shared, 'and it should describe what is left').toContain('4.1.6243')
+    expect(shared, 'it should not re-offer the stop that was just removed')
+      .not.toContain('800.1.6293')
+
+    /* The fragment going empty here is right, not a second bug: the link's own
+     * stops are gone, so there is no link left to describe and fromLink clears.
+     * What must survive is the board, which lives in storage. */
+    await page.reload()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    await expect(page.getByText('Campbell/5th').first()).toBeVisible()
+  })
+
+  /*
+   * The hashchange same-set fast path sets fromLink. It has to set linkEntries
+   * with it, because the two are one fact: a fromLink with nothing to write makes
+   * syncFragment compute `linkEntries || []` and strip '#plan=' off the bar on the
+   * first edit. Reachable only after a keep, which is why it went unseen: the
+   * board's entries then come from storage with linkEntries null, and a paste of
+   * the same plan matches them.
+   */
+  test('a pasted link that matches the kept set still owns the fragment', async ({ page }) => {
+    /* Two stops, because the divergence only shows once one is removed: with a
+     * one-stop link the fragment goes empty for a legitimate reason and the two
+     * behaviours look identical. */
+    await page.goto(LINK)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+
+    /* Cold, no link: entries come from storage and linkEntries is null. */
+    await page.goto('/turnaround/index.html')
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* The same plan arrives by paste and matches what is already on screen --
+     * the same-set fast path, which sets fromLink. */
+    await page.evaluate((plan) => { window.location.hash = `plan=${plan}` }, PLAN)
+    await expect(page.locator('.stopcard')).toHaveCount(2)
+
+    /* Now an edit. syncFragment has fromLink set, so it writes the fragment --
+     * and with no linkEntries to write it wrote an empty one, stripping the plan
+     * off the address bar entirely. */
+    await page.locator('.stopcard').filter({ hasText: 'Simond SB' })
+      .getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+
+    const hash = new URL(page.url()).hash
+    expect(hash, 'the edit stripped the plan off the address bar').toContain('plan=')
+    expect(hash, 'and it should describe what is left').toContain('4.1.6243')
+    expect(hash, 'the removed stop came back').not.toContain('800.1.6293')
+  })
+
+  /*
+   * Forgetting a link-opened set left the cards on screen with neither the Keep
+   * banner nor the Forget button: `offer` was nulled when the set was first kept
+   * and only adoptPlan ever rebuilds it, so the one affordance this view exists
+   * for was missing until the reader thought to reload.
+   */
+  test('offers to keep again after the stops are forgotten', async ({ page }) => {
+    await page.goto(FIRST)
+    await page.getByRole('button', { name: 'Keep on this phone' }).click()
+    await expect(page.locator('.offer')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Forget these stops' }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(1)
+    await expect(page.locator('.offer'), 'no way back on the screen that did it')
+      .toHaveCount(1)
+    await expect(page.getByRole('button', { name: 'Keep on this phone' })).toBeVisible()
   })
 })
