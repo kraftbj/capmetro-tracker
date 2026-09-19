@@ -1337,3 +1337,91 @@ test.describe('the link, the board and the offer stay in step', () => {
     await expect(page.getByRole('button', { name: 'Keep on this phone' })).toBeVisible()
   })
 })
+
+/*
+ * A BANNER MUST SPEAK FOR THE CARDS BESIDE IT.
+ *
+ * Giving the stops view a staleness banner was done by widening savedRouteIds(),
+ * which three callers read -- the saved view's banners, the saved view's FETCH
+ * set, and the refresh tick. So the stops view warned about watch and chain
+ * routes it shows no card for and never loads, which meant the warning could
+ * never clear; the saved view warned about the plan's routes above its own empty
+ * states; and the saved view started fetching them. The fetch set and the banner
+ * set are different questions and are now asked separately.
+ */
+test.describe('each view warns about its own routes and no others', () => {
+  const watchOn800 = async (page) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('cmb.watches', JSON.stringify([{
+        route_id: '800', direction_id: 1, direction_tag: 'SB', stop_id: '6293',
+        stop_name: 'Simond SB', scheduled_time: '07:52:09', day_type: 'weekday',
+      }]))
+    })
+  }
+
+  test('the stops view says nothing about a watched route it shows no card for', async ({ page }) => {
+    await watchOn800(page)
+    await page.goto('/turnaround/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await page.waitForTimeout(600)
+
+    const banners = page.locator('.savedbanner')
+    const text = (await banners.count()) ? await banners.allInnerTexts() : []
+    expect(text.join(' '), 'warned about a route with no card on this view')
+      .not.toContain('800')
+  })
+
+  test('the saved view says nothing about the routes only the plan uses', async ({ page }) => {
+    /* A plan is open, and nothing is saved. The saved view's own empty states are
+     * the whole answer; a feed banner about route 4 above them is not. */
+    await page.goto('/turnarounddead/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Saved' }).click()
+    await expect(page.locator('.band--saved')).toBeVisible()
+    await page.waitForTimeout(600)
+
+    const banners = page.locator('.savedbanner')
+    const text = (await banners.count()) ? await banners.allInnerTexts() : []
+    expect(text.join(' '), 'the saved view warned about a route only the plan uses')
+      .not.toContain('ROUTE 4')
+  })
+
+  /* paint() suppresses its own unlabelled route banner on any view that draws
+   * per-route ones. It knew about saved and not about stops, so the identical
+   * sentence was printed twice. */
+  test('and the stale stops view prints that sentence once, not twice', async ({ page }) => {
+    await page.goto('/turnarounddead/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.stopcard').first()).toBeVisible()
+    await expect(page.locator('.savedbanner')).toHaveCount(1)
+    /*
+     * And paint()'s own unlabelled one is gone, not merely different. Counted by
+     * subtraction because the labelled banner CONTAINS a .banner--danger of its
+     * own: what must not exist is one outside a .savedbanner, which is the
+     * unlabelled kind that names no route.
+     */
+    const all = await page.locator('.banner--danger').count()
+    const labelled = await page.locator('.savedbanner .banner--danger').count()
+    expect(all - labelled, 'paint() drew its own unlabelled banner as well').toBe(0)
+  })
+})
+
+test.describe('an offer that has nothing left to offer', () => {
+  /*
+   * The same empty-array-is-truthy trap as linkEntries, in the line beside it
+   * that was left alone: removing the last stop while the offer was still up set
+   * `offer` to [], which is truthy, so the banner stayed and read "This link
+   * carries 0 stops."
+   */
+  test('goes away when the last stop is removed', async ({ page }) => {
+    await page.goto('/turnaround/index.html#plan=1;4.1.6243.all')
+    await expect(page.locator('.offer')).toHaveCount(1)
+
+    await page.locator('.stopcard').first().getByRole('button', { name: /Remove/ }).click()
+    await expect(page.locator('.stopcard')).toHaveCount(0)
+
+    const offers = page.locator('.offer')
+    const text = (await offers.count()) ? await offers.allInnerTexts() : []
+    expect(text.join(' '), 'an offer survived with nothing in it').not.toContain('0 stop')
+  })
+})

@@ -1218,24 +1218,31 @@
    * the route on screen.
    */
   /*
-   * Every route some view on this board is currently answering for.
+   * The routes the SAVED view answers for: watches and chains, nothing else.
    *
-   * Null-prototype, and that matters more since the stops plan joined: watch and
-   * chain ids come from this phone's own storage, but a plan's come straight off
-   * a link, so a route id of 'constructor' would have read back as a function
-   * rather than undefined in the bare object this used to be.
+   * It is the fetch set as well as the banner set — loadSavedRoutes and the
+   * refresh tick both read it — which is why the stops plan does not belong in
+   * it. Adding the plan's routes here gave the stops view a banner about a route
+   * it shows no card for and never loads (so the banner never cleared), gave the
+   * saved view a banner about the plan's routes above two empty states, and made
+   * the saved view fetch them. The banner set is now passed in instead.
+   *
+   * Null-prototype because these ids come out of this phone's storage and the
+   * bare object it used to be read 'constructor' back as a function.
    */
+  /* The routes the stops view is showing cards for, which is what its banners
+     must speak for and nothing more. */
+  function planRouteIds() {
+    var entries = state.plan.entries || [];
+    return entries.length ? global.CMB.plan.routesIn(entries) : [];
+  }
+
   function savedRouteIds() {
     var wanted = Object.create(null);
     global.CMB.watch.list().forEach(function (w) { wanted[w.route_id] = true; });
     global.CMB.chain.list().forEach(function (c) {
       global.CMB.chain.routesIn(c).forEach(function (id) { wanted[id] = true; });
     });
-    /* The stops view reads live vehicle data exactly as the saved view does, so
-       it needs the same banner when that data stops being worth reading. */
-    if (state.plan.entries && state.plan.entries.length) {
-      global.CMB.plan.routesIn(state.plan.entries).forEach(function (id) { wanted[id] = true; });
-    }
     return wanted;
   }
 
@@ -1920,7 +1927,10 @@
        * or it is not on the screen at all, in which case an unlabelled banner about
        * a route none of the cards belong to is worse than none.
        */
-      var banner = state.view === 'saved'
+      /* Suppressed on any view that draws its own per-route banners, which is
+         now stops as well as saved — otherwise the same sentence is printed
+         twice, once unlabelled by paint() and once labelled beside it. */
+      var banner = state.view === 'saved' || state.view === 'stops'
         ? null
         : S.stalenessBanner(d.staleness, d.feeds, function () { load(state.routeId); });
       if (banner) dom.main.appendChild(banner);
@@ -2066,7 +2076,7 @@
      * cards, so a banner placed inside the band ahead of them is wiped by the
      * very render that draws them, silently and every time.
      */
-    savedStalenessBanners().forEach(function (b) { dom.main.appendChild(b); });
+    savedStalenessBanners(planRouteIds()).forEach(function (b) { dom.main.appendChild(b); });
     dom.main.appendChild(band);
 
     var entries = state.plan.entries || [];
@@ -2230,7 +2240,12 @@
              stops the reader kept were still on the screen. */
           state.plan.linkEntries = leftInLink.length ? leftInLink : null;
         }
-        if (state.plan.offer) state.plan.offer = state.plan.entries;
+        /* Same empty-array-is-truthy trap as linkEntries above, in the line that
+           was left alone: removing the last stop while the offer was up left an
+           offer reading "This link carries 0 stops." */
+        if (state.plan.offer) {
+          state.plan.offer = state.plan.entries.length ? state.plan.entries : null;
+        }
         syncFragment();
         render();
       }
@@ -2369,7 +2384,9 @@
      * state, and rendering it for four routes while silently trusting a fifth is
      * the same failure the whole staleness machinery exists to prevent.
      */
-    savedStalenessBanners().forEach(function (b) { dom.main.appendChild(b); });
+    savedStalenessBanners(Object.keys(savedRouteIds())).forEach(function (b) {
+      dom.main.appendChild(b);
+    });
 
     /*
      * Chains sit above saved trips. A chain is the higher-stakes item on this
@@ -2524,7 +2541,7 @@
    * route the board has failed to refresh on its own (agedStaleness raises its
    * level, and its reason names it) falls into its own bucket and keeps its own.
    */
-  function savedStalenessBanners() {
+  function savedStalenessBanners(ids) {
     var live = liveRouteMap();
     var order = [];
     var buckets = Object.create(null);
@@ -2546,7 +2563,7 @@
      * is the case most in need of one: a leg the board knows nothing about rendered
      * identically to a leg running exactly on schedule.
      */
-    Object.keys(savedRouteIds()).sort().forEach(function (id) {
+    (ids || []).slice().sort().forEach(function (id) {
       var d = live[id];
       if (!d) {
         /*
