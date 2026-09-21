@@ -125,3 +125,58 @@ test.describe('the board fits the target device', () => {
     expect(overflow, 'the board scrolls horizontally on a Pixel 8a').toBeLessThanOrEqual(1)
   })
 })
+
+/*
+ * THE ROUTES THIS HOUSEHOLD RIDES, PINNED ABOVE THE OTHER SEVENTY.
+ *
+ * Nothing covered this list. It is a hand-maintained literal in app.js, it is the
+ * first thing in the picker, and the owner asked for it by name -- so a typo in a
+ * route number, or an entry dropped by a careless edit, would have shipped with
+ * every suite green.
+ *
+ * The fixture server publishes no api/routes.json, so the client falls back to
+ * fallbackCatalog(), which is built FROM that literal. That makes the pinned grid
+ * exactly the list under test rather than whatever a catalog happened to carry.
+ */
+test.describe('the routes we ride sit at the top of the picker', () => {
+  const RIDDEN = ['4', '7', '335', '337', '350', '800', '837']
+
+  const openPicker = async (page) => {
+    await page.goto('/fresh/index.html')
+    await expect(page.locator('#board')).toBeVisible()
+    await page.locator('.routechip').click()
+    await expect(page.locator('.picker')).toBeVisible()
+  }
+
+  test('lists every one of them under its own heading', async ({ page }) => {
+    await openPicker(page)
+    await expect(page.getByText('Routes we ride')).toBeVisible()
+
+    /* The FIRST grid is the pinned one; the "Every route" grid follows it. */
+    const pinned = page.locator('.routegrid').first().locator('.routegrid__id')
+    await expect(pinned).toHaveText(RIDDEN)
+  })
+
+  test('and 335 is one of them, in route-number order', async ({ page }) => {
+    await openPicker(page)
+    const pinned = page.locator('.routegrid').first().locator('.routegrid__id')
+    const ids = await pinned.allInnerTexts()
+
+    expect(ids, '335 is not pinned').toContain('335')
+    /* Between 7 and 337, not appended. An addition that lands at the end reads as
+     * an afterthought in a list somebody scans by number. */
+    expect(ids.indexOf('335')).toBe(ids.indexOf('337') - 1)
+    expect([...ids].sort((a, b) => Number(a) - Number(b))).toEqual(ids)
+  })
+
+  test('and they are not repeated again in the full list below', async ({ page }) => {
+    await openPicker(page)
+    const grids = page.locator('.routegrid')
+    const count = await grids.count()
+    if (count < 2) return /* no catalog beyond the fallback: nothing to duplicate */
+    const rest = await grids.nth(1).locator('.routegrid__id').allInnerTexts()
+    for (const id of RIDDEN) {
+      expect(rest, `${ id } appears twice in the picker`).not.toContain(id)
+    }
+  })
+})
