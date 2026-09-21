@@ -144,8 +144,14 @@ test.describe('the board fits the target device', () => {
  * -- that is an intent error, and the live catalog is the only thing that settles
  * it, which is why 335 was checked against it before being pinned.
  */
+/*
+ * Module scope because two describes need it: the pinned-grid tests below, and
+ * the no-catalog test further down, which is the one place the literal's own
+ * order reaches a screen.
+ */
+const RIDDEN = ['4', '7', '335', '337', '350', '800', '837']
+
 test.describe('the routes we ride sit at the top of the picker', () => {
-  const RIDDEN = ['4', '7', '335', '337', '350', '800', '837']
 
   /*
    * Not pinned, so the picker has something to pin them ABOVE -- and chosen to
@@ -225,14 +231,25 @@ test.describe('the routes we ride sit at the top of the picker', () => {
     await expect(pinned).toHaveText(RIDDEN)
   })
 
-  test('and 335 is one of them, in route-number order', async ({ page }) => {
+  /*
+   * With a catalog loaded, which is what openPicker stubs. `favs` is
+   * `shown.filter(...)` and filter preserves what it filters, so this renders the
+   * CATALOG's order -- sorted numerically by the generator. FAVORITES could be
+   * written any way at all and this would still pass, as a reviewer showed by
+   * moving 335 to the end of it.
+   *
+   * A limit of this test, not a fact about the literal. The no-catalog test near
+   * the end of this file renders the literal's own order, and says why.
+   */
+  test('and 335 is among them, in the order the catalog hands over', async ({ page }) => {
     await openPicker(page)
     const pinned = page.locator('.routegrid').first().locator('.routegrid__id')
     const ids = await pinned.allInnerTexts()
 
     expect(ids, '335 is not pinned').toContain('335')
-    /* Between 7 and 337, not appended. An addition that lands at the end reads as
-     * an afterthought in a list somebody scans by number. */
+    /* Asserted, not assumed: with 337 unpinned the line below reports
+     * "expected 2 to be -2" and names neither 337 nor its absence. */
+    expect(ids, '337 is not pinned').toContain('337')
     expect(ids.indexOf('335')).toBe(ids.indexOf('337') - 1)
     expect([...ids].sort((a, b) => Number(a) - Number(b))).toEqual(ids)
   })
@@ -335,9 +352,40 @@ test.describe('the picker beyond the pinned grid', () => {
 
     await expect(page.locator('.routegrid'), 'a catalog loaded, so this is the wrong path')
       .toHaveCount(1)
+
+    /*
+     * The one place the literal's own order reaches a screen. With no catalog,
+     * catalog() returns fallbackCatalog(), which IS FAVORITES.map() -- so this
+     * grid is the literal, rendered in the literal's order, on any board opened
+     * from disk, on a routes.json failure, and on every paint before the catalog
+     * lands. The pinned-grid tests above cannot see this: they stub a catalog.
+     */
+    await expect(page.locator('.routegrid').first().locator('.routegrid__id'),
+      'the no-catalog grid is not the pinned literal, in its own order')
+      .toHaveText(RIDDEN)
     const text = await page.locator('.picker').innerText()
     expect(text, 'a filter failure reported for a filter nobody typed')
       .not.toContain('No route matches')
     expect(text).toContain('pinned above')
+  })
+})
+
+/*
+ * The second screen that renders the pinned literal: paint() builds it from
+ * catalog().filter(FAVORITES...) (client/app.js:1933), so with no catalog it is
+ * the literal in the literal's order, for the reason the no-catalog picker test
+ * above sets out.
+ *
+ * Reached through ?state=first-run, which is the real render path rather than a
+ * rewritten fixture: the scenario only sets state.status, and everything below
+ * it is the ordinary code.
+ */
+test.describe('the first-run screen, which also renders the pinned literal', () => {
+  test('offers the pinned routes in the order the literal lists them', async ({ page }) => {
+    await page.goto('/fresh/index.html?state=first-run')
+    await expect(page.getByText('Pick a route to watch')).toBeVisible()
+    await expect(page.locator('.routegrid__id'),
+      'the first-run grid is not the pinned literal, in its own order')
+      .toHaveText(RIDDEN)
   })
 })
