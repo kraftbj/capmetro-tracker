@@ -187,6 +187,12 @@ case "${DOMAIN:-}" in
      printed below would fail with the vhost already installed." ;;
 esac
 
+# Deliberately NOT refused, though certbot cannot issue for any of them and they
+# therefore fail the letter of the message below: bus.local, board.home.arpa,
+# board.internal, board.lan, anything under .alt. A wall-mounted LAN board served
+# over plain HTTP is a real way to run this, and refusing those names would be the
+# 163.com mistake with a different suffix -- a false positive that blocks a real
+# install to enforce a rule about certificates the operator never asked for.
 case "${DOMAIN:-}" in
   ""|*.*) : ;;
   *)

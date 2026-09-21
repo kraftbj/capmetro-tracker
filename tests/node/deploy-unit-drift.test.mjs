@@ -19,7 +19,7 @@
  * id/chown/runuser/php, which is the only way to prove the check is actually WIRED IN.
  */
 import { execFileSync, spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync, symlinkSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync, symlinkSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -969,7 +969,14 @@ describe('install.sh --dry-run', () => {
 			for (const tool of [ 'bash', 'sed', 'php', 'tr' ]) {
 				const real = spawnSync('sh', [ '-c', `command -v ${ tool }` ], { encoding: 'utf8' })
 				expect(real.status, `${ tool } is not on PATH, so this test cannot run`).toBe(0)
-				symlinkSync(real.stdout.trim(), path.join(bin, tool))
+				/*
+				 * Idempotent, like the mkdirSync and writeFileSync either side of it.
+				 * symlinkSync alone throws EEXIST on a second isolate run inside one
+				 * `it`, which nothing does today -- and that asymmetry is exactly the
+				 * kind of thing that bites whoever adds the second call.
+				 */
+				const link = path.join(bin, tool)
+				if (!existsSync(link)) symlinkSync(real.stdout.trim(), link)
 			}
 			for (const tool of [ 'rsync', 'git' ]) {
 				writeFileSync(path.join(bin, tool), '#!/bin/sh\nexit 0\n', { mode: 0o755 })
