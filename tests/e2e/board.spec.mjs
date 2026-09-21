@@ -232,20 +232,14 @@ test.describe('the routes we ride sit at the top of the picker', () => {
   })
 
   /*
-   * This checks the order the picker renders WITH A CATALOG LOADED, which is the
-   * catalog's, not the literal's. `favs` is `shown.filter(...)`, and filter
-   * preserves the order of what it filters -- so the grid comes out in whatever
-   * order api/routes.json arrived in, which the generator sorts numerically
-   * (cm_sort_route_catalog; the live catalog reads 1, 2, 3, 4, 5, 7, 10, 18, 20
-   * ...). FAVORITES could be written in any order at all and this would still
-   * pass, which a reviewer demonstrated by moving 335 to the end of the literal.
+   * With a catalog loaded, which is what openPicker stubs. `favs` is
+   * `shown.filter(...)` and filter preserves what it filters, so this renders the
+   * CATALOG's order -- sorted numerically by the generator. FAVORITES could be
+   * written any way at all and this would still pass, as a reviewer showed by
+   * moving 335 to the end of it.
    *
-   * That is a property of THIS test, not of the literal: openPicker stubs a
-   * catalog. Take the catalog away and the picker renders FAVORITES' own order,
-   * because catalog() falls back to FAVORITES.map() -- the same fact the comment
-   * above openPicker gives as the reason for stubbing at all. The no-catalog
-   * test near the end of this file asserts that order, and
-   * client-scripts.test.mjs guards the literal itself.
+   * A limit of this test, not a fact about the literal. The no-catalog test near
+   * the end of this file renders the literal's own order, and says why.
    */
   test('and 335 is among them, in the order the catalog hands over', async ({ page }) => {
     await openPicker(page)
@@ -377,15 +371,14 @@ test.describe('the picker beyond the pinned grid', () => {
 })
 
 /*
- * The SECOND place the pinned literal's order reaches a screen, and the one a
- * reviewer named as still uncovered after the picker was done. paint() renders
- * the first-run screen from catalog().filter(FAVORITES...) (client/app.js:1933),
- * so with no catalog it is fallbackCatalog() -- the literal -- in the literal's
- * order, exactly as the picker's no-catalog grid is.
+ * The second screen that renders the pinned literal: paint() builds it from
+ * catalog().filter(FAVORITES...) (client/app.js:1933), so with no catalog it is
+ * the literal in the literal's order, for the reason the no-catalog picker test
+ * above sets out.
  *
  * Reached through ?state=first-run, which is the real render path rather than a
  * rewritten fixture: the scenario only sets state.status, and everything below
- * that is the ordinary code.
+ * it is the ordinary code.
  */
 test.describe('the first-run screen, which also renders the pinned literal', () => {
   test('offers the pinned routes in the order the literal lists them', async ({ page }) => {

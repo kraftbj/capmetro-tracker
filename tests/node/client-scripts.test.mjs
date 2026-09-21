@@ -87,72 +87,70 @@ describe('no client script declares one function name twice', () => {
 })
 
 /*
- * The pinned-route literal, checked against the source rather than against a page.
+ * The pinned-route literal, asserted against the source text.
  *
- * Its order IS rendered -- but only on a board with no catalog. catalog() falls
- * back to fallbackCatalog(), which is FAVORITES.map() (client/app.js:96), so the
- * picker's pinned grid and the first-run screen both come out in the literal's
- * order on a board opened from disk, on a routes.json failure, and on every paint
- * before the catalog lands. With a catalog loaded the picker filters it instead,
- * and filter preserves the CATALOG's order, which the generator sorts numerically
- * -- so there the literal's order is invisible.
+ * Why source and not a page: two of these checks have no rendered equivalent at
+ * all. Nothing looks different for a lettered id -- that guard exists to stop the
+ * sort comparator going silently inert -- and nothing looks different for a
+ * reformatted declaration. Ascending order is the one a browser could see, and
+ * board.spec.mjs's no-catalog test does see it, but RIDDEN there is hand-typed
+ * and deliberately not read out of app.js: somebody who reorders FAVORITES and
+ * mirrors the new order into RIDDEN keeps that test green forever. This one reads
+ * FAVORITES itself.
  *
- * That split is why the claim is checked in two places. The rendered order is
- * asserted in the browser, in board.spec.mjs's no-catalog test, which is the only
- * one that does not stub a catalog. The literal itself is asserted here, because
- * keeping it sorted is also a source convention: somebody scans this list by
- * number, and an addition at the end reads as an afterthought.
+ * Where the order is rendered, and why it is only rendered sometimes, is
+ * explained once -- at that no-catalog test in board.spec.mjs.
  */
 describe('the pinned route list', () => {
-	const src = readFileSync(path.join(ROOT, 'client/app.js'), 'utf8')
-	/*
-	 * Keyword- and quote-agnostic, and the ids are extracted once. Pinning `var`
-	 * and a single quote meant two ordinary refactors -- var to const, or a switch
-	 * to double quotes -- made the tests below throw `Cannot read properties of
-	 * null`, pointing at this file instead of at the rename. The subject is the
-	 * list, not the binding form it happens to be spelled with.
-	 */
-	const literalMatch = src.match(/(?:var|let|const)\s+FAVORITES\s*=\s*\[([^\]]*)\]/)
-	const ids = literalMatch
-		? (literalMatch[1].match(/['"]([^'"]+)['"]/g) || []).map((s2) => s2.slice(1, -1))
-		: []
+  const src = readFileSync(path.join(ROOT, 'client/app.js'), 'utf8')
+  /*
+   * Keyword- and quote-agnostic, and the ids are extracted once. Pinning `var`
+   * and a single quote meant two ordinary refactors -- var to const, or a switch
+   * to double quotes -- made the tests below throw `Cannot read properties of
+   * null`, pointing at this file instead of at the rename. The subject is the
+   * list, not the binding form it happens to be spelled with.
+   */
+  const literalMatch = src.match(/(?:var|let|const)\s+FAVORITES\s*=\s*\[([^\]]*)\]/)
+  const ids = literalMatch
+    ? (literalMatch[1].match(/['"]([^'"]+)['"]/g) || []).map((s2) => s2.slice(1, -1))
+    : []
 
-	it('is spelled the way this test expects to find it', () => {
-		expect(literalMatch, 'FAVORITES is no longer a flat array literal').not.toBeNull()
-		expect(ids.length, 'the literal was found but no route ids came out of it')
-			.toBeGreaterThan(1)
-	})
+  it('is spelled the way this test expects to find it', () => {
+    expect(literalMatch, 'FAVORITES is no longer a flat array literal').not.toBeNull()
+    expect(ids.length, 'the literal was found but no route ids came out of it')
+      .toBeGreaterThan(1)
+  })
 
-	/*
-	 * Number() on a non-digit id is NaN, and a NaN comparator result means "leave
-	 * these two where they are" -- so one lettered id turns the sort below into a
-	 * no-op and the order test stops being able to fail.
-	 * ['4','7','337','350','MetroRail','335'] sorts to itself, with 335 last: the
-	 * exact arrangement that test exists to catch.
-	 *
-	 * Not hypothetical. cm_sort_route_catalog has a non-numeric branch keyed on
-	 * ctype_digit (runtime/lib/catalog.php) and RouteCatalogTest exercises it with
-	 * 'MetroRail' and 'Airport'. So the numeric assumption is asserted rather than
-	 * assumed: pin a lettered route and it fails HERE, where whoever pins it has to
-	 * decide what "in order" should mean for it.
-	 */
-	it('holds only numeric route ids, which the order check below assumes', () => {
-		expect(ids.filter((id) => !/^\d+$/.test(id)),
-			'a non-numeric id makes the numeric sort below a silent no-op').toEqual([])
-	})
+  /*
+   * Number() on a non-digit id is NaN, and a NaN comparator result means "leave
+   * these two where they are" -- so one lettered id turns the sort below into a
+   * no-op and the order test stops being able to fail.
+   * ['4','7','337','350','MetroRail','335'] sorts to itself, with 335 last: the
+   * exact arrangement that test exists to catch.
+   *
+   * Not hypothetical. cm_sort_route_catalog has a non-numeric branch keyed on
+   * ctype_digit (runtime/lib/catalog.php) and RouteCatalogTest exercises it with
+   * 'MetroRail' and 'Airport'. So the numeric assumption is asserted rather than
+   * assumed: pin a lettered route and it fails HERE, where whoever pins it has to
+   * decide what "in order" should mean for it.
+   */
+  it('holds only numeric route ids, which the order check below assumes', () => {
+    expect(ids.filter((id) => !/^\d+$/.test(id)),
+      'a non-numeric id makes the numeric sort below a silent no-op').toEqual([])
+  })
 
-	it('is in ascending route-number order', () => {
-		expect(ids, 'an addition landed out of order; the list is scanned by number')
-			.toEqual([...ids].sort((a, b) => Number(a) - Number(b)))
-	})
+  it('is in ascending route-number order', () => {
+    expect(ids, 'an addition landed out of order; the list is scanned by number')
+      .toEqual([...ids].sort((a, b) => Number(a) - Number(b)))
+  })
 
-	/*
-	 * "Doubles a card" is true on the no-catalog path specifically: fallbackCatalog
-	 * maps the literal, so a repeated id becomes two entries and two buttons. With
-	 * a catalog loaded the picker filters the catalog instead, and a repeat in
-	 * FAVORITES changes nothing. Both observed in a browser.
-	 */
-	it('holds no duplicates, which double a card on a board with no catalog', () => {
-		expect(new Set(ids).size, 'a route is pinned twice').toBe(ids.length)
-	})
+  /*
+   * "Doubles a card" is true on the no-catalog path specifically: fallbackCatalog
+   * maps the literal, so a repeated id becomes two entries and two buttons. With
+   * a catalog loaded the picker filters the catalog instead, and a repeat in
+   * FAVORITES changes nothing. Both observed in a browser.
+   */
+  it('holds no duplicates, which double a card on a board with no catalog', () => {
+    expect(new Set(ids).size, 'a route is pinned twice').toBe(ids.length)
+  })
 })
