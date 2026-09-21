@@ -112,13 +112,13 @@ describe('the pinned route list', () => {
 	 * null`, pointing at this file instead of at the rename. The subject is the
 	 * list, not the binding form it happens to be spelled with.
 	 */
-	const literal = src.match(/(?:var|let|const)\s+FAVORITES\s*=\s*\[([^\]]*)\]/)
-	const ids = literal
-		? (literal[1].match(/['"]([^'"]+)['"]/g) || []).map((s2) => s2.slice(1, -1))
+	const literalMatch = src.match(/(?:var|let|const)\s+FAVORITES\s*=\s*\[([^\]]*)\]/)
+	const ids = literalMatch
+		? (literalMatch[1].match(/['"]([^'"]+)['"]/g) || []).map((s2) => s2.slice(1, -1))
 		: []
 
 	it('is spelled the way this test expects to find it', () => {
-		expect(literal, 'FAVORITES is no longer a flat array literal').not.toBeNull()
+		expect(literalMatch, 'FAVORITES is no longer a flat array literal').not.toBeNull()
 		expect(ids.length, 'the literal was found but no route ids came out of it')
 			.toBeGreaterThan(1)
 	})

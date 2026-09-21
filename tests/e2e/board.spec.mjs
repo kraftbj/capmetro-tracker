@@ -375,3 +375,24 @@ test.describe('the picker beyond the pinned grid', () => {
     expect(text).toContain('pinned above')
   })
 })
+
+/*
+ * The SECOND place the pinned literal's order reaches a screen, and the one a
+ * reviewer named as still uncovered after the picker was done. paint() renders
+ * the first-run screen from catalog().filter(FAVORITES...) (client/app.js:1933),
+ * so with no catalog it is fallbackCatalog() -- the literal -- in the literal's
+ * order, exactly as the picker's no-catalog grid is.
+ *
+ * Reached through ?state=first-run, which is the real render path rather than a
+ * rewritten fixture: the scenario only sets state.status, and everything below
+ * that is the ordinary code.
+ */
+test.describe('the first-run screen, which also renders the pinned literal', () => {
+  test('offers the pinned routes in the order the literal lists them', async ({ page }) => {
+    await page.goto('/fresh/index.html?state=first-run')
+    await expect(page.getByText('Pick a route to watch')).toBeVisible()
+    await expect(page.locator('.routegrid__id'),
+      'the first-run grid is not the pinned literal, in its own order')
+      .toHaveText(RIDDEN)
+  })
+})
