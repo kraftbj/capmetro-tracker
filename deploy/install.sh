@@ -6,7 +6,7 @@
 # There is no second host, so there is no CORS to configure and nothing to keep
 # in sync between two deploys.
 #
-#   sudo ./deploy/install.sh --domain bus.example.com
+#   sudo ./deploy/install.sh --domain bus.dillo.dev
 #
 # Idempotent. Run it again after a code change and it updates in place. It will
 # NOT overwrite /etc/capmetro/config.php once that exists, and it will not touch
@@ -46,23 +46,49 @@ Options:
 EOF
 }
 
+# Every flag below takes a value, and `shift 2` takes whatever follows it --
+# including the next flag. `--domain --dry-run` set DOMAIN to the string
+# `--dry-run` and left DRY_RUN at 0, so a run whose only stated intent was to
+# change nothing became a real one: it created the user, the state dir and the
+# webroot, installed the schedule, and recorded the vhost fingerprint. Verified
+# locally with `id` stubbed -- it reached "creating /var/lib/capmetro" and got a
+# permission error only because the probe was not actually root.
+#
+# It does not write a vhost; it never does, it prints the commands. What it
+# printed was a paste-ready sed rendering `server_name --dry-run;`, which is the
+# same dead server_name the placeholder refusal below exists to prevent, handed
+# to an operator with no reason to read it closely or to check anything
+# afterwards. None of these flags takes a value beginning with a hyphen, so
+# reject an option-shaped or missing one instead of adopting it.
+#
+# exit 2, like the unknown-option arm, because this is a usage error and not a
+# failed install -- and it happens before anything on the box is touched.
+need_val() {
+  case "${2-}" in
+    "") printf 'xx %s needs a value\n' "$1" >&2; usage >&2; exit 2 ;;
+    -*) printf 'xx %s needs a value, got the option %s -- put the value after %s\n' \
+          "$1" "$2" "$1" >&2; exit 2 ;;
+  esac
+}
+
 DRY_RUN=0
 SRC_FROM=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --domain)   DOMAIN="$2"; shift 2 ;;
-    --repo)     REPO="$2"; shift 2 ;;
-    --branch)   BRANCH="$2"; shift 2 ;;
-    --webroot)  WEBROOT="$2"; shift 2 ;;
-    --src)      SRC_DIR="$2"; shift 2 ;;
-    --user)     RUN_USER="$2"; shift 2 ;;
-    --interval) INTERVAL_S="$2"; shift 2 ;;
-    --src-from) SRC_FROM="$2"; shift 2 ;;
+    --domain)   need_val "$1" "${2-}"; DOMAIN="$2"; shift 2 ;;
+    --repo)     need_val "$1" "${2-}"; REPO="$2"; shift 2 ;;
+    --branch)   need_val "$1" "${2-}"; BRANCH="$2"; shift 2 ;;
+    --webroot)  need_val "$1" "${2-}"; WEBROOT="$2"; shift 2 ;;
+    --src)      need_val "$1" "${2-}"; SRC_DIR="$2"; shift 2 ;;
+    --user)     need_val "$1" "${2-}"; RUN_USER="$2"; shift 2 ;;
+    --interval) need_val "$1" "${2-}"; INTERVAL_S="$2"; shift 2 ;;
+    --src-from) need_val "$1" "${2-}"; SRC_FROM="$2"; shift 2 ;;
     --dry-run)  DRY_RUN=1; shift ;;
     -h|--help)  usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage; exit 2 ;;
   esac
 done
+
 
 # Drop privileges without assuming sudo is installed. A minimal Debian image has
 # no sudo at all - this script failed on exactly that - while runuser ships in
@@ -84,6 +110,99 @@ say()  { printf '\033[1m==\033[0m %s\n' "$*"; }
 warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 run()  { if [ "$DRY_RUN" = 1 ]; then printf '   would run: %s\n' "$*"; else "$@"; fi; }
+
+#
+# A HOSTNAME, OR NOTHING. Checked here so a bad one cannot reach the sed that is
+# printed for pasting, where it fails in two different silent ways:
+#
+#   --domain https://bus.dillo.dev   the '/' closes the s/// early, sed exits 1
+#                                    with "bad flag in substitute command", and
+#                                    because '>' truncates first, the temp file
+#                                    is left at 0 bytes. An empty vhost adds no
+#                                    directives, so nginx -t passes and the host
+#                                    falls through to default_server.
+#   --domain "bus dillo dev"         sed succeeds and writes
+#                                    `server_name bus dillo dev;`, which nginx
+#                                    reads as THREE names, none of them the host.
+#
+# Both reproduced. Neither is exotic: the first is a copied address bar.
+#
+case "${DOMAIN:-}" in
+  "") : ;;
+  *[!a-zA-Z0-9.-]*)
+    die "--domain must be a hostname -- letters, digits, dots and hyphens only.
+     Got: $DOMAIN
+     A '/' or a space here renders a broken vhost that nginx still accepts." ;;
+  .*|*.|*..*)
+    die "--domain is not a hostname: $DOMAIN" ;;
+esac
+
+# The refusals above are for strings that are not hostnames at all. These are
+# for strings that ARE well-formed hostnames, pass every check above, render a
+# vhost nginx accepts, and still cannot be the host this board is served on.
+# They matter for the same reason `your.domain` did: the failure is a server_name
+# that matches nothing, so the request falls through to default_server, and every
+# check that looks at the config instead of the board reports success.
+#
+# Normalized BEFORE the refusals below, not after. With the lowercasing last,
+# `--domain YOUR.DOMAIN` and `--domain Bus.Example.Com` walked straight past the
+# placeholder list -- case patterns are literal -- and rendered a server_name
+# nothing resolves to, which is the exact thing that list exists to stop.
+#
+# Worth normalizing at all because hostnames are case-insensitive and nginx
+# matches server_name that way, while certbot builds its lineage directory from
+# the string exactly as given: --domain BUS.DILLO.DEV would look up a lineage a
+# `bus.dillo.dev` certificate does not have, and the restore step would fail on a
+# name that is right in every sense DNS cares about.
+if [ -n "${DOMAIN:-}" ]; then
+  DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+fi
+
+# Three independent questions, three cases. They were one ordered chain whose
+# accept arm was `*[!0-9.]*.*` -- a non-digit BEFORE a dot -- which refused any
+# name whose only letters are in the last label: `163.com`, a real registered
+# domain, fell through to the single-label arm and was rejected by a message
+# telling the operator it needed a dot while pointing at a name that has one. A
+# false positive here is not the harmless direction; it blocks a real install
+# with no workaround but editing this script.
+case "${DOMAIN:-}" in
+  "") : ;;
+  your.domain|domain.tld|example.com|example.net|example.org \
+    |*.example.com|*.example.net|*.example.org \
+    |*.example|*.invalid|*.test|*.localhost)
+    die "--domain is a documentation placeholder, not a host: $DOMAIN
+     RFC 2606 reserves these names precisely so they never resolve to anything,
+     which is the one property a server_name must not have. Re-run with the
+     hostname the board is actually served on." ;;
+esac
+
+# Nothing but digits and dots. Checked on its own rather than as a fall-through,
+# so it cannot answer for a name that merely failed a different test.
+case "${DOMAIN:-}" in
+  ""|*[!0-9.]*) : ;;
+  *)
+    die "--domain looks like an IP address, not a hostname: $DOMAIN
+     An IP in server_name only ever matches a browser pointed straight at the
+     address, no certificate authority will issue for it, and the certbot command
+     printed below would fail with the vhost already installed." ;;
+esac
+
+# Deliberately NOT refused, though certbot cannot issue for any of them and they
+# therefore fail the letter of the message below: bus.local, board.home.arpa,
+# board.internal, board.lan, anything under .alt. A wall-mounted LAN board served
+# over plain HTTP is a real way to run this, and refusing those names would be the
+# 163.com mistake with a different suffix -- a false positive that blocks a real
+# install to enforce a rule about certificates the operator never asked for.
+case "${DOMAIN:-}" in
+  ""|*.*) : ;;
+  *)
+    die "--domain needs a fully qualified name, with a dot: $DOMAIN
+     A single label is a legal server_name and nginx will match it against a Host
+     header, but 'certbot -d $DOMAIN' cannot issue for it, so step 2 of the
+     summary below would hand you a command that fails after the vhost is live." ;;
+esac
+
+
 
 [ "$(id -u)" = 0 ] || die "run as root (sudo $0 ...)"
 
@@ -160,6 +279,19 @@ elif [ -d "$SRC_DIR" ] && [ -f "$SRC_DIR/runtime/generate-api.php" ]; then
   say "using the source already in $SRC_DIR (no git checkout)"
 else
   say "cloning $REPO into $SRC_DIR"
+  #
+  # The re-run line carries --domain only when there is a real one to carry.
+  # It used to print `--domain ${DOMAIN:-your.domain}`, and that placeholder is
+  # how the 2026-09-21 outage happened: pasted, it makes DOMAIN non-empty, so
+  # the refusal further down never fires and the vhost commands print with a
+  # hostname that matches nothing. A paste-ready command is the worst possible
+  # home for a value with no safe default.
+  #
+  RERUN="$0 --src-from /srv/capmetro/tree"
+  [ -n "${DOMAIN:-}" ] && RERUN="$RERUN --domain $DOMAIN"
+  DOMAIN_NOTE=""
+  [ -z "${DOMAIN:-}" ] && DOMAIN_NOTE="
+          add --domain <the host this board is served on>; there is no default"
   run git clone --quiet --branch "$BRANCH" "$REPO" "$SRC_DIR" || die \
 "clone failed, and on a private repo that is expected: git ran as root here, so
    it used /root/.ssh and not your key. Two ways forward, neither needing a key
@@ -167,7 +299,7 @@ else
 
      a) copy the tree up from your laptop, then re-run:
           rsync -a --exclude .git ./ root@thisbox:/srv/capmetro/tree/
-          $0 --src-from /srv/capmetro/tree --domain ${DOMAIN:-your.domain}
+          $RERUN$DOMAIN_NOTE
 
      b) put a read-only GitHub deploy key in /root/.ssh/ and re-run this script."
 fi
@@ -340,25 +472,126 @@ fi
 # that already serves other sites is not a risk this script gets to take on your
 # behalf, and the substitution is one command you can read before running it.
 say "web server"
-VHOST_DOMAIN="${DOMAIN:-your.domain}"
-# `| sudo tee`, never `sudo sed ... > file`. Redirection is performed by the
-# invoking shell, not by sudo, so the > lands in /etc as the unprivileged user
-# and fails. The first version of these instructions got that wrong and the
-# copy-pasted command returned Permission denied.
-if command -v nginx >/dev/null 2>&1; then
-  printf '   nginx found. Install the vhost, then reload:\n'
-  printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
-  printf '       %s/deploy/nginx-capmetro.conf \\\n' "$SRC_DIR"
-  printf '       | sudo tee /etc/nginx/sites-available/capmetro > /dev/null\n'
-  printf '     sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro\n'
-  printf '     sudo nginx -t && sudo systemctl reload nginx\n'
+
+#
+# NO --domain, NO COMMAND. This used to default to the literal string
+# `your.domain` and print it into a command built for pasting. On 2026-09-21 that
+# command was pasted: it wrote `server_name your.domain;`, `nginx -t` reported
+# success -- nginx never checks that a server_name matches a real host, or that
+# any block matches -- the reload was clean, and every request for the real host
+# fell through to default_server. The box also serves WordPress, so the board
+# answered with a database error page for eleven minutes and looked like a DNS
+# or hosting fault.
+#
+# The placeholder is not a usable default for a value with no safe guess. A
+# refusal costs one re-run; the guess cost an outage that nothing detected.
+#
+# Which installer plugin certbot should use, set by whichever branch below
+# actually matched. The summary used to print `certbot --nginx` unconditionally,
+# so an apache box was told to configure a web server it is not running -- and
+# the apache instructions now send a first-install operator straight at that
+# line, which turned a stale default into a wrong instruction on a real path.
+CERTBOT_PLUGIN=""
+# Whether the vhost commands were actually printed. Not the same question as
+# "was there a domain": the no-server arm below has a domain and still prints
+# nothing to install, so guarding the drift fingerprint on $DOMAIN recorded the
+# committed vhosts as installed on a box that had been given no way to install
+# them. Narrower than the no-domain case -- a re-run once nginx is there
+# re-stamps -- but it is the same false "clean" either way.
+VHOST_PRINTED=0
+if [ -z "$DOMAIN" ]; then
+  warn "no --domain given, so the vhost instructions are not printed.
+     There is no safe default for it: a placeholder substituted into server_name
+     passes nginx -t, reloads cleanly, and matches nothing, which takes the board
+     down with every check reporting success. Re-run with the hostname:
+       sudo $0 --domain <the host this board is served on> ...
+     Everything else above this line is already done and does not repeat. The vhost
+     drift fingerprint is deliberately not written either, so a later vhost change
+     still gets announced rather than landing silently."
+elif command -v nginx >/dev/null 2>&1; then
+  CERTBOT_PLUGIN=--nginx; VHOST_PRINTED=1
+  cat <<EOF
+   nginx found. Install the vhost:
+     sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
+       $SRC_DIR/deploy/nginx-capmetro.conf > /tmp/capmetro-vhost.new
+     sudo diff -u /etc/nginx/sites-available/capmetro /tmp/capmetro-vhost.new
+
+   READ THAT DIFF BEFORE THE NEXT LINE. certbot --nginx rewrites the INSTALLED
+   file to add the 443 server and the http->https redirect, so on a TLS box it is
+   not the committed one and copying over the top deletes the TLS block. The
+   certificate survives; nothing references it, and the board leaves HTTPS.
+
+   The copy is guarded on purpose. '>' truncates before sed runs, so a sed that
+   fails leaves a 0-byte file -- and an empty vhost adds no directives, so
+   nginx -t passes and the host falls through to default_server. The guard also
+   refuses a file with @PLACEHOLDERS@ still in it, which nginx likewise accepts.
+   Both are silent, and both look exactly like a clean deploy.
+
+   Back the installed file up FIRST, on the same chain, because the copy is the one
+   irreversible step here and the command meant to undo it is the one least likely
+   to work. A .bak in sites-available is inert: nginx includes sites-enabled.
+
+     B=/etc/nginx/sites-available/capmetro
+     [ -f \$B ] && sudo cp -a \$B \$B.\$(date +%Y%m%d-%H%M%S).bak
+     [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
+       && sudo cp /tmp/capmetro-vhost.new \$B
+     sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro
+     sudo nginx -t && sudo systemctl reload nginx
+
+   Now put back the 443 block the copy just deleted. Do NOT assume the lineage is
+   named after the domain -- read it. certbot names the lineage after the FIRST -d,
+   so a certificate covering the apex and this host together is named for the apex;
+   a wildcard is named for the first usable name; and a re-issue leaves
+   $DOMAIN-0001. On any of those, --cert-name $DOMAIN exits 1, and it does so with
+   the vhost already live and the TLS block already gone.
+     sudo certbot certificates | grep -iE 'Certificate Name|Domains'
+     sudo certbot install --nginx --cert-name <the name printed above>
+     sudo nginx -t && sudo systemctl reload nginx
+
+   If that list comes back EMPTY, certbot did not issue this certificate -- acme.sh,
+   Caddy and a commercial cert all leave it nothing to find -- so no --cert-name
+   will work. Restore the .bak; that is what it is for.
+
+   On a FIRST install skip the restore entirely: there is no certificate yet, so
+   --cert-name exits 1, and there was no 443 block to lose. Get the certificate
+   from step 2 of the summary below instead.
+
+   Then check the board, not the config: a green nginx -t is not evidence.
+     curl -sf https://$DOMAIN/api/health.json
+EOF
 elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
-  printf '   apache found. Install the vhost, then reload:\n'
-  printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
-  printf '       %s/deploy/apache-capmetro.conf \\\n' "$SRC_DIR"
-  printf '       | sudo tee /etc/apache2/sites-available/capmetro.conf > /dev/null\n'
-  printf '     sudo a2enmod headers expires && sudo a2ensite capmetro\n'
-  printf '     sudo apache2ctl configtest && sudo systemctl reload apache2\n'
+  CERTBOT_PLUGIN=--apache; VHOST_PRINTED=1
+  cat <<EOF
+   apache found. Install the vhost:
+     sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
+       $SRC_DIR/deploy/apache-capmetro.conf > /tmp/capmetro-vhost.new
+     sudo diff -u /etc/apache2/sites-available/capmetro.conf /tmp/capmetro-vhost.new
+
+   READ THAT DIFF BEFORE THE NEXT LINE, for the reason the nginx branch gives:
+   certbot owns the TLS virtual host in the installed file.
+
+     B=/etc/apache2/sites-available/capmetro.conf
+     [ -f \$B ] && sudo cp -a \$B \$B.\$(date +%Y%m%d-%H%M%S).bak
+     [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
+       && sudo cp /tmp/capmetro-vhost.new \$B
+     sudo a2enmod headers expires && sudo a2ensite capmetro
+     sudo apache2ctl configtest && sudo systemctl reload apache2
+
+   The backup comes first for the reason the nginx branch gives at length: the copy
+   is the one irreversible step, and the command meant to undo it is the one least
+   likely to work. The .bak does not end in .conf, so a2ensite cannot enable it.
+
+   Then put back the TLS virtual host, reading the name rather than assuming it.
+   --cert-name exits 1 on a name that is not exactly right, and certbot names the
+   lineage after the first -d, so an apex or wildcard certificate is not named for
+   this host. An EMPTY list means certbot did not issue this certificate and cannot
+   restore it, so use the .bak. Skip the restore on a first install entirely.
+     sudo certbot certificates | grep -iE 'Certificate Name|Domains'
+     sudo certbot install --apache --cert-name <the name printed above>
+     sudo apache2ctl configtest && sudo systemctl reload apache2
+
+     curl -sf https://$DOMAIN/api/health.json
+EOF
 else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
@@ -387,7 +620,19 @@ fi
 # vhost fingerprint" is exactly the kind of thing a dry run exists to surface, and putting
 # the DRY_RUN arm first made that branch unreachable in the only mode that can be tested
 # without root.
-if ! command -v cm_write_vhost_stamp >/dev/null 2>&1 \
+#
+# The VHOST_PRINTED arm comes first because it is the one case where writing the record
+# is actively harmful rather than merely uninformative. A run that printed no vhost
+# commands -- no --domain, or no web server found -- cannot have installed anything, and
+# stamping the committed vhosts as "installed" on that run tells update.sh, permanently,
+# that /etc already matches the checkout. The next real vhost change then deploys with
+# nothing to announce it, which is the exact event the record exists to catch. Worse than
+# having no record, because a box with no record says so once per run and carries on.
+if [ "$VHOST_PRINTED" = 0 ]; then
+  printf '%s\n%s\n' \
+    '   not recording a vhost drift fingerprint: this run printed no vhost, so' \
+    '   nothing can have been installed from it. A later vhost change still gets announced.'
+elif ! command -v cm_write_vhost_stamp >/dev/null 2>&1 \
    || ! command -v cm_vhost_stamp_path >/dev/null 2>&1; then
   warn "this source tree cannot record a vhost drift fingerprint:
      $SRC_DIR/deploy/lib/units.sh is absent or predates it. Everything else still installs;
@@ -428,7 +673,32 @@ printf '  state       %s\n' "$STATE_DIR"
 printf '  scheduler   %s\n' "$SCHEDULER"
 echo
 echo "Next:"
-printf '  1. install the vhost printed above and reload the web server\n'
-printf '  2. get a certificate:  sudo certbot --nginx -d %s\n' "$VHOST_DOMAIN"
-printf '  3. check it:           curl -s https://%s/api/health.json | head -c 200\n' "$VHOST_DOMAIN"
-printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+# Same rule as the vhost block above: with no --domain there is no hostname to put in
+# these commands, and a placeholder here would be pasted just as readily as one in a
+# server_name. Say what to do instead of printing something that looks runnable.
+if [ -z "$DOMAIN" ]; then
+  printf '  1. re-run with --domain to get the vhost and certificate commands\n'
+  printf '  2. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+else
+  # Same reason step 2 branches: with no web server detected, nothing was printed
+  # above, so "install the vhost printed above" names output that does not exist.
+  if [ -n "$CERTBOT_PLUGIN" ]; then
+    printf '  1. install the vhost printed above, reading the diff, and reload the web server\n'
+  else
+    printf '  1. install nginx or apache, then re-run this to get the vhost commands\n'
+  fi
+  if [ -n "$CERTBOT_PLUGIN" ]; then
+    printf '  2. get a certificate:  sudo certbot %s -d %s\n' "$CERTBOT_PLUGIN" "$DOMAIN"
+  else
+    printf '  2. get a certificate:  install nginx or apache first, then run certbot\n'
+  fi
+  # Branched for the same reason as 1 and 2: with no web server there is nothing
+  # listening, so this curl cannot answer and its failure would say nothing about
+  # whether the install worked.
+  if [ -n "$CERTBOT_PLUGIN" ]; then
+    printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+  else
+    printf '  3. check the BOARD once a web server is serving %s\n' "$WEBROOT"
+  fi
+  printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+fi

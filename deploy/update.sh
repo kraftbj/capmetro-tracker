@@ -369,7 +369,13 @@ check_vhost() {
     return 0
   fi
 
-  loud "the box is still serving the OLD one. Nothing here installs it."
+  # What this can and cannot say. The record fingerprints the COMMITTED files under
+  # deploy/, never the ones in /etc -- nothing here installs them, so nothing here knows
+  # what is installed. So the honest claim is "the file this repo would install has
+  # changed since install.sh last ran here", and NOT "the box is serving the old one",
+  # which it cannot see and which is wrong the moment somebody installs by hand.
+  loud "the file this repo would install is not the one install.sh last recorded here."
+  loud "What is actually in /etc, this cannot see: nothing here installs or reads it."
   loud "A stale vhost can refuse the manifest and the service worker with nothing on screen"
   loud "to say so, and health.json still reads ok:true, so this will not show up anywhere else."
   # DELIBERATELY NOT a copy-paste `cp`. These files ship with @DOMAIN@ and @WEBROOT@ still in
@@ -378,13 +384,21 @@ check_vhost() {
   # 404s -- with the working config already overwritten. Verified against real nginx. A
   # remedy that can take the board down is worse than one extra command to run, and this
   # function does not know $DOMAIN anyway.
-  loud "Run install.sh: it prints the exact sed for this box, with the placeholders filled."
-  loud "    sudo $SRC_DIR/deploy/install.sh"
+  # --domain, spelled out. install.sh refuses to print the commands without it, and the
+  # reason it refuses is the incident this line used to cause: the hostname has no safe
+  # default, and a placeholder in server_name passes nginx -t, reloads clean, and matches
+  # nothing.
+  loud "Run install.sh WITH --domain: it prints the sed, the diff to read, and the certbot step."
+  loud "    sudo $SRC_DIR/deploy/install.sh --domain <the host this board is served on>"
   loud "It also re-records the config, which is what stops this repeating every run."
   # Not just the placeholders. nginx-capmetro.conf says certbot rewrites the installed block
   # to add the 443 server and the redirect, so on a TLS box -- which production is -- the
   # installed file is not the committed one and copying over it destroys the cert config.
-  loud "The installed vhost has been rewritten by certbot, so diff it before overwriting."
+  # Hedged, because eighteen lines above this function says it cannot see /etc --
+  # and then this line used to assert what is in there as fact. It is also just
+  # false on a box with no certificate, and on apache.
+  loud "On a TLS box the installed file is probably NOT the committed one: certbot"
+  loud "rewrites it to add the 443 block. Diff before overwriting, never copy over it."
   return 0
 }
 

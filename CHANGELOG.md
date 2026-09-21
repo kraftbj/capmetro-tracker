@@ -307,6 +307,72 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **`install.sh` would hand you a command that takes the board down.** The vhost is
+  printed rather than installed, and the hostname it substituted defaulted to the
+  literal string `your.domain` when `--domain` was omitted — in a block formatted
+  for pasting. Pasted, it wrote `server_name your.domain;`. nginx checks neither
+  that a server_name resolves nor that any block matches, so `nginx -t` reported
+  success and the reload was clean, while every request for the real host fell
+  through to `default_server`. The same step piped over the installed file, which
+  certbot owns on a TLS box, so the 443 block went with it and the certificate was
+  left valid and unreferenced. There is no safe default for a hostname, so there is
+  no default: without `--domain` the commands are not printed at all, and with it
+  they diff against the installed file before replacing it, guard the copy on a
+  non-empty file with no placeholders left in it, and then restore the TLS block.
+  `update.sh`'s advice now names the flag, and its notice no longer claims the box
+  is serving the old config — it fingerprints the committed files and cannot see
+  what is installed.
+
+  Review after that landed found four more routes to the same dead `server_name`,
+  all now refused. `--domain --dry-run` was parsed as the domain `--dry-run` with
+  the dry-run flag left off, so a run asked to change nothing did a real install
+  and printed `server_name --dry-run;`; every value-taking flag now rejects an
+  option-shaped or missing value. `bus.example.com` was accepted, and it was the
+  value this script's own usage line handed people to paste — that reserved family
+  is refused now, along with a bare IP and a single label, none of which can be a
+  host certbot will issue for. The vhost fingerprint was written even by a run that
+  refused to print a vhost, which told `update.sh` permanently that `/etc` already
+  matched and would have let the next real vhost change deploy unannounced. And the
+  command to restore the 443 block assumed the certificate lineage is named after
+  the domain — with the vhost already live and the TLS block already deleted when
+  it fails.
+
+  That last one needed more than a better command. certbot names a lineage after
+  the *first* `-d`, so a certificate covering the apex and this host together is
+  named for the apex, a wildcard is named for the first usable name, and a re-issue
+  leaves `<domain>-0001`; `certbot install --cert-name <domain>` exits 1 on each.
+  And if the certificate never came from certbot — acme.sh, Caddy, a commercial
+  cert — there is no lineage to name at all, so reading the name from
+  `certbot certificates` returns an empty list and no next step. The printed
+  sequence now backs the installed file up on the same chain, ahead of the
+  overwrite, which covers every one of those at once; it names the installer plugin
+  certbot needs; and it says what an empty list means and to restore the backup
+  instead. Skip the restore on a first install, where there is no certificate and
+  nothing was lost.
+
+  The two vhost templates were teaching the original procedure verbatim. They are
+  what somebody follows when they are not running `install.sh`, which makes them
+  the one path with no validation on it, and their headers said to sed a reserved
+  name straight into the installed file. Both now render through a temp file with
+  the same diff and guards. Comment headers only; the rendered vhosts are
+  byte-identical, so the drift notice fires once on this deploy and the right
+  response to it is to read the diff and leave `/etc` alone.
+
+  Three further review rounds went at the fix itself rather than the original bug,
+  and the one that mattered was a refusal that blocked real hosts: the new checks
+  were a single ordered `case` whose accept arm required a letter *before* a dot,
+  so `163.com` — a registered domain — was rejected by a message telling the
+  operator it needed a dot while pointing at a name that has one. Three independent
+  checks now, one question each. The domain is also lowercased before those checks
+  rather than after, since `case` patterns are literal and `YOUR.DOMAIN` was
+  otherwise walking straight past the placeholder list, and certbot builds its
+  lineage directory from the string as given. An apache box was being told to run
+  `certbot --nginx`; a box with no web server at all was told to install a vhost
+  that had never been printed, to curl a board with nothing listening, and was
+  handed a drift fingerprint recording vhosts it had been given no way to install.
+  Names that cannot get a certificate but can still serve a board on a LAN —
+  `bus.local`, `board.home.arpa` and friends — are deliberately accepted, recorded
+  at the check so the omission reads as a choice.
 - **A stop the bus only passes through was given the whole turnaround story.**
   The card's own header has always said it answers "does this trip START here, and
   if so which bus is bringing it in" — the second half was written and the gate was
