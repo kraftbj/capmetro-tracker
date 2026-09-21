@@ -144,8 +144,14 @@ test.describe('the board fits the target device', () => {
  * -- that is an intent error, and the live catalog is the only thing that settles
  * it, which is why 335 was checked against it before being pinned.
  */
+/*
+ * Module scope because two describes need it: the pinned-grid tests below, and
+ * the no-catalog test further down, which is the one place the literal's own
+ * order reaches a screen.
+ */
+const RIDDEN = ['4', '7', '335', '337', '350', '800', '837']
+
 test.describe('the routes we ride sit at the top of the picker', () => {
-  const RIDDEN = ['4', '7', '335', '337', '350', '800', '837']
 
   /*
    * Not pinned, so the picker has something to pin them ABOVE -- and chosen to
@@ -226,18 +232,20 @@ test.describe('the routes we ride sit at the top of the picker', () => {
   })
 
   /*
-   * This checks the order the PICKER renders, which is the catalog's, not the
-   * literal's. `favs` is `shown.filter(...)`, and filter preserves the order of
-   * what it filters -- so the grid comes out in whatever order api/routes.json
-   * arrived in, which the generator sorts numerically (cm_sort_route_catalog;
-   * the live catalog reads 1, 2, 3, 4, 5, 7, 10, 18, 20 ...). FAVORITES could be
-   * written in any order at all and this would still pass, which a reviewer
-   * demonstrated by moving 335 to the end of the literal.
+   * This checks the order the picker renders WITH A CATALOG LOADED, which is the
+   * catalog's, not the literal's. `favs` is `shown.filter(...)`, and filter
+   * preserves the order of what it filters -- so the grid comes out in whatever
+   * order api/routes.json arrived in, which the generator sorts numerically
+   * (cm_sort_route_catalog; the live catalog reads 1, 2, 3, 4, 5, 7, 10, 18, 20
+   * ...). FAVORITES could be written in any order at all and this would still
+   * pass, which a reviewer demonstrated by moving 335 to the end of the literal.
    *
-   * That is not a hole in the picker: the literal's order has no effect on
-   * anything a reader sees. It is a source-readability convention, and it is
-   * checked where it lives, in client-scripts.test.mjs. The name of this test
-   * used to imply otherwise.
+   * That is a property of THIS test, not of the literal: openPicker stubs a
+   * catalog. Take the catalog away and the picker renders FAVORITES' own order,
+   * because catalog() falls back to FAVORITES.map() -- the same fact the comment
+   * above openPicker gives as the reason for stubbing at all. The no-catalog
+   * test near the end of this file asserts that order, and
+   * client-scripts.test.mjs guards the literal itself.
    */
   test('and 335 is among them, in the order the catalog hands over', async ({ page }) => {
     await openPicker(page)
@@ -245,6 +253,9 @@ test.describe('the routes we ride sit at the top of the picker', () => {
     const ids = await pinned.allInnerTexts()
 
     expect(ids, '335 is not pinned').toContain('335')
+    /* Asserted, not assumed: with 337 unpinned the line below reports
+     * "expected 2 to be -2" and names neither 337 nor its absence. */
+    expect(ids, '337 is not pinned').toContain('337')
     expect(ids.indexOf('335')).toBe(ids.indexOf('337') - 1)
     expect([...ids].sort((a, b) => Number(a) - Number(b))).toEqual(ids)
   })
@@ -347,6 +358,17 @@ test.describe('the picker beyond the pinned grid', () => {
 
     await expect(page.locator('.routegrid'), 'a catalog loaded, so this is the wrong path')
       .toHaveCount(1)
+
+    /*
+     * The one place the literal's own order reaches a screen. With no catalog,
+     * catalog() returns fallbackCatalog(), which IS FAVORITES.map() -- so this
+     * grid is the literal, rendered in the literal's order, on any board opened
+     * from disk, on a routes.json failure, and on every paint before the catalog
+     * lands. The pinned-grid tests above cannot see this: they stub a catalog.
+     */
+    await expect(page.locator('.routegrid').first().locator('.routegrid__id'),
+      'the no-catalog grid is not the pinned literal, in its own order')
+      .toHaveText(RIDDEN)
     const text = await page.locator('.picker').innerText()
     expect(text, 'a filter failure reported for a filter nobody typed')
       .not.toContain('No route matches')
