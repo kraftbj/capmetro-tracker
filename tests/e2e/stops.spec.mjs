@@ -297,7 +297,7 @@ test.describe('a resolved route is fetched once, not once per frame', () => {
      * spin evicting and re-fetching it either.
      *
      * The id is the fixture server's, not a real route. It used to be '7' — one
-     * of the six watched routes — and answering that under every scenario
+     * of the watched routes — and answering that under every scenario
      * shadowed the real thing; the name moved with the fix, and this test has to
      * move with the name or it stops describing a stale day at all while still
      * passing, because its assertion is a request count.

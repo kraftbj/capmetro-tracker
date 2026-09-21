@@ -24,8 +24,8 @@ return [
 
     /*
      * null writes every route in the shard index (71 today, ~2 MB of JSON per run).
-     * A list restricts it, which is worth doing if the box is small: the six routes in
-     * play are 800, 4, 837, 337, 350 and 7.
+     * A list restricts it, which is worth doing if the box is small: the routes in
+     * play are 800, 4, 837, 350, 337, 335 and 7.
      */
     'routes'    => null,
 
