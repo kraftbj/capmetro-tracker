@@ -486,6 +486,13 @@ say "web server"
 # the apache instructions now send a first-install operator straight at that
 # line, which turned a stale default into a wrong instruction on a real path.
 CERTBOT_PLUGIN=""
+# Whether the vhost commands were actually printed. Not the same question as
+# "was there a domain": the no-server arm below has a domain and still prints
+# nothing to install, so guarding the drift fingerprint on $DOMAIN recorded the
+# committed vhosts as installed on a box that had been given no way to install
+# them. Narrower than the no-domain case -- a re-run once nginx is there
+# re-stamps -- but it is the same false "clean" either way.
+VHOST_PRINTED=0
 if [ -z "$DOMAIN" ]; then
   warn "no --domain given, so the vhost instructions are not printed.
      There is no safe default for it: a placeholder substituted into server_name
@@ -496,7 +503,7 @@ if [ -z "$DOMAIN" ]; then
      drift fingerprint is deliberately not written either, so a later vhost change
      still gets announced rather than landing silently."
 elif command -v nginx >/dev/null 2>&1; then
-  CERTBOT_PLUGIN=--nginx
+  CERTBOT_PLUGIN=--nginx; VHOST_PRINTED=1
   cat <<EOF
    nginx found. Install the vhost:
      sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
@@ -547,7 +554,7 @@ elif command -v nginx >/dev/null 2>&1; then
      curl -sf https://$DOMAIN/api/health.json
 EOF
 elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
-  CERTBOT_PLUGIN=--apache
+  CERTBOT_PLUGIN=--apache; VHOST_PRINTED=1
   cat <<EOF
    apache found. Install the vhost:
      sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
@@ -608,14 +615,14 @@ fi
 # the DRY_RUN arm first made that branch unreachable in the only mode that can be tested
 # without root.
 #
-# The DOMAIN arm comes first because it is the one case where writing the record is
-# actively harmful rather than merely uninformative. A run with no --domain refuses to
-# print the vhost commands at all, so the operator cannot have installed anything -- and
+# The VHOST_PRINTED arm comes first because it is the one case where writing the record
+# is actively harmful rather than merely uninformative. A run that printed no vhost
+# commands -- no --domain, or no web server found -- cannot have installed anything, and
 # stamping the committed vhosts as "installed" on that run tells update.sh, permanently,
 # that /etc already matches the checkout. The next real vhost change then deploys with
 # nothing to announce it, which is the exact event the record exists to catch. Worse than
 # having no record, because a box with no record says so once per run and carries on.
-if [ -z "$DOMAIN" ]; then
+if [ "$VHOST_PRINTED" = 0 ]; then
   printf '%s\n%s\n' \
     '   not recording a vhost drift fingerprint: this run printed no vhost, so' \
     '   nothing can have been installed from it. A later vhost change still gets announced.'

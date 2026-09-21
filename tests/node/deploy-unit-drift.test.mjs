@@ -19,7 +19,7 @@
  * id/chown/runuser/php, which is the only way to prove the check is actually WIRED IN.
  */
 import { execFileSync, spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -948,13 +948,35 @@ describe('install.sh --dry-run', () => {
 	 * covered a different code path per developer, and on a machine with neither they would
 	 * have been asserting against a one-line warning.
 	 */
-	function runInstall(extraArgs = [], { server = null } = {}) {
+	/*
+	 * `isolate` is how the no-web-server branch gets tested at all. Prepending a stub
+	 * directory cannot make a binary ABSENT, and a developer machine has a real
+	 * /usr/sbin/httpd -- macOS ships one -- so `command -v httpd` succeeded and
+	 * install.sh took the apache branch no matter what the test stubbed. PATH is
+	 * replaced outright instead, with only what a dry run genuinely executes symlinked
+	 * in: bash and sed to run the script at all, php for the version check, tr for the
+	 * domain normalization, plus dummy rsync and git so the prerequisite check does
+	 * not die on their absence. Resolved
+	 * from the environment rather than hardcoded, so it does not assume this machine's
+	 * layout.
+	 */
+	function runInstall(extraArgs = [], { server = null, isolate = false } = {}) {
 		const bin = path.join(work, 'ibin')
 		mkdirSync(bin, { recursive: true })
 		writeFileSync(path.join(bin, 'id'), '#!/bin/sh\necho 0\n', { mode: 0o755 })
 		if (server) writeFileSync(path.join(bin, server), '#!/bin/sh\nexit 0\n', { mode: 0o755 })
+		if (isolate) {
+			for (const tool of [ 'bash', 'sed', 'php', 'tr' ]) {
+				const real = spawnSync('sh', [ '-c', `command -v ${ tool }` ], { encoding: 'utf8' })
+				expect(real.status, `${ tool } is not on PATH, so this test cannot run`).toBe(0)
+				symlinkSync(real.stdout.trim(), path.join(bin, tool))
+			}
+			for (const tool of [ 'rsync', 'git' ]) {
+				writeFileSync(path.join(bin, tool), '#!/bin/sh\nexit 0\n', { mode: 0o755 })
+			}
+		}
 		const script = `
-export PATH="${ bin }:$PATH"
+export PATH="${ bin }${ isolate ? '' : ':$PATH' }"
 bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
   ${ extraArgs.map((a) => `'${ a }'`).join(' ') }
 `
@@ -1092,6 +1114,33 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			.not.toMatch(/s\/@DOMAIN@\//)
 		expect(r.out, 'it printed a vhost install command anyway')
 			.not.toMatch(/sites-available\/capmetro/)
+	})
+
+	/*
+	 * A domain is not the same question as a vhost having been printed. The no-server
+	 * arm has a domain, prints nothing installable, and was still reaching the write --
+	 * recording the committed vhosts as installed on a box that had been given no way
+	 * to install them. Narrower than the no-domain case, since a re-run once nginx is
+	 * there re-stamps, but it is the same false "clean" while it lasts.
+	 */
+	it('records no vhost fingerprint when no web server was found either', () => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { isolate: true })
+		expect(r.code).toBe(0)
+		expect(r.out, 'the no-server branch was not the one taken')
+			.toMatch(/no nginx or apache found/)
+		expect(r.out, 'it stamped the vhosts as installed having printed none')
+			.not.toMatch(/would run: record the vhost drift fingerprint/)
+		expect(r.out).toMatch(/not recording a vhost drift fingerprint/)
+	})
+
+	/* And the summary cannot point at a vhost it never printed, or name a plugin. */
+	it('sends a box with no web server to install one first', () => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { isolate: true })
+		expect(r.out).toMatch(/1\. install nginx or apache, then re-run/)
+		expect(r.out, 'it named a certbot plugin with no web server to configure')
+			.not.toMatch(/certbot --(nginx|apache)/)
+		expect(r.out, 'it pointed at a vhost that was never printed')
+			.not.toMatch(/install the vhost printed above/)
 	})
 
 	/*
@@ -1328,7 +1377,24 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		})
 		expect(refusals.length, 'no DOMAIN validation block found, so nothing is excluded')
 			.toBeGreaterThan(0)
-		const inRefusal = (n) => refusals.some(([ a, b ]) => n >= a && n <= b)
+		/*
+		 * Pattern LINES inside those blocks, not the whole block. The blocks also hold
+		 * multi-line `die` bodies, and a die body is printed to the terminal -- as
+		 * pasteable as any heredoc. Excluding whole blocks meant a placeholder in a
+		 * refusal's own explanatory text was invisible, which is a hole in the shape of
+		 * the very thing being banned. Verified: `sudo certbot --nginx -d your.domain`
+		 * added to the placeholder arm's die body left this test green while
+		 * `--domain bus.example.com` printed that line to the operator.
+		 *
+		 * A pattern line is only pattern characters -- names, dots, stars, pipes,
+		 * hyphens -- with an optional closing paren and an optional trailing
+		 * backslash. Prose and quotes disqualify it, which is what separates a `case`
+		 * arm from the message underneath it.
+		 */
+		const isPatternLine = (line) =>
+			/^\s*\|?[A-Za-z0-9.*|_-]+\)?\s*\\?$/.test(line)
+		const inRefusal = (n) =>
+			refusals.some(([ a, b ]) => n >= a && n <= b) && isPatternLine(lines[n])
 		/*
 		 * The comment filter had a hole the size of the usage text. `usage()` is
 		 * `sed -n '2,20p' "$0" | sed 's/^# \\{0,1\\}//'`, so header comment lines 2-20
@@ -1499,6 +1565,12 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			.not.toMatch(/could not write the vhost drift record/)
 	})
 
+	/*
+	 * With a domain and a server, deliberately: the VHOST_PRINTED arm now answers
+	 * first in that chain, so a bare runInstall() never reaches the helper check this
+	 * test is named for. Proven by deleting the whole `elif ! command -v
+	 * cm_write_vhost_stamp` arm, which left every install.sh dry-run test green.
+	 */
 	it('survives a pulled units.sh that predates the vhost helper', () => {
 		/*
 		 * What this DOES prove: a dry run against a tree carrying the pre-branch units.sh
@@ -1525,10 +1597,13 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			+ 'wrong commit, which means this test is no longer reading a genuinely older library')
 			.not.toMatch(/cm_write_vhost_stamp/)
 		writeFileSync(path.join(work, 'src/deploy/lib/units.sh'), older)
-		const r = runInstall()
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { server: 'nginx' })
 		expect(r.code).toBe(0)
 		expect(r.out).not.toMatch(/command not found/)
 		expect(r.out).not.toMatch(/vhost drift record \(\)/)
+		/* The arm this test is named for, reached rather than assumed. */
+		expect(r.out, 'the helper-missing arm was not the one that answered')
+			.toMatch(/cannot record a vhost drift fingerprint/)
 	})
 })
 
