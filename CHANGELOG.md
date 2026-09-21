@@ -317,10 +317,34 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   certbot owns on a TLS box, so the 443 block went with it and the certificate was
   left valid and unreferenced. There is no safe default for a hostname, so there is
   no default: without `--domain` the commands are not printed at all, and with it
-  they diff against the installed file before replacing it and end by putting
-  certbot back. `update.sh`'s advice now names the flag, and its notice no longer
-  claims the box is serving the old config — it fingerprints the committed files
-  and cannot see what is installed.
+  they diff against the installed file before replacing it, guard the copy on a
+  non-empty file with no placeholders left in it, and then restore the TLS block.
+  `update.sh`'s advice now names the flag, and its notice no longer claims the box
+  is serving the old config — it fingerprints the committed files and cannot see
+  what is installed.
+
+  Review after that landed found four more routes to the same dead `server_name`,
+  all now refused. `--domain --dry-run` was parsed as the domain `--dry-run` with
+  the dry-run flag left off, so a run asked to change nothing did a real install
+  and printed `server_name --dry-run;`; every value-taking flag now rejects an
+  option-shaped or missing value. `bus.example.com` was accepted, and it was the
+  value this script's own usage line handed people to paste — that reserved family
+  is refused now, along with a bare IP and a single label, none of which can be a
+  host certbot will issue for. The vhost fingerprint was written even by a run that
+  refused to print a vhost, which told `update.sh` permanently that `/etc` already
+  matched and would have let the next real vhost change deploy unannounced. And the
+  command to restore the 443 block assumed the certificate lineage is named after
+  the domain, which fails on a re-issue (`<domain>-0001`) or an explicitly named
+  one — with the vhost already live and the TLS block already deleted; it now says
+  to read the name from `certbot certificates`, and to skip it on a first install.
+
+  The two vhost templates were teaching the original procedure verbatim. They are
+  what somebody follows when they are not running `install.sh`, which makes them
+  the one path with no validation on it, and their headers said to sed a reserved
+  name straight into the installed file. Both now render through a temp file with
+  the same diff and guards. Comment headers only; the rendered vhosts are
+  byte-identical, so the drift notice fires once on this deploy and the right
+  response to it is to read the diff and leave `/etc` alone.
 - **A stop the bus only passes through was given the whole turnaround story.**
   The card's own header has always said it answers "does this trip START here, and
   if so which bus is bringing it in" — the second half was written and the gate was
