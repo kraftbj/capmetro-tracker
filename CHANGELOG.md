@@ -334,9 +334,21 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   refused to print a vhost, which told `update.sh` permanently that `/etc` already
   matched and would have let the next real vhost change deploy unannounced. And the
   command to restore the 443 block assumed the certificate lineage is named after
-  the domain, which fails on a re-issue (`<domain>-0001`) or an explicitly named
-  one — with the vhost already live and the TLS block already deleted; it now says
-  to read the name from `certbot certificates`, and to skip it on a first install.
+  the domain — with the vhost already live and the TLS block already deleted when
+  it fails.
+
+  That last one needed more than a better command. certbot names a lineage after
+  the *first* `-d`, so a certificate covering the apex and this host together is
+  named for the apex, a wildcard is named for the first usable name, and a re-issue
+  leaves `<domain>-0001`; `certbot install --cert-name <domain>` exits 1 on each.
+  And if the certificate never came from certbot — acme.sh, Caddy, a commercial
+  cert — there is no lineage to name at all, so reading the name from
+  `certbot certificates` returns an empty list and no next step. The printed
+  sequence now backs the installed file up on the same chain, ahead of the
+  overwrite, which covers every one of those at once; it names the installer plugin
+  certbot needs; and it says what an empty list means and to restore the backup
+  instead. Skip the restore on a first install, where there is no certificate and
+  nothing was lost.
 
   The two vhost templates were teaching the original procedure verbatim. They are
   what somebody follows when they are not running `install.sh`, which makes them
