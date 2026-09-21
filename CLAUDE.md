@@ -152,6 +152,23 @@ Expectations:
   stdout and therefore to the journal. A box with no record — every box installed
   before this — stays silent, except on the one deploy whose own pulled range
   changed a vhost, which is the case that would otherwise land unannounced.
+  **Pass `--domain` when you run `install.sh` for a vhost.** Without it the script
+  now refuses to print the install commands at all, and that refusal is the fix for
+  an outage on 2026-09-21: it used to substitute the literal string `your.domain`
+  into a block formatted for pasting, which wrote `server_name your.domain;`. nginx
+  validates neither that a server_name resolves nor that any block matches, so
+  `nginx -t` reported success, the reload was clean, and every request for
+  bus.dillo.dev fell through to `default_server` — which on that box is a WordPress
+  site, so the board answered with a database error page and looked like a DNS
+  fault. The one-command diagnosis for that shape: a bogus `Host:` header and the
+  real one returning the IDENTICAL response means no server block matches.
+  The same step overwrote certbot's 443 block, so HTTPS went too; the printed
+  instructions now diff first and end with `certbot install --cert-name`.
+  Note also that the drift record fingerprints the COMMITTED vhosts, never the
+  installed ones — it answers "has the repo's vhost moved since install.sh last ran
+  here", and cannot see what is actually in `/etc`. It was silent all through that
+  outage, correctly by its own definition.
+
   Why it earns a bullet at all: a stale timer fires at the wrong hour and the board
   still renders, while a stale vhost can refuse `manifest.webmanifest` and `sw.js`
   outright — not installable, no offline board, nothing on screen, and

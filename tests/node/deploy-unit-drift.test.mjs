@@ -941,10 +941,18 @@ describe('install.sh --dry-run', () => {
 	const INSTALL = path.join(REPO, 'deploy/install.sh')
 	const install = readFileSync(INSTALL, 'utf8')
 
-	function runInstall(extraArgs = []) {
+	/*
+	 * `server` stubs the web server binary the vhost branch keys off. Without it the branch
+	 * is chosen by what happens to be installed on the machine running the suite -- apache
+	 * on a Mac, nginx on the box, neither in a slim container -- so the same assertions
+	 * covered a different code path per developer, and on a machine with neither they would
+	 * have been asserting against a one-line warning.
+	 */
+	function runInstall(extraArgs = [], { server = null } = {}) {
 		const bin = path.join(work, 'ibin')
 		mkdirSync(bin, { recursive: true })
 		writeFileSync(path.join(bin, 'id'), '#!/bin/sh\necho 0\n', { mode: 0o755 })
+		if (server) writeFileSync(path.join(bin, server), '#!/bin/sh\nexit 0\n', { mode: 0o755 })
 		const script = `
 export PATH="${ bin }:$PATH"
 bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
@@ -991,6 +999,77 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		const code = install.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
 		expect(code).not.toMatch(/php -m\s*\|\s*grep/)
 		expect(code).toMatch(/extension_loaded/)
+	})
+
+	/*
+	 * NO --domain, NO PASTE-READY COMMAND.
+	 *
+	 * This printed `your.domain` as the substitution when --domain was omitted, in a block
+	 * formatted for copying. On 2026-09-21 it was copied: the installed vhost got
+	 * `server_name your.domain;`, `nginx -t` reported success -- nginx validates neither
+	 * that a server_name resolves nor that any block matches -- the reload was clean, and
+	 * every request for the real host fell to default_server. That box also serves
+	 * WordPress, so bus.dillo.dev answered with a database error page and read like a DNS
+	 * fault. Every signal a deploy has was green throughout.
+	 */
+	it('prints no vhost command at all without --domain', () => {
+		const r = runInstall()
+		expect(r.code).toBe(0)
+		expect(r.out, 'a placeholder hostname was offered as a default').not.toMatch(/your\.domain/)
+		expect(r.out, 'a sed was printed with no real domain to put in it')
+			.not.toMatch(/s\/@DOMAIN@\//)
+		expect(r.out, 'a server_name command was printed').not.toMatch(/sites-available\/capmetro/)
+		expect(r.out, 'it should say what to re-run with').toMatch(/--domain/)
+	})
+
+	it('names the real domain in the sed when it is given one', () => {
+		const r = runInstall(['--domain', 'bus.example.com'])
+		expect(r.code).toBe(0)
+		expect(r.out).toMatch(/s\/@DOMAIN@\/bus\.example\.com\/g/)
+		expect(r.out).not.toMatch(/your\.domain/)
+	})
+
+	/*
+	 * The second half of the same outage. The committed conf is `listen 80` only; certbot
+	 * rewrites the INSTALLED file to add the 443 server. The old instructions said
+	 * `| sudo tee` straight over it, which deletes the TLS block while leaving the
+	 * certificate valid and unreferenced -- so the board loses HTTPS and the error is a
+	 * fall-through to whatever else the box serves on 443.
+	 */
+	it.each([
+		[ 'nginx', 'nginx', /sites-available\/capmetro/ ],
+		[ 'apache', 'apache2ctl', /sites-available\/capmetro\.conf/ ],
+	])('tells you to diff before overwriting, and to put certbot back after (%s)', (_name, server, target) => {
+		const r = runInstall(['--domain', 'bus.example.com'], { server })
+		const out = r.out
+		expect(out, 'the branch under test was not the one taken').toMatch(target)
+		expect(out, 'no diff step').toMatch(/diff -u/)
+		expect(out, 'no certbot step').toMatch(/certbot install --cert-name bus\.example\.com/)
+		expect(out, 'still piping straight into the live config').not.toMatch(/\|\s*sudo tee/)
+
+		/* Order matters more than presence: a diff printed after the copy is decoration. */
+		const diffAt = out.search(/diff -u/)
+		const copyAt = out.search(/sudo cp .*capmetro-vhost\.new/)
+		const certAt = out.search(/certbot install/)
+		expect(copyAt, 'no copy step at all, so the order assertion is empty')
+			.toBeGreaterThan(-1)
+		expect(diffAt, 'the diff comes after the copy that makes it pointless')
+			.toBeLessThan(copyAt)
+		expect(certAt, 'certbot runs before the copy that removes its block')
+			.toBeGreaterThan(copyAt)
+	})
+
+	/*
+	 * The instructions only work while the conf actually carries the placeholders. If a
+	 * hostname were ever hardcoded into the committed file, the sed above would be a no-op
+	 * and every box would install somebody else's domain.
+	 */
+	it('and the committed vhosts still carry the placeholders the sed replaces', () => {
+		for (const v of ['nginx-capmetro.conf', 'apache-capmetro.conf']) {
+			const conf = readFileSync(path.join(REPO, 'deploy', v), 'utf8')
+			expect(conf, `${ v } no longer has @DOMAIN@`).toMatch(/@DOMAIN@/)
+			expect(conf, `${ v } no longer has @WEBROOT@`).toMatch(/@WEBROOT@/)
+		}
 	})
 
 	it('changes nothing on disk', () => {
@@ -1216,7 +1295,11 @@ describe('the vhost notice cannot take the board down or lie about which file mo
 		/* The REMEDY must not be printed. "install.sh" on its own appears in the headline
 		   ("since install.sh last ran"), so matching the bare name asserts nothing. */
 		expect(r.stdout).not.toMatch(/sudo .*install\.sh/)
-		expect(r.stdout).not.toMatch(/still serving the OLD one/)
+		/* Pointed at the CURRENT headline. It used to match "still serving the OLD one",
+		   a sentence update.sh no longer contains -- so it passed without checking
+		   anything. The wording moved because the record fingerprints the committed
+		   files and cannot see what is installed. */
+		expect(r.stdout).not.toMatch(/install\.sh last recorded here/)
 	})
 
 	it('cannot be used to zero the unit-drift exit code from the pulled library', () => {

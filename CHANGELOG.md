@@ -299,6 +299,20 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
 
 ### Fixed
 
+- **`install.sh` would hand you a command that takes the board down.** The vhost is
+  printed rather than installed, and the hostname it substituted defaulted to the
+  literal string `your.domain` when `--domain` was omitted — in a block formatted
+  for pasting. Pasted, it wrote `server_name your.domain;`. nginx checks neither
+  that a server_name resolves nor that any block matches, so `nginx -t` reported
+  success and the reload was clean, while every request for the real host fell
+  through to `default_server`. The same step piped over the installed file, which
+  certbot owns on a TLS box, so the 443 block went with it and the certificate was
+  left valid and unreferenced. There is no safe default for a hostname, so there is
+  no default: without `--domain` the commands are not printed at all, and with it
+  they diff against the installed file before replacing it and end by putting
+  certbot back. `update.sh`'s advice now names the flag, and its notice no longer
+  claims the box is serving the old config — it fingerprints the committed files
+  and cannot see what is installed.
 - **A stop the bus only passes through was given the whole turnaround story.**
   The card's own header has always said it answers "does this trip START here, and
   if so which bus is bringing it in" — the second half was written and the gate was

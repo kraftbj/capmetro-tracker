@@ -340,25 +340,66 @@ fi
 # that already serves other sites is not a risk this script gets to take on your
 # behalf, and the substitution is one command you can read before running it.
 say "web server"
-VHOST_DOMAIN="${DOMAIN:-your.domain}"
-# `| sudo tee`, never `sudo sed ... > file`. Redirection is performed by the
-# invoking shell, not by sudo, so the > lands in /etc as the unprivileged user
-# and fails. The first version of these instructions got that wrong and the
-# copy-pasted command returned Permission denied.
-if command -v nginx >/dev/null 2>&1; then
-  printf '   nginx found. Install the vhost, then reload:\n'
-  printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
-  printf '       %s/deploy/nginx-capmetro.conf \\\n' "$SRC_DIR"
-  printf '       | sudo tee /etc/nginx/sites-available/capmetro > /dev/null\n'
-  printf '     sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro\n'
-  printf '     sudo nginx -t && sudo systemctl reload nginx\n'
+
+#
+# NO --domain, NO COMMAND. This used to default to the literal string
+# `your.domain` and print it into a command built for pasting. On 2026-09-21 that
+# command was pasted: it wrote `server_name your.domain;`, `nginx -t` reported
+# success -- nginx never checks that a server_name matches a real host, or that
+# any block matches -- the reload was clean, and every request for the real host
+# fell through to default_server. The box also serves WordPress, so the board
+# answered with a database error page for eleven minutes and looked like a DNS
+# or hosting fault.
+#
+# The placeholder is not a usable default for a value with no safe guess. A
+# refusal costs one re-run; the guess cost an outage that nothing detected.
+#
+if [ -z "$DOMAIN" ]; then
+  warn "no --domain given, so the vhost instructions are not printed.
+     There is no safe default for it: a placeholder substituted into server_name
+     passes nginx -t, reloads cleanly, and matches nothing, which takes the board
+     down with every check reporting success. Re-run with the hostname:
+       sudo $0 --domain <the host this board is served on> ...
+     Everything else above this line is already done and does not repeat."
+elif command -v nginx >/dev/null 2>&1; then
+  cat <<EOF
+   nginx found. Install the vhost:
+     sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
+       $SRC_DIR/deploy/nginx-capmetro.conf > /tmp/capmetro-vhost.new
+     sudo diff -u /etc/nginx/sites-available/capmetro /tmp/capmetro-vhost.new
+
+   READ THAT DIFF BEFORE THE NEXT LINE. certbot --nginx rewrites the INSTALLED
+   file to add the 443 server and the http->https redirect, so on a TLS box it is
+   not the committed one and copying over the top deletes the TLS block. The
+   certificate survives; nothing references it, and the board leaves HTTPS.
+
+     sudo cp /tmp/capmetro-vhost.new /etc/nginx/sites-available/capmetro
+     sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro
+     sudo nginx -t && sudo systemctl reload nginx
+     sudo certbot install --cert-name $DOMAIN   # puts the 443 block back
+     sudo nginx -t && sudo systemctl reload nginx
+
+   Then check the board, not the config: a green nginx -t is not evidence.
+     curl -sf https://$DOMAIN/api/health.json
+EOF
 elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
-  printf '   apache found. Install the vhost, then reload:\n'
-  printf '     sed -e %ss/@DOMAIN@/%s/%s -e %ss#@WEBROOT@#%s#%s \\\n' "'" "$VHOST_DOMAIN" "'" "'" "$WEBROOT" "'"
-  printf '       %s/deploy/apache-capmetro.conf \\\n' "$SRC_DIR"
-  printf '       | sudo tee /etc/apache2/sites-available/capmetro.conf > /dev/null\n'
-  printf '     sudo a2enmod headers expires && sudo a2ensite capmetro\n'
-  printf '     sudo apache2ctl configtest && sudo systemctl reload apache2\n'
+  cat <<EOF
+   apache found. Install the vhost:
+     sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
+       $SRC_DIR/deploy/apache-capmetro.conf > /tmp/capmetro-vhost.new
+     sudo diff -u /etc/apache2/sites-available/capmetro.conf /tmp/capmetro-vhost.new
+
+   READ THAT DIFF BEFORE THE NEXT LINE, for the reason the nginx branch gives:
+   certbot owns the TLS virtual host in the installed file.
+
+     sudo cp /tmp/capmetro-vhost.new /etc/apache2/sites-available/capmetro.conf
+     sudo a2enmod headers expires && sudo a2ensite capmetro
+     sudo apache2ctl configtest && sudo systemctl reload apache2
+     sudo certbot install --cert-name $DOMAIN
+     sudo apache2ctl configtest && sudo systemctl reload apache2
+
+     curl -sf https://$DOMAIN/api/health.json
+EOF
 else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
@@ -428,7 +469,15 @@ printf '  state       %s\n' "$STATE_DIR"
 printf '  scheduler   %s\n' "$SCHEDULER"
 echo
 echo "Next:"
-printf '  1. install the vhost printed above and reload the web server\n'
-printf '  2. get a certificate:  sudo certbot --nginx -d %s\n' "$VHOST_DOMAIN"
-printf '  3. check it:           curl -s https://%s/api/health.json | head -c 200\n' "$VHOST_DOMAIN"
-printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+# Same rule as the vhost block above: with no --domain there is no hostname to put in
+# these commands, and a placeholder here would be pasted just as readily as one in a
+# server_name. Say what to do instead of printing something that looks runnable.
+if [ -z "$DOMAIN" ]; then
+  printf '  1. re-run with --domain to get the vhost and certificate commands\n'
+  printf '  2. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+else
+  printf '  1. install the vhost printed above, reading the diff, and reload the web server\n'
+  printf '  2. get a certificate:  sudo certbot --nginx -d %s\n' "$DOMAIN"
+  printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+  printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+fi
