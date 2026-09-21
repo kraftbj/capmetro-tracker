@@ -686,6 +686,13 @@ else
   else
     printf '  2. get a certificate:  install nginx or apache first, then run certbot\n'
   fi
-  printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+  # Branched for the same reason as 1 and 2: with no web server there is nothing
+  # listening, so this curl cannot answer and its failure would say nothing about
+  # whether the install worked.
+  if [ -n "$CERTBOT_PLUGIN" ]; then
+    printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+  else
+    printf '  3. check the BOARD once a web server is serving %s\n' "$WEBROOT"
+  fi
   printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
 fi

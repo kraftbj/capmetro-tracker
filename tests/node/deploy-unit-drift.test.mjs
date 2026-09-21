@@ -1141,6 +1141,12 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			.not.toMatch(/certbot --(nginx|apache)/)
 		expect(r.out, 'it pointed at a vhost that was never printed')
 			.not.toMatch(/install the vhost printed above/)
+		/*
+		 * And step 3, for the same reason: with nothing listening, that curl cannot
+		 * answer, and its failure would say nothing about whether the install worked.
+		 */
+		expect(r.out, 'it told them to curl a board with no web server to serve it')
+			.not.toMatch(/curl -sf https:\/\//)
 	})
 
 	/*
@@ -1387,12 +1393,18 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		 * `--domain bus.example.com` printed that line to the operator.
 		 *
 		 * A pattern line is only pattern characters -- names, dots, stars, pipes,
-		 * hyphens -- with an optional closing paren and an optional trailing
-		 * backslash. Prose and quotes disqualify it, which is what separates a `case`
-		 * arm from the message underneath it.
+		 * hyphens -- and MUST end in a terminator: a closing paren, or a backslash
+		 * continuing the arm. Prose and quotes disqualify it, which is what separates
+		 * a `case` arm from the message underneath it.
+		 *
+		 * Both terminators were optional at first, which exempted a line that is
+		 * nothing but an indented hostname -- so a die body reading "do not use the
+		 * stand-in from the docs:" followed by the stand-in on its own line was
+		 * exempt, and printed. Requiring the terminator costs nothing: every real
+		 * pattern line in this file ends in one.
 		 */
 		const isPatternLine = (line) =>
-			/^\s*\|?[A-Za-z0-9.*|_-]+\)?\s*\\?$/.test(line)
+			/^\s*\|?[A-Za-z0-9.*|_-]+(\)|\s*\\)\s*$/.test(line)
 		const inRefusal = (n) =>
 			refusals.some(([ a, b ]) => n >= a && n <= b) && isPatternLine(lines[n])
 		/*
@@ -1437,9 +1449,16 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	it('accepts every domain its own help text suggests', () => {
 		const help = spawnSync('bash', [ INSTALL, '--help' ], { encoding: 'utf8' })
 		expect(help.status, '--help did not exit 0').toBe(0)
+		/*
+		 * No `.includes('.')` filter. It looked like it was skipping the options
+		 * list's `--domain <name>`, but `<` is outside the character class so that
+		 * line never matched anyway -- while a single-label suggestion, which
+		 * install.sh refuses, was silently dropped by it. Today the sweep finds
+		 * exactly one value, so removing the filter changes nothing except what a
+		 * future edit can smuggle past.
+		 */
 		const suggested = [ ...help.stdout.matchAll(/--domain\s+([A-Za-z0-9.-]+)/g) ]
 			.map((m) => m[1])
-			.filter((d) => d.includes('.'))
 		expect(suggested.length, 'the help text suggests no example hostname to check')
 			.toBeGreaterThan(0)
 		for (const domain of suggested) {
@@ -1447,6 +1466,45 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			expect(r.code, `--help suggests ${ domain }, which install.sh then refuses`)
 				.toBe(0)
 		}
+	})
+
+	/*
+	 * The same rule for a reserved name that arrives in --help by any OTHER sentence.
+	 * The check above only sees `--domain X`, so `check the board at
+	 * https://bus.example.com/...` in the header would hand the operator an RFC 2606
+	 * name that install.sh itself refuses -- the offers-then-refuses bug, through a
+	 * different door.
+	 *
+	 * Every hostname-shaped token is swept, and each is tested against install.sh's
+	 * OWN reserved list, parsed out of the refusal arm rather than restated here so
+	 * the two cannot drift. Suffix matching, not runInstall: the sweep legitimately
+	 * picks up install.sh, config.php and capmetro-tracker.git, which are filenames,
+	 * and feeding those through the validator would fail for reasons that are not
+	 * this rule.
+	 */
+	it('never prints a reserved hostname in its help text, in any sentence', () => {
+		const arm = install.match(/\n\s*(your\.domain[\s\S]*?)\)\n\s*die /)
+		expect(arm, 'the reserved-name refusal arm could not be parsed; this check is stale')
+			.not.toBeNull()
+		const reserved = arm[1]
+			.split('|')
+			.map((t) => t.replace(/[\\\s]/g, ''))
+			.filter(Boolean)
+		expect(reserved.length, 'parsed no reserved patterns').toBeGreaterThan(5)
+
+		const help = spawnSync('bash', [ INSTALL, '--help' ], { encoding: 'utf8' })
+		expect(help.status).toBe(0)
+		const tokens = [ ...new Set(
+			[ ...help.stdout.matchAll(/\b[A-Za-z0-9][A-Za-z0-9-]*(?:\.[A-Za-z0-9][A-Za-z0-9-]*)+\b/g) ]
+				.map((m) => m[0].toLowerCase()),
+		) ]
+		expect(tokens.length, 'the help text has no hostname-shaped token to check')
+			.toBeGreaterThan(0)
+
+		const offenders = tokens.filter((t) => reserved.some((r) =>
+			r.startsWith('*.') ? t.endsWith(r.slice(1)) : t === r))
+		expect(offenders, 'the help text names a hostname install.sh itself refuses')
+			.toEqual([])
 	})
 
 	/*
