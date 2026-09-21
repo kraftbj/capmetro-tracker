@@ -6,7 +6,7 @@
 # There is no second host, so there is no CORS to configure and nothing to keep
 # in sync between two deploys.
 #
-#   sudo ./deploy/install.sh --domain bus.example.com
+#   sudo ./deploy/install.sh --domain bus.dillo.dev
 #
 # Idempotent. Run it again after a code change and it updates in place. It will
 # NOT overwrite /etc/capmetro/config.php once that exists, and it will not touch
@@ -46,18 +46,43 @@ Options:
 EOF
 }
 
+# Every flag below takes a value, and `shift 2` takes whatever follows it --
+# including the next flag. `--domain --dry-run` set DOMAIN to the string
+# `--dry-run` and left DRY_RUN at 0, so a run whose only stated intent was to
+# change nothing became a real one: it created the user, the state dir and the
+# webroot, installed the schedule, and recorded the vhost fingerprint. Verified
+# locally with `id` stubbed -- it reached "creating /var/lib/capmetro" and got a
+# permission error only because the probe was not actually root.
+#
+# It does not write a vhost; it never does, it prints the commands. What it
+# printed was a paste-ready sed rendering `server_name --dry-run;`, which is the
+# same dead server_name the placeholder refusal below exists to prevent, handed
+# to an operator with no reason to read it closely or to check anything
+# afterwards. None of these flags takes a value beginning with a hyphen, so
+# reject an option-shaped or missing one instead of adopting it.
+#
+# exit 2, like the unknown-option arm, because this is a usage error and not a
+# failed install -- and it happens before anything on the box is touched.
+need_val() {
+  case "${2-}" in
+    "") printf 'xx %s needs a value\n' "$1" >&2; usage >&2; exit 2 ;;
+    -*) printf 'xx %s needs a value, got the option %s -- put the value after %s\n' \
+          "$1" "$2" "$1" >&2; exit 2 ;;
+  esac
+}
+
 DRY_RUN=0
 SRC_FROM=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --domain)   DOMAIN="$2"; shift 2 ;;
-    --repo)     REPO="$2"; shift 2 ;;
-    --branch)   BRANCH="$2"; shift 2 ;;
-    --webroot)  WEBROOT="$2"; shift 2 ;;
-    --src)      SRC_DIR="$2"; shift 2 ;;
-    --user)     RUN_USER="$2"; shift 2 ;;
-    --interval) INTERVAL_S="$2"; shift 2 ;;
-    --src-from) SRC_FROM="$2"; shift 2 ;;
+    --domain)   need_val "$1" "${2-}"; DOMAIN="$2"; shift 2 ;;
+    --repo)     need_val "$1" "${2-}"; REPO="$2"; shift 2 ;;
+    --branch)   need_val "$1" "${2-}"; BRANCH="$2"; shift 2 ;;
+    --webroot)  need_val "$1" "${2-}"; WEBROOT="$2"; shift 2 ;;
+    --src)      need_val "$1" "${2-}"; SRC_DIR="$2"; shift 2 ;;
+    --user)     need_val "$1" "${2-}"; RUN_USER="$2"; shift 2 ;;
+    --interval) need_val "$1" "${2-}"; INTERVAL_S="$2"; shift 2 ;;
+    --src-from) need_val "$1" "${2-}"; SRC_FROM="$2"; shift 2 ;;
     --dry-run)  DRY_RUN=1; shift ;;
     -h|--help)  usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage; exit 2 ;;
@@ -110,6 +135,39 @@ case "${DOMAIN:-}" in
      A '/' or a space here renders a broken vhost that nginx still accepts." ;;
   .*|*.|*..*)
     die "--domain is not a hostname: $DOMAIN" ;;
+esac
+
+# The refusals above are for strings that are not hostnames at all. These are
+# for strings that ARE well-formed hostnames, pass every check above, render a
+# vhost nginx accepts, and still cannot be the host this board is served on.
+# They matter for the same reason `your.domain` did: the failure is a server_name
+# that matches nothing, so the request falls through to default_server, and every
+# check that looks at the config instead of the board reports success.
+#
+# Ordering is load-bearing, since the first matching arm wins: the reserved names
+# are listed before the shape tests, and `*[!0-9.]*.*` (a non-digit somewhere AND
+# a dot) is the one arm that accepts, so anything reaching past it is either a
+# single label or nothing but digits and dots.
+case "${DOMAIN:-}" in
+  "") : ;;
+  your.domain|domain.tld|example.com|example.net|example.org \
+    |*.example.com|*.example.net|*.example.org \
+    |*.example|*.invalid|*.test|*.localhost)
+    die "--domain is a documentation placeholder, not a host: $DOMAIN
+     RFC 2606 reserves these names precisely so they never resolve to anything,
+     which is the one property a server_name must not have. Re-run with the
+     hostname the board is actually served on." ;;
+  *[!0-9.]*.*) : ;;
+  *[!0-9.]*)
+    die "--domain needs a fully qualified name, with a dot: $DOMAIN
+     A single label is a legal server_name and nginx will match it against a Host
+     header, but 'certbot -d $DOMAIN' cannot issue for it, so step 2 of the
+     summary below would hand you a command that fails after the vhost is live." ;;
+  *)
+    die "--domain looks like an IP address, not a hostname: $DOMAIN
+     An IP in server_name only ever matches a browser pointed straight at the
+     address, no certificate authority will issue for it, and the certbot command
+     printed below would fail with the vhost already installed." ;;
 esac
 
 
@@ -401,7 +459,9 @@ if [ -z "$DOMAIN" ]; then
      passes nginx -t, reloads cleanly, and matches nothing, which takes the board
      down with every check reporting success. Re-run with the hostname:
        sudo $0 --domain <the host this board is served on> ...
-     Everything else above this line is already done and does not repeat."
+     Everything else above this line is already done and does not repeat. The vhost
+     drift fingerprint is deliberately not written either, so a later vhost change
+     still gets announced rather than landing silently."
 elif command -v nginx >/dev/null 2>&1; then
   cat <<EOF
    nginx found. Install the vhost:
@@ -424,8 +484,19 @@ elif command -v nginx >/dev/null 2>&1; then
        && sudo cp /tmp/capmetro-vhost.new /etc/nginx/sites-available/capmetro
      sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro
      sudo nginx -t && sudo systemctl reload nginx
-     sudo certbot install --cert-name $DOMAIN   # puts the 443 block back
+
+   Now put back the 443 block the copy just deleted. The lineage is USUALLY named
+   after the first -d, but not always: a re-issue leaves $DOMAIN-0001, and a cert
+   obtained with an explicit --cert-name has whatever name it was given. Ask
+   rather than assume -- --cert-name fails on a name that is not exactly right,
+   and it fails with the vhost already installed and the TLS block already gone.
+     sudo certbot certificates | grep -i 'Certificate Name'
+     sudo certbot install --cert-name <the name printed above>
      sudo nginx -t && sudo systemctl reload nginx
+
+   On a FIRST install skip both: there is no certificate yet, so --cert-name has
+   nothing to find and will fail. There was also no 443 block to lose. Get the
+   certificate from step 2 of the summary below instead.
 
    Then check the board, not the config: a green nginx -t is not evidence.
      curl -sf https://$DOMAIN/api/health.json
@@ -444,7 +515,12 @@ elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; 
        && sudo cp /tmp/capmetro-vhost.new /etc/apache2/sites-available/capmetro.conf
      sudo a2enmod headers expires && sudo a2ensite capmetro
      sudo apache2ctl configtest && sudo systemctl reload apache2
-     sudo certbot install --cert-name $DOMAIN
+
+   Then put back the TLS virtual host, reading the name rather than assuming it,
+   for the reason the nginx branch gives at length -- and skipping both lines on
+   a first install, where there is no certificate to install yet.
+     sudo certbot certificates | grep -i 'Certificate Name'
+     sudo certbot install --cert-name <the name printed above>
      sudo apache2ctl configtest && sudo systemctl reload apache2
 
      curl -sf https://$DOMAIN/api/health.json
@@ -477,7 +553,19 @@ fi
 # vhost fingerprint" is exactly the kind of thing a dry run exists to surface, and putting
 # the DRY_RUN arm first made that branch unreachable in the only mode that can be tested
 # without root.
-if ! command -v cm_write_vhost_stamp >/dev/null 2>&1 \
+#
+# The DOMAIN arm comes first because it is the one case where writing the record is
+# actively harmful rather than merely uninformative. A run with no --domain refuses to
+# print the vhost commands at all, so the operator cannot have installed anything -- and
+# stamping the committed vhosts as "installed" on that run tells update.sh, permanently,
+# that /etc already matches the checkout. The next real vhost change then deploys with
+# nothing to announce it, which is the exact event the record exists to catch. Worse than
+# having no record, because a box with no record says so once per run and carries on.
+if [ -z "$DOMAIN" ]; then
+  printf '%s\n%s\n' \
+    '   not recording a vhost drift fingerprint: this run printed no vhost, so' \
+    '   nothing can have been installed from it. A later vhost change still gets announced.'
+elif ! command -v cm_write_vhost_stamp >/dev/null 2>&1 \
    || ! command -v cm_vhost_stamp_path >/dev/null 2>&1; then
   warn "this source tree cannot record a vhost drift fingerprint:
      $SRC_DIR/deploy/lib/units.sh is absent or predates it. Everything else still installs;

@@ -1028,10 +1028,94 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		 * neither nginx nor apache, install.sh prints "no nginx or apache found"
 		 * and the sed line never appears at all, so the assertion below fails for
 		 * a reason that has nothing to do with the code. */
-		const r = runInstall(['--domain', 'bus.example.com'], { server: 'nginx' })
+		const r = runInstall(['--domain', 'bus.dillo.dev'], { server: 'nginx' })
 		expect(r.code).toBe(0)
-		expect(r.out).toMatch(/s\/@DOMAIN@\/bus\.example\.com\/g/)
+		expect(r.out).toMatch(/s\/@DOMAIN@\/bus\.dillo\.dev\/g/)
 		expect(r.out).not.toMatch(/your\.domain/)
+	})
+
+	/*
+	 * `--domain --dry-run` -- the refusal reached by the other door.
+	 *
+	 * Every one of these flags did `FLAG="$2"; shift 2`, which takes whatever follows,
+	 * including the next flag. So `--domain --dry-run` set DOMAIN to the string
+	 * `--dry-run`, left DRY_RUN at 0, and went on to a REAL install: run locally with
+	 * only `id` stubbed, the unfixed script got as far as `creating /var/lib/capmetro`
+	 * and stopped there only because the probe was not actually root. On the box it
+	 * would have written `server_name --dry-run;` -- the same outage the placeholder
+	 * refusal exists to prevent, except the operator believed they had asked for a
+	 * dry run and had no reason to check anything afterwards.
+	 *
+	 * The assertion below can only prove the refusal, not the real install behind it:
+	 * runInstall injects --dry-run ahead of extraArgs, and a run without it would
+	 * write to /var/lib and /etc. Exit 2 before the first prerequisite line is the
+	 * observable half, and it is the half the fix owns.
+	 */
+	it.each([
+		[ '--domain' ], [ '--repo' ], [ '--branch' ], [ '--webroot' ],
+		[ '--src' ], [ '--user' ], [ '--interval' ], [ '--src-from' ],
+	])('refuses %s when the next argument is another option', (flag) => {
+		const r = runInstall([ flag, '--dry-run' ])
+		expect(r.code, 'an option-shaped value was accepted as the value').toBe(2)
+		expect(r.out).toMatch(new RegExp(`\\${ flag } needs a value`))
+		/* Before anything is inspected, let alone written. */
+		expect(r.out, 'it got as far as the prerequisite checks')
+			.not.toMatch(/checking prerequisites/)
+	})
+
+	it.each([ [ '--domain' ], [ '--webroot' ], [ '--interval' ] ])(
+		'refuses %s with nothing after it', (flag) => {
+			const r = runInstall([ flag ])
+			expect(r.code).toBe(2)
+			expect(r.out).toMatch(new RegExp(`\\${ flag } needs a value`))
+		},
+	)
+
+	/*
+	 * Names that ARE well-formed hostnames, pass the letters-digits-dots-hyphens check,
+	 * render a vhost nginx accepts, and still match no request the board will ever get.
+	 * `your.domain` is the one that caused the outage; the rest are the same shape.
+	 *
+	 * The reserved names matter because they are the ones an operator pastes: the usage
+	 * line in this very script said `--domain bus.example.com`, so the most likely wrong
+	 * value was the one the documentation handed them. That example now names the real
+	 * host, and this refuses the class.
+	 */
+	it.each([
+		[ 'your.domain' ], [ 'domain.tld' ], [ 'example.com' ], [ 'bus.example.com' ],
+		[ 'board.example.net' ], [ 'x.invalid' ], [ 'y.test' ], [ 'host.localhost' ],
+		[ '203.0.113.5' ], [ '1.2.3' ], [ 'localhost' ], [ 'nginx' ],
+	])('refuses %s, which nginx would accept and no browser would reach', (domain) => {
+		const r = runInstall([ '--domain', domain ], { server: 'nginx' })
+		expect(r.code, `${ domain } was accepted as a hostname`).toBe(1)
+		expect(r.out, 'it rendered a sed with an unusable hostname in it')
+			.not.toMatch(/s\/@DOMAIN@\//)
+		expect(r.out, 'it printed a vhost install command anyway')
+			.not.toMatch(/sites-available\/capmetro/)
+	})
+
+	/*
+	 * The record that silences update.sh, written on the run that earned it least.
+	 *
+	 * cm_write_vhost_stamp sat outside the `[ -z "$DOMAIN" ]` chain, so a run with no
+	 * --domain refused to print the vhost commands and then recorded the committed
+	 * vhosts as the installed ones. Nothing can have been installed from a run that
+	 * printed no commands, and from then on update.sh compares /etc against a record
+	 * that already matches -- so the next real vhost change deploys with nothing to
+	 * announce it. That is strictly worse than having no record at all, because a box
+	 * with no record says so once per run and carries on.
+	 *
+	 * Asserted through the --dry-run arm, which is the only one reachable without root:
+	 * the DOMAIN arm comes first in the chain, so proving it wins here proves the write
+	 * below it is unreachable. Deleting the guard flips both assertions.
+	 */
+	it('records no vhost fingerprint on a run that printed no vhost', () => {
+		const r = runInstall([], { server: 'nginx' })
+		expect(r.code).toBe(0)
+		expect(r.out, 'it stamped the vhosts as installed without printing them')
+			.not.toMatch(/would run: record the vhost drift fingerprint/)
+		expect(r.out, 'it does not say why there is no record')
+			.toMatch(/not recording a vhost drift fingerprint/)
 	})
 
 	/*
@@ -1052,7 +1136,7 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		[ 'nginx', 'nginx', /etc\/nginx\/sites-available/ ],
 		[ 'apache', 'apache2ctl', /etc\/apache2\/sites-available/ ],
 	])('tells you to diff before overwriting, and to put certbot back after (%s)', (_name, server, target) => {
-		const r = runInstall(['--domain', 'bus.example.com'], { server })
+		const r = runInstall(['--domain', 'bus.dillo.dev'], { server })
 		const out = r.out
 		/*
 		 * Exit status FIRST. Every other assertion here reads text that is printed
@@ -1064,7 +1148,22 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		expect(r.code, 'the script aborted after printing the vhost block').toBe(0)
 		expect(out, 'the branch under test was not the one taken').toMatch(target)
 		expect(out, 'no diff step').toMatch(/diff -u/)
-		expect(out, 'no certbot step').toMatch(/certbot install --cert-name bus\.example\.com/)
+		/*
+		 * It must tell you to LOOK UP the lineage name, not assume it is the domain.
+		 * `certbot install --cert-name <wrong name>` fails, and it fails at the one
+		 * moment that matters: after the cp has already replaced the installed file
+		 * and deleted the 443 block certbot put there. A re-issue leaves the lineage
+		 * named bus.dillo.dev-0001, and a cert taken with an explicit --cert-name has
+		 * whatever name it was given, so "usually the first -d" is not good enough to
+		 * print as a command.
+		 */
+		expect(out, 'no certbot step').toMatch(/certbot install --cert-name/)
+		expect(out, 'it does not say how to find the lineage name')
+			.toMatch(/certbot certificates/)
+		expect(out, 'it assumes the lineage is named after the domain')
+			.not.toMatch(/certbot install --cert-name bus\.dillo\.dev/)
+		expect(out, 'it does not say to skip certbot on a first install, where it fails')
+			.toMatch(/FIRST install|first install/)
 		expect(out, 'still piping straight into the live config').not.toMatch(/\|\s*sudo tee/)
 
 		/* Order matters more than presence: a diff printed after the copy is decoration. */
@@ -1108,10 +1207,38 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	 */
 	it('offers no placeholder hostname anywhere it could be pasted', () => {
 		const lines = install.split('\n')
+		/*
+		 * The refusal has to name the string in order to refuse it, so a bare
+		 * search for it now matches the fix as well as the bug. What separates
+		 * them is position, not spelling: inside a `case "${DOMAIN:-}" in` block
+		 * the name is a pattern being rejected, and anywhere else it is a value
+		 * that can be printed and pasted.
+		 *
+		 * Ranges, rather than a keyword exclusion, because the strings this test
+		 * exists to catch live in heredocs where they look like ordinary prose --
+		 * `sudo certbot --nginx -d your.domain` carries no marker distinguishing
+		 * it from a case arm, so any exclusion written to spare the arm would
+		 * spare that too. Verified by mutation: putting that line back in the
+		 * nginx heredoc fails this test, and deleting the refusal arm keeps it
+		 * green, which is the pair that says the range logic is not a blanket.
+		 */
+		const refusals = []
+		let open = null
+		lines.forEach((line, i) => {
+			if (/^case "\$\{DOMAIN:-\}" in\s*$/.test(line)) open = i
+			else if (open !== null && /^esac\s*$/.test(line)) {
+				refusals.push([ open, i ])
+				open = null
+			}
+		})
+		expect(refusals.length, 'no DOMAIN validation block found, so nothing is excluded')
+			.toBeGreaterThan(0)
+		const inRefusal = (n) => refusals.some(([ a, b ]) => n >= a && n <= b)
 		const offenders = lines
-			.map((line, i) => ({ line, n: i + 1 }))
+			.map((line, i) => ({ line, n: i + 1, i }))
 			.filter(({ line }) => /your\.domain/.test(line))
 			.filter(({ line }) => !/^\s*#/.test(line))
+			.filter(({ i }) => !inRefusal(i))
 		expect(offenders.map((o) => `${ o.n }: ${ o.line.trim() }`),
 			'a placeholder hostname is printable; pasting it walks past the refusal')
 			.toEqual([])
@@ -1175,14 +1302,14 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	 * outage happened between two of them.
 	 */
 	it('tells an operator what to do next, once it has a domain', () => {
-		const r = runInstall([ '--domain', 'bus.example.com' ], { server: 'nginx' })
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { server: 'nginx' })
 		expect(r.code).toBe(0)
 		expect(r.out, 'no certbot step in the summary')
-			.toMatch(/certbot --nginx -d bus\.example\.com/)
+			.toMatch(/certbot --nginx -d bus\.dillo\.dev/)
 		/* The board, not the config: a green nginx -t is what made the outage
 		 * invisible, so the summary has to point at health.json. */
 		expect(r.out, 'the summary does not say to check the board')
-			.toMatch(/https:\/\/bus\.example\.com\/api\/health\.json/)
+			.toMatch(/https:\/\/bus\.dillo\.dev\/api\/health\.json/)
 		expect(r.out).toMatch(/update\.sh/)
 	})
 
@@ -1220,7 +1347,13 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		 * Asserted on the announced action rather than on the file, because CONF_DIR is not
 		 * redirectable and /etc/capmetro is not this test's to write.
 		 */
-		const r = runInstall()
+		/*
+		 * With a domain, deliberately. The `[ -z "$DOMAIN" ]` arm added later comes
+		 * first in the same chain, so a no-domain run never reaches the DRY_RUN arm
+		 * this test is about -- it would pass for the wrong reason and stop covering
+		 * the guard it was written for.
+		 */
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { server: 'nginx' })
 		expect(r.out, 'dry run did not announce the vhost record as a would-run')
 			.toMatch(/would run: record the vhost drift fingerprint/)
 		expect(r.out, 'dry run reported actually writing the record')
