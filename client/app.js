@@ -1431,9 +1431,26 @@
     dom.picker.appendChild(el('p', 'picker__head',
       q ? fmt.plural(shown.length, 'match', 'matches') : 'Every route'));
 
-    if (!shown.length) {
+    /*
+     * Only a SEARCH can fail to match. With no query there is nothing to have
+     * failed, and an empty `shown` means something else entirely: the catalog has
+     * not landed, so every route the picker knows is already pinned above and the
+     * list below is empty by arithmetic. Printing "No route matches “”" there is a
+     * filter failure reported for a filter nobody typed -- and the `return` under
+     * it skipped the hint written to explain that exact situation, so the one
+     * sentence that helps was unreachable precisely when it applied. That is the
+     * board opened from a file, which is a supported way to run it.
+     */
+    if (!shown.length && q) {
       dom.picker.appendChild(S.notice('empty', 'No route matches “' + q + '”.',
         'Try the number, or a street the route runs on.'));
+      return;
+    }
+    if (!shown.length) {
+      dom.picker.appendChild(el('p', 'hint',
+        'Every route this board knows is pinned above. The full list loads with ' +
+        'the route catalog, which needs the board to be served rather than opened ' +
+        'from a file.'));
       return;
     }
     var grid = el('div', 'routegrid');

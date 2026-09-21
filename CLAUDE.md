@@ -34,7 +34,7 @@ Expectations:
 
 - Write a test alongside new functions, and a regression test for every bug fix.
 - QA and manual checks run against **real generated output**, not the golden fixture. The
-  fixture covers route 4 only, the smallest of the watched routes. Both bugs found by
+  fixture covers route 4 only, one of the smallest of the watched routes. Both bugs found by
   `/qa` on 2026-08-19 came from route 7 and the full 2,348-stop corpus; a fixture-only pass
   reported clean.
 - `build/lib/stop-names.mjs` and `runtime/lib/stopnames.php` MUST stay behaviourally

@@ -4,8 +4,8 @@
  *
  * The picker needs to name every route before it knows anything about any of them. It
  * cannot fetch 71 route files to find out, and it must not carry a hard-coded list: the
- * build generates 71 route files and a client list that says six is wrong the moment
- * CapMetro adds a route. api/routes.json is the one small document that answers "what
+ * build generates 71 route files and a client list that hard-codes them is wrong the
+ * moment CapMetro adds a route. api/routes.json is the one small document that answers "what
  * routes exist, what do they run today, and where are their buses right now".
  *
  * Small is the whole design constraint. It is fetched on first paint, so it carries the
