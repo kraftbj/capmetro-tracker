@@ -225,14 +225,26 @@ test.describe('the routes we ride sit at the top of the picker', () => {
     await expect(pinned).toHaveText(RIDDEN)
   })
 
-  test('and 335 is one of them, in route-number order', async ({ page }) => {
+  /*
+   * This checks the order the PICKER renders, which is the catalog's, not the
+   * literal's. `favs` is `shown.filter(...)`, and filter preserves the order of
+   * what it filters -- so the grid comes out in whatever order api/routes.json
+   * arrived in, which the generator sorts numerically (cm_sort_route_catalog;
+   * the live catalog reads 1, 2, 3, 4, 5, 7, 10, 18, 20 ...). FAVORITES could be
+   * written in any order at all and this would still pass, which a reviewer
+   * demonstrated by moving 335 to the end of the literal.
+   *
+   * That is not a hole in the picker: the literal's order has no effect on
+   * anything a reader sees. It is a source-readability convention, and it is
+   * checked where it lives, in client-scripts.test.mjs. The name of this test
+   * used to imply otherwise.
+   */
+  test('and 335 is among them, in the order the catalog hands over', async ({ page }) => {
     await openPicker(page)
     const pinned = page.locator('.routegrid').first().locator('.routegrid__id')
     const ids = await pinned.allInnerTexts()
 
     expect(ids, '335 is not pinned').toContain('335')
-    /* Between 7 and 337, not appended. An addition that lands at the end reads as
-     * an afterthought in a list somebody scans by number. */
     expect(ids.indexOf('335')).toBe(ids.indexOf('337') - 1)
     expect([...ids].sort((a, b) => Number(a) - Number(b))).toEqual(ids)
   })

@@ -85,3 +85,38 @@ describe('no client script declares one function name twice', () => {
     expect(declarations(src)).toContain('refreshRoute')
   })
 })
+
+/*
+ * The pinned-route literal, checked where it actually lives.
+ *
+ * Its ORDER has no effect on anything rendered: the picker filters the catalog,
+ * and filter preserves the catalog's order, which the generator sorts
+ * numerically. So the e2e test that opens the picker cannot see this literal's
+ * order at all -- a reviewer proved it by moving '335' to the end and watching
+ * all twenty-one browser tests pass.
+ *
+ * It is still worth keeping sorted, for the reason the comment above it gives:
+ * somebody scans this list by number, and an addition at the end reads as an
+ * afterthought. That is a claim about the source, so it is asserted against the
+ * source rather than against a page.
+ */
+describe('the pinned route list', () => {
+  const src = readFileSync(path.join(ROOT, 'client/app.js'), 'utf8')
+  const literal = src.match(/var FAVORITES = \[([^\]]*)\]/)
+
+  it('is spelled the way this test expects to find it', () => {
+    expect(literal, 'FAVORITES is no longer a flat array literal').not.toBeNull()
+  })
+
+  it('is in ascending route-number order', () => {
+    const ids = literal[1].match(/'([^']+)'/g).map((s) => s.slice(1, -1))
+    expect(ids.length).toBeGreaterThan(1)
+    expect(ids, 'an addition landed out of order; the list is scanned by number')
+      .toEqual([...ids].sort((a, b) => Number(a) - Number(b)))
+  })
+
+  it('holds no duplicates, which would double a card in the picker', () => {
+    const ids = literal[1].match(/'([^']+)'/g).map((s) => s.slice(1, -1))
+    expect(new Set(ids).size, 'a route is pinned twice').toBe(ids.length)
+  })
+})
