@@ -524,7 +524,7 @@ button { font: inherit; color: inherit; }
 /* ===== the route picker, now the whole catalog ========================== */
 /*
  * Seventy-one routes will not fit on a phone, so the picker scrolls and leads
- * with a search field. The six routes this household rides stay pinned at the
+ * with a search field. The routes this household rides stay pinned at the
  * top when nothing is typed: they are a shortcut past the list, not a
  * replacement for it.
  */

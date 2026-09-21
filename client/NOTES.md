@@ -36,7 +36,7 @@ because a state table that cannot be looked at does not get verified:
 | `?state=stale` | `suppress_adherence: true` — no lateness value anywhere |
 | `?state=dead` | Feed down over an hour |
 | `?state=schema` | `schema: 2` — the app refuses to render |
-| `?state=first-run` | Route picker with the six watched routes |
+| `?state=first-run` | Route picker with the watched routes |
 | `?state=no-timepoints` | Ladder with no timepoint list for either direction |
 | `?state=all-states` | Synthetic adherence covering all six states (grayscale check) |
 | `?state=ladder-probe` | Synthetic 8+9 timepoint route: the BOTH-mode layout ruler |

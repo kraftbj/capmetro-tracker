@@ -297,6 +297,14 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   the network off a never-visited `/trip/7/2641` still opens while
   `api/route/4.json` still fails.
 
+### Added
+
+- **Route 335 joins the routes pinned above the picker.** The "Routes we ride"
+  shortcut is a hand-maintained list and nothing covered it, so a wrong digit or a
+  dropped entry would have shipped with every suite green. It has tests now: that
+  each pinned route is listed, that 335 sits between 7 and 337 rather than being
+  appended, and that a pinned route is not repeated in the full list below.
+
 ### Fixed
 
 - **A stop the bus only passes through was given the whole turnaround story.**

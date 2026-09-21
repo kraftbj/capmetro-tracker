@@ -12,8 +12,8 @@ use PHPUnit\Framework\TestCase;
  * Contract section 15: the route catalog behind api/routes.json.
  *
  * The catalog exists because the picker cannot hard-code a route list. The
- * build generates 71 route files; a client that names six of them is wrong the
- * day CapMetro adds a route, and wrong silently. Everything asserted here is
+ * build generates 71 route files; a client that names only a few of them is wrong
+ * the day CapMetro adds a route, and wrong silently. Everything asserted here is
  * about the two ways a catalog can still mislead after it is complete: an order
  * a rider cannot scan, and a row that hides a route instead of explaining it.
  */

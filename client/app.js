@@ -75,13 +75,17 @@
   };
 
   /*
-   * The six routes this household actually rides, pinned to the top of the picker.
+   * The routes this household actually rides, pinned to the top of the picker.
    * They are a shortcut, NOT the list: the picker offers every route the catalog
-   * publishes. Hard-coding six while the build generated seventy-one meant the
-   * board was wrong the moment either kid took a different bus, and it is the one
-   * thing the owner asked for by name — "don't hard code one".
+   * publishes. Hard-coding a handful while the build generated seventy-one meant
+   * the board was wrong the moment either kid took a different bus, and it is the
+   * one thing the owner asked for by name — "don't hard code one".
+   *
+   * Kept in route-number order so an addition lands where a reader expects it
+   * rather than at the end. The count is deliberately not written into the
+   * comment: it was "six" for a while after it became seven.
    */
-  var FAVOURITES = ['4', '7', '337', '350', '800', '837'];
+  var FAVORITES = ['4', '7', '335', '337', '350', '800', '837'];
 
   /*
    * Used only until api/routes.json arrives, and when the board is opened from
@@ -89,7 +93,7 @@
    * route is its number until something authoritative says otherwise.
    */
   function fallbackCatalog() {
-    return FAVOURITES.map(function (id) {
+    return FAVORITES.map(function (id) {
       return { id: id, short_name: id, long_name: '', directions: [], has_service_today: null };
     });
   }
@@ -348,8 +352,8 @@
 
   /*
    * The catalog, fetched once. A failure here is not an error state: the picker
-   * falls back to the six favourites, which is exactly what it offered before
-   * this endpoint existed. Losing the other sixty-five routes is a smaller
+   * falls back to the pinned favorites, which is exactly what it offered before
+   * this endpoint existed. Losing the rest of the catalog is a smaller
    * failure than refusing to show a board.
    */
   function loadCatalog() {
@@ -1414,22 +1418,39 @@
     var shown = all.filter(function (r) { return matchesFilter(r, q); });
 
     if (!q) {
-      var favs = shown.filter(function (r) { return FAVOURITES.indexOf(r.id) !== -1; });
+      var favs = shown.filter(function (r) { return FAVORITES.indexOf(r.id) !== -1; });
       if (favs.length) {
         dom.picker.appendChild(el('p', 'picker__head', 'Routes we ride'));
         var favGrid = el('div', 'routegrid');
         favs.forEach(function (r) { favGrid.appendChild(routeButton(r)); });
         dom.picker.appendChild(favGrid);
       }
-      shown = shown.filter(function (r) { return FAVOURITES.indexOf(r.id) === -1; });
+      shown = shown.filter(function (r) { return FAVORITES.indexOf(r.id) === -1; });
     }
 
     dom.picker.appendChild(el('p', 'picker__head',
       q ? fmt.plural(shown.length, 'match', 'matches') : 'Every route'));
 
-    if (!shown.length) {
+    /*
+     * Only a SEARCH can fail to match. With no query there is nothing to have
+     * failed, and an empty `shown` means something else entirely: the catalog has
+     * not landed, so every route the picker knows is already pinned above and the
+     * list below is empty by arithmetic. Printing "No route matches “”" there is a
+     * filter failure reported for a filter nobody typed -- and the `return` under
+     * it skipped the hint written to explain that exact situation, so the one
+     * sentence that helps was unreachable precisely when it applied. That is the
+     * board opened from a file, which is a supported way to run it.
+     */
+    if (!shown.length && q) {
       dom.picker.appendChild(S.notice('empty', 'No route matches “' + q + '”.',
         'Try the number, or a street the route runs on.'));
+      return;
+    }
+    if (!shown.length) {
+      dom.picker.appendChild(el('p', 'hint',
+        'Every route this board knows is pinned above. The full list loads with ' +
+        'the route catalog, which needs the board to be served rather than opened ' +
+        'from a file.'));
       return;
     }
     var grid = el('div', 'routegrid');
@@ -1910,7 +1931,7 @@
     }
     if (state.status === 'first-run') {
       dom.main.appendChild(S.firstRun(catalog().filter(function (r) {
-        return FAVOURITES.indexOf(r.id) !== -1;
+        return FAVORITES.indexOf(r.id) !== -1;
       }).map(function (r) { return { id: r.id, name: cleanName(r.long_name) }; }), function (id) {
         state.status = 'loading';
         state.scenario = null;

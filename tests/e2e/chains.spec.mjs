@@ -42,7 +42,7 @@ async function pickFirstLeg(page) {
   await page.goto(SAVED)
   await page.getByRole('button', { name: 'Save a chain' }).click()
 
-  /* 1. Route. The fallback catalog is the six routes this household rides. */
+  /* 1. Route. The fallback catalog is the routes this household rides. */
   await page.locator('.routegrid__item', { hasText: '800' }).first().click()
 
   /* 2. Direction: southbound is the one that serves Simond SB. */

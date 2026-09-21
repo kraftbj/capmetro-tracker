@@ -2,7 +2,7 @@
  * The nearest-stop feature over the WHOLE generated corpus, not the fixture.
  *
  * CLAUDE.md records why this file exists: the golden fixture is route 4, the
- * smallest of the six watched routes, and both bugs a previous QA pass found
+ * among the smallest of the watched routes, and both bugs a previous QA pass found
  * came from route 7 and the full 2,348-stop corpus while a fixture-only run
  * reported clean. `Vehicle.predictions` is exactly the kind of field that
  * behaves on route 4 and not on route 300 — route 4 publishes 70 prediction
