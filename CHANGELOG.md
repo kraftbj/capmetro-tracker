@@ -357,6 +357,22 @@ Versions are `MAJOR.MINOR.PATCH.MICRO`.
   the same diff and guards. Comment headers only; the rendered vhosts are
   byte-identical, so the drift notice fires once on this deploy and the right
   response to it is to read the diff and leave `/etc` alone.
+
+  Three further review rounds went at the fix itself rather than the original bug,
+  and the one that mattered was a refusal that blocked real hosts: the new checks
+  were a single ordered `case` whose accept arm required a letter *before* a dot,
+  so `163.com` — a registered domain — was rejected by a message telling the
+  operator it needed a dot while pointing at a name that has one. Three independent
+  checks now, one question each. The domain is also lowercased before those checks
+  rather than after, since `case` patterns are literal and `YOUR.DOMAIN` was
+  otherwise walking straight past the placeholder list, and certbot builds its
+  lineage directory from the string as given. An apache box was being told to run
+  `certbot --nginx`; a box with no web server at all was told to install a vhost
+  that had never been printed, to curl a board with nothing listening, and was
+  handed a drift fingerprint recording vhosts it had been given no way to install.
+  Names that cannot get a certificate but can still serve a board on a LAN —
+  `bus.local`, `board.home.arpa` and friends — are deliberately accepted, recorded
+  at the check so the omission reads as a choice.
 - **A stop the bus only passes through was given the whole turnaround story.**
   The card's own header has always said it answers "does this trip START here, and
   if so which bus is bringing it in" — the second half was written and the gate was
