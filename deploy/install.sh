@@ -64,6 +64,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+
 # Drop privileges without assuming sudo is installed. A minimal Debian image has
 # no sudo at all - this script failed on exactly that - while runuser ships in
 # util-linux, which is an essential package. Prefer runuser, fall back to sudo,
@@ -84,6 +85,33 @@ say()  { printf '\033[1m==\033[0m %s\n' "$*"; }
 warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 run()  { if [ "$DRY_RUN" = 1 ]; then printf '   would run: %s\n' "$*"; else "$@"; fi; }
+
+#
+# A HOSTNAME, OR NOTHING. Checked here so a bad one cannot reach the sed that is
+# printed for pasting, where it fails in two different silent ways:
+#
+#   --domain https://bus.dillo.dev   the '/' closes the s/// early, sed exits 1
+#                                    with "bad flag in substitute command", and
+#                                    because '>' truncates first, the temp file
+#                                    is left at 0 bytes. An empty vhost adds no
+#                                    directives, so nginx -t passes and the host
+#                                    falls through to default_server.
+#   --domain "bus dillo dev"         sed succeeds and writes
+#                                    `server_name bus dillo dev;`, which nginx
+#                                    reads as THREE names, none of them the host.
+#
+# Both reproduced. Neither is exotic: the first is a copied address bar.
+#
+case "${DOMAIN:-}" in
+  "") : ;;
+  *[!a-zA-Z0-9.-]*)
+    die "--domain must be a hostname -- letters, digits, dots and hyphens only.
+     Got: $DOMAIN
+     A '/' or a space here renders a broken vhost that nginx still accepts." ;;
+  .*|*.|*..*)
+    die "--domain is not a hostname: $DOMAIN" ;;
+esac
+
 
 [ "$(id -u)" = 0 ] || die "run as root (sudo $0 ...)"
 
@@ -160,6 +188,19 @@ elif [ -d "$SRC_DIR" ] && [ -f "$SRC_DIR/runtime/generate-api.php" ]; then
   say "using the source already in $SRC_DIR (no git checkout)"
 else
   say "cloning $REPO into $SRC_DIR"
+  #
+  # The re-run line carries --domain only when there is a real one to carry.
+  # It used to print `--domain ${DOMAIN:-your.domain}`, and that placeholder is
+  # how the 2026-09-21 outage happened: pasted, it makes DOMAIN non-empty, so
+  # the refusal further down never fires and the vhost commands print with a
+  # hostname that matches nothing. A paste-ready command is the worst possible
+  # home for a value with no safe default.
+  #
+  RERUN="$0 --src-from /srv/capmetro/tree"
+  [ -n "${DOMAIN:-}" ] && RERUN="$RERUN --domain $DOMAIN"
+  DOMAIN_NOTE=""
+  [ -z "${DOMAIN:-}" ] && DOMAIN_NOTE="
+          add --domain <the host this board is served on>; there is no default"
   run git clone --quiet --branch "$BRANCH" "$REPO" "$SRC_DIR" || die \
 "clone failed, and on a private repo that is expected: git ran as root here, so
    it used /root/.ssh and not your key. Two ways forward, neither needing a key
@@ -167,7 +208,7 @@ else
 
      a) copy the tree up from your laptop, then re-run:
           rsync -a --exclude .git ./ root@thisbox:/srv/capmetro/tree/
-          $0 --src-from /srv/capmetro/tree --domain ${DOMAIN:-your.domain}
+          $RERUN$DOMAIN_NOTE
 
      b) put a read-only GitHub deploy key in /root/.ssh/ and re-run this script."
 fi
@@ -373,7 +414,14 @@ elif command -v nginx >/dev/null 2>&1; then
    not the committed one and copying over the top deletes the TLS block. The
    certificate survives; nothing references it, and the board leaves HTTPS.
 
-     sudo cp /tmp/capmetro-vhost.new /etc/nginx/sites-available/capmetro
+   The copy is guarded on purpose. '>' truncates before sed runs, so a sed that
+   fails leaves a 0-byte file -- and an empty vhost adds no directives, so
+   nginx -t passes and the host falls through to default_server. The guard also
+   refuses a file with @PLACEHOLDERS@ still in it, which nginx likewise accepts.
+   Both are silent, and both look exactly like a clean deploy.
+
+     [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
+       && sudo cp /tmp/capmetro-vhost.new /etc/nginx/sites-available/capmetro
      sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro
      sudo nginx -t && sudo systemctl reload nginx
      sudo certbot install --cert-name $DOMAIN   # puts the 443 block back
@@ -392,7 +440,8 @@ elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; 
    READ THAT DIFF BEFORE THE NEXT LINE, for the reason the nginx branch gives:
    certbot owns the TLS virtual host in the installed file.
 
-     sudo cp /tmp/capmetro-vhost.new /etc/apache2/sites-available/capmetro.conf
+     [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
+       && sudo cp /tmp/capmetro-vhost.new /etc/apache2/sites-available/capmetro.conf
      sudo a2enmod headers expires && sudo a2ensite capmetro
      sudo apache2ctl configtest && sudo systemctl reload apache2
      sudo certbot install --cert-name $DOMAIN

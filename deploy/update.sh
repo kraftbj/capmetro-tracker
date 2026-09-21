@@ -394,7 +394,11 @@ check_vhost() {
   # Not just the placeholders. nginx-capmetro.conf says certbot rewrites the installed block
   # to add the 443 server and the redirect, so on a TLS box -- which production is -- the
   # installed file is not the committed one and copying over it destroys the cert config.
-  loud "The installed vhost has been rewritten by certbot, so diff it before overwriting."
+  # Hedged, because eighteen lines above this function says it cannot see /etc --
+  # and then this line used to assert what is in there as fact. It is also just
+  # false on a box with no certificate, and on apache.
+  loud "On a TLS box the installed file is probably NOT the committed one: certbot"
+  loud "rewrites it to add the 443 block. Diff before overwriting, never copy over it."
   return 0
 }
 

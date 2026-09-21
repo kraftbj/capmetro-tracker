@@ -1072,6 +1072,76 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		}
 	})
 
+	/*
+	 * THE PLACEHOLDER THAT SURVIVED THE FIRST FIX.
+	 *
+	 * The clone-failure message printed `--domain ${DOMAIN:-your.domain}` inside an
+	 * indented block formatted for copying. Pasted, DOMAIN becomes non-empty, so
+	 * the refusal above never fires and the vhost commands print with a hostname
+	 * that matches nothing -- the 2026-09-21 outage, rebuilt out of the very file
+	 * that was meant to have removed it.
+	 *
+	 * The earlier test could not see it: it asserts on a --dry-run, and a dry run
+	 * never fails a clone. So this reads the SOURCE. That is the right instrument
+	 * here, because the defect is a string the script is willing to print, not a
+	 * branch a happy-path run walks through.
+	 */
+	it('offers no placeholder hostname anywhere it could be pasted', () => {
+		const lines = install.split('\n')
+		const offenders = lines
+			.map((line, i) => ({ line, n: i + 1 }))
+			.filter(({ line }) => /your\.domain/.test(line))
+			.filter(({ line }) => !/^\s*#/.test(line))
+		expect(offenders.map((o) => `${ o.n }: ${ o.line.trim() }`),
+			'a placeholder hostname is printable; pasting it walks past the refusal')
+			.toEqual([])
+	})
+
+	/*
+	 * A hostname that breaks the sed, or that nginx reads as several names, must
+	 * not reach the printed command. Both reproduced against real sed:
+	 *   'https://bus.dillo.dev' closes the s/// early -- sed exits 1, and because
+	 *   '>' truncates first the temp file is left at 0 bytes, which nginx accepts.
+	 *   'bus dillo dev' renders `server_name bus dillo dev;`, three names.
+	 */
+	it.each([
+		[ 'a URL', 'https://bus.dillo.dev' ],
+		[ 'a space', 'bus dillo dev' ],
+		[ 'a slash', 'a/b' ],
+		[ 'a leading dot', '.bus.dillo.dev' ],
+		[ 'a trailing dot', 'bus.dillo.dev.' ],
+	])('refuses %s as a domain rather than rendering a broken vhost', (_n, domain) => {
+		const r = runInstall([ '--domain', domain ], { server: 'nginx' })
+		expect(r.code, 'it carried on with a domain it cannot render').not.toBe(0)
+		expect(r.out).toMatch(/--domain (must be a hostname|is not a hostname)/)
+		expect(r.out, 'a sed was printed anyway').not.toMatch(/s\/@DOMAIN@\//)
+	})
+
+	it('still accepts an ordinary hostname', () => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { server: 'nginx' })
+		expect(r.code).toBe(0)
+		expect(r.out).toMatch(/s\/@DOMAIN@\/bus\.dillo\.dev\/g/)
+	})
+
+	/*
+	 * And the copy refuses a render that went wrong, because the operator pastes
+	 * the whole block. An empty file and a file with @PLACEHOLDERS@ left in it are
+	 * both accepted by nginx -t and both drop the host to default_server.
+	 */
+	it.each([
+		[ 'nginx', 'nginx' ],
+		[ 'apache', 'apache2ctl' ],
+	])('guards the copy against an empty or unsubstituted render (%s)', (_n, server) => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { server })
+		expect(r.out, 'the copy is unguarded: a 0-byte render would be installed')
+			.toMatch(/\[ -s \/tmp\/capmetro-vhost\.new \]/)
+		expect(r.out, 'an unsubstituted render would be installed')
+			.toMatch(/grep -q '@\[A-Z_\]\*@'/)
+		/* The guard has to be on the same chain as the cp, or pasting the block
+		 * runs the cp regardless of what the guard said. */
+		expect(r.out).toMatch(/grep -q '@\[A-Z_\]\*@' \/tmp\/capmetro-vhost\.new \\\n\s*&& sudo cp/)
+	})
+
 	it('changes nothing on disk', () => {
 		/*
 		 * Weak on its own and kept for what it does cover: CONF_DIR is hardcoded at the top
