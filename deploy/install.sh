@@ -480,23 +480,34 @@ elif command -v nginx >/dev/null 2>&1; then
    refuses a file with @PLACEHOLDERS@ still in it, which nginx likewise accepts.
    Both are silent, and both look exactly like a clean deploy.
 
+   Back the installed file up FIRST, on the same chain, because the copy is the one
+   irreversible step here and the command meant to undo it is the one least likely
+   to work. A .bak in sites-available is inert: nginx includes sites-enabled.
+
+     B=/etc/nginx/sites-available/capmetro
+     [ -f \$B ] && sudo cp -a \$B \$B.\$(date +%Y%m%d-%H%M%S).bak
      [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
-       && sudo cp /tmp/capmetro-vhost.new /etc/nginx/sites-available/capmetro
+       && sudo cp /tmp/capmetro-vhost.new \$B
      sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro
      sudo nginx -t && sudo systemctl reload nginx
 
-   Now put back the 443 block the copy just deleted. The lineage is USUALLY named
-   after the first -d, but not always: a re-issue leaves $DOMAIN-0001, and a cert
-   obtained with an explicit --cert-name has whatever name it was given. Ask
-   rather than assume -- --cert-name fails on a name that is not exactly right,
-   and it fails with the vhost already installed and the TLS block already gone.
+   Now put back the 443 block the copy just deleted. Do NOT assume the lineage is
+   named after the domain -- read it. certbot names the lineage after the FIRST -d,
+   so a certificate covering the apex and this host together is named for the apex;
+   a wildcard is named for the first usable name; and a re-issue leaves
+   $DOMAIN-0001. On any of those, --cert-name $DOMAIN exits 1, and it does so with
+   the vhost already live and the TLS block already gone.
      sudo certbot certificates | grep -i 'Certificate Name'
-     sudo certbot install --cert-name <the name printed above>
+     sudo certbot install --nginx --cert-name <the name printed above>
      sudo nginx -t && sudo systemctl reload nginx
 
-   On a FIRST install skip both: there is no certificate yet, so --cert-name has
-   nothing to find and will fail. There was also no 443 block to lose. Get the
-   certificate from step 2 of the summary below instead.
+   If that list comes back EMPTY, certbot did not issue this certificate -- acme.sh,
+   Caddy and a commercial cert all leave it nothing to find -- so no --cert-name
+   will work. Restore the .bak; that is what it is for.
+
+   On a FIRST install skip the restore entirely: there is no certificate yet, so
+   --cert-name exits 1, and there was no 443 block to lose. Get the certificate
+   from step 2 of the summary below instead.
 
    Then check the board, not the config: a green nginx -t is not evidence.
      curl -sf https://$DOMAIN/api/health.json
@@ -511,16 +522,24 @@ elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; 
    READ THAT DIFF BEFORE THE NEXT LINE, for the reason the nginx branch gives:
    certbot owns the TLS virtual host in the installed file.
 
+     B=/etc/apache2/sites-available/capmetro.conf
+     [ -f \$B ] && sudo cp -a \$B \$B.\$(date +%Y%m%d-%H%M%S).bak
      [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
-       && sudo cp /tmp/capmetro-vhost.new /etc/apache2/sites-available/capmetro.conf
+       && sudo cp /tmp/capmetro-vhost.new \$B
      sudo a2enmod headers expires && sudo a2ensite capmetro
      sudo apache2ctl configtest && sudo systemctl reload apache2
 
-   Then put back the TLS virtual host, reading the name rather than assuming it,
-   for the reason the nginx branch gives at length -- and skipping both lines on
-   a first install, where there is no certificate to install yet.
+   The backup comes first for the reason the nginx branch gives at length: the copy
+   is the one irreversible step, and the command meant to undo it is the one least
+   likely to work. The .bak does not end in .conf, so a2ensite cannot enable it.
+
+   Then put back the TLS virtual host, reading the name rather than assuming it.
+   --cert-name exits 1 on a name that is not exactly right, and certbot names the
+   lineage after the first -d, so an apex or wildcard certificate is not named for
+   this host. An EMPTY list means certbot did not issue this certificate and cannot
+   restore it, so use the .bak. Skip the restore on a first install entirely.
      sudo certbot certificates | grep -i 'Certificate Name'
-     sudo certbot install --cert-name <the name printed above>
+     sudo certbot install --apache --cert-name <the name printed above>
      sudo apache2ctl configtest && sudo systemctl reload apache2
 
      curl -sf https://$DOMAIN/api/health.json

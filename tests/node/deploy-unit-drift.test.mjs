@@ -1157,13 +1157,46 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		 * whatever name it was given, so "usually the first -d" is not good enough to
 		 * print as a command.
 		 */
-		expect(out, 'no certbot step').toMatch(/certbot install --cert-name/)
+		/* Presence only; the exact shape, including the installer plugin, is asserted below. */
+		expect(out, 'no certbot step').toMatch(/certbot install /)
 		expect(out, 'it does not say how to find the lineage name')
 			.toMatch(/certbot certificates/)
 		expect(out, 'it assumes the lineage is named after the domain')
 			.not.toMatch(/certbot install --cert-name bus\.dillo\.dev/)
 		expect(out, 'it does not say to skip certbot on a first install, where it fails')
 			.toMatch(/FIRST install|first install/)
+
+		/*
+		 * The backup is what makes the copy survivable, and it is the only thing that
+		 * covers every way the restore can fail at once. Verified with real certbot
+		 * 2.9.0 on Ubuntu 24.04: `certbot install --cert-name <name>` exits 1 when no
+		 * lineage exists, and when the lineage is not named exactly that -- and certbot
+		 * names a lineage after the FIRST -d, so a certificate covering the apex and
+		 * this host together is named for the apex. If the certificate came from
+		 * acme.sh, Caddy or a commercial CA there is no lineage to name at all, so
+		 * `certbot certificates` lists nothing and no --cert-name can restore the block.
+		 * Every one of those lands AFTER the cp, with HTTPS already down.
+		 *
+		 * Ordering asserted, not just presence: a backup taken after the overwrite is a
+		 * copy of the damage.
+		 */
+		expect(out, 'no backup, so the overwrite is irreversible')
+			.toMatch(/cp -a \$B \$B\./)
+		const bakAt = out.search(/cp -a \$B/)
+		expect(bakAt, 'no backup step at all, so the order assertion is empty')
+			.toBeGreaterThan(-1)
+		expect(bakAt, 'the backup is taken after the copy, so it preserves the damage')
+			.toBeLessThan(out.search(/sudo cp \/tmp\/capmetro-vhost\.new/))
+		expect(out, 'the backup is guarded so a first install does not fail on it')
+			.toMatch(/\[ -f \$B \]/)
+		expect(out, 'it does not say what to do when certbot has no lineage to restore')
+			.toMatch(/EMPTY|empty/)
+		/*
+		 * `certbot install` needs an installer plugin named. Without one it cannot know
+		 * which config to write the 443 block into.
+		 */
+		expect(out, 'certbot install is printed with no installer plugin')
+			.toMatch(/certbot install --(nginx|apache) --cert-name/)
 		expect(out, 'still piping straight into the live config').not.toMatch(/\|\s*sudo tee/)
 
 		/* Order matters more than presence: a diff printed after the copy is decoration. */
