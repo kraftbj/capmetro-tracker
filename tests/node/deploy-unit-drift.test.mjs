@@ -1403,6 +1403,60 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
  * manifest.webmanifest and sw.js outright -- not installable, no offline board, nothing on
  * screen, and health.json still ok:true so the documented health check cannot see it.
  */
+/*
+ * The vhost templates are the one path with NO validation on it at all.
+ *
+ * install.sh refuses a placeholder hostname and prints a guarded copy. These two files
+ * are what someone follows when they are not running install.sh, and their headers used
+ * to hand over the exact procedure the outage came from: `sed 's/@DOMAIN@/bus.example.com/'
+ * ... > /etc/nginx/sites-available/capmetro`. A reserved name that cannot resolve, written
+ * straight over the live config, with nothing between the sed and /etc.
+ *
+ * Both halves bite on their own. `>` truncates before sed runs, so a failed sed leaves a
+ * 0-byte vhost that nginx accepts and that drops the host to default_server; and on a TLS
+ * box the installed file is certbot's rewrite, so copying over the top takes the board off
+ * HTTPS. health.json reads ok:true through both.
+ */
+describe('the vhost templates do not teach the procedure that caused the outage', () => {
+	const templates = [
+		[ 'nginx', 'deploy/nginx-capmetro.conf', /@DOMAIN@/, 'server_name @DOMAIN@;' ],
+		[ 'apache', 'deploy/apache-capmetro.conf', /@DOMAIN@/, 'ServerName @DOMAIN@' ],
+	]
+
+	it.each(templates)('%s: suggests no hostname that cannot resolve', (_n, file) => {
+		const text = readFileSync(path.join(REPO, file), 'utf8')
+		/* The reserved family install.sh refuses. Suggesting one here routes around it. */
+		expect(text, 'the header offers a name install.sh itself would refuse')
+			.not.toMatch(/your\.domain|domain\.tld|\bexample\.(com|net|org)\b/)
+	})
+
+	it.each(templates)('%s: never seds straight into the installed file', (_n, file) => {
+		const text = readFileSync(path.join(REPO, file), 'utf8')
+		expect(text, 'a redirect writes directly into /etc, truncating before sed runs')
+			.not.toMatch(/>\s*\/etc\//)
+		expect(text, 'no diff step, so certbot\'s 443 block gets overwritten unseen')
+			.toMatch(/diff -u/)
+		expect(text, 'the copy is unguarded, so a 0-byte or placeholder-bearing file installs')
+			.toMatch(/-s \/tmp\/capmetro-vhost\.new/)
+		expect(text, 'nothing refuses a file still holding @PLACEHOLDERS@')
+			.toMatch(/grep -q '@\[A-Z_\]\*@'/)
+	})
+
+	/*
+	 * And the template is still a template. A header rewrite that gutted the directives
+	 * would leave every assertion above green while installing a vhost with no
+	 * server_name at all -- which is, once again, a fall-through to default_server.
+	 */
+	it.each(templates)('%s: still carries the placeholders it exists to substitute',
+		(_n, file, _re, directive) => {
+			const text = readFileSync(path.join(REPO, file), 'utf8')
+			const body = text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
+			expect(body, 'the directive the sed targets is gone from the template body')
+				.toContain(directive)
+			expect(body).toMatch(/@WEBROOT@/)
+		})
+})
+
 describe('the same question, asked about the web server config', () => {
 	it('reports no drift when nothing has changed', () => {
 		writeVhostStamp()
