@@ -169,14 +169,46 @@ test.describe('the routes we ride sit at the top of the picker', () => {
     expect([...ids].sort((a, b) => Number(a) - Number(b))).toEqual(ids)
   })
 
+  /*
+   * WITH A CATALOG, because without one this cannot be tested at all.
+   *
+   * The first version of this test escaped early when there was only one grid,
+   * and there is only ever one: the fallback catalog IS the pinned list, so
+   * after the favorites are filtered out nothing remains for a second grid. The
+   * test was green and ran no assertion. That is the shape this suite keeps
+   * finding, and it does not get to ship in the test that was added to find it.
+   *
+   * The catalog is stubbed per test rather than added to tests/e2e/server.mjs:
+   * every other spec currently boots with no catalog, and giving the shared
+   * fixture one would change what they all render. Route 837 shadowing the
+   * predictor capture is what that mistake looks like here.
+   */
   test('and they are not repeated again in the full list below', async ({ page }) => {
+    const OTHERS = ['1', '20', '550']
+    await page.route('**/api/routes.json', (route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        routes: [...RIDDEN, ...OTHERS].map((id) => ({
+          id, short_name: id, long_name: `${ id } Test`,
+          directions: [{ id: 0, headsign: `${ id } A` }, { id: 1, headsign: `${ id } B` }],
+          vehicles: { in_service: 1, out_of_service: 0 },
+          has_service_today: true,
+        })),
+      }),
+    }))
+
     await openPicker(page)
     const grids = page.locator('.routegrid')
-    const count = await grids.count()
-    if (count < 2) return /* no catalog beyond the fallback: nothing to duplicate */
+    await expect(grids, 'no second grid, so the split is not being exercised')
+      .toHaveCount(2)
+
+    await expect(grids.first().locator('.routegrid__id')).toHaveText(RIDDEN)
+
     const rest = await grids.nth(1).locator('.routegrid__id').allInnerTexts()
+    expect(rest, 'the full list lost the routes that are not pinned').toEqual(OTHERS)
     for (const id of RIDDEN) {
-      expect(rest, `${ id } appears twice in the picker`).not.toContain(id)
+      expect(rest, `${ id } is pinned AND repeated in the full list`).not.toContain(id)
     }
   })
 })

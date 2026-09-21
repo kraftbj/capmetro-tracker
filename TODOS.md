@@ -919,7 +919,7 @@ the build lane finished. The fix needs a routes index the client can fetch: eith
 add a `routes` array to `api/all.json` (which the client will want anyway for the
 all-buses view) or emit a small `api/routes.json` at build time carrying id,
 short_name, long_name and the directions each route publishes. Keep the six as a
-pinned "favourites" row above the full list; that part of the current design is
+pinned "favorites" row above the full list; that part of the current design is
 worth keeping.
 
 **Effort:** M
