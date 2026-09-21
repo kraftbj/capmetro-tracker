@@ -144,10 +144,27 @@ esac
 # that matches nothing, so the request falls through to default_server, and every
 # check that looks at the config instead of the board reports success.
 #
-# Ordering is load-bearing, since the first matching arm wins: the reserved names
-# are listed before the shape tests, and `*[!0-9.]*.*` (a non-digit somewhere AND
-# a dot) is the one arm that accepts, so anything reaching past it is either a
-# single label or nothing but digits and dots.
+# Normalized BEFORE the refusals below, not after. With the lowercasing last,
+# `--domain YOUR.DOMAIN` and `--domain Bus.Example.Com` walked straight past the
+# placeholder list -- case patterns are literal -- and rendered a server_name
+# nothing resolves to, which is the exact thing that list exists to stop.
+#
+# Worth normalizing at all because hostnames are case-insensitive and nginx
+# matches server_name that way, while certbot builds its lineage directory from
+# the string exactly as given: --domain BUS.DILLO.DEV would look up a lineage a
+# `bus.dillo.dev` certificate does not have, and the restore step would fail on a
+# name that is right in every sense DNS cares about.
+if [ -n "${DOMAIN:-}" ]; then
+  DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+fi
+
+# Three independent questions, three cases. They were one ordered chain whose
+# accept arm was `*[!0-9.]*.*` -- a non-digit BEFORE a dot -- which refused any
+# name whose only letters are in the last label: `163.com`, a real registered
+# domain, fell through to the single-label arm and was rejected by a message
+# telling the operator it needed a dot while pointing at a name that has one. A
+# false positive here is not the harmless direction; it blocks a real install
+# with no workaround but editing this script.
 case "${DOMAIN:-}" in
   "") : ;;
   your.domain|domain.tld|example.com|example.net|example.org \
@@ -157,18 +174,28 @@ case "${DOMAIN:-}" in
      RFC 2606 reserves these names precisely so they never resolve to anything,
      which is the one property a server_name must not have. Re-run with the
      hostname the board is actually served on." ;;
-  *[!0-9.]*.*) : ;;
-  *[!0-9.]*)
-    die "--domain needs a fully qualified name, with a dot: $DOMAIN
-     A single label is a legal server_name and nginx will match it against a Host
-     header, but 'certbot -d $DOMAIN' cannot issue for it, so step 2 of the
-     summary below would hand you a command that fails after the vhost is live." ;;
+esac
+
+# Nothing but digits and dots. Checked on its own rather than as a fall-through,
+# so it cannot answer for a name that merely failed a different test.
+case "${DOMAIN:-}" in
+  ""|*[!0-9.]*) : ;;
   *)
     die "--domain looks like an IP address, not a hostname: $DOMAIN
      An IP in server_name only ever matches a browser pointed straight at the
      address, no certificate authority will issue for it, and the certbot command
      printed below would fail with the vhost already installed." ;;
 esac
+
+case "${DOMAIN:-}" in
+  ""|*.*) : ;;
+  *)
+    die "--domain needs a fully qualified name, with a dot: $DOMAIN
+     A single label is a legal server_name and nginx will match it against a Host
+     header, but 'certbot -d $DOMAIN' cannot issue for it, so step 2 of the
+     summary below would hand you a command that fails after the vhost is live." ;;
+esac
+
 
 
 [ "$(id -u)" = 0 ] || die "run as root (sudo $0 ...)"
@@ -453,6 +480,12 @@ say "web server"
 # The placeholder is not a usable default for a value with no safe guess. A
 # refusal costs one re-run; the guess cost an outage that nothing detected.
 #
+# Which installer plugin certbot should use, set by whichever branch below
+# actually matched. The summary used to print `certbot --nginx` unconditionally,
+# so an apache box was told to configure a web server it is not running -- and
+# the apache instructions now send a first-install operator straight at that
+# line, which turned a stale default into a wrong instruction on a real path.
+CERTBOT_PLUGIN=""
 if [ -z "$DOMAIN" ]; then
   warn "no --domain given, so the vhost instructions are not printed.
      There is no safe default for it: a placeholder substituted into server_name
@@ -463,6 +496,7 @@ if [ -z "$DOMAIN" ]; then
      drift fingerprint is deliberately not written either, so a later vhost change
      still gets announced rather than landing silently."
 elif command -v nginx >/dev/null 2>&1; then
+  CERTBOT_PLUGIN=--nginx
   cat <<EOF
    nginx found. Install the vhost:
      sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
@@ -497,7 +531,7 @@ elif command -v nginx >/dev/null 2>&1; then
    a wildcard is named for the first usable name; and a re-issue leaves
    $DOMAIN-0001. On any of those, --cert-name $DOMAIN exits 1, and it does so with
    the vhost already live and the TLS block already gone.
-     sudo certbot certificates | grep -i 'Certificate Name'
+     sudo certbot certificates | grep -iE 'Certificate Name|Domains'
      sudo certbot install --nginx --cert-name <the name printed above>
      sudo nginx -t && sudo systemctl reload nginx
 
@@ -513,6 +547,7 @@ elif command -v nginx >/dev/null 2>&1; then
      curl -sf https://$DOMAIN/api/health.json
 EOF
 elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
+  CERTBOT_PLUGIN=--apache
   cat <<EOF
    apache found. Install the vhost:
      sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
@@ -538,7 +573,7 @@ elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; 
    lineage after the first -d, so an apex or wildcard certificate is not named for
    this host. An EMPTY list means certbot did not issue this certificate and cannot
    restore it, so use the .bak. Skip the restore on a first install entirely.
-     sudo certbot certificates | grep -i 'Certificate Name'
+     sudo certbot certificates | grep -iE 'Certificate Name|Domains'
      sudo certbot install --apache --cert-name <the name printed above>
      sudo apache2ctl configtest && sudo systemctl reload apache2
 
@@ -632,8 +667,18 @@ if [ -z "$DOMAIN" ]; then
   printf '  1. re-run with --domain to get the vhost and certificate commands\n'
   printf '  2. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
 else
-  printf '  1. install the vhost printed above, reading the diff, and reload the web server\n'
-  printf '  2. get a certificate:  sudo certbot --nginx -d %s\n' "$DOMAIN"
+  # Same reason step 2 branches: with no web server detected, nothing was printed
+  # above, so "install the vhost printed above" names output that does not exist.
+  if [ -n "$CERTBOT_PLUGIN" ]; then
+    printf '  1. install the vhost printed above, reading the diff, and reload the web server\n'
+  else
+    printf '  1. install nginx or apache, then re-run this to get the vhost commands\n'
+  fi
+  if [ -n "$CERTBOT_PLUGIN" ]; then
+    printf '  2. get a certificate:  sudo certbot %s -d %s\n' "$CERTBOT_PLUGIN" "$DOMAIN"
+  else
+    printf '  2. get a certificate:  install nginx or apache first, then run certbot\n'
+  fi
   printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
   printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
 fi

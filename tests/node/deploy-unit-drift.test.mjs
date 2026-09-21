@@ -1095,6 +1095,68 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	})
 
 	/*
+	 * The false-positive direction, which is not the harmless one: a refusal blocks a
+	 * real install and the operator's only workaround is editing this script.
+	 *
+	 * The refusals were one ordered `case` whose accept arm was `*[!0-9.]*.*` -- a
+	 * non-digit BEFORE a dot. A name whose only letters are in the last label has no
+	 * such character, so `163.com` (a real registered domain) fell past it to the
+	 * single-label arm and was refused by a message telling the operator it needed a
+	 * dot, while pointing at a name that has one. Three independent cases now.
+	 */
+	it.each([
+		[ '163.com' ], [ '512.dev' ], [ '123.com' ], [ '1.2.dev' ],
+		[ 'bus.dillo.dev' ], [ 'xn--80ak6aa92e.com' ], [ 'notexample.com' ],
+		[ 'my-board.dillo.dev' ],
+	])('accepts %s, which is a hostname somebody could really be serving', (domain) => {
+		const r = runInstall([ '--domain', domain ], { server: 'nginx' })
+		expect(r.code, `${ domain } was refused: ${ r.out.slice(-400) }`).toBe(0)
+		expect(r.out, 'accepted but never rendered into the sed')
+			.toContain(`s/@DOMAIN@/${ domain }/g`)
+	})
+
+	/*
+	 * Hostnames are case-insensitive; certbot's lineage directory is not. It is built
+	 * from the string as given, so --domain BUS.DILLO.DEV would send the restore step
+	 * looking for a lineage a `bus.dillo.dev` certificate does not have.
+	 *
+	 * Normalizing has to happen BEFORE the refusals, not after: `case` patterns are
+	 * literal, so with the lowercasing last, YOUR.DOMAIN walked straight past the
+	 * placeholder list and rendered the dead server_name that list exists to stop.
+	 */
+	it('lowercases the domain, so the certificate lineage can be found', () => {
+		const r = runInstall([ '--domain', 'BUS.DILLO.DEV' ], { server: 'nginx' })
+		expect(r.code).toBe(0)
+		expect(r.out, 'the domain reached the sed with its case intact')
+			.toContain('s/@DOMAIN@/bus.dillo.dev/g')
+		expect(r.out).not.toContain('BUS.DILLO.DEV')
+	})
+
+	it.each([ [ 'YOUR.DOMAIN' ], [ 'Bus.Example.Com' ], [ 'EXAMPLE.COM' ] ])(
+		'still refuses %s, which case alone must not smuggle past the list', (domain) => {
+			const r = runInstall([ '--domain', domain ], { server: 'nginx' })
+			expect(r.code, `${ domain } was accepted`).toBe(1)
+			expect(r.out).not.toMatch(/s\/@DOMAIN@\//)
+		},
+	)
+
+	/*
+	 * The summary told every box to run `certbot --nginx`, including the apache ones.
+	 * Harmless while it was only a stale default; the apache instructions now send a
+	 * first-install operator at that exact line, which made it a wrong instruction on
+	 * a path somebody follows.
+	 */
+	it.each([
+		[ 'nginx', 'nginx', /certbot --nginx -d bus\.dillo\.dev/, /certbot --apache/ ],
+		[ 'apache', 'apache2ctl', /certbot --apache -d bus\.dillo\.dev/, /certbot --nginx/ ],
+	])('tells a %s box to use its own certbot plugin', (_n, server, want, unwanted) => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], { server })
+		expect(r.code).toBe(0)
+		expect(r.out, 'the summary names the wrong web server').toMatch(want)
+		expect(r.out, 'it names the other web server as well').not.toMatch(unwanted)
+	})
+
+	/*
 	 * The record that silences update.sh, written on the run that earned it least.
 	 *
 	 * cm_write_vhost_stamp sat outside the `[ -z "$DOMAIN" ]` chain, so a run with no
@@ -1267,14 +1329,58 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		expect(refusals.length, 'no DOMAIN validation block found, so nothing is excluded')
 			.toBeGreaterThan(0)
 		const inRefusal = (n) => refusals.some(([ a, b ]) => n >= a && n <= b)
+		/*
+		 * The comment filter had a hole the size of the usage text. `usage()` is
+		 * `sed -n '2,20p' "$0" | sed 's/^# \\{0,1\\}//'`, so header comment lines 2-20
+		 * are reprinted verbatim by --help: they are operator-facing, paste-ready
+		 * output that merely looks like a comment in the source. Line 9 is the
+		 * example invocation, and it is the line this branch edited away from a
+		 * reserved name precisely because it is pasteable -- while the test written
+		 * to forbid that could not see it. Confirmed by mutation: putting
+		 * `--domain your.domain` back on line 9 left this test green and
+		 * `install.sh --help` printed it.
+		 */
+		const usageRange = (() => {
+			const m = install.match(/sed -n '(\d+),(\d+)p' "\$0"/)
+			expect(m, 'usage() no longer reprints a line range; this exclusion is stale')
+				.not.toBeNull()
+			return [ Number(m[1]) - 1, Number(m[2]) - 1 ]
+		})()
+		const reprinted = (i) => i >= usageRange[0] && i <= usageRange[1]
 		const offenders = lines
 			.map((line, i) => ({ line, n: i + 1, i }))
 			.filter(({ line }) => /your\.domain/.test(line))
-			.filter(({ line }) => !/^\s*#/.test(line))
+			.filter(({ line, i }) => reprinted(i) || !/^\s*#/.test(line))
 			.filter(({ i }) => !inRefusal(i))
 		expect(offenders.map((o) => `${ o.n }: ${ o.line.trim() }`),
 			'a placeholder hostname is printable; pasting it walks past the refusal')
 			.toEqual([])
+	})
+
+	/*
+	 * And the stronger form of the same rule, which does not depend on a list of
+	 * known placeholder spellings at all: ANY hostname this script suggests, it must
+	 * also accept. `bus.yourcompany.com` is not RFC 2606, so the validator lets it
+	 * through and a literal ban would never have listed it -- but a name the script
+	 * offers and then refuses, or offers and then renders into a dead server_name,
+	 * is the whole bug either way.
+	 *
+	 * Asserted against the real --help output rather than the source, so it covers
+	 * however usage() is built.
+	 */
+	it('accepts every domain its own help text suggests', () => {
+		const help = spawnSync('bash', [ INSTALL, '--help' ], { encoding: 'utf8' })
+		expect(help.status, '--help did not exit 0').toBe(0)
+		const suggested = [ ...help.stdout.matchAll(/--domain\s+([A-Za-z0-9.-]+)/g) ]
+			.map((m) => m[1])
+			.filter((d) => d.includes('.'))
+		expect(suggested.length, 'the help text suggests no example hostname to check')
+			.toBeGreaterThan(0)
+		for (const domain of suggested) {
+			const r = runInstall([ '--domain', domain ], { server: 'nginx' })
+			expect(r.code, `--help suggests ${ domain }, which install.sh then refuses`)
+				.toBe(0)
+		}
 	})
 
 	/*
