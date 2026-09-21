@@ -2,7 +2,7 @@
  * The trip view's join over the WHOLE generated corpus, not the fixture.
  *
  * CLAUDE.md records why this file exists: the golden fixture is route 4, the
- * smallest of the six watched routes, and both bugs a previous QA pass found
+ * smallest of the watched routes, and both bugs a previous QA pass found
  * came from route 7 and the full 2,348-stop corpus while a fixture-only run
  * reported clean. Route 4 has 3 timepoints and 5 buses; route 300 has 608
  * prediction rows and route 10 has 8,825 departures.

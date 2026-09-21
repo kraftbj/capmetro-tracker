@@ -423,7 +423,7 @@ realtime-skipped stops also had an alert.** They are largely independent signals
 
 Highest priority wins. `served: false` from any source means the client renders the stop struck
 through with the reason. **This is a correctness requirement, not a nicety**: at time of writing,
-6 stop/route pairs on the six watched routes are scheduled in GTFS but under an active
+6 stop/route pairs on the watched routes are scheduled in GTFS but under an active
 `NO_SERVICE` alert, two of them on the route 4 Austin High run.
 
 ### 3.2 Windowed timepoint schedule — `schedule`

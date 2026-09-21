@@ -90,7 +90,7 @@
    *
    * It is still 300, deliberately, and the defense is the cost model rather than
    * the radius. A hard 215 m cap would be fitted to three examples nobody checked
-   * against the other sixty-five routes, and it would silently drop genuine
+   * against the rest of the catalog, and it would silently drop genuine
    * transfers the same way an id intersection dropped 800-to-4. Instead the wide
    * ones are OFFERED but PRICED: with WALK_CIRCUITY below, a 300 m hop is charged
    * 350 seconds — near six minutes — so it only survives against a departure with

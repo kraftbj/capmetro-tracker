@@ -150,7 +150,7 @@
 
   /*
    * First run: no route chosen yet. Never a picker floating in a blank screen —
-   * the six watched routes are pre-offered and the board says what it is.
+   * the watched routes are pre-offered and the board says what it is.
    */
   function firstRun(routes, onPick) {
     var box = el('section', 'screen');

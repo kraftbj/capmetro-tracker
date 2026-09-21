@@ -228,7 +228,7 @@ const STOPS_DEPARTURES = {
 /*
  * Not a real route id, for the reason the 837 scoping below records: a synthetic
  * answer keyed by a number CapMetro also uses shadows the real thing. This used
- * to be '7' — one of the six watched routes, and the one CLAUDE.md names as the
+ * to be '7' — one of the watched routes, and the one CLAUDE.md names as the
  * source of both bugs the 2026-08-19 QA found — and it fires before any scenario
  * check, so every scenario's route 7 schedule was route 4's trim relabeled and
  * dated to a service day that has ended. Latent rather than failing, because no

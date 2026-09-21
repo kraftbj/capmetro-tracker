@@ -141,11 +141,50 @@ test.describe('the board fits the target device', () => {
 test.describe('the routes we ride sit at the top of the picker', () => {
   const RIDDEN = ['4', '7', '335', '337', '350', '800', '837']
 
+  /* Not pinned, so the picker has something to pin them ABOVE. */
+  const OTHERS = ['1', '20', '550']
+  /* One pinned route with no service today: a favorite must not vanish from its
+   * own heading just because it is not running, which is when somebody is most
+   * likely to be looking for it. */
+  const NO_SERVICE = '350'
+
+  /*
+   * The catalog is stubbed for every test in this block, not just the one that
+   * needs two grids.
+   *
+   * Without it the client falls back to fallbackCatalog(), which is built FROM
+   * the literal under test -- so every route in the catalog is a favorite,
+   * `favs.length` equals the whole list by construction, and the tests prove
+   * only that the code can render a seven-item array it was handed directly.
+   * The behaviour the heading claims, picking seven out of a real catalog and
+   * excluding them from the rest, was never observed.
+   *
+   * Stubbed per test rather than added to tests/e2e/server.mjs: every other spec
+   * boots with no catalog, and giving the shared fixture one would change what
+   * they all render. Route 837 shadowing the predictor capture is what that
+   * mistake looks like in this repo.
+   */
   const openPicker = async (page) => {
+    await page.route('**/api/routes.json', (route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        routes: [...RIDDEN, ...OTHERS].map((id) => ({
+          id, short_name: id, long_name: `${ id } Test`,
+          directions: [{ id: 0, headsign: `${ id } A` }, { id: 1, headsign: `${ id } B` }],
+          vehicles: { in_service: 1, out_of_service: 0 },
+          has_service_today: id !== NO_SERVICE,
+        })),
+      }),
+    }))
     await page.goto('/fresh/index.html')
     await expect(page.locator('#board')).toBeVisible()
     await page.locator('.routechip').click()
     await expect(page.locator('.picker')).toBeVisible()
+    /* The catalog really landed: without it there is only one grid. */
+    await expect(page.locator('.routegrid'),
+      'the catalog stub did not take, so the favorites are the whole list again')
+      .toHaveCount(2)
   }
 
   test('lists every one of them under its own heading', async ({ page }) => {
@@ -170,38 +209,14 @@ test.describe('the routes we ride sit at the top of the picker', () => {
   })
 
   /*
-   * WITH A CATALOG, because without one this cannot be tested at all.
-   *
-   * The first version of this test escaped early when there was only one grid,
-   * and there is only ever one: the fallback catalog IS the pinned list, so
-   * after the favorites are filtered out nothing remains for a second grid. The
-   * test was green and ran no assertion. That is the shape this suite keeps
-   * finding, and it does not get to ship in the test that was added to find it.
-   *
-   * The catalog is stubbed per test rather than added to tests/e2e/server.mjs:
-   * every other spec currently boots with no catalog, and giving the shared
-   * fixture one would change what they all render. Route 837 shadowing the
-   * predictor capture is what that mistake looks like here.
+   * The first version of this escaped early when there were fewer than two grids,
+   * and there was only ever one -- so it was green and ran no assertion. That is
+   * the shape this suite keeps finding, and it does not get to ship in the test
+   * added to find it.
    */
   test('and they are not repeated again in the full list below', async ({ page }) => {
-    const OTHERS = ['1', '20', '550']
-    await page.route('**/api/routes.json', (route) => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        routes: [...RIDDEN, ...OTHERS].map((id) => ({
-          id, short_name: id, long_name: `${ id } Test`,
-          directions: [{ id: 0, headsign: `${ id } A` }, { id: 1, headsign: `${ id } B` }],
-          vehicles: { in_service: 1, out_of_service: 0 },
-          has_service_today: true,
-        })),
-      }),
-    }))
-
     await openPicker(page)
     const grids = page.locator('.routegrid')
-    await expect(grids, 'no second grid, so the split is not being exercised')
-      .toHaveCount(2)
 
     await expect(grids.first().locator('.routegrid__id')).toHaveText(RIDDEN)
 
@@ -210,5 +225,21 @@ test.describe('the routes we ride sit at the top of the picker', () => {
     for (const id of RIDDEN) {
       expect(rest, `${ id } is pinned AND repeated in the full list`).not.toContain(id)
     }
+  })
+
+  /*
+   * A pinned route with no service today still belongs under its own heading.
+   * Dropping it there would be worst exactly when somebody is looking for it to
+   * find out whether it is running.
+   */
+  test('keeps a pinned route that is not running today', async ({ page }) => {
+    await openPicker(page)
+    const pinned = page.locator('.routegrid').first()
+    await expect(pinned.locator('.routegrid__id')).toHaveText(RIDDEN)
+
+    const card = pinned.locator('.routegrid__item').filter({ hasText: NO_SERVICE })
+    await expect(card).toHaveCount(1)
+    await expect(card, 'it should say so rather than look ordinary')
+      .toContainText('no service today')
   })
 })

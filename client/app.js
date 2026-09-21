@@ -353,7 +353,7 @@
   /*
    * The catalog, fetched once. A failure here is not an error state: the picker
    * falls back to the pinned favorites, which is exactly what it offered before
-   * this endpoint existed. Losing the other sixty-five routes is a smaller
+   * this endpoint existed. Losing the rest of the catalog is a smaller
    * failure than refusing to show a board.
    */
   function loadCatalog() {
