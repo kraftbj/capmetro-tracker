@@ -1023,7 +1023,12 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	})
 
 	it('names the real domain in the sed when it is given one', () => {
-		const r = runInstall(['--domain', 'bus.example.com'])
+		/* Server stubbed, like its siblings. Without it this test picks its branch
+		 * from whatever the machine happens to have installed -- and on a box with
+		 * neither nginx nor apache, install.sh prints "no nginx or apache found"
+		 * and the sed line never appears at all, so the assertion below fails for
+		 * a reason that has nothing to do with the code. */
+		const r = runInstall(['--domain', 'bus.example.com'], { server: 'nginx' })
 		expect(r.code).toBe(0)
 		expect(r.out).toMatch(/s\/@DOMAIN@\/bus\.example\.com\/g/)
 		expect(r.out).not.toMatch(/your\.domain/)
@@ -1037,11 +1042,26 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	 * fall-through to whatever else the box serves on 443.
 	 */
 	it.each([
-		[ 'nginx', 'nginx', /sites-available\/capmetro/ ],
-		[ 'apache', 'apache2ctl', /sites-available\/capmetro\.conf/ ],
+		/*
+		 * Paths that only one branch can print. `sites-available/capmetro` is a
+		 * SUBSTRING of apache's own `/etc/apache2/sites-available/capmetro.conf`,
+		 * so as a self-check for the nginx case it was satisfied by the apache
+		 * branch too -- the two cases stayed separate because install.sh tests
+		 * `command -v nginx` before apache2ctl, not because this regex said so.
+		 */
+		[ 'nginx', 'nginx', /etc\/nginx\/sites-available/ ],
+		[ 'apache', 'apache2ctl', /etc\/apache2\/sites-available/ ],
 	])('tells you to diff before overwriting, and to put certbot back after (%s)', (_name, server, target) => {
 		const r = runInstall(['--domain', 'bus.example.com'], { server })
 		const out = r.out
+		/*
+		 * Exit status FIRST. Every other assertion here reads text that is printed
+		 * before the vhost block ends, so the script can abort immediately after it
+		 * and they all still pass -- proven by putting a bare `false` after the
+		 * heredoc, which `set -e` turns into an abort, with both cases still green.
+		 * This is the one path that represents a real completed install.
+		 */
+		expect(r.code, 'the script aborted after printing the vhost block').toBe(0)
 		expect(out, 'the branch under test was not the one taken').toMatch(target)
 		expect(out, 'no diff step').toMatch(/diff -u/)
 		expect(out, 'no certbot step').toMatch(/certbot install --cert-name bus\.example\.com/)
@@ -1140,6 +1160,40 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		/* The guard has to be on the same chain as the cp, or pasting the block
 		 * runs the cp regardless of what the guard said. */
 		expect(r.out).toMatch(/grep -q '@\[A-Z_\]\*@' \/tmp\/capmetro-vhost\.new \\\n\s*&& sudo cp/)
+	})
+
+	/*
+	 * THE SUMMARY, which had no assertion at all.
+	 *
+	 * Deleting the whole `Next:` block -- the re-run guidance, the certbot command
+	 * and the health-check curl -- left all eleven dry-run tests green. The
+	 * refusal test looked like it covered it, because it matches /--domain/, but
+	 * the warn() text higher up satisfies that on its own, so the assertion never
+	 * reached the summary.
+	 *
+	 * It matters because these four lines are what an operator does next, and the
+	 * outage happened between two of them.
+	 */
+	it('tells an operator what to do next, once it has a domain', () => {
+		const r = runInstall([ '--domain', 'bus.example.com' ], { server: 'nginx' })
+		expect(r.code).toBe(0)
+		expect(r.out, 'no certbot step in the summary')
+			.toMatch(/certbot --nginx -d bus\.example\.com/)
+		/* The board, not the config: a green nginx -t is what made the outage
+		 * invisible, so the summary has to point at health.json. */
+		expect(r.out, 'the summary does not say to check the board')
+			.toMatch(/https:\/\/bus\.example\.com\/api\/health\.json/)
+		expect(r.out).toMatch(/update\.sh/)
+	})
+
+	it('and tells them how to get one, when it has none', () => {
+		const r = runInstall([], { server: 'nginx' })
+		expect(r.code).toBe(0)
+		expect(r.out, 'the summary offers no way forward without --domain')
+			.toMatch(/re-run with --domain/)
+		/* And prints no hostname-shaped command it cannot fill in. */
+		expect(r.out).not.toMatch(/certbot --nginx -d/)
+		expect(r.out).not.toMatch(/api\/health\.json/)
 	})
 
 	it('changes nothing on disk', () => {
