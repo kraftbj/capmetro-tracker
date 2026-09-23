@@ -539,6 +539,9 @@
         btn.style.top = r.y + 'px';
         btn.style.left = (LABEL_W - 4) + 'px';
         btn.setAttribute('aria-expanded', r.open ? 'true' : 'false');
+        /* So focus comes back to this segment after the repaint its own click
+           asks for. See refocus() in app.js. */
+        btn.setAttribute('data-key', 'seg:' + dir + ':' + r.index);
         btn.setAttribute('aria-label',
           (r.open ? 'Hide the ' : 'Show the ') + r.count + ' stops between ' +
           r.tp.stop_name + ' and ' + r.next.stop_name);
@@ -598,6 +601,9 @@
     var alertsOpen = routeId !== undefined && alertsOpenFor === routeId;
     if (!alerts || !alerts.length) return null;
     var wrap = el('div', 'alerts');
+    /* Which route, in the DOM as well as in the closure, so another route's
+       identical list is never kept with this route's handler. */
+    wrap.setAttribute('data-route', String(routeId));
     var btn = el('button', 'alerts__toggle');
     btn.type = 'button';
     btn.setAttribute('aria-expanded', alertsOpen ? 'true' : 'false');

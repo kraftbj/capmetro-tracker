@@ -177,8 +177,12 @@
    * minute, and a row that snapped shut under the reader's thumb each time was
    * the refresh announcing itself. Kept here rather than read off the DOM,
    * because every paint builds each row fresh and the open one would lose.
+   * The value is when the bus was last in the feed, by the feed's own clock.
    */
   var openRows = Object.create(null);
+  /* How long an opened bus may be missing before it is forgotten. A single
+     dropped position is not a bus leaving the route. */
+  var OPEN_FORGET_S = 300;
 
   function buildRow(v, data, idx, highlight, routes) {
     var view = adh.view(v, data.staleness);
@@ -203,7 +207,7 @@
 
     var main = el('button', 'vrow__main');
     main.type = 'button';
-    var isOpen = !!openRows[v.vehicle_id];
+    var isOpen = openRows[v.vehicle_id] !== undefined;
     if (isOpen) wrap.classList.add('is-open');
     main.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     main.setAttribute('aria-controls', detailId);
@@ -352,7 +356,7 @@
       detail.hidden = open;
       wrap.classList.toggle('is-open', !open);
       if (open) delete openRows[v.vehicle_id];
-      else openRows[v.vehicle_id] = true;
+      else openRows[v.vehicle_id] = data.generated_at || 0;
     });
 
     return wrap;
@@ -408,12 +412,15 @@
     head.appendChild(sub);
     host.appendChild(head);
 
-    /* Forget buses that have left the feed, so an id that comes back later
-       does not come back already open. */
-    if (data.vehicles) {
-      var present = Object.create(null);
-      data.vehicles.forEach(function (v) { present[v.vehicle_id] = true; });
-      Object.keys(openRows).forEach(function (id) { if (!present[id]) delete openRows[id]; });
+    /* Forget buses that have been gone from the feed for a while, so an id
+       that comes back much later does not come back already open. */
+    if (data.vehicles && data.generated_at) {
+      data.vehicles.forEach(function (v) {
+        if (openRows[v.vehicle_id] !== undefined) openRows[v.vehicle_id] = data.generated_at;
+      });
+      Object.keys(openRows).forEach(function (id) {
+        if (data.generated_at - openRows[id] > OPEN_FORGET_S) delete openRows[id];
+      });
     }
 
     if (opts.status === 'loading') {

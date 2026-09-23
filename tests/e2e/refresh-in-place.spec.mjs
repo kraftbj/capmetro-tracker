@@ -109,29 +109,44 @@ test.describe('a row whose bus changed is rebuilt with its handler, not patched 
 })
 
 test.describe('focus, when the control holding it is rebuilt', () => {
-  test('goes back to the same bus, found by its key', async ({ page }) => {
-    let later = false
+  test('goes back to the same bus, found by its key, after it moves up the list', async ({ page }) => {
+    /*
+     * Rows run in route order, furthest along first. The later payload puts the
+     * focused bus at the front, so the same PLACE now holds a different bus and
+     * only the key can find the right one.
+     */
+    let lead = null
     await page.route('**/fresh/api/route/4.json', async (route) => {
       const res = await route.fetch()
       const body = await res.json()
-      /* Every bus ten minutes later, so every row is rebuilt rather than kept. */
-      if (later) for (const v of body.vehicles) if (v.adherence && v.adherence.seconds !== null) v.adherence.seconds += 600
+      if (lead) for (const v of body.vehicles) if (v.vehicle_id === lead) v.progress = { ...v.progress, current_stop_sequence: 999 }
       await route.fulfill({ response: res, json: body })
     })
     await page.goto(BOARD)
     const second = page.locator('.vrow__main').nth(1)
     await expect(second).toBeVisible()
     const key = await second.getAttribute('data-key')
-    await page.evaluate(() => { window.__btn = document.querySelectorAll('.vrow__main')[1]; window.__btn.focus() })
+    await second.focus()
 
-    later = true
+    lead = key.replace(/^vrow:/, '')
     await tick(page)
     const r = await page.evaluate(() => ({
-      replaced: window.__btn !== document.activeElement,
       key: document.activeElement.getAttribute('data-key'),
+      at: [...document.querySelectorAll('.vrow__main')].indexOf(document.activeElement),
     }))
-    expect(r.replaced, 'the row was kept, so this proves nothing about refocus').toBe(true)
     expect(r.key).toBe(key)
+    expect(r.at, 'the bus did not move, so this cannot tell a key from a place').not.toBe(1)
+  })
+
+  test('comes back to a ladder segment after expanding it', async ({ page }) => {
+    await page.goto(BOARD)
+    const seg = page.locator('.segbtn').first()
+    await expect(seg).toBeVisible()
+    const key = await seg.getAttribute('data-key')
+    await seg.focus()
+    await page.keyboard.press('Enter')
+    await expect(page.locator(`.segbtn[data-key="${key}"]`)).toHaveAttribute('aria-expanded', 'true')
+    expect(await page.evaluate(() => document.activeElement.getAttribute('data-key'))).toBe(key)
   })
 })
 

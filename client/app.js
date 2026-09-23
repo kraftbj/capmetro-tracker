@@ -1943,9 +1943,19 @@
      * own taps (renderLive suppresses the timer), so there is nothing a minute's
      * refresh could disturb there anyway.
      */
-    if (!global.EventTarget || editing()) {
+    if (!global.EventTarget) {
       S.clear(dom.main);
       paintBoard();
+      return;
+    }
+    /*
+     * An editor is rebuilt, but its handlers are still marked. Otherwise the
+     * first patched paint after leaving it would meet unmarked editor buttons
+     * and could patch one in place, stale closure and all.
+     */
+    if (editing()) {
+      S.clear(dom.main);
+      markUnits(dom.main, withListeners(paintBoard));
       return;
     }
     var live = dom.main;
@@ -1955,42 +1965,56 @@
       'visibility:hidden;pointer-events:none;box-sizing:border-box;width:' +
       live.getBoundingClientRect().width + 'px';
     dom.root.appendChild(stage);
-    dom.main = stage;
-    var marked = [];
-    var proto = global.EventTarget.prototype;
-    var listen = proto.addEventListener;
-    /*
-     * Which elements this paint gave a handler, found by watching rather than by
-     * asking fifty call sites across nine files to register their own. Scoped to
-     * the synchronous build and restored in `finally`, so nothing outside a paint
-     * ever sees it.
-     */
-    proto.addEventListener = function () {
-      if (this.nodeType === 1) marked.push(this);
-      return listen.apply(this, arguments);
-    };
     /*
      * The stage leaves the document on every path, including a renderer that
      * throws. It used to be removed only after a successful patch, so one bad
      * payload left a hidden <main> behind on every minute's paint from then on.
      */
     try {
+      dom.main = stage;
+      var marked;
       try {
-        paintBoard();
+        marked = withListeners(paintBoard);
       } finally {
-        proto.addEventListener = listen;
         dom.main = live;
       }
-      marked.forEach(function (n) {
-        n[S.UNIT] = true;
-        if (n.parentNode && n.parentNode !== stage) n.parentNode[S.UNIT] = true;
-      });
+      markUnits(stage, marked);
       var focused = focusMark(live, document.activeElement);
       S.patch(live, stage);
       if (focused && !live.contains(document.activeElement)) refocus(live, focused);
     } finally {
       if (stage.parentNode) stage.parentNode.removeChild(stage);
     }
+  }
+
+  /*
+   * Runs `build` and returns every element it gave a handler, found by watching
+   * rather than by asking fifty call sites across nine files to register their
+   * own. Scoped to the synchronous build and restored in `finally`, so nothing
+   * outside a paint ever sees it.
+   */
+  function withListeners(build) {
+    var marked = [];
+    var proto = global.EventTarget.prototype;
+    var listen = proto.addEventListener;
+    proto.addEventListener = function () {
+      if (this.nodeType === 1) marked.push(this);
+      return listen.apply(this, arguments);
+    };
+    try {
+      build();
+    } finally {
+      proto.addEventListener = listen;
+    }
+    return marked;
+  }
+
+  /* Each element given a handler, and its parent, becomes a unit. See S.patch. */
+  function markUnits(root, marked) {
+    marked.forEach(function (n) {
+      n[S.UNIT] = true;
+      if (n.parentNode && n.parentNode !== root) n.parentNode[S.UNIT] = true;
+    });
   }
 
   /*
@@ -2008,8 +2032,9 @@
    */
   function focusMark(root, node) {
     if (!node || node === root || !root.contains(node)) return null;
+    /* getAttribute, not className, which on an SVG element is an object. */
     var mark = { key: node.getAttribute('data-key'), name: node.nodeName,
-      cls: node.className, text: node.textContent, path: [] };
+      cls: node.getAttribute('class'), text: node.textContent, path: [] };
     while (node !== root) {
       var siblings = node.parentNode.childNodes;
       mark.path.unshift([Array.prototype.indexOf.call(siblings, node), siblings.length]);
@@ -2030,7 +2055,8 @@
       for (var j = 0; n && j < mark.path.length; j++) {
         n = n.childNodes.length === mark.path[j][1] ? n.childNodes[mark.path[j][0]] : null;
       }
-      if (n && n.nodeName === mark.name && n.className === mark.cls && n.textContent === mark.text) {
+      if (n && n.nodeType === 1 && n.nodeName === mark.name &&
+          n.getAttribute('class') === mark.cls && n.textContent === mark.text) {
         target = n;
       }
     }
