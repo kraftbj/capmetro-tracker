@@ -289,6 +289,8 @@
      * asks gets one: plan.js's cards are sized for a count, and a row past it
      * would not fit the card.
      */
+    /* Checked against undefined, as `count` is, so the two optional arguments
+       read the same way. */
     var until = horizonS === undefined ? -Infinity : now + horizonS;
     var picked = [];
     var live = 0;

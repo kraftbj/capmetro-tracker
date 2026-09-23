@@ -377,9 +377,14 @@ describe('everything in the next ninety minutes, never fewer than two', () => {
   })
 
   t('reads the edge against the predicted arrival, not the booked time', (sb) => {
-    /* The 07:52 running twenty late arrives 08:12, past an 08:00 edge. */
-    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0752]: 1200 }), '6293', 1, at(7, 0), 2, 60 * 60)
+    /*
+     * The 07:52:09 running eight late arrives 08:00:09, nine seconds past an
+     * 08:00 edge. Booked, it is inside; predicted, it is out. A bigger delay
+     * would sort it behind the 08:02 and pass under either reading.
+     */
+    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0752]: 480 }), '6293', 1, at(7, 0), 2, 60 * 60)
     expect(ids(rows)).not.toContain(TRIP_0752)
+    expect(rows).toHaveLength(2)
   })
 
   t('shows a cancellation inside the window after the two are in hand', (sb) => {
