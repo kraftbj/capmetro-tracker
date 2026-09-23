@@ -289,7 +289,7 @@
      * asks gets one: plan.js's cards are sized for a count, and a row past it
      * would not fit the card.
      */
-    var until = horizonS ? now + horizonS : -Infinity;
+    var until = horizonS === undefined ? -Infinity : now + horizonS;
     var picked = [];
     var live = 0;
     for (var i = 0; i < out.length && (live < want || out[i].due_at <= until); i++) {
@@ -602,8 +602,8 @@
     host.appendChild(cols);
 
     host.appendChild(el('p', 'track__cap',
-      'The next ' + Math.round(HORIZON_S / 60) + ' minutes, and always at least the next two ' +
-      'each way. Ordered by when a bus will actually arrive, not by its scheduled time, ' +
+      'The next ' + Math.round(HORIZON_S / 60) + ' minutes, or the next two each way when ' +
+      'those are further out. Ordered by when a bus will actually arrive, not by its scheduled time, ' +
       'so a late bus stays on the list until it has been.'));
     return host;
   }

@@ -1,5 +1,6 @@
 /**
- * stopboard.js — the next two buses each way at one stop.
+ * stopboard.js — the buses due in the next 90 minutes each way at one stop,
+ * and never fewer than the next two.
  *
  * Almost every test here defends one rule: "next" means when a bus will
  * actually arrive, not when it was scheduled to. The case that forced it, from
@@ -366,6 +367,32 @@ describe('everything in the next ninety minutes, never fewer than two', () => {
     const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 10 * 60)
     expect(rows).toHaveLength(2)
     expect(rows[1].due_at).toBeGreaterThan(at(7, 10))
+  })
+
+  t('counts a departure due exactly at the edge as inside it', (sb) => {
+    /* 07:00 + 52m09s lands on the 07:52:09 to the second. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 52 * 60 + 9)
+    expect(ids(rows)).toContain(TRIP_0752)
+    expect(rows).toHaveLength(3)
+  })
+
+  t('reads the edge against the predicted arrival, not the booked time', (sb) => {
+    /* The 07:52 running twenty late arrives 08:12, past an 08:00 edge. */
+    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0752]: 1200 }), '6293', 1, at(7, 0), 2, 60 * 60)
+    expect(ids(rows)).not.toContain(TRIP_0752)
+  })
+
+  t('shows a cancellation inside the window after the two are in hand', (sb) => {
+    /*
+     * Before the window a canceled third run was never reached, because the
+     * list stopped at the second live one. Inside ninety minutes it is exactly
+     * what a transfer needs to know about.
+     */
+    const dep = JSON.parse(JSON.stringify(DEP))
+    dep.trips.forEach((tr) => { if (tr.id === TRIP_0752) tr.canceled = true })
+    const rows = sb.upcoming(dep, null, '6293', 1, at(7, 0), 2, sb.HORIZON_S)
+    expect(rows).toHaveLength(4)
+    expect(rows.find((r) => r.trip.id === TRIP_0752).canceled).toBe(true)
   })
 
   t('leaves a caller that asks for no horizon at its count', (sb) => {
