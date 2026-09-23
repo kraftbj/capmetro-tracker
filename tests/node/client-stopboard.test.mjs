@@ -334,6 +334,53 @@ describe('one answer per direction the stop is served in', () => {
   })
 })
 
+/*
+ * The window past the first two.
+ *
+ * Two buses answers "should I run" and nothing further out, and the question a
+ * transfer asks is further out: at 4:30 on route 837, "what is it doing between
+ * five and half past" had no answer on this panel, because the next two were
+ * both due before five. The fixture's four southbound runs at 6293 are ten
+ * minutes apart, 07:32 to 08:02, so each horizon below lands between two of them.
+ */
+describe('everything in the next ninety minutes, never fewer than two', () => {
+  const ids = (rows) => rows.map((r) => r.trip.id)
+
+  t('keeps every departure due inside the horizon', (sb) => {
+    /* 07:00 plus ninety minutes reaches past the last of the four. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, sb.HORIZON_S)
+    expect(rows).toHaveLength(4)
+    expect(sb.HORIZON_S).toBe(90 * 60)
+  })
+
+  t('stops at the edge of the horizon once the two are in hand', (sb) => {
+    /* Until 08:00: the 07:32, 07:42 and 07:52, and not the 08:02. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 60 * 60)
+    expect(rows).toHaveLength(3)
+    expect(ids(rows)).toContain(TRIP_0752)
+    rows.forEach((r) => expect(r.due_at).toBeLessThanOrEqual(at(8, 0)))
+  })
+
+  t('still shows two when the horizon holds fewer, as on an hourly route', (sb) => {
+    /* Nothing is due by 07:10, and "nothing further" would be a lie. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 10 * 60)
+    expect(rows).toHaveLength(2)
+    expect(rows[1].due_at).toBeGreaterThan(at(7, 10))
+  })
+
+  t('leaves a caller that asks for no horizon at its count', (sb) => {
+    /* plan.js sizes its cards by count and passes none. */
+    expect(sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2)).toHaveLength(2)
+  })
+
+  t('draws the whole window on the panel and says how far it looks', (sb) => {
+    const host = client.document.createElement('section')
+    sb.render(host, DEP, null, at(7, 0), { stopId: '6293' })
+    expect(all(host, 'nextbus')).toHaveLength(4)
+    expect(textDeep(host)).toMatch(/next 90 minutes/i)
+  })
+})
+
 describe('what the panel says', () => {
   const draw = (dep, route, now, opts) => {
     const host = client.document.createElement('section')

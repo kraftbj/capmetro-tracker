@@ -22,6 +22,19 @@ import { expect, test } from '@playwright/test'
 const ORIGIN = '2112'
 const AT_ORIGIN = `/predictor/index.html?route=837&stop=${ORIGIN}`
 
+/*
+ * The northbound column, which is where the 17:03 departs from.
+ *
+ * Scoped because the panel now shows ninety minutes rather than two buses, and
+ * at this stop that reaches a SOUTHBOUND predictor row too — the 18:30 arrival
+ * that bus 8006 becomes — which renders first because direction 0 does. An
+ * unscoped `.first()` then found that row and asserted 8007's facts against it.
+ */
+const northbound = (page) =>
+  page.locator('.nextdir').filter({ has: page.locator('.dirtag', { hasText: /^NB$/ }) })
+const predictorRow = (page) =>
+  northbound(page).locator('.nextbus', { hasText: 'becomes this run' }).first()
+
 test.describe('a run whose bus is still finishing the trip before', () => {
   test('is on the board, timed, and names the bus that will run it', async ({ page }) => {
     await page.goto(AT_ORIGIN)
@@ -33,7 +46,7 @@ test.describe('a run whose bus is still finishing the trip before', () => {
      * The row itself, found by the sentence only a predictor row produces. The
      * bug was its absence, so this locator resolving at all is the assertion.
      */
-    const predictor = page.locator('.nextbus', { hasText: 'becomes this run' }).first()
+    const predictor = predictorRow(page)
     await expect(predictor).toBeVisible()
     await expect(predictor).toContainText('bus 8007')
     await expect(predictor).toContainText('running very late')
@@ -41,7 +54,7 @@ test.describe('a run whose bus is still finishing the trip before', () => {
 
   test('leads with the predicted time and keeps the booked one beside it', async ({ page }) => {
     await page.goto(AT_ORIGIN)
-    const predictor = page.locator('.nextbus', { hasText: 'becomes this run' }).first()
+    const predictor = predictorRow(page)
 
     /* 17:03 + 820s. The headline is when the bus will really leave... */
     await expect(predictor.locator('.nextbus__clock')).toHaveText('5:16p')
@@ -53,7 +66,7 @@ test.describe('a run whose bus is still finishing the trip before', () => {
 
   test('keeps its badge, and the badge agrees with the clock', async ({ page }) => {
     await page.goto(AT_ORIGIN)
-    const predictor = page.locator('.nextbus', { hasText: 'becomes this run' }).first()
+    const predictor = predictorRow(page)
 
     /* 820s late, and 5:16p minus 5:03p is the same 820s — the identity that
        earns this row its badge. */
@@ -66,7 +79,7 @@ test.describe('a run whose bus is still finishing the trip before', () => {
 
   test('speaks the same facts it prints', async ({ page }) => {
     await page.goto(AT_ORIGIN)
-    const predictor = page.locator('.nextbus', { hasText: 'becomes this run' }).first()
+    const predictor = predictorRow(page)
 
     /*
      * textContent, not innerText. `.sr-only` is clipped to a 1px box with
@@ -83,7 +96,7 @@ test.describe('a run whose bus is still finishing the trip before', () => {
 
   test('does not scroll sideways at 412 pixels', async ({ page }) => {
     await page.goto(AT_ORIGIN)
-    await expect(page.locator('.nextbus', { hasText: 'becomes this run' }).first()).toBeVisible()
+    await expect(predictorRow(page)).toBeVisible()
 
     /*
      * The two new sentences are the longest strings either panel produces, which
