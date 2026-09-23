@@ -52,6 +52,8 @@
   var TICK_MIN_PX = 56;       /* below this two clock labels touch at 9px */
   var TICK_STEPS = [300, 600, 900, 1800, 3600];
   var expanded = Object.create(null);   /* "dir:segIndex" -> true */
+  /* Whether the alerts list is open, so the minute's repaint does not shut it. */
+  var alertsOpen = false;
   var clipSeq = 0;            /* clipPath ids must be unique across both tracks */
 
   function svgEl(name, attrs) {
@@ -596,9 +598,9 @@
     var wrap = el('div', 'alerts');
     var btn = el('button', 'alerts__toggle');
     btn.type = 'button';
-    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-expanded', alertsOpen ? 'true' : 'false');
     var body = el('ul', 'alerts__list');
-    body.hidden = true;
+    body.hidden = !alertsOpen;
     body.id = 'alerts-list';
     btn.setAttribute('aria-controls', 'alerts-list');
     btn.appendChild(el('span', 'alerts__glyph', '!'));
@@ -608,6 +610,7 @@
       var open = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', open ? 'false' : 'true');
       body.hidden = open;
+      alertsOpen = !open;
     });
     alerts.forEach(function (a) {
       var li = el('li', 'alert alert--' + (a.severity || 'low'));

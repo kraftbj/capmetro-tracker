@@ -172,6 +172,13 @@
   /* Remembering the last state each bus was in is what makes the change flash
    * mean something. Motion fires on a real transition, never on first paint. */
   var lastState = Object.create(null);
+  /*
+   * Which rows a reader has opened, by vehicle. The board is repainted every
+   * minute, and a row that snapped shut under the reader's thumb each time was
+   * the refresh announcing itself. Kept here rather than read off the DOM,
+   * because every paint builds each row fresh and the open one would lose.
+   */
+  var openRows = Object.create(null);
 
   function buildRow(v, data, idx, highlight, routes) {
     var view = adh.view(v, data.staleness);
@@ -196,7 +203,9 @@
 
     var main = el('button', 'vrow__main');
     main.type = 'button';
-    main.setAttribute('aria-expanded', 'false');
+    var isOpen = !!openRows[v.vehicle_id];
+    if (isOpen) wrap.classList.add('is-open');
+    main.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     main.setAttribute('aria-controls', detailId);
     main.setAttribute('aria-label', spokenLabel(v, view, data, highlight, routes));
 
@@ -285,7 +294,7 @@
     /* ---- expanded detail --------------------------------------------- */
     var detail = el('dl', 'vrow__detail');
     detail.id = detailId;
-    detail.hidden = true;
+    detail.hidden = !isOpen;
 
     if (v.in_service && !view.suppressed && view.seconds !== null) {
       detail.appendChild(fact('Deviation', fmt.exactLateness(view.seconds)));
@@ -339,6 +348,8 @@
       main.setAttribute('aria-expanded', open ? 'false' : 'true');
       detail.hidden = open;
       wrap.classList.toggle('is-open', !open);
+      if (open) delete openRows[v.vehicle_id];
+      else openRows[v.vehicle_id] = true;
     });
 
     return wrap;

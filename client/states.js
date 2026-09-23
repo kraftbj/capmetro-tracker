@@ -28,6 +28,83 @@
   }
 
   /*
+   * PATCHING A PAINT INTO THE PAGE INSTEAD OF REPLACING IT.
+   *
+   * Every paint used to empty <main> and rebuild it, once a minute, and the
+   * reader could tell: focus fell to <body>, a vehicle row or the alerts list
+   * that had been opened snapped shut, and every node on the page was swapped
+   * for a new one whether anything in it had changed or not.
+   *
+   * So a paint is built off to the side and `live` is brought into line with
+   * it: a node that already matches is left exactly where it is, text and
+   * attributes are changed in place, and only what actually differs moves.
+   *
+   * THE ONE RULE THAT MAKES THIS SAFE: a node marked with UNIT is never
+   * patched into, only kept whole or replaced whole.
+   *
+   * A node kept in place keeps the listener it was built with, and that
+   * listener's closure holds the data of the paint that made it. A stop button
+   * patched to read "Gardner/Jain" would still pick the stop it used to name.
+   * Handlers also close over the nodes built beside them: rows.js's row button
+   * toggles its sibling detail list and its parent's class, and ladder.js's
+   * alerts button toggles its sibling list. app.js marks every element that was
+   * given a listener during the paint, and its parent, as a unit, so a handler
+   * always arrives together with the data and the nodes it touches. Every
+   * handler in the client was audited for that, and none reaches further than
+   * its parent. One that does needs its own UNIT mark.
+   *
+   * Form controls are replaced rather than patched as well, because their
+   * current value is a property and not an attribute, so an in-place patch
+   * would leave the old value showing under the new attribute.
+   */
+  var UNIT = '__cmbUnit';
+  var CONTROLS = { INPUT: true, SELECT: true, TEXTAREA: true };
+
+  function patchAttributes(live, next) {
+    var i, a;
+    for (i = live.attributes.length - 1; i >= 0; i--) {
+      a = live.attributes[i];
+      if (!next.hasAttributeNS(a.namespaceURI, a.localName)) live.removeAttributeNS(a.namespaceURI, a.localName);
+    }
+    for (i = 0; i < next.attributes.length; i++) {
+      a = next.attributes[i];
+      if (live.getAttributeNS(a.namespaceURI, a.localName) !== a.value) {
+        live.setAttributeNS(a.namespaceURI, a.name, a.value);
+      }
+    }
+  }
+
+  function patchable(o, n) {
+    return o.nodeType === 1 && n.nodeType === 1 &&
+      o.namespaceURI === n.namespaceURI && o.nodeName === n.nodeName &&
+      !o[UNIT] && !n[UNIT] && !CONTROLS[n.nodeName];
+  }
+
+  /* Brings `live`'s children into line with `next`'s. `next` is consumed:
+     whatever is kept from it is moved into `live`. */
+  function patch(live, next) {
+    var want = Array.prototype.slice.call(next.childNodes);
+    for (var i = 0; i < want.length; i++) {
+      var n = want[i];
+      var o = live.childNodes[i];
+      if (!o) { live.appendChild(n); continue; }
+      if (o.isEqualNode(n)) continue;
+      if (o.nodeType === n.nodeType && (o.nodeType === 3 || o.nodeType === 8)) {
+        o.nodeValue = n.nodeValue;
+        continue;
+      }
+      if (patchable(o, n)) {
+        patchAttributes(o, n);
+        patch(o, n);
+        continue;
+      }
+      live.replaceChild(n, o);
+    }
+    while (live.childNodes.length > want.length) live.removeChild(live.lastChild);
+    return live;
+  }
+
+  /*
    * A stated absence: headline plus the next fact the user actually wants.
    * `next` is optional but its absence is itself reported, never hidden.
    */
@@ -416,6 +493,8 @@
   global.CMB.states = {
     el: el,
     clear: clear,
+    patch: patch,
+    UNIT: UNIT,
     notice: notice,
     retryButton: retryButton,
     skeletonRows: skeletonRows,

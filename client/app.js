@@ -1916,12 +1916,96 @@
     render();
   }
 
+  /*
+   * One paint, patched into the page rather than replacing it. See S.patch for
+   * what a full rebuild used to cost the reader once a minute, and for the rule
+   * that keeps handlers attached to the nodes they touch.
+   *
+   * The paint is built in a staging <main> that is in the document, laid out at
+   * the live one's width, and invisible, rather than in a detached element.
+   * ladder.js and map.js size themselves from their host's clientWidth, which is
+   * 0 off-document, so a detached build would draw every ladder at its 300px
+   * floor. Fixed and zero-height, so it never adds to the page's height and
+   * cannot move the scroll position itself.
+   */
   function paint() {
     paintHeader();
+    /* The node suite's stub window has no real DOM to patch into, and there the
+       board is drawn the way it always was. A browser always has EventTarget. */
+    if (!global.EventTarget) {
+      S.clear(dom.main);
+      paintBoard();
+      return;
+    }
+    var live = dom.main;
+    var stage = el('main', live.className);
+    stage.setAttribute('aria-hidden', 'true');
+    stage.style.cssText = 'position:fixed;left:0;top:0;height:0;overflow:hidden;' +
+      'visibility:hidden;pointer-events:none;box-sizing:border-box;width:' +
+      live.getBoundingClientRect().width + 'px';
+    dom.root.appendChild(stage);
+    dom.main = stage;
+    var marked = [];
+    var proto = global.EventTarget.prototype;
+    var listen = proto.addEventListener;
+    /*
+     * Which elements this paint gave a handler, found by watching rather than by
+     * asking fifty call sites across nine files to register their own. Scoped to
+     * the synchronous build and restored in `finally`, so nothing outside a paint
+     * ever sees it.
+     */
+    proto.addEventListener = function () {
+      if (this.nodeType === 1) marked.push(this);
+      return listen.apply(this, arguments);
+    };
+    try {
+      paintBoard();
+    } finally {
+      proto.addEventListener = listen;
+      dom.main = live;
+    }
+    marked.forEach(function (n) {
+      n[S.UNIT] = true;
+      if (n.parentNode && n.parentNode !== stage) n.parentNode[S.UNIT] = true;
+    });
+
+    var focusPath = pathTo(live, document.activeElement);
+    S.patch(live, stage);
+    stage.parentNode.removeChild(stage);
+    /*
+     * A focused control inside a unit that changed is replaced, and focus would
+     * fall to <body>. Put it back on whatever now stands in the same place, so a
+     * keyboard or screen-reader user is not thrown to the top once a minute.
+     */
+    if (focusPath && !live.contains(document.activeElement)) {
+      var again = nodeAt(live, focusPath.path);
+      if (again && again.nodeName === focusPath.name && typeof again.focus === 'function') {
+        again.focus({ preventScroll: true });
+      }
+    }
+  }
+
+  function pathTo(root, node) {
+    if (!node || node === root || !root.contains(node)) return null;
+    var path = [];
+    var name = node.nodeName;
+    while (node !== root) {
+      path.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node));
+      node = node.parentNode;
+    }
+    return { path: path, name: name };
+  }
+
+  function nodeAt(root, path) {
+    var n = root;
+    for (var i = 0; n && i < path.length; i++) n = n.childNodes[path[i]];
+    return n || null;
+  }
+
+  function paintBoard() {
     var d = state.data;
 
     /* whole-app refusals first */
-    S.clear(dom.main);
 
     if (state.scenarioNote) dom.main.appendChild(state.scenarioNote);
 
