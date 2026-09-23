@@ -108,6 +108,69 @@ test.describe('a row whose bus changed is rebuilt with its handler, not patched 
   })
 })
 
+test.describe('focus, when the control holding it is rebuilt', () => {
+  test('goes back to the same bus, found by its key', async ({ page }) => {
+    let later = false
+    await page.route('**/fresh/api/route/4.json', async (route) => {
+      const res = await route.fetch()
+      const body = await res.json()
+      /* Every bus ten minutes later, so every row is rebuilt rather than kept. */
+      if (later) for (const v of body.vehicles) if (v.adherence && v.adherence.seconds !== null) v.adherence.seconds += 600
+      await route.fulfill({ response: res, json: body })
+    })
+    await page.goto(BOARD)
+    const second = page.locator('.vrow__main').nth(1)
+    await expect(second).toBeVisible()
+    const key = await second.getAttribute('data-key')
+    await page.evaluate(() => { window.__btn = document.querySelectorAll('.vrow__main')[1]; window.__btn.focus() })
+
+    later = true
+    await tick(page)
+    const r = await page.evaluate(() => ({
+      replaced: window.__btn !== document.activeElement,
+      key: document.activeElement.getAttribute('data-key'),
+    }))
+    expect(r.replaced, 'the row was kept, so this proves nothing about refocus').toBe(true)
+    expect(r.key).toBe(key)
+  })
+})
+
+test.describe('a paint that throws', () => {
+  test('leaves no staging copy behind, and the next paint still lands', async ({ page }) => {
+    await page.goto(BOARD)
+    await expect(page.locator('.band--nextbus .band__sub')).toBeVisible()
+    await page.evaluate(() => {
+      const real = window.CMB.stopboard.render
+      window.CMB.stopboard.render = function () {
+        window.CMB.stopboard.render = real
+        throw new Error('boom')
+      }
+    })
+    await tick(page)
+    await expect(page.locator('main')).toHaveCount(1)
+    await tick(page)
+    await expect(page.locator('main')).toHaveCount(1)
+    await expect(page.locator('.band--nextbus .band__sub')).toBeVisible()
+  })
+})
+
+test.describe('a state preview', () => {
+  /*
+   * The preview note is one node kept for the whole tab. Appending it to the
+   * staging copy took it OUT of the live page mid-build, which shifted every
+   * band after it one place and made the patch replace all of them.
+   */
+  test('keeps its note once and keeps the bands in place on a repaint', async ({ page }) => {
+    await page.goto('/fresh/index.html?stop=1368&state=all-states')
+    await expect(page.locator('.scenario')).toHaveCount(1)
+    await page.evaluate(() => { window.__rows = document.querySelector('.band--rows') })
+    await page.evaluate(() => window.dispatchEvent(new Event('resize')))
+    await page.waitForTimeout(400)
+    await expect(page.locator('.scenario')).toHaveCount(1)
+    expect(await page.evaluate(() => window.__rows === document.querySelector('.band--rows'))).toBe(true)
+  })
+})
+
 test.describe('S.patch', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BOARD)
@@ -154,6 +217,89 @@ test.describe('S.patch', () => {
     expect(r.unit).toEqual(['new', 'new'])
     /* The hazard itself, shown: patched in place, it reads "new" and acts "old". */
     expect(r.plain).toEqual(['new', 'old'])
+  })
+
+  test('drops live children the new paint no longer has', async ({ page }) => {
+    const html = await page.evaluate(() => {
+      const live = document.createElement('div')
+      live.innerHTML = '<p>a</p><p>b</p><p>c</p>'
+      const next = document.createElement('div')
+      next.innerHTML = '<p>a</p>'
+      return window.CMB.states.patch(live, next).innerHTML
+    })
+    expect(html).toBe('<p>a</p>')
+  })
+
+  test('moves an SVG mark in place rather than redrawing it', async ({ page }) => {
+    const r = await page.evaluate(() => {
+      const NS = 'http://www.w3.org/2000/svg'
+      const svg = (cx) => {
+        const wrap = document.createElement('div')
+        const s = document.createElementNS(NS, 'svg')
+        const c = document.createElementNS(NS, 'circle')
+        c.setAttribute('cx', cx)
+        s.appendChild(c)
+        wrap.appendChild(s)
+        return wrap
+      }
+      const live = svg('10')
+      const dot = live.querySelector('circle')
+      window.CMB.states.patch(live, svg('40'))
+      return { kept: live.querySelector('circle') === dot, cx: dot.getAttribute('cx') }
+    })
+    expect(r).toEqual({ kept: true, cx: '40' })
+  })
+
+  test('replaces a live region rather than changing its words in place', async ({ page }) => {
+    /* Changing the text of a region already on the page is what a screen reader
+       announces, so patching it would read it out once a minute. */
+    const kept = await page.evaluate(() => {
+      const live = document.createElement('div')
+      live.innerHTML = '<p role="status">3 minutes old</p>'
+      const region = live.firstChild
+      const next = document.createElement('div')
+      next.innerHTML = '<p role="status">4 minutes old</p>'
+      window.CMB.states.patch(live, next)
+      return live.firstChild === region
+    })
+    expect(kept).toBe(false)
+  })
+
+  test('does not call two fields the same when only their values differ', async ({ page }) => {
+    /* plan.js sets its share link as a property, which isEqualNode cannot see. */
+    const value = await page.evaluate(() => {
+      const box = (v) => {
+        const d = document.createElement('div')
+        const s = document.createElement('section')
+        const i = document.createElement('input')
+        i.value = v
+        s.appendChild(i)
+        d.appendChild(s)
+        return d
+      }
+      const live = box('#plan=old')
+      window.CMB.states.patch(live, box('#plan=new'))
+      return live.querySelector('input').value
+    })
+    expect(value).toBe('#plan=new')
+  })
+
+  test('does not keep a handlerless button in place of one that has a handler', async ({ page }) => {
+    const said = await page.evaluate(() => {
+      const S = window.CMB.states
+      const said = []
+      const live = document.createElement('div')
+      live.innerHTML = '<section><button>go</button></section>'
+      const next = document.createElement('div')
+      next.innerHTML = '<section><button>go</button></section>'
+      const b = next.querySelector('button')
+      b.addEventListener('click', () => said.push('go'))
+      b[S.UNIT] = true
+      S.patch(live, next)
+      live.querySelector('button').click()
+      return said
+    })
+    expect(said).toEqual(['go'])
   })
 
   test('replaces a form control rather than patching its attributes', async ({ page }) => {

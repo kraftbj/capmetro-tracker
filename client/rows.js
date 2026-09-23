@@ -207,6 +207,9 @@
     if (isOpen) wrap.classList.add('is-open');
     main.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     main.setAttribute('aria-controls', detailId);
+    /* Which bus, so a refresh that rebuilds this row can hand focus back to it
+       wherever it now sits. See refocus() in app.js. */
+    main.setAttribute('data-key', 'vrow:' + v.vehicle_id);
     main.setAttribute('aria-label', spokenLabel(v, view, data, highlight, routes));
 
     var badgeCell = el('span', 'vrow__badge');
@@ -404,6 +407,14 @@
     var sub = el('p', 'band__sub');
     head.appendChild(sub);
     host.appendChild(head);
+
+    /* Forget buses that have left the feed, so an id that comes back later
+       does not come back already open. */
+    if (data.vehicles) {
+      var present = Object.create(null);
+      data.vehicles.forEach(function (v) { present[v.vehicle_id] = true; });
+      Object.keys(openRows).forEach(function (id) { if (!present[id]) delete openRows[id]; });
+    }
 
     if (opts.status === 'loading') {
       sub.textContent = 'Loading live positions…';

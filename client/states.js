@@ -55,10 +55,44 @@
    *
    * Form controls are replaced rather than patched as well, because their
    * current value is a property and not an attribute, so an in-place patch
-   * would leave the old value showing under the new attribute.
+   * would leave the old value showing under the new attribute. For the same
+   * reason isEqualNode alone cannot say two subtrees match: it compares the
+   * value ATTRIBUTE, so plan.js's share-link field, whose link is set as a
+   * property, compared equal to itself after the link changed and kept the old
+   * one. sameNode() compares the values too.
+   *
+   * A live region is never patched into either. Changing the text of a region
+   * that is already on the page is exactly what a screen reader announces, so
+   * patching near.js's "your location is N minutes old" warning in place would
+   * read it aloud every minute. Kept whole or replaced whole, it is announced
+   * as it always was.
    */
   var UNIT = '__cmbUnit';
   var CONTROLS = { INPUT: true, SELECT: true, TEXTAREA: true };
+
+  function liveRegion(n) {
+    var role = n.getAttribute('role');
+    return n.hasAttribute('aria-live') || role === 'status' || role === 'alert' || role === 'log';
+  }
+
+  /*
+   * isEqualNode, plus the two things it cannot see: a control's current value,
+   * and whether each element carries a handler. Without the second, an old
+   * button with no handler would be kept in place of an identical new one that
+   * has one, and the control would go dead.
+   */
+  function sameNode(o, n) {
+    if (!o.isEqualNode(n)) return false;
+    if (o.nodeType !== 1) return true;
+    if (!!o[UNIT] !== !!n[UNIT] || (CONTROLS[o.nodeName] && o.value !== n.value)) return false;
+    var a = o.getElementsByTagName('*');
+    var b = n.getElementsByTagName('*');
+    for (var i = 0; i < a.length; i++) {
+      if (!!a[i][UNIT] !== !!b[i][UNIT]) return false;
+      if (CONTROLS[a[i].nodeName] && a[i].value !== b[i].value) return false;
+    }
+    return true;
+  }
 
   function patchAttributes(live, next) {
     var i, a;
@@ -77,7 +111,7 @@
   function patchable(o, n) {
     return o.nodeType === 1 && n.nodeType === 1 &&
       o.namespaceURI === n.namespaceURI && o.nodeName === n.nodeName &&
-      !o[UNIT] && !n[UNIT] && !CONTROLS[n.nodeName];
+      !o[UNIT] && !n[UNIT] && !CONTROLS[n.nodeName] && !liveRegion(n) && !liveRegion(o);
   }
 
   /* Brings `live`'s children into line with `next`'s. `next` is consumed:
@@ -88,7 +122,7 @@
       var n = want[i];
       var o = live.childNodes[i];
       if (!o) { live.appendChild(n); continue; }
-      if (o.isEqualNode(n)) continue;
+      if (sameNode(o, n)) continue;
       if (o.nodeType === n.nodeType && (o.nodeType === 3 || o.nodeType === 8)) {
         o.nodeValue = n.nodeValue;
         continue;

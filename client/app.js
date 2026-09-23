@@ -1930,9 +1930,20 @@
    */
   function paint() {
     paintHeader();
-    /* The node suite's stub window has no real DOM to patch into, and there the
-       board is drawn the way it always was. A browser always has EventTarget. */
-    if (!global.EventTarget) {
+    /*
+     * Two cases keep the old full rebuild.
+     *
+     * The node suite's stub window has no real DOM to patch into. A browser
+     * always has EventTarget.
+     *
+     * And the editors, whose handlers close over the editor's state snapshot:
+     * chain.js's save button holds the legs as they were when it was built, and
+     * nothing on the button shows them, so a button kept because it LOOKS the
+     * same would save the wrong trip. An editor only repaints on the reader's
+     * own taps (renderLive suppresses the timer), so there is nothing a minute's
+     * refresh could disturb there anyway.
+     */
+    if (!global.EventTarget || editing()) {
       S.clear(dom.main);
       paintBoard();
       return;
@@ -1958,48 +1969,72 @@
       if (this.nodeType === 1) marked.push(this);
       return listen.apply(this, arguments);
     };
-    try {
-      paintBoard();
-    } finally {
-      proto.addEventListener = listen;
-      dom.main = live;
-    }
-    marked.forEach(function (n) {
-      n[S.UNIT] = true;
-      if (n.parentNode && n.parentNode !== stage) n.parentNode[S.UNIT] = true;
-    });
-
-    var focusPath = pathTo(live, document.activeElement);
-    S.patch(live, stage);
-    stage.parentNode.removeChild(stage);
     /*
-     * A focused control inside a unit that changed is replaced, and focus would
-     * fall to <body>. Put it back on whatever now stands in the same place, so a
-     * keyboard or screen-reader user is not thrown to the top once a minute.
+     * The stage leaves the document on every path, including a renderer that
+     * throws. It used to be removed only after a successful patch, so one bad
+     * payload left a hidden <main> behind on every minute's paint from then on.
      */
-    if (focusPath && !live.contains(document.activeElement)) {
-      var again = nodeAt(live, focusPath.path);
-      if (again && again.nodeName === focusPath.name && typeof again.focus === 'function') {
-        again.focus({ preventScroll: true });
+    try {
+      try {
+        paintBoard();
+      } finally {
+        proto.addEventListener = listen;
+        dom.main = live;
       }
+      marked.forEach(function (n) {
+        n[S.UNIT] = true;
+        if (n.parentNode && n.parentNode !== stage) n.parentNode[S.UNIT] = true;
+      });
+      var focused = focusMark(live, document.activeElement);
+      S.patch(live, stage);
+      if (focused && !live.contains(document.activeElement)) refocus(live, focused);
+    } finally {
+      if (stage.parentNode) stage.parentNode.removeChild(stage);
     }
   }
 
-  function pathTo(root, node) {
+  /*
+   * A focused control inside a unit that changed is replaced, and focus would
+   * fall to <body>, throwing a keyboard or screen-reader user to the top once a
+   * minute. So it is put back, but only on something that is demonstrably the
+   * same control, because focus landing on a DIFFERENT bus is worse than focus
+   * lost.
+   *
+   * A control that carries data-key (a vehicle row's button does) is found by
+   * that key wherever it has moved to. One that does not is found at the same
+   * place only if the tree around it has kept its shape all the way down and
+   * the control reads the same: a banner appearing above it shifts every index,
+   * and a same-shaped slot holding different text is a different control.
+   */
+  function focusMark(root, node) {
     if (!node || node === root || !root.contains(node)) return null;
-    var path = [];
-    var name = node.nodeName;
+    var mark = { key: node.getAttribute('data-key'), name: node.nodeName,
+      cls: node.className, text: node.textContent, path: [] };
     while (node !== root) {
-      path.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node));
+      var siblings = node.parentNode.childNodes;
+      mark.path.unshift([Array.prototype.indexOf.call(siblings, node), siblings.length]);
       node = node.parentNode;
     }
-    return { path: path, name: name };
+    return mark;
   }
 
-  function nodeAt(root, path) {
-    var n = root;
-    for (var i = 0; n && i < path.length; i++) n = n.childNodes[path[i]];
-    return n || null;
+  function refocus(root, mark) {
+    var target = null;
+    if (mark.key) {
+      var keyed = root.querySelectorAll('[data-key]');
+      for (var i = 0; i < keyed.length && !target; i++) {
+        if (keyed[i].getAttribute('data-key') === mark.key) target = keyed[i];
+      }
+    } else {
+      var n = root;
+      for (var j = 0; n && j < mark.path.length; j++) {
+        n = n.childNodes.length === mark.path[j][1] ? n.childNodes[mark.path[j][0]] : null;
+      }
+      if (n && n.nodeName === mark.name && n.className === mark.cls && n.textContent === mark.text) {
+        target = n;
+      }
+    }
+    if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
   }
 
   function paintBoard() {
@@ -2007,7 +2042,10 @@
 
     /* whole-app refusals first */
 
-    if (state.scenarioNote) dom.main.appendChild(state.scenarioNote);
+    /* A copy, because the note is one node kept for the life of the tab, and
+       appending the node itself would take it out of the live page mid-build
+       and shift everything after it out of line with the paint. */
+    if (state.scenarioNote) dom.main.appendChild(state.scenarioNote.cloneNode(true));
 
     if (state.status === 'schema') {
       dom.main.appendChild(S.schemaTooNew(d ? d.schema : '?', SUPPORTED_SCHEMA));
