@@ -2011,25 +2011,29 @@
   }
 
   /*
-   * Keys the top-level blocks by their class, so a banner coming or going above
-   * them is inserted or dropped rather than shifting every band out of line with
-   * the last paint. See S.patch. A class that appears twice is left unkeyed,
-   * because a key has to name one block.
+   * Keys the top-level blocks by what they are, so a banner coming or going
+   * above them is inserted or dropped rather than shifting every band out of
+   * line with the last paint. See S.patch.
+   *
+   * The key is the block's `band--*` name (or `foot`, `nearhost`), not its whole
+   * class, because a band's state classes change under it: trip.js adds
+   * `trip--gone` when the bus leaves the feed, and a key that changed with it
+   * would not match in the very paint where the band most needs keeping. A name
+   * that appears twice is left unkeyed, because a key has to name one block.
    */
-  var BLOCK = /(^|\s)(band|foot|nearhost)(\s|$)/;
+  var BLOCK = /(?:^|\s)(band--[\w-]+|foot|nearhost)(?:\s|$)/;
 
   function keyBlocks(root) {
     var seen = Object.create(null);
-    var blocks = Array.prototype.filter.call(root.children, function (n) {
-      return BLOCK.test(n.getAttribute('class') || '');
+    var blocks = [];
+    Array.prototype.forEach.call(root.children, function (n) {
+      var m = BLOCK.exec(n.getAttribute('class') || '');
+      if (!m) return;
+      blocks.push([n, 'block:' + m[1]]);
+      seen[m[1]] = (seen[m[1]] || 0) + 1;
     });
-    blocks.forEach(function (n) {
-      var k = 'block:' + n.getAttribute('class');
-      seen[k] = (seen[k] || 0) + 1;
-    });
-    blocks.forEach(function (n) {
-      var k = 'block:' + n.getAttribute('class');
-      if (seen[k] === 1) n.setAttribute('data-key', k);
+    blocks.forEach(function (b) {
+      if (seen[b[1].slice(6)] === 1) b[0].setAttribute('data-key', b[1]);
     });
   }
 

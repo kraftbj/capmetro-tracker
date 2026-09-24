@@ -259,8 +259,9 @@ test.describe('an editor', () => {
     await page.evaluate(() => { window.__first = document.querySelector('#board').firstElementChild })
     expect(await page.evaluate(() => !!window.__first)).toBe(true)
     await page.evaluate(() => window.dispatchEvent(new Event('resize')))
-    await page.waitForTimeout(400)
-    expect(await page.evaluate(() => window.__first === document.querySelector('#board').firstElementChild)).toBe(false)
+    /* Waits for the paint itself rather than a fixed time: a patched paint
+       would keep the node and this would time out. */
+    await page.waitForFunction(() => window.__first !== document.querySelector('#board').firstElementChild)
   })
 })
 
@@ -429,6 +430,34 @@ test.describe('S.patch', () => {
       return said
     })
     expect(said).toEqual(['go'])
+  })
+
+  test('inserts and drops unkeyed nodes around keyed ones without moving them', async ({ page }) => {
+    const r = await page.evaluate(() => {
+      const S = window.CMB.states
+      const build = (spec) => {
+        const d = document.createElement('div')
+        for (const [tag, key, text] of spec) {
+          const n = document.createElement(tag)
+          if (key) n.setAttribute('data-key', key)
+          n.textContent = text
+          d.appendChild(n)
+        }
+        return d
+      }
+      const live = build([['section', 'a', 'A'], ['section', 'b', 'B'], ['footer', 'f', 'F']])
+      const [a, b, f] = live.children
+      const out = []
+      /* Two banners in, above and between. */
+      S.patch(live, build([['div', null, 'x'], ['section', 'a', 'A'], ['div', null, 'y'], ['section', 'b', 'B2'], ['footer', 'f', 'F']]))
+      out.push([live.textContent, live.children[1] === a, live.children[3] === b, live.children[4] === f])
+      /* Both out again, and a keyed block dropped. */
+      S.patch(live, build([['section', 'a', 'A'], ['footer', 'f', 'F']]))
+      out.push([live.textContent, live.children[0] === a, live.children[1] === f])
+      return out
+    })
+    expect(r[0]).toEqual(['xAyB2F', true, true, true])
+    expect(r[1]).toEqual(['AF', true, true])
   })
 
   test('replaces a form control rather than patching its attributes', async ({ page }) => {
