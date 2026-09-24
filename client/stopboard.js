@@ -1,9 +1,10 @@
 /*
  * stopboard.js — "I am standing at this stop. What is coming?"
  *
- * The next two buses each way at one stop on one route. It is the question a
- * printed timetable answers badly and a dispatch board should answer well,
- * because the interesting part is never the schedule.
+ * The buses due in the next 90 minutes each way at one stop on one route, and
+ * never fewer than the next two. It is the question a printed timetable
+ * answers badly and a dispatch board should answer well, because the
+ * interesting part is never the schedule.
  *
  * WHY "NEXT" MEANS PREDICTED ARRIVAL AND NOT SCHEDULED TIME
  *
@@ -63,6 +64,20 @@
    * panel into a list of buses that are never arriving.
    */
   var CANCELED_KEEP_S = 600;
+  /*
+   * How far ahead the panel looks, on top of the two-per-direction floor.
+   *
+   * Two buses answers "should I run", and nothing else. The question a transfer
+   * asks is further out — "what is the 837 doing between five and half past,
+   * when she gets off the other bus" — and at 4:30 on a 10-minute route the next
+   * two are both gone before five. Ninety minutes covers a transfer planned from
+   * the end of a school day or a shift, which is the plan being made at the stop.
+   *
+   * A floor as well as a window, because they fail in opposite directions: on an
+   * hourly route ninety minutes can hold one bus or none, and "nothing further"
+   * printed above a bus seventy minutes away would be a lie about the evening.
+   */
+  var HORIZON_S = 5400;
 
   /*
    * Every direction the stop is served in, in id order.
@@ -126,7 +141,7 @@
    * the schedule alone still answers the question, just without predictions,
    * which is the honest state before a route's live file has loaded.
    */
-  function upcoming(dep, route, stopId, directionId, now, count) {
+  function upcoming(dep, route, stopId, directionId, now, count, horizonS) {
     var rows = W.departuresAt(dep, stopId, directionId);
     var suppressed = !!(route && route.staleness && route.staleness.suppress_adherence);
     var out = [];
@@ -269,9 +284,17 @@
      * waited at a stop for a bus that was never coming.
      */
     var want = count === undefined ? 2 : count;
+    /*
+     * And past those two, everything due inside the horizon. Only a caller that
+     * asks gets one: plan.js's cards are sized for a count, and a row past it
+     * would not fit the card.
+     */
+    /* Checked against undefined, as `count` is, so the two optional arguments
+       read the same way. */
+    var until = horizonS === undefined ? -Infinity : now + horizonS;
     var picked = [];
     var live = 0;
-    for (var i = 0; i < out.length && live < want; i++) {
+    for (var i = 0; i < out.length && (live < want || out[i].due_at <= until); i++) {
       picked.push(out[i]);
       /* An overdue run is not a bus you can catch, so like a cancellation it rides
          along without consuming one of the two answers being asked for. */
@@ -284,14 +307,14 @@
    * The whole panel as data. Pure, so the ranking rule above is testable
    * without a DOM.
    */
-  function nextAtStop(dep, route, stopId, now, count) {
+  function nextAtStop(dep, route, stopId, now, count, horizonS) {
     if (!dep || !stopId) { return []; }
     return directionsAt(dep, stopId).map(function (d) {
       return {
         direction_id: d.id,
         headsign: d.headsign,
         tag: fmt.directionTag(d.headsign, d.id),
-        departures: upcoming(dep, route, stopId, d.id, now, count)
+        departures: upcoming(dep, route, stopId, d.id, now, count, horizonS)
       };
     });
   }
@@ -569,7 +592,7 @@
     sub.appendChild(change);
     host.appendChild(sub);
 
-    var groups = nextAtStop(dep, route, opts.stopId, now, 2);
+    var groups = nextAtStop(dep, route, opts.stopId, now, 2, HORIZON_S);
     if (!groups.length) {
       host.appendChild(S.notice('empty', 'No bus serves this stop today.',
         'It may be closed, or only served on another day type.'));
@@ -581,7 +604,8 @@
     host.appendChild(cols);
 
     host.appendChild(el('p', 'track__cap',
-      'Ordered by when a bus will actually arrive, not by its scheduled time, ' +
+      'The next ' + Math.round(HORIZON_S / 60) + ' minutes, or the next two each way when ' +
+      'those are further out. Ordered by when a bus will actually arrive, not by its scheduled time, ' +
       'so a late bus stays on the list until it has been.'));
     return host;
   }
@@ -592,6 +616,7 @@
        rather than restating the number, which is how the two drift. */
     OVERDUE_KEEP_S: OVERDUE_KEEP_S,
     CANCELED_KEEP_S: CANCELED_KEEP_S,
+    HORIZON_S: HORIZON_S,
     directionsAt: directionsAt,
     upcoming: upcoming,
     /* Exported so a test can assert what one row actually renders. The

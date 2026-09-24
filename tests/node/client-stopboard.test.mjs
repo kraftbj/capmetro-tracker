@@ -1,5 +1,6 @@
 /**
- * stopboard.js — the next two buses each way at one stop.
+ * stopboard.js — the buses due in the next 90 minutes each way at one stop,
+ * and never fewer than the next two.
  *
  * Almost every test here defends one rule: "next" means when a bus will
  * actually arrive, not when it was scheduled to. The case that forced it, from
@@ -331,6 +332,98 @@ describe('one answer per direction the stop is served in', () => {
   t('does not throw on a null schedule or a null stop', (sb) => {
     expect(sb.nextAtStop(null, null, '6293', at(7, 0), 2)).toEqual([])
     expect(sb.nextAtStop(DEP, null, null, at(7, 0), 2)).toEqual([])
+  })
+})
+
+/*
+ * The window past the first two.
+ *
+ * Two buses answers "should I run" and nothing further out, and the question a
+ * transfer asks is further out: at 4:30 on route 837, "what is it doing between
+ * five and half past" had no answer on this panel, because the next two were
+ * both due before five. The fixture's four southbound runs at 6293 are ten
+ * minutes apart, 07:32 to 08:02, so each horizon below lands between two of them.
+ */
+describe('everything in the next ninety minutes, never fewer than two', () => {
+  const ids = (rows) => rows.map((r) => r.trip.id)
+
+  t('keeps every departure due inside the horizon', (sb) => {
+    /* 07:00 plus ninety minutes reaches past the last of the four. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, sb.HORIZON_S)
+    expect(rows).toHaveLength(4)
+    expect(sb.HORIZON_S).toBe(90 * 60)
+  })
+
+  t('stops at the edge of the horizon once the two are in hand', (sb) => {
+    /* Until 08:00: the 07:32, 07:42 and 07:52, and not the 08:02. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 60 * 60)
+    expect(rows).toHaveLength(3)
+    expect(ids(rows)).toContain(TRIP_0752)
+    rows.forEach((r) => expect(r.due_at).toBeLessThanOrEqual(at(8, 0)))
+  })
+
+  t('still shows two when the horizon holds fewer, as on an hourly route', (sb) => {
+    /* Nothing is due by 07:10, and "nothing further" would be a lie. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 10 * 60)
+    expect(rows).toHaveLength(2)
+    expect(rows[1].due_at).toBeGreaterThan(at(7, 10))
+  })
+
+  t('counts a departure due exactly at the edge as inside it', (sb) => {
+    /* 07:00 + 52m09s lands on the 07:52:09 to the second. */
+    const rows = sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2, 52 * 60 + 9)
+    expect(ids(rows)).toContain(TRIP_0752)
+    expect(rows).toHaveLength(3)
+  })
+
+  t('reads the edge against the predicted arrival, not the booked time', (sb) => {
+    /*
+     * The 07:52:09 running eight late arrives 08:00:09, nine seconds past an
+     * 08:00 edge. Booked, it is inside; predicted, it is out. A bigger delay
+     * would sort it behind the 08:02 and pass under either reading.
+     */
+    const rows = sb.upcoming(DEP, routeWith({ [TRIP_0752]: 480 }), '6293', 1, at(7, 0), 2, 60 * 60)
+    expect(ids(rows)).not.toContain(TRIP_0752)
+    expect(rows).toHaveLength(2)
+  })
+
+  t('shows a cancellation inside the window after the two are in hand', (sb) => {
+    /*
+     * Before the window a canceled third run was never reached, because the
+     * list stopped at the second live one. Inside ninety minutes it is exactly
+     * what a transfer needs to know about.
+     */
+    const dep = JSON.parse(JSON.stringify(DEP))
+    dep.trips.forEach((tr) => { if (tr.id === TRIP_0752) tr.canceled = true })
+    const rows = sb.upcoming(dep, null, '6293', 1, at(7, 0), 2, sb.HORIZON_S)
+    expect(rows).toHaveLength(4)
+    expect(rows.find((r) => r.trip.id === TRIP_0752).canceled).toBe(true)
+  })
+
+  t('does not count an overdue run toward the two, inside the window either', (sb) => {
+    /*
+     * At 07:45 with nothing reporting, the 07:32 and 07:42 are overdue: due, and
+     * nothing on their blocks. They ride along, so the two being asked for are
+     * the 07:52 and the 08:02, and the 08:02 is shown although it is past a
+     * ten-minute edge. Counted as live, the overdue pair would fill the floor
+     * and the 08:02 would be cut.
+     */
+    const rows = sb.upcoming(DEP, routeWith({}), '6293', 1, at(7, 45), 2, 10 * 60)
+    const overdue = rows.filter((r) => (r.coverage || {}).state === 'overdue')
+    expect(overdue.length).toBeGreaterThan(0)
+    expect(rows.filter((r) => !r.canceled && (r.coverage || {}).state !== 'overdue')).toHaveLength(2)
+  })
+
+  t('leaves a caller that asks for no horizon at its count', (sb) => {
+    /* plan.js sizes its cards by count and passes none. */
+    expect(sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2)).toHaveLength(2)
+  })
+
+  t('draws the whole window on the panel and says how far it looks', (sb) => {
+    const host = client.document.createElement('section')
+    sb.render(host, DEP, null, at(7, 0), { stopId: '6293' })
+    expect(all(host, 'nextbus')).toHaveLength(4)
+    expect(textDeep(host)).toMatch(/next 90 minutes/i)
   })
 })
 
