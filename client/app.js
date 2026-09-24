@@ -1916,14 +1916,190 @@
     render();
   }
 
+  /*
+   * One paint, patched into the page rather than replacing it. See S.patch for
+   * what a full rebuild used to cost the reader once a minute, and for the rule
+   * that keeps handlers attached to the nodes they touch.
+   *
+   * The paint is built in a staging <main> that is in the document, laid out at
+   * the live one's width, and invisible, rather than in a detached element.
+   * ladder.js and map.js size themselves from their host's clientWidth, which is
+   * 0 off-document, so a detached build would draw every ladder at its 300px
+   * floor. Fixed and zero-height, so it never adds to the page's height and
+   * cannot move the scroll position itself.
+   */
   function paint() {
     paintHeader();
+    /*
+     * Two cases keep the old full rebuild.
+     *
+     * The node suite's stub window has no real DOM to patch into. A browser
+     * always has EventTarget.
+     *
+     * And the editors, whose handlers close over the editor's state snapshot:
+     * chain.js's save button holds the legs as they were when it was built, and
+     * nothing on the button shows them, so a button kept because it LOOKS the
+     * same would save the wrong trip. An editor only repaints on the reader's
+     * own taps (renderLive suppresses the timer), so there is nothing a minute's
+     * refresh could disturb there anyway.
+     */
+    if (!global.EventTarget) {
+      S.clear(dom.main);
+      paintBoard();
+      return;
+    }
+    /*
+     * An editor is rebuilt, but its handlers are still marked. Otherwise the
+     * first patched paint after leaving it would meet unmarked editor buttons
+     * and could patch one in place, stale closure and all.
+     */
+    if (editing()) {
+      S.clear(dom.main);
+      markUnits(dom.main, withListeners(paintBoard));
+      return;
+    }
+    var live = dom.main;
+    var stage = el('main', live.className);
+    stage.setAttribute('aria-hidden', 'true');
+    stage.style.cssText = 'position:fixed;left:0;top:0;height:0;overflow:hidden;' +
+      'visibility:hidden;pointer-events:none;box-sizing:border-box;width:' +
+      live.getBoundingClientRect().width + 'px';
+    dom.root.appendChild(stage);
+    /*
+     * The stage leaves the document on every path, including a renderer that
+     * throws. It used to be removed only after a successful patch, so one bad
+     * payload left a hidden <main> behind on every minute's paint from then on.
+     */
+    try {
+      dom.main = stage;
+      var marked;
+      try {
+        marked = withListeners(paintBoard);
+      } finally {
+        dom.main = live;
+      }
+      keyBlocks(stage);
+      markUnits(stage, marked);
+      var focused = focusMark(live, document.activeElement);
+      S.patch(live, stage);
+      if (focused && !live.contains(document.activeElement)) refocus(live, focused);
+    } finally {
+      if (stage.parentNode) stage.parentNode.removeChild(stage);
+    }
+  }
+
+  /*
+   * Runs `build` and returns every element it gave a handler, found by watching
+   * rather than by asking fifty call sites across nine files to register their
+   * own. Scoped to the synchronous build and restored in `finally`, so nothing
+   * outside a paint ever sees it.
+   */
+  function withListeners(build) {
+    var marked = [];
+    var proto = global.EventTarget.prototype;
+    var listen = proto.addEventListener;
+    proto.addEventListener = function () {
+      if (this.nodeType === 1) marked.push(this);
+      return listen.apply(this, arguments);
+    };
+    try {
+      build();
+    } finally {
+      proto.addEventListener = listen;
+    }
+    return marked;
+  }
+
+  /*
+   * Keys the top-level blocks by what they are, so a banner coming or going
+   * above them is inserted or dropped rather than shifting every band out of
+   * line with the last paint. See S.patch.
+   *
+   * The key is the block's `band--*` name (or `foot`, `nearhost`), not its whole
+   * class, because a band's state classes change under it: trip.js adds
+   * `trip--gone` when the bus leaves the feed, and a key that changed with it
+   * would not match in the very paint where the band most needs keeping. A name
+   * that appears twice is left unkeyed, because a key has to name one block.
+   */
+  var BLOCK = /(?:^|\s)(band--[\w-]+|foot|nearhost)(?:\s|$)/;
+
+  function keyBlocks(root) {
+    var seen = Object.create(null);
+    var blocks = [];
+    Array.prototype.forEach.call(root.children, function (n) {
+      var m = BLOCK.exec(n.getAttribute('class') || '');
+      if (!m) return;
+      blocks.push([n, 'block:' + m[1]]);
+      seen[m[1]] = (seen[m[1]] || 0) + 1;
+    });
+    blocks.forEach(function (b) {
+      if (seen[b[1].slice(6)] === 1) b[0].setAttribute('data-key', b[1]);
+    });
+  }
+
+  /* Each element given a handler, and its parent, becomes a unit. See S.patch. */
+  function markUnits(root, marked) {
+    marked.forEach(function (n) {
+      n[S.UNIT] = true;
+      if (n.parentNode && n.parentNode !== root) n.parentNode[S.UNIT] = true;
+    });
+  }
+
+  /*
+   * A focused control inside a unit that changed is replaced, and focus would
+   * fall to <body>, throwing a keyboard or screen-reader user to the top once a
+   * minute. So it is put back, but only on something that is demonstrably the
+   * same control, because focus landing on a DIFFERENT bus is worse than focus
+   * lost.
+   *
+   * A control that carries data-key (a vehicle row's button does) is found by
+   * that key wherever it has moved to. One that does not is found at the same
+   * place only if the tree around it has kept its shape all the way down and
+   * the control reads the same: a banner appearing above it shifts every index,
+   * and a same-shaped slot holding different text is a different control.
+   */
+  function focusMark(root, node) {
+    if (!node || node === root || !root.contains(node)) return null;
+    /* getAttribute, not className, which on an SVG element is an object. */
+    var mark = { key: node.getAttribute('data-key'), name: node.nodeName,
+      cls: node.getAttribute('class'), text: node.textContent, path: [] };
+    while (node !== root) {
+      var siblings = node.parentNode.childNodes;
+      mark.path.unshift([Array.prototype.indexOf.call(siblings, node), siblings.length]);
+      node = node.parentNode;
+    }
+    return mark;
+  }
+
+  function refocus(root, mark) {
+    var target = null;
+    if (mark.key) {
+      var keyed = root.querySelectorAll('[data-key]');
+      for (var i = 0; i < keyed.length && !target; i++) {
+        if (keyed[i].getAttribute('data-key') === mark.key) target = keyed[i];
+      }
+    } else {
+      var n = root;
+      for (var j = 0; n && j < mark.path.length; j++) {
+        n = n.childNodes.length === mark.path[j][1] ? n.childNodes[mark.path[j][0]] : null;
+      }
+      if (n && n.nodeType === 1 && n.nodeName === mark.name &&
+          n.getAttribute('class') === mark.cls && n.textContent === mark.text) {
+        target = n;
+      }
+    }
+    if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
+  }
+
+  function paintBoard() {
     var d = state.data;
 
     /* whole-app refusals first */
-    S.clear(dom.main);
 
-    if (state.scenarioNote) dom.main.appendChild(state.scenarioNote);
+    /* A copy, because the note is one node kept for the life of the tab, and
+       appending the node itself would take it out of the live page mid-build
+       and shift everything after it out of line with the paint. */
+    if (state.scenarioNote) dom.main.appendChild(state.scenarioNote.cloneNode(true));
 
     if (state.status === 'schema') {
       dom.main.appendChild(S.schemaTooNew(d ? d.schema : '?', SUPPORTED_SCHEMA));

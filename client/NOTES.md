@@ -946,6 +946,23 @@ variation on it.
   guard let the eviction refetch inside the paint that evicted. `YYYYMMDD` compares
   chronologically as text, which is why no parsing is involved.
 
+- **A paint is patched into `<main>`, not swapped in for it.** `paint()` builds in a
+  hidden staging `<main>` and `S.patch` brings the live one into line, so the
+  minute's refresh no longer drops focus, shuts an opened row or the alerts list, or
+  replaces every node. The rule any new handler must keep: **a closure may reach its
+  own element, its siblings and its parent, and nothing further up.** An element
+  given a listener during the paint, and its parent, are marked `S.UNIT` and are
+  only ever kept whole or replaced whole, which is what keeps a handler arriving
+  with the data and nodes it closes over. Nothing enforces this beyond the marking;
+  a handler that reaches a grandparent needs its own `S.UNIT` mark. The editors
+  keep the old full rebuild, because their handlers close over a state snapshot the
+  DOM does not show. Anything that must survive a repaint (which rows are open,
+  whether the alerts list is) lives in module state in `rows.js` and `ladder.js`,
+  never only in the DOM. Children are matched by position, except that a child with
+  `data-key` is never moved: a banner appearing or going above the keyed bands is
+  inserted or dropped around them, and a focused control with a key (a vehicle row,
+  a ladder segment) gets focus back wherever it now sits.
+
 ---
 
 ## Verification performed

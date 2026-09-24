@@ -172,6 +172,17 @@
   /* Remembering the last state each bus was in is what makes the change flash
    * mean something. Motion fires on a real transition, never on first paint. */
   var lastState = Object.create(null);
+  /*
+   * Which rows a reader has opened, by vehicle. The board is repainted every
+   * minute, and a row that snapped shut under the reader's thumb each time was
+   * the refresh announcing itself. Kept here rather than read off the DOM,
+   * because every paint builds each row fresh and the open one would lose.
+   * The value is when the bus was last in the feed, by the feed's own clock.
+   */
+  var openRows = Object.create(null);
+  /* How long an opened bus may be missing before it is forgotten. A single
+     dropped position is not a bus leaving the route. */
+  var OPEN_FORGET_S = 300;
 
   function buildRow(v, data, idx, highlight, routes) {
     var view = adh.view(v, data.staleness);
@@ -196,8 +207,13 @@
 
     var main = el('button', 'vrow__main');
     main.type = 'button';
-    main.setAttribute('aria-expanded', 'false');
+    var isOpen = openRows[v.vehicle_id] !== undefined;
+    if (isOpen) wrap.classList.add('is-open');
+    main.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     main.setAttribute('aria-controls', detailId);
+    /* Which bus, so a refresh that rebuilds this row can hand focus back to it
+       wherever it now sits. See refocus() in app.js. */
+    main.setAttribute('data-key', 'vrow:' + v.vehicle_id);
     main.setAttribute('aria-label', spokenLabel(v, view, data, highlight, routes));
 
     var badgeCell = el('span', 'vrow__badge');
@@ -285,7 +301,7 @@
     /* ---- expanded detail --------------------------------------------- */
     var detail = el('dl', 'vrow__detail');
     detail.id = detailId;
-    detail.hidden = true;
+    detail.hidden = !isOpen;
 
     if (v.in_service && !view.suppressed && view.seconds !== null) {
       detail.appendChild(fact('Deviation', fmt.exactLateness(view.seconds)));
@@ -339,6 +355,8 @@
       main.setAttribute('aria-expanded', open ? 'false' : 'true');
       detail.hidden = open;
       wrap.classList.toggle('is-open', !open);
+      if (open) delete openRows[v.vehicle_id];
+      else openRows[v.vehicle_id] = data.generated_at || 0;
     });
 
     return wrap;
@@ -393,6 +411,17 @@
     var sub = el('p', 'band__sub');
     head.appendChild(sub);
     host.appendChild(head);
+
+    /* Forget buses that have been gone from the feed for a while, so an id
+       that comes back much later does not come back already open. */
+    if (data.vehicles && data.generated_at) {
+      data.vehicles.forEach(function (v) {
+        if (openRows[v.vehicle_id] !== undefined) openRows[v.vehicle_id] = data.generated_at;
+      });
+      Object.keys(openRows).forEach(function (id) {
+        if (data.generated_at - openRows[id] > OPEN_FORGET_S) delete openRows[id];
+      });
+    }
 
     if (opts.status === 'loading') {
       sub.textContent = 'Loading live positions…';

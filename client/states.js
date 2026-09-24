@@ -28,6 +28,143 @@
   }
 
   /*
+   * PATCHING A PAINT INTO THE PAGE INSTEAD OF REPLACING IT.
+   *
+   * Every paint used to empty <main> and rebuild it, once a minute, and the
+   * reader could tell: focus fell to <body>, a vehicle row or the alerts list
+   * that had been opened snapped shut, and every node on the page was swapped
+   * for a new one whether anything in it had changed or not.
+   *
+   * So a paint is built off to the side and `live` is brought into line with
+   * it: a node that already matches is left exactly where it is, text and
+   * attributes are changed in place, and only what actually differs moves.
+   *
+   * THE ONE RULE THAT MAKES THIS SAFE: a node marked with UNIT is never
+   * patched into, only kept whole or replaced whole.
+   *
+   * A node kept in place keeps the listener it was built with, and that
+   * listener's closure holds the data of the paint that made it. A stop button
+   * patched to read "Gardner/Jain" would still pick the stop it used to name.
+   * Handlers also close over the nodes built beside them: rows.js's row button
+   * toggles its sibling detail list and its parent's class, and ladder.js's
+   * alerts button toggles its sibling list. app.js marks every element that was
+   * given a listener during the paint, and its parent, as a unit, so a handler
+   * always arrives together with the data and the nodes it touches. Every
+   * handler in the client was audited for that, and none reaches further than
+   * its parent. One that does needs its own UNIT mark.
+   *
+   * Form controls are replaced rather than patched as well, because their
+   * current value is a property and not an attribute, so an in-place patch
+   * would leave the old value showing under the new attribute. For the same
+   * reason isEqualNode alone cannot say two subtrees match: it compares the
+   * value ATTRIBUTE, so plan.js's share-link field, whose link is set as a
+   * property, compared equal to itself after the link changed and kept the old
+   * one. sameNode() compares the values too.
+   *
+   * A live region is never patched into either. Changing the text of a region
+   * that is already on the page is exactly what a screen reader announces, so
+   * patching near.js's "your location is N minutes old" warning in place would
+   * read it aloud every minute. Kept whole or replaced whole, it is announced
+   * as it always was.
+   */
+  var UNIT = '__cmbUnit';
+  var CONTROLS = { INPUT: true, SELECT: true, TEXTAREA: true };
+
+  function liveRegion(n) {
+    var role = n.getAttribute('role');
+    return n.hasAttribute('aria-live') || role === 'status' || role === 'alert' || role === 'log';
+  }
+
+  /*
+   * isEqualNode, plus the two things it cannot see: a control's current value,
+   * and whether each element carries a handler. Without the second, an old
+   * button with no handler would be kept in place of an identical new one that
+   * has one, and the control would go dead.
+   */
+  function sameNode(o, n) {
+    if (!o.isEqualNode(n)) return false;
+    if (o.nodeType !== 1) return true;
+    if (!!o[UNIT] !== !!n[UNIT] || (CONTROLS[o.nodeName] && o.value !== n.value)) return false;
+    var a = o.getElementsByTagName('*');
+    var b = n.getElementsByTagName('*');
+    for (var i = 0; i < a.length; i++) {
+      if (!!a[i][UNIT] !== !!b[i][UNIT]) return false;
+      if (CONTROLS[a[i].nodeName] && a[i].value !== b[i].value) return false;
+    }
+    return true;
+  }
+
+  function patchAttributes(live, next) {
+    var i, a;
+    for (i = live.attributes.length - 1; i >= 0; i--) {
+      a = live.attributes[i];
+      if (!next.hasAttributeNS(a.namespaceURI, a.localName)) live.removeAttributeNS(a.namespaceURI, a.localName);
+    }
+    for (i = 0; i < next.attributes.length; i++) {
+      a = next.attributes[i];
+      if (live.getAttributeNS(a.namespaceURI, a.localName) !== a.value) {
+        live.setAttributeNS(a.namespaceURI, a.name, a.value);
+      }
+    }
+  }
+
+  function patchable(o, n) {
+    return o.nodeType === 1 && n.nodeType === 1 &&
+      o.namespaceURI === n.namespaceURI && o.nodeName === n.nodeName &&
+      !o[UNIT] && !n[UNIT] && !CONTROLS[n.nodeName] && !liveRegion(n) && !liveRegion(o);
+  }
+
+  function keyOf(node) {
+    return node && node.nodeType === 1 ? node.getAttribute('data-key') : null;
+  }
+
+  function hasKeyAfter(nodes, from, key) {
+    for (var i = from; i < nodes.length; i++) if (keyOf(nodes[i]) === key) return true;
+    return false;
+  }
+
+  /*
+   * Brings `live`'s children into line with `next`'s. `next` is consumed:
+   * whatever is kept from it is moved into `live`.
+   *
+   * Children are matched by position, except around a child carrying data-key.
+   * A banner appearing at the top of <main> shifts every band below it one
+   * place, and matching by position alone then compared each band with the one
+   * above it and replaced the whole board. So when the node in this position is
+   * keyed and turns up later in the new paint, the new node is inserted in front
+   * of it; and when the new node is keyed and the node in this position is not
+   * it but turns up later in the page, the node in this position is dropped. A
+   * keyed node is never moved, since moving an element takes focus off it.
+   */
+  function patch(live, next) {
+    var want = Array.prototype.slice.call(next.childNodes);
+    for (var i = 0; i < want.length; i++) {
+      var n = want[i];
+      var o = live.childNodes[i];
+      if (!o) { live.appendChild(n); continue; }
+      var ok = keyOf(o);
+      var nk = keyOf(n);
+      if (ok !== nk) {
+        if (ok && hasKeyAfter(want, i + 1, ok)) { live.insertBefore(n, o); continue; }
+        if (nk && hasKeyAfter(live.childNodes, i + 1, nk)) { live.removeChild(o); i--; continue; }
+      }
+      if (sameNode(o, n)) continue;
+      if (o.nodeType === n.nodeType && (o.nodeType === 3 || o.nodeType === 8)) {
+        o.nodeValue = n.nodeValue;
+        continue;
+      }
+      if (patchable(o, n)) {
+        patchAttributes(o, n);
+        patch(o, n);
+        continue;
+      }
+      live.replaceChild(n, o);
+    }
+    while (live.childNodes.length > want.length) live.removeChild(live.lastChild);
+    return live;
+  }
+
+  /*
    * A stated absence: headline plus the next fact the user actually wants.
    * `next` is optional but its absence is itself reported, never hidden.
    */
@@ -416,6 +553,8 @@
   global.CMB.states = {
     el: el,
     clear: clear,
+    patch: patch,
+    UNIT: UNIT,
     notice: notice,
     retryButton: retryButton,
     skeletonRows: skeletonRows,

@@ -52,6 +52,9 @@
   var TICK_MIN_PX = 56;       /* below this two clock labels touch at 9px */
   var TICK_STEPS = [300, 600, 900, 1800, 3600];
   var expanded = Object.create(null);   /* "dir:segIndex" -> true */
+  /* Which route's alerts list is open, so the minute's repaint does not shut it
+     and switching routes does not open the next one's. */
+  var alertsOpenFor = null;
   var clipSeq = 0;            /* clipPath ids must be unique across both tracks */
 
   function svgEl(name, attrs) {
@@ -536,6 +539,9 @@
         btn.style.top = r.y + 'px';
         btn.style.left = (LABEL_W - 4) + 'px';
         btn.setAttribute('aria-expanded', r.open ? 'true' : 'false');
+        /* So focus comes back to this segment after the repaint its own click
+           asks for. See refocus() in app.js. */
+        btn.setAttribute('data-key', 'seg:' + dir + ':' + r.index);
         btn.setAttribute('aria-label',
           (r.open ? 'Hide the ' : 'Show the ') + r.count + ' stops between ' +
           r.tp.stop_name + ' and ' + r.next.stop_name);
@@ -591,14 +597,18 @@
     return { node: host, drawn: placed, buses: buses.length, tps: tps.length, diagonals: diagonals };
   }
 
-  function alertsDisclosure(alerts) {
+  function alertsDisclosure(alerts, routeId) {
+    var alertsOpen = routeId !== undefined && alertsOpenFor === routeId;
     if (!alerts || !alerts.length) return null;
     var wrap = el('div', 'alerts');
+    /* Which route, in the DOM as well as in the closure, so another route's
+       identical list is never kept with this route's handler. */
+    wrap.setAttribute('data-route', String(routeId));
     var btn = el('button', 'alerts__toggle');
     btn.type = 'button';
-    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-expanded', alertsOpen ? 'true' : 'false');
     var body = el('ul', 'alerts__list');
-    body.hidden = true;
+    body.hidden = !alertsOpen;
     body.id = 'alerts-list';
     btn.setAttribute('aria-controls', 'alerts-list');
     btn.appendChild(el('span', 'alerts__glyph', '!'));
@@ -608,6 +618,7 @@
       var open = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', open ? 'false' : 'true');
       body.hidden = open;
+      alertsOpenFor = open ? null : routeId;
     });
     alerts.forEach(function (a) {
       var li = el('li', 'alert alert--' + (a.severity || 'low'));
@@ -712,7 +723,7 @@
       'lateness and its next stop are listed in the Vehicles panel above, which carries the same facts.';
     host.appendChild(sr);
 
-    var al = alertsDisclosure(data.alerts);
+    var al = alertsDisclosure(data.alerts, data.route && data.route.id);
     if (al) host.appendChild(al);
   }
 
