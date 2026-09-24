@@ -400,6 +400,20 @@ describe('everything in the next ninety minutes, never fewer than two', () => {
     expect(rows.find((r) => r.trip.id === TRIP_0752).canceled).toBe(true)
   })
 
+  t('does not count an overdue run toward the two, inside the window either', (sb) => {
+    /*
+     * At 07:45 with nothing reporting, the 07:32 and 07:42 are overdue: due, and
+     * nothing on their blocks. They ride along, so the two being asked for are
+     * the 07:52 and the 08:02, and the 08:02 is shown although it is past a
+     * ten-minute edge. Counted as live, the overdue pair would fill the floor
+     * and the 08:02 would be cut.
+     */
+    const rows = sb.upcoming(DEP, routeWith({}), '6293', 1, at(7, 45), 2, 10 * 60)
+    const overdue = rows.filter((r) => (r.coverage || {}).state === 'overdue')
+    expect(overdue.length).toBeGreaterThan(0)
+    expect(rows.filter((r) => !r.canceled && (r.coverage || {}).state !== 'overdue')).toHaveLength(2)
+  })
+
   t('leaves a caller that asks for no horizon at its count', (sb) => {
     /* plan.js sizes its cards by count and passes none. */
     expect(sb.upcoming(DEP, null, '6293', 1, at(7, 0), 2)).toHaveLength(2)
