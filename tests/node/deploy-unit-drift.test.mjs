@@ -960,7 +960,7 @@ describe('install.sh --dry-run', () => {
 	 * from the environment rather than hardcoded, so it does not assume this machine's
 	 * layout.
 	 */
-	function runInstall(extraArgs = [], { server = null, isolate = false } = {}) {
+	function runInstall(extraArgs = [], { server = null, isolate = false, env = {} } = {}) {
 		const bin = path.join(work, 'ibin')
 		mkdirSync(bin, { recursive: true })
 		writeFileSync(path.join(bin, 'id'), '#!/bin/sh\necho 0\n', { mode: 0o755 })
@@ -984,6 +984,7 @@ describe('install.sh --dry-run', () => {
 		}
 		const script = `
 export PATH="${ bin }${ isolate ? '' : ':$PATH' }"
+${ Object.entries(env).map(([ k, v ]) => `export ${ k }='${ v }'`).join('\n') }
 bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
   ${ extraArgs.map((a) => `'${ a }'`).join(' ') }
 `
@@ -1340,6 +1341,65 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	 * hostname were ever hardcoded into the committed file, the sed above would be a no-op
 	 * and every box would install somebody else's domain.
 	 */
+	/*
+	 * Nothing to do is one line. update.sh sends an operator here to fix a UNIT drift,
+	 * and every such run used to print the whole vhost procedure -- about sixty lines
+	 * of it -- for a vhost that had not changed.
+	 */
+	describe('when the vhost has not changed since the last install', () => {
+		const sites = () => path.join(work, 'sites')
+		const installed = () => {
+			mkdirSync(sites(), { recursive: true })
+			writeFileSync(path.join(sites(), 'capmetro'), 'server { }\n')
+		}
+		const run = (extra = []) => runInstall([ '--domain', 'bus.dillo.dev', ...extra ], {
+			server: 'nginx',
+			env: { CONF_DIR: path.join(work, 'conf'), CM_NGINX_SITES: sites() },
+		})
+
+		it('says so in one line and prints no install steps', () => {
+			installed()
+			writeVhostStamp()
+			const r = run()
+			expect(r.code).toBe(0)
+			expect(r.out).toMatch(/nginx vhost unchanged since the last install here; nothing to do/)
+			expect(r.out).toMatch(/--show-vhost/)
+			expect(r.out, 'the install steps were printed anyway').not.toMatch(/diff -u/)
+			expect(r.out).not.toMatch(/certbot install/)
+			expect(r.out, 'the summary still says to install the vhost').not.toMatch(/install the vhost printed above/)
+			expect(r.out, 'the summary lost the health check').toMatch(/check the BOARD/)
+		})
+
+		it('prints the steps anyway with --show-vhost', () => {
+			installed()
+			writeVhostStamp()
+			const r = run([ '--show-vhost' ])
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(/nothing to do/)
+		})
+
+		it('prints the steps when the record matches but nothing is installed', () => {
+			/* The record is written whether or not the operator ran the commands. */
+			writeVhostStamp()
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+		})
+
+		it('prints the steps when the committed vhost has changed', () => {
+			installed()
+			writeVhostStamp()
+			editVhost('nginx-capmetro.conf')
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+		})
+
+		it('prints the steps when there is no record at all', () => {
+			installed()
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+		})
+	})
+
 	it('and the committed vhosts still carry the placeholders the sed replaces', () => {
 		for (const v of ['nginx-capmetro.conf', 'apache-capmetro.conf']) {
 			const conf = readFileSync(path.join(REPO, 'deploy', v), 'utf8')
