@@ -114,14 +114,40 @@
       !o[UNIT] && !n[UNIT] && !CONTROLS[n.nodeName] && !liveRegion(n) && !liveRegion(o);
   }
 
-  /* Brings `live`'s children into line with `next`'s. `next` is consumed:
-     whatever is kept from it is moved into `live`. */
+  function keyOf(node) {
+    return node && node.nodeType === 1 ? node.getAttribute('data-key') : null;
+  }
+
+  function hasKeyAfter(nodes, from, key) {
+    for (var i = from; i < nodes.length; i++) if (keyOf(nodes[i]) === key) return true;
+    return false;
+  }
+
+  /*
+   * Brings `live`'s children into line with `next`'s. `next` is consumed:
+   * whatever is kept from it is moved into `live`.
+   *
+   * Children are matched by position, except around a child carrying data-key.
+   * A banner appearing at the top of <main> shifts every band below it one
+   * place, and matching by position alone then compared each band with the one
+   * above it and replaced the whole board. So when the node in this position is
+   * keyed and turns up later in the new paint, the new node is inserted in front
+   * of it; and when the new node is keyed and the node in this position is not
+   * it but turns up later in the page, the node in this position is dropped. A
+   * keyed node is never moved, since moving an element takes focus off it.
+   */
   function patch(live, next) {
     var want = Array.prototype.slice.call(next.childNodes);
     for (var i = 0; i < want.length; i++) {
       var n = want[i];
       var o = live.childNodes[i];
       if (!o) { live.appendChild(n); continue; }
+      var ok = keyOf(o);
+      var nk = keyOf(n);
+      if (ok !== nk) {
+        if (ok && hasKeyAfter(want, i + 1, ok)) { live.insertBefore(n, o); continue; }
+        if (nk && hasKeyAfter(live.childNodes, i + 1, nk)) { live.removeChild(o); i--; continue; }
+      }
       if (sameNode(o, n)) continue;
       if (o.nodeType === n.nodeType && (o.nodeType === 3 || o.nodeType === 8)) {
         o.nodeValue = n.nodeValue;

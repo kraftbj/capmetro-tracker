@@ -958,7 +958,10 @@ variation on it.
   keep the old full rebuild, because their handlers close over a state snapshot the
   DOM does not show. Anything that must survive a repaint (which rows are open,
   whether the alerts list is) lives in module state in `rows.js` and `ladder.js`,
-  never only in the DOM.
+  never only in the DOM. Children are matched by position, except that a child with
+  `data-key` is never moved: a banner appearing or going above the keyed bands is
+  inserted or dropped around them, and a focused control with a key (a vehicle row,
+  a ladder segment) gets focus back wherever it now sits.
 
 ---
 

@@ -150,6 +150,120 @@ test.describe('focus, when the control holding it is rebuilt', () => {
   })
 })
 
+/*
+ * A route payload the test can rewrite between ticks. `edit` gets the parsed
+ * body and changes it in place; set it back to null for the untouched fixture.
+ */
+async function steerRoute(page) {
+  const ctl = { edit: null }
+  await page.route('**/fresh/api/route/4.json', async (route) => {
+    const res = await route.fetch()
+    const body = await res.json()
+    if (ctl.edit) ctl.edit(body)
+    await route.fulfill({ response: res, json: body })
+  })
+  return ctl
+}
+
+test.describe('a banner coming and going above the board', () => {
+  /*
+   * Matching by position alone, a banner at the top of <main> shifted every band
+   * below it one place and the whole board was replaced, focus and all. The
+   * bands are keyed now, so the banner is inserted and dropped around them.
+   */
+  test('leaves the bands and the focus where they were', async ({ page }) => {
+    const ctl = await steerRoute(page)
+    await page.goto(BOARD)
+    await expect(page.locator('.band--nextbus .band__sub')).toBeVisible()
+    await expect(page.locator('#board > .banner')).toHaveCount(0)
+    await page.locator('.band--nextbus .linkbtn').focus()
+    await page.evaluate(() => { window.__band = document.querySelector('.band--nextbus') })
+
+    ctl.edit = (b) => { b.staleness = { ...b.staleness, level: 'aging', oldest_feed_age_s: 150 } }
+    await tick(page)
+    await expect(page.locator('#board > .banner')).toHaveCount(1)
+    expect(await page.evaluate(() => window.__band === document.querySelector('.band--nextbus'))).toBe(true)
+    await expect(page.locator('.band--nextbus .linkbtn')).toBeFocused()
+
+    ctl.edit = null
+    await tick(page)
+    await expect(page.locator('#board > .banner')).toHaveCount(0)
+    expect(await page.evaluate(() => window.__band === document.querySelector('.band--nextbus'))).toBe(true)
+    await expect(page.locator('.band--nextbus .linkbtn')).toBeFocused()
+  })
+})
+
+test.describe('what the board remembers across a refresh, and for how long', () => {
+  test('keeps the alerts list open for its own route only', async ({ page }) => {
+    const ctl = await steerRoute(page)
+    await page.goto(BOARD)
+    await page.locator('.alerts__toggle').click()
+    await expect(page.locator('.alerts__list')).toBeVisible()
+
+    /* The same alerts, reported for another route. */
+    ctl.edit = (b) => { b.route = { ...b.route, id: '7' } }
+    await tick(page)
+    await expect(page.locator('.alerts__list')).toBeHidden()
+
+    ctl.edit = null
+    await tick(page)
+    await expect(page.locator('.alerts__list')).toBeVisible()
+  })
+
+  test('keeps a row open through a dropped position, and forgets it after five minutes gone', async ({ page }) => {
+    const ctl = await steerRoute(page)
+    await page.goto(BOARD)
+    const first = page.locator('.vrow__main').first()
+    const key = await first.getAttribute('data-key')
+    const id = key.replace(/^vrow:/, '')
+    await first.click()
+    const row = page.locator(`.vrow__main[data-key="${key}"]`)
+    await expect(row).toHaveAttribute('aria-expanded', 'true')
+
+    const gone = (after) => (b) => {
+      b.generated_at += after
+      b.vehicles = b.vehicles.filter((v) => v.vehicle_id !== id)
+    }
+    const back = (after) => (b) => { b.generated_at += after }
+
+    /* One minute missing, then back: still open. */
+    ctl.edit = gone(60)
+    await tick(page)
+    await expect(row).toHaveCount(0)
+    ctl.edit = back(120)
+    await tick(page)
+    await expect(row).toHaveAttribute('aria-expanded', 'true')
+
+    /* Gone for more than five minutes, then back: closed. */
+    ctl.edit = gone(180)
+    await tick(page)
+    ctl.edit = gone(600)
+    await tick(page)
+    ctl.edit = back(660)
+    await tick(page)
+    await expect(row).toHaveAttribute('aria-expanded', 'false')
+  })
+})
+
+test.describe('an editor', () => {
+  /*
+   * An editor's handlers close over a state snapshot its buttons do not show,
+   * so a button kept because it looks the same could save the wrong trip. Its
+   * paints rebuild, and only the board's are patched.
+   */
+  test('is rebuilt on each paint rather than patched', async ({ page }) => {
+    await page.goto(BOARD)
+    await expect(page.locator('#board')).toBeVisible()
+    await page.evaluate(() => window.CMB.app.selectView('saved-edit'))
+    await page.waitForTimeout(200)
+    await page.evaluate(() => { window.__first = document.querySelector('#board').firstElementChild })
+    expect(await page.evaluate(() => !!window.__first)).toBe(true)
+    await page.evaluate(() => window.dispatchEvent(new Event('resize')))
+    await page.waitForTimeout(400)
+    expect(await page.evaluate(() => window.__first === document.querySelector('#board').firstElementChild)).toBe(false)
+  })
+})
+
 test.describe('a paint that throws', () => {
   test('leaves no staging copy behind, and the next paint still lands', async ({ page }) => {
     await page.goto(BOARD)

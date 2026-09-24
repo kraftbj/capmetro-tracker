@@ -1978,6 +1978,7 @@
       } finally {
         dom.main = live;
       }
+      keyBlocks(stage);
       markUnits(stage, marked);
       var focused = focusMark(live, document.activeElement);
       S.patch(live, stage);
@@ -2007,6 +2008,29 @@
       proto.addEventListener = listen;
     }
     return marked;
+  }
+
+  /*
+   * Keys the top-level blocks by their class, so a banner coming or going above
+   * them is inserted or dropped rather than shifting every band out of line with
+   * the last paint. See S.patch. A class that appears twice is left unkeyed,
+   * because a key has to name one block.
+   */
+  var BLOCK = /(^|\s)(band|foot|nearhost)(\s|$)/;
+
+  function keyBlocks(root) {
+    var seen = Object.create(null);
+    var blocks = Array.prototype.filter.call(root.children, function (n) {
+      return BLOCK.test(n.getAttribute('class') || '');
+    });
+    blocks.forEach(function (n) {
+      var k = 'block:' + n.getAttribute('class');
+      seen[k] = (seen[k] || 0) + 1;
+    });
+    blocks.forEach(function (n) {
+      var k = 'block:' + n.getAttribute('class');
+      if (seen[k] === 1) n.setAttribute('data-key', k);
+    });
   }
 
   /* Each element given a handler, and its parent, becomes a unit. See S.patch. */
