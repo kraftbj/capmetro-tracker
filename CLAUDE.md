@@ -152,10 +152,12 @@ Expectations:
   stdout and therefore to the journal. A box with no record — every box installed
   before this — stays silent, except on the one deploy whose own pulled range
   changed a vhost, which is the case that would otherwise land unannounced.
-  `install.sh` prints one line for the vhost when it is unchanged since the last
-  install and actually present in `/etc`, and a short checklist otherwise;
-  `--show-vhost` forces the checklist. The reasons behind each step live in the
-  script's comments, not its output.
+  `install.sh` prints one line for the vhost when the installed, enabled file already
+  carries every line of the committed vhost rendered with this run's `--domain` and
+  `--webroot` (certbot's additions and its moved `listen` lines aside), and a short
+  checklist otherwise; `--show-vhost` forces the checklist. It decides from `/etc`,
+  never from the drift record, which is written whether or not the steps were run.
+  The reasons behind each step live in the script's comments, not its output.
   **Pass `--domain` when you run `install.sh` for a vhost.** Without it the script
   now refuses to print the install commands at all, and that refusal is the fix for
   an outage on 2026-09-21: it used to substitute the literal string `your.domain`

@@ -1341,71 +1341,138 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 	 * hostname were ever hardcoded into the committed file, the sed above would be a no-op
 	 * and every box would install somebody else's domain.
 	 */
-	/*
-	 * Nothing to do is one line. update.sh sends an operator here to fix a UNIT drift,
-	 * and every such run used to print the whole vhost procedure -- about sixty lines
-	 * of it -- for a vhost that had not changed.
-	 */
-	describe('when the vhost has not changed since the last install', () => {
-		const sites = () => path.join(work, 'sites')
-		const installed = () => {
-			mkdirSync(sites(), { recursive: true })
-			writeFileSync(path.join(sites(), 'capmetro'), 'server { }\n')
-		}
-		const run = (extra = []) => runInstall([ '--domain', 'bus.dillo.dev', ...extra ], {
-			server: 'nginx',
-			env: { CONF_DIR: path.join(work, 'conf'), CM_NGINX_SITES: sites() },
-		})
-
-		it('says so in one line and prints no install steps', () => {
-			installed()
-			writeVhostStamp()
-			const r = run()
-			expect(r.code).toBe(0)
-			expect(r.out).toMatch(/nginx vhost unchanged since the last install here; nothing to do/)
-			expect(r.out).toMatch(/--show-vhost/)
-			expect(r.out, 'the install steps were printed anyway').not.toMatch(/diff -u/)
-			expect(r.out).not.toMatch(/certbot install/)
-			expect(r.out, 'the summary still says to install the vhost').not.toMatch(/install the vhost printed above/)
-			expect(r.out, 'the summary lost the health check').toMatch(/check the BOARD/)
-		})
-
-		it('prints the steps anyway with --show-vhost', () => {
-			installed()
-			writeVhostStamp()
-			const r = run([ '--show-vhost' ])
-			expect(r.out).toMatch(/diff -u/)
-			expect(r.out).not.toMatch(/nothing to do/)
-		})
-
-		it('prints the steps when the record matches but nothing is installed', () => {
-			/* The record is written whether or not the operator ran the commands. */
-			writeVhostStamp()
-			const r = run()
-			expect(r.out).toMatch(/diff -u/)
-		})
-
-		it('prints the steps when the committed vhost has changed', () => {
-			installed()
-			writeVhostStamp()
-			editVhost('nginx-capmetro.conf')
-			const r = run()
-			expect(r.out).toMatch(/diff -u/)
-		})
-
-		it('prints the steps when there is no record at all', () => {
-			installed()
-			const r = run()
-			expect(r.out).toMatch(/diff -u/)
-		})
-	})
-
 	it('and the committed vhosts still carry the placeholders the sed replaces', () => {
 		for (const v of ['nginx-capmetro.conf', 'apache-capmetro.conf']) {
 			const conf = readFileSync(path.join(REPO, 'deploy', v), 'utf8')
 			expect(conf, `${ v } no longer has @DOMAIN@`).toMatch(/@DOMAIN@/)
 			expect(conf, `${ v } no longer has @WEBROOT@`).toMatch(/@WEBROOT@/)
 		}
+	})
+
+	/*
+	 * Nothing to do is one line. update.sh sends an operator here to fix a UNIT drift,
+	 * and every such run used to print the whole vhost procedure -- about sixty lines
+	 * of it -- for a vhost that had not changed.
+	 *
+	 * "Nothing to do" is decided by what is installed: the committed vhost rendered
+	 * with this run's --domain and --webroot, every line present in the installed
+	 * file, and the site enabled. Each case below is one way that can be false.
+	 */
+	describe.each([
+		[ 'nginx', 'nginx', 'nginx-capmetro.conf', 'capmetro', 'CM_NGINX_DIR' ],
+		[ 'apache', 'apache2ctl', 'apache-capmetro.conf', 'capmetro.conf', 'CM_APACHE_DIR' ],
+	])('whether the %s vhost needs installing', (name, server, conf, file, dirVar) => {
+		const dir = () => path.join(work, name)
+		const TEMPLATE = 'server {\n    listen 80;\n    server_name @DOMAIN@;\n    root @WEBROOT@;\n}\n'
+		const render = (domain = 'bus.dillo.dev') =>
+			TEMPLATE.replace('@DOMAIN@', domain).replace('@WEBROOT@', path.join(work, 'webroot'))
+		const install = (body = render(), { enabled = true } = {}) => {
+			mkdirSync(path.join(dir(), 'sites-available'), { recursive: true })
+			mkdirSync(path.join(dir(), 'sites-enabled'), { recursive: true })
+			writeFileSync(path.join(dir(), 'sites-available', file), body)
+			if (enabled) writeFileSync(path.join(dir(), 'sites-enabled', file), body)
+		}
+		const run = (extra = [], domain = 'bus.dillo.dev') => {
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
+			return runInstall([ '--domain', domain, ...extra ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+		}
+		const quiet = new RegExp(`${ name } vhost installed, enabled and matching this checkout; nothing to do`)
+
+		it('says so in one line, and the summary drops to checking the board', () => {
+			install()
+			const r = run()
+			expect(r.code).toBe(0)
+			expect(r.out).toMatch(quiet)
+			expect(r.out).toMatch(/--show-vhost/)
+			expect(r.out, 'the install steps were printed anyway').not.toMatch(/diff -u/)
+			expect(r.out).not.toMatch(/certbot install/)
+			expect(r.out).toMatch(/1\. check the BOARD/)
+			expect(r.out, 'the summary still lists the install steps').not.toMatch(/^\s+3\. /m)
+		})
+
+		it('recognizes the real committed vhost once it is installed', () => {
+			/* The fixture above is five lines; the real file has multi-line directives. */
+			const real = readFileSync(path.join(REPO, 'deploy', conf), 'utf8')
+			writeFileSync(path.join(work, 'src/deploy', conf), real)
+			install(real.replaceAll('@DOMAIN@', 'bus.dillo.dev').replaceAll('@WEBROOT@', path.join(work, 'webroot')))
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.out).toMatch(quiet)
+		})
+
+		it('still counts it current once certbot has edited the installed copy', () => {
+			/*
+			 * certbot moves `listen 80` into a redirect block of its own, and writes it
+			 * back in its own spacing (`listen 80 ;`), so the committed line is not in
+			 * the file at all. The rest of the block is left as it was.
+			 */
+			install(render()
+				.replace('    listen 80;\n', '    listen 443 ssl; # managed by Certbot\n')
+				.concat('server {\n    listen 80 ;\n    return 301 https://$host$request_uri; # managed by Certbot\n}\n'))
+			expect(run().out).toMatch(quiet)
+		})
+
+		it.each([
+			[ 'with --show-vhost', () => install(), [ '--show-vhost' ] ],
+			[ 'when nothing is installed', () => {}, [] ],
+			[ 'when the installed file is empty', () => install(''), [] ],
+			[ 'when the site is not enabled', () => install(render(), { enabled: false }), [] ],
+			[ 'when it names another host', () => install(render('your.domain')), [] ],
+			[ 'when it still carries a placeholder', () => install(TEMPLATE), [] ],
+		])('prints the steps %s', (_why, setup, extra) => {
+			setup()
+			const r = run(extra)
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('prints the steps when the committed template has nothing to compare', () => {
+			/* A template that renders to nothing must not read as "every line present". */
+			install()
+			writeFileSync(path.join(work, 'src/deploy', conf), '# only a comment\n')
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.out).toMatch(/diff -u/)
+		})
+
+		it('prints the steps when this run is for a different domain', () => {
+			install()
+			expect(run([], 'buses.dillo.dev').out).toMatch(/diff -u/)
+		})
+
+		it('prints the steps when the checkout moved on and the change was never applied', () => {
+			/*
+			 * The case a drift record cannot see: install.sh printed the new vhost,
+			 * stamped it, and the operator never ran the steps.
+			 */
+			install()
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE.replace('}\n', '    index index.html;\n}\n'))
+			const again = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.code).toBe(0)
+			expect(again.out).toMatch(/diff -u/)
+		})
+	})
+
+	it('says when a test override is pointing it away from /etc', () => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+			server: 'nginx',
+			env: { CM_NGINX_DIR: path.join(work, 'nginx') },
+		})
+		expect(r.out).toMatch(/CM_NGINX_DIR is set to .* \(a test override\)/)
 	})
 
 	/*

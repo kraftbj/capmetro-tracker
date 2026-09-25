@@ -24,6 +24,15 @@ SRC_DIR="/srv/capmetro/src"
 WEBROOT="/var/www/capmetro"
 STATE_DIR="/var/lib/capmetro"
 CONF_DIR="${CONF_DIR:-/etc/capmetro}"
+# CONF_DIR, CM_NGINX_DIR and CM_APACHE_DIR are overridable so the suite can point this at
+# a scratch tree. Said out loud when set, as units.sh does for its own overrides: `sudo -E`
+# or an exported variable in a root shell would otherwise send the config and the drift
+# records somewhere other than /etc without a word.
+for _v in CONF_DIR CM_NGINX_DIR CM_APACHE_DIR; do
+  if [ -n "${!_v:-}" ] && { [ "$_v" != CONF_DIR ] || [ "$CONF_DIR" != /etc/capmetro ]; }; then
+    printf '!! %s is set to %s (a test override)\n' "$_v" "${!_v}" >&2
+  fi
+done
 RUN_USER="capmetro"
 INTERVAL_S=60
 
@@ -517,14 +526,18 @@ elif command -v nginx >/dev/null 2>&1 || command -v apache2ctl >/dev/null 2>&1 \
     CERTBOT_PLUGIN=--nginx
     VHOST_SERVER=nginx
     VHOST_CONF=nginx-capmetro.conf
-    VHOST_AT="${CM_NGINX_SITES:-/etc/nginx/sites-available}/capmetro"
-    VHOST_ENABLE="sudo ln -sf $VHOST_AT /etc/nginx/sites-enabled/capmetro"
+    VHOST_DIR="${CM_NGINX_DIR:-/etc/nginx}"
+    VHOST_AT="$VHOST_DIR/sites-available/capmetro"
+    VHOST_ON="$VHOST_DIR/sites-enabled/capmetro"
+    VHOST_ENABLE="sudo ln -sf $VHOST_AT $VHOST_ON"
     VHOST_RELOAD="sudo nginx -t && sudo systemctl reload nginx"
   else
     CERTBOT_PLUGIN=--apache
     VHOST_SERVER=apache
     VHOST_CONF=apache-capmetro.conf
-    VHOST_AT="${CM_APACHE_SITES:-/etc/apache2/sites-available}/capmetro.conf"
+    VHOST_DIR="${CM_APACHE_DIR:-/etc/apache2}"
+    VHOST_AT="$VHOST_DIR/sites-available/capmetro.conf"
+    VHOST_ON="$VHOST_DIR/sites-enabled/capmetro.conf"
     VHOST_ENABLE="sudo a2enmod headers expires && sudo a2ensite capmetro"
     VHOST_RELOAD="sudo apache2ctl configtest && sudo systemctl reload apache2"
   fi
@@ -534,32 +547,48 @@ elif command -v nginx >/dev/null 2>&1 || command -v apache2ctl >/dev/null 2>&1 \
   # NOTHING TO DO IS ONE LINE. This section used to print its full install steps, and
   # a page of reasons with them, on every run -- including every run update.sh sends
   # an operator here for, to fix a UNIT drift that has nothing to do with the vhost.
-  # So it asks the question update.sh asks: has the committed vhost moved since the
-  # last install.sh on this box? If not, and the vhost is actually installed, there
-  # is nothing to do and it says so in one line.
   #
-  # Both halves, because the record alone is not enough. It fingerprints the COMMITTED
-  # vhosts as of the last run, written whether or not the operator then installed
-  # them, so a box whose operator never ran the printed commands has a record that
-  # matches and no vhost in /etc. The file test catches that. It cannot catch a vhost
-  # installed with the wrong server_name -- the 2026-09-21 outage -- which is why the
-  # one line points at --show-vhost and at the health check rather than claiming the
-  # board is fine.
+  # "Nothing to do" is decided by what is INSTALLED, never by the drift record. The
+  # record fingerprints the committed vhosts as of the last install.sh, and it is
+  # written whether or not the operator then ran the printed steps -- so a record
+  # that matches says nothing about /etc, and trusting it would turn one skipped
+  # checklist into "nothing to do" on every run after. Instead the committed vhost is
+  # rendered with THIS run's --domain and --webroot, and every line of it must be in
+  # the installed file, with the site enabled. That catches a vhost never installed,
+  # a 0-byte one, placeholders left in, a wrong server_name (the 2026-09-21 outage), a
+  # changed --domain or --webroot, and a committed change that was printed and never
+  # applied.
   #
-  # Anything short of a clean match prints the steps: no record, a record that does
-  # not match, a lib too old to answer, or no hasher.
+  # Lines certbot adds do not count against it: the check only asks that the
+  # committed lines are present, not that nothing else is. `listen` lines are skipped
+  # because certbot moves them -- it takes `listen 80` out of the server block into a
+  # redirect block of its own -- and comments are skipped because they carry no
+  # configuration. Whitespace is trimmed on both sides.
+  #
+  # Anything short of every line present prints the steps, and so does --show-vhost.
+  vhost_applied() {
+    [ -s "$VHOST_AT" ] && [ -e "$VHOST_ON" ] || return 1
+    local have want line checked=0
+    have=$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$VHOST_AT") || return 1
+    # Rendered into a variable and checked, not substituted into the loop's input: a
+    # failed substitution there feeds the loop nothing, and a loop over nothing finds
+    # nothing missing -- "nothing to do" from a template that could not be read.
+    want=$(sed -e "s/@DOMAIN@/$DOMAIN/g" -e "s#@WEBROOT@#$WEBROOT#g" \
+      -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$SRC_DIR/deploy/$VHOST_CONF") || return 1
+    while IFS= read -r line; do
+      case "$line" in ''|'#'*|listen*|Listen*) continue ;; esac
+      printf '%s\n' "$have" | grep -qxF -- "$line" || return 1
+      checked=$((checked + 1))
+    done <<VHOST_LINES
+$want
+VHOST_LINES
+    [ "$checked" -gt 0 ]
+  }
   VHOST_CURRENT=0
-  if [ "$SHOW_VHOST" = 0 ] && [ -f "$VHOST_AT" ] \
-     && command -v cm_vhost_drift >/dev/null 2>&1 \
-     && command -v cm_vhost_stamp_path >/dev/null 2>&1; then
-    VHOST_RC=0
-    cm_vhost_drift "$SRC_DIR/deploy" "$(cm_vhost_stamp_path "$CONF_DIR")" >/dev/null 2>&1 \
-      || VHOST_RC=$?
-    [ "$VHOST_RC" = "$CM_DRIFT_SAME" ] && VHOST_CURRENT=1
-  fi
+  if [ "$SHOW_VHOST" = 0 ] && vhost_applied; then VHOST_CURRENT=1; fi
 
   if [ "$VHOST_CURRENT" = 1 ]; then
-    printf '   %s vhost unchanged since the last install here; nothing to do.\n' "$VHOST_SERVER"
+    printf '   %s vhost installed, enabled and matching this checkout; nothing to do.\n' "$VHOST_SERVER"
     printf '   (Board not answering? --show-vhost prints the install steps.)\n'
   else
     #
@@ -591,7 +620,7 @@ elif command -v nginx >/dev/null 2>&1 || command -v apache2ctl >/dev/null 2>&1 \
     #    through every failure above.
     #
     cat <<EOF
-   $VHOST_SERVER vhost to install (new here, or changed since the last install):
+   $VHOST_SERVER vhost to install (not installed here, or not matching this checkout):
    1. Render it and read the diff. certbot edited the installed copy, so do not copy blind:
      sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
        $SRC_DIR/deploy/$VHOST_CONF > /tmp/capmetro-vhost.new
@@ -604,7 +633,8 @@ elif command -v nginx >/dev/null 2>&1 || command -v apache2ctl >/dev/null 2>&1 \
      $VHOST_ENABLE
      $VHOST_RELOAD
    3. Put TLS back, using the certificate name certbot lists (often not the domain).
-      Skip this on a first install; an empty list means restore the .bak instead.
+      If the list is empty and this host has never had HTTPS, it is a first install:
+      skip this step. If it had HTTPS, an empty list means restore the .bak instead.
      sudo certbot certificates | grep -iE 'Certificate Name|Domains'
      sudo certbot install $CERTBOT_PLUGIN --cert-name <the name listed>
      $VHOST_RELOAD
