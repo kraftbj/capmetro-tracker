@@ -159,8 +159,9 @@ Expectations:
   because certbot rewrites them. Otherwise it prints a short checklist, and
   `--show-vhost` forces it. It decides from `/etc`, not from the drift record, which
   is written whether or not the steps were run; the record can only veto (a change
-  since the last install prints the steps, which is what catches a change that only
-  deletes a line). A matching vhost with no TLS keeps the certificate step, and an
+  to this server's vhost since the last install prints the steps, on the one run
+  after it -- that run restamps the record, as every printed run does -- which is
+  what catches a change that only deletes a line). A matching vhost with no TLS keeps the certificate step, and an
   apache box whose only stale file is certbot's HTTPS copy is told how to fix that
   file. It reads files, not the running server. The reasons behind each step live
   in the script's comments, not its output.

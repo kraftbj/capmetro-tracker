@@ -1459,7 +1459,7 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			expect(r.out).toMatch(quiet)
 			expect(r.out).toMatch(/It has no TLS yet/)
 			expect(r.out).toMatch(/1\. add TLS/)
-			expect(r.out).toMatch(new RegExp(`certbot install --${ name === 'nginx' ? 'nginx' : 'apache' } --cert-name`))
+			expect(r.out).toMatch(new RegExp(`certbot install --${ name === 'nginx' ? 'nginx' : 'apache' } --cert-name NAME`))
 		})
 
 		it('prints the steps when the drift record says the committed vhost changed', () => {
@@ -1476,6 +1476,15 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			const r = run()
 			expect(r.out).toMatch(/diff -u/)
 			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('ignores a change to the other server\'s vhost in the record', () => {
+			install()
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
+			writeVhostStamp()
+			const other = conf === 'nginx-capmetro.conf' ? 'apache-capmetro.conf' : 'nginx-capmetro.conf'
+			editVhost(other)
+			expect(run().out).toMatch(quiet)
 		})
 
 		it('takes the one-line path when the drift record agrees', () => {
@@ -1598,12 +1607,38 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			place('capmetro.conf', certbotted(render()))
 			place('capmetro-le-ssl.conf', sslCopy(render().replace('bus.dillo.dev', 'your.domain')))
 			const r = run()
-			expect(r.out).toMatch(/certbot's HTTPS copy does not/)
-			expect(r.out).toMatch(/sites-available\/capmetro-le-ssl\.conf/)
-			expect(r.out).toMatch(/a2dissite capmetro-le-ssl/)
-			expect(r.out, 'the port-80 steps would repeat forever').not.toMatch(/diff -u/)
-			/* The backup comes before the removal. */
-			expect(r.out.search(/cp -a .*capmetro-le-ssl\.conf/)).toBeLessThan(r.out.search(/sudo rm /))
+			const out = r.out
+			expect(out).toMatch(/certbot's HTTPS copy does not/)
+			expect(out).toMatch(/capmetro-le-ssl\.conf/)
+			expect(out, 'the port-80 steps would repeat forever').not.toMatch(/diff -u/)
+			/*
+			 * Pasted as a block, nothing destructive may run unless all of it can: the
+			 * name is looked up first, the chain is gated on NAME and stops on any
+			 * failure before the reload, and there is a way back. A `<placeholder>`
+			 * is a shell redirect that fails on its own line while the rm around it
+			 * runs anyway.
+			 */
+			expect(out, 'a pasteable <placeholder>').not.toMatch(/--cert-name </)
+			const lookup = out.search(/certbot certificates/)
+			const rm = out.search(/sudo rm -f /)
+			expect(lookup).toBeGreaterThan(-1)
+			expect(lookup, 'the name is looked up after the file is gone').toBeLessThan(rm)
+			expect(out.search(/sudo cp -a \$S \$B/), 'no backup before the removal').toBeLessThan(rm)
+			expect(out).toMatch(/\[ -n "\$NAME" \] && sudo cp -a/)
+			expect(out).toMatch(/--cert-name "\$NAME" && sudo apache2ctl configtest/)
+			expect(out, 'no way back if certbot fails').toMatch(/sudo cp -a \$B \$S/)
+			/* And the summary says the same thing, not the four-step list. */
+			expect(out).toMatch(/1\. bring the HTTPS copy printed above into line/)
+			expect(out).toMatch(/2\. check the BOARD/)
+			expect(out).not.toMatch(/install the vhost printed above/)
+		})
+
+		it('tells an apache box the HTTPS copy needs the same change when the steps print', () => {
+			place('capmetro.conf', certbotted(render().replace('bus.dillo.dev', 'your.domain')))
+			place('capmetro-le-ssl.conf', sslCopy(render()))
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).toMatch(/HTTPS is served from .*capmetro-le-ssl\.conf, which these steps do not touch/)
 		})
 	})
 
