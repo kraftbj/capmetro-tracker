@@ -1366,11 +1366,21 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		const TEMPLATE = 'server {\n    listen 80;\n    server_name @DOMAIN@;\n    root @WEBROOT@;\n}\n'
 		const render = (domain = 'bus.dillo.dev') =>
 			TEMPLATE.replace('@DOMAIN@', domain).replace('@WEBROOT@', path.join(work, 'webroot'))
-		const install = (body = render(), { enabled = true } = {}) => {
+		/*
+		 * `tls` puts certbot's evidence in place the way each server keeps it: an
+		 * ssl_certificate line in the nginx file, an HTTPS copy beside the apache one.
+		 */
+		const install = (body = render(), { enabled = true, tls = true } = {}) => {
 			mkdirSync(path.join(dir(), 'sites-available'), { recursive: true })
 			mkdirSync(path.join(dir(), 'sites-enabled'), { recursive: true })
+			if (tls && name === 'nginx') body = body.replace(/}\n$/, '    ssl_certificate /etc/letsencrypt/live/x/fullchain.pem; # managed by Certbot\n}\n')
 			writeFileSync(path.join(dir(), 'sites-available', file), body)
 			if (enabled) writeFileSync(path.join(dir(), 'sites-enabled', file), body)
+			if (tls && name === 'apache') {
+				for (const d of [ 'sites-available', 'sites-enabled' ]) {
+					writeFileSync(path.join(dir(), d, 'capmetro-le-ssl.conf'), body)
+				}
+			}
 		}
 		const run = (extra = [], domain = 'bus.dillo.dev') => {
 			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
@@ -1440,6 +1450,39 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
 			})
 			expect(r.out).toMatch(/diff -u/)
+		})
+
+		it('keeps the certificate step when the matching vhost has no TLS', () => {
+			/* A first install before certbot, or a copy that took the 443 block out. */
+			install(render(), { tls: false })
+			const r = run()
+			expect(r.out).toMatch(quiet)
+			expect(r.out).toMatch(/It has no TLS yet/)
+			expect(r.out).toMatch(/1\. add TLS/)
+			expect(r.out).toMatch(new RegExp(`certbot install --${ name === 'nginx' ? 'nginx' : 'apache' } --cert-name`))
+		})
+
+		it('prints the steps when the drift record says the committed vhost changed', () => {
+			/*
+			 * A change that only DELETES a line: the installed file still has it, which
+			 * is what certbot's own additions look like, so only the record can tell.
+			 * Taking the one-line path here would also restamp the record and silence
+			 * update.sh's notice.
+			 */
+			const before = TEMPLATE.replace('}\n', '    index index.html;\n}\n')
+			writeFileSync(path.join(work, 'src/deploy', conf), before)
+			writeVhostStamp()
+			install(before.replace('@DOMAIN@', 'bus.dillo.dev').replace('@WEBROOT@', path.join(work, 'webroot')))
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('takes the one-line path when the drift record agrees', () => {
+			install()
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
+			writeVhostStamp()
+			expect(run().out).toMatch(quiet)
 		})
 
 		it('prints the steps when this run is for a different webroot', () => {
@@ -1551,10 +1594,16 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			expect(run().out).toMatch(/apache vhost file enabled and matching this checkout/)
 		})
 
-		it('prints the steps when only the HTTPS copy is stale', () => {
+		it('names the HTTPS copy when only it is stale, since the steps cannot reach it', () => {
 			place('capmetro.conf', certbotted(render()))
 			place('capmetro-le-ssl.conf', sslCopy(render().replace('bus.dillo.dev', 'your.domain')))
-			expect(run().out).toMatch(/diff -u/)
+			const r = run()
+			expect(r.out).toMatch(/certbot's HTTPS copy does not/)
+			expect(r.out).toMatch(/sites-available\/capmetro-le-ssl\.conf/)
+			expect(r.out).toMatch(/a2dissite capmetro-le-ssl/)
+			expect(r.out, 'the port-80 steps would repeat forever').not.toMatch(/diff -u/)
+			/* The backup comes before the removal. */
+			expect(r.out.search(/cp -a .*capmetro-le-ssl\.conf/)).toBeLessThan(r.out.search(/sudo rm /))
 		})
 	})
 
