@@ -960,7 +960,7 @@ describe('install.sh --dry-run', () => {
 	 * from the environment rather than hardcoded, so it does not assume this machine's
 	 * layout.
 	 */
-	function runInstall(extraArgs = [], { server = null, isolate = false } = {}) {
+	function runInstall(extraArgs = [], { server = null, isolate = false, env = {} } = {}) {
 		const bin = path.join(work, 'ibin')
 		mkdirSync(bin, { recursive: true })
 		writeFileSync(path.join(bin, 'id'), '#!/bin/sh\necho 0\n', { mode: 0o755 })
@@ -984,6 +984,7 @@ describe('install.sh --dry-run', () => {
 		}
 		const script = `
 export PATH="${ bin }${ isolate ? '' : ':$PATH' }"
+${ Object.entries(env).map(([ k, v ]) => `export ${ k }='${ v }'`).join('\n') }
 bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot" \
   ${ extraArgs.map((a) => `'${ a }'`).join(' ') }
 `
@@ -1346,6 +1347,299 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			expect(conf, `${ v } no longer has @DOMAIN@`).toMatch(/@DOMAIN@/)
 			expect(conf, `${ v } no longer has @WEBROOT@`).toMatch(/@WEBROOT@/)
 		}
+	})
+
+	/*
+	 * Nothing to do is one line. update.sh sends an operator here to fix a UNIT drift,
+	 * and every such run used to print the whole vhost procedure -- about sixty lines
+	 * of it -- for a vhost that had not changed.
+	 *
+	 * "Nothing to do" is decided by what is installed: the committed vhost rendered
+	 * with this run's --domain and --webroot, every line present in the installed
+	 * file, and the site enabled. Each case below is one way that can be false.
+	 */
+	describe.each([
+		[ 'nginx', 'nginx', 'nginx-capmetro.conf', 'capmetro', 'CM_NGINX_DIR' ],
+		[ 'apache', 'apache2ctl', 'apache-capmetro.conf', 'capmetro.conf', 'CM_APACHE_DIR' ],
+	])('whether the %s vhost needs installing', (name, server, conf, file, dirVar) => {
+		const dir = () => path.join(work, name)
+		const TEMPLATE = 'server {\n    listen 80;\n    server_name @DOMAIN@;\n    root @WEBROOT@;\n}\n'
+		const render = (domain = 'bus.dillo.dev') =>
+			TEMPLATE.replace('@DOMAIN@', domain).replace('@WEBROOT@', path.join(work, 'webroot'))
+		/*
+		 * `tls` puts certbot's evidence in place the way each server keeps it: an
+		 * ssl_certificate line in the nginx file, an HTTPS copy beside the apache one.
+		 */
+		const install = (body = render(), { enabled = true, tls = true } = {}) => {
+			mkdirSync(path.join(dir(), 'sites-available'), { recursive: true })
+			mkdirSync(path.join(dir(), 'sites-enabled'), { recursive: true })
+			if (tls && name === 'nginx') body = body.replace(/}\n$/, '    ssl_certificate /etc/letsencrypt/live/x/fullchain.pem; # managed by Certbot\n}\n')
+			writeFileSync(path.join(dir(), 'sites-available', file), body)
+			if (enabled) writeFileSync(path.join(dir(), 'sites-enabled', file), body)
+			if (tls && name === 'apache') {
+				for (const d of [ 'sites-available', 'sites-enabled' ]) {
+					writeFileSync(path.join(dir(), d, 'capmetro-le-ssl.conf'), body)
+				}
+			}
+		}
+		const run = (extra = [], domain = 'bus.dillo.dev') => {
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
+			return runInstall([ '--domain', domain, ...extra ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+		}
+		const quiet = new RegExp(`${ name } vhost file enabled and matching this checkout; nothing to install`)
+
+		it('says so in one line, and the summary drops to checking the board', () => {
+			install()
+			const r = run()
+			expect(r.code).toBe(0)
+			expect(r.out).toMatch(quiet)
+			expect(r.out).toMatch(/--show-vhost/)
+			expect(r.out, 'the install steps were printed anyway').not.toMatch(/diff -u/)
+			expect(r.out).not.toMatch(/certbot install/)
+			expect(r.out).toMatch(/1\. check the BOARD/)
+			expect(r.out, 'the summary still lists the install steps').not.toMatch(/^\s+3\. /m)
+		})
+
+		it('recognizes the real committed vhost once it is installed', () => {
+			/* The fixture above is five lines; the real file has multi-line directives. */
+			const real = readFileSync(path.join(REPO, 'deploy', conf), 'utf8')
+			writeFileSync(path.join(work, 'src/deploy', conf), real)
+			install(real.replaceAll('@DOMAIN@', 'bus.dillo.dev').replaceAll('@WEBROOT@', path.join(work, 'webroot')))
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.out).toMatch(quiet)
+		})
+
+		it('still counts it current once certbot has edited the installed copy', () => {
+			/*
+			 * certbot moves `listen 80` into a redirect block of its own, and writes it
+			 * back in its own spacing (`listen 80 ;`), so the committed line is not in
+			 * the file at all. The rest of the block is left as it was.
+			 */
+			install(render()
+				.replace('    listen 80;\n', '    listen 443 ssl; # managed by Certbot\n')
+				.concat('server {\n    listen 80 ;\n    return 301 https://$host$request_uri; # managed by Certbot\n}\n'))
+			expect(run().out).toMatch(quiet)
+		})
+
+		it.each([
+			[ 'with --show-vhost', () => install(), [ '--show-vhost' ] ],
+			[ 'when nothing is installed', () => {}, [] ],
+			[ 'when the installed file is empty', () => install(''), [] ],
+			[ 'when the site is not enabled', () => install(render(), { enabled: false }), [] ],
+			[ 'when it names another host', () => install(render('your.domain')), [] ],
+			[ 'when it still carries a placeholder', () => install(TEMPLATE), [] ],
+		])('prints the steps %s', (_why, setup, extra) => {
+			setup()
+			const r = run(extra)
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('prints the steps when the committed template has nothing to compare', () => {
+			/* A template that renders to nothing must not read as "every line present". */
+			install()
+			writeFileSync(path.join(work, 'src/deploy', conf), '# only a comment\n')
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.out).toMatch(/diff -u/)
+		})
+
+		it('keeps the certificate step when the matching vhost has no TLS', () => {
+			/* A first install before certbot, or a copy that took the 443 block out. */
+			install(render(), { tls: false })
+			const r = run()
+			expect(r.out).toMatch(quiet)
+			expect(r.out).toMatch(/It has no TLS yet/)
+			expect(r.out).toMatch(/1\. add TLS/)
+			expect(r.out).toMatch(new RegExp(`certbot install --${ name === 'nginx' ? 'nginx' : 'apache' } --cert-name NAME`))
+		})
+
+		it('prints the steps when the drift record says the committed vhost changed', () => {
+			/*
+			 * A change that only DELETES a line: the installed file still has it, which
+			 * is what certbot's own additions look like, so only the record can tell.
+			 * Taking the one-line path here would also restamp the record and silence
+			 * update.sh's notice.
+			 */
+			const before = TEMPLATE.replace('}\n', '    index index.html;\n}\n')
+			writeFileSync(path.join(work, 'src/deploy', conf), before)
+			writeVhostStamp()
+			install(before.replace('@DOMAIN@', 'bus.dillo.dev').replace('@WEBROOT@', path.join(work, 'webroot')))
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('ignores a change to the other server\'s vhost in the record', () => {
+			install()
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
+			writeVhostStamp()
+			const other = conf === 'nginx-capmetro.conf' ? 'apache-capmetro.conf' : 'nginx-capmetro.conf'
+			editVhost(other)
+			expect(run().out).toMatch(quiet)
+		})
+
+		it('takes the one-line path when the drift record agrees', () => {
+			install()
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE)
+			writeVhostStamp()
+			expect(run().out).toMatch(quiet)
+		})
+
+		it('prints the steps when this run is for a different webroot', () => {
+			install()
+			expect(run([ '--webroot', path.join(work, 'elsewhere') ]).out).toMatch(/diff -u/)
+		})
+
+		/*
+		 * 4ef16f4 repeated add_header lines into blocks that already had them. Every
+		 * line was somewhere in the old file, so a membership check called the old
+		 * install current. Order and repeats are what change there.
+		 */
+		it.each([
+			[ 'repeats a line that is already elsewhere in the file',
+				TEMPLATE.replace('}\n', '    location / {\n        root @WEBROOT@;\n    }\n}\n'),
+				(t) => t.replace('}\n', '    location / {\n    }\n}\n') ],
+			[ 'reorders two lines',
+				TEMPLATE.replace('    server_name @DOMAIN@;\n    root @WEBROOT@;\n', '    root @WEBROOT@;\n    server_name @DOMAIN@;\n'),
+				(t) => t ],
+		])('prints the steps when the committed vhost %s', (_why, committed, installedFrom) => {
+			install(installedFrom(render()))
+			writeFileSync(path.join(work, 'src/deploy', conf), committed)
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('reads the enabled file, which is what the server loads', () => {
+			/* A stale plain-file copy in sites-enabled, a current one in sites-available. */
+			install()
+			writeFileSync(path.join(dir(), 'sites-enabled', file), render('your.domain'))
+			expect(run().out).toMatch(/diff -u/)
+		})
+
+		it('prints the steps when this run is for a different domain', () => {
+			install()
+			expect(run([], 'buses.dillo.dev').out).toMatch(/diff -u/)
+		})
+
+		it('prints the steps when the checkout moved on and the change was never applied', () => {
+			/*
+			 * The case a drift record cannot see: install.sh printed the new vhost,
+			 * stamped it, and the operator never ran the steps.
+			 */
+			install()
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			writeFileSync(path.join(work, 'src/deploy', conf), TEMPLATE.replace('}\n', '    index index.html;\n}\n'))
+			const again = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.code).toBe(0)
+			expect(again.out).toMatch(/diff -u/)
+		})
+	})
+
+	it.each([ 'CM_NGINX_DIR', 'CM_APACHE_DIR', 'CONF_DIR' ])('says when %s is pointing it away from /etc', (v) => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+			server: 'nginx',
+			env: { [ v ]: path.join(work, 'elsewhere') },
+		})
+		expect(r.out).toMatch(new RegExp(`${ v } is set to .* \\(a test override\\)`))
+	})
+
+	it('says nothing when CONF_DIR is set to its own default', () => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+			server: 'nginx',
+			env: { CONF_DIR: '/etc/capmetro' },
+		})
+		expect(r.out).not.toMatch(/CONF_DIR is set to/)
+	})
+
+	/*
+	 * Apache with certbot: certbot adds Rewrite lines to the port-80 file and serves
+	 * HTTPS from a copy it writes beside it, capmetro-le-ssl.conf, opening *:443.
+	 */
+	describe('an apache box certbot has been at', () => {
+		const dir = () => path.join(work, 'apache')
+		const TEMPLATE = '<VirtualHost *:80>\n    ServerName @DOMAIN@\n    DocumentRoot @WEBROOT@\n</VirtualHost>\n'
+		const render = (t = TEMPLATE) =>
+			t.replace('@DOMAIN@', 'bus.dillo.dev').replace('@WEBROOT@', path.join(work, 'webroot'))
+		const place = (name, body) => {
+			for (const d of [ 'sites-available', 'sites-enabled' ]) {
+				mkdirSync(path.join(dir(), d), { recursive: true })
+				writeFileSync(path.join(dir(), d, name), body)
+			}
+		}
+		const certbotted = (body) => body.replace('</VirtualHost>',
+			'RewriteEngine on\nRewriteCond %{SERVER_NAME} =bus.dillo.dev\nRewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]\n</VirtualHost>')
+		const sslCopy = (body) => '<IfModule mod_ssl.c>\n' + body.replace('*:80', '*:443')
+			.replace('</VirtualHost>', 'SSLCertificateFile /etc/letsencrypt/live/bus.dillo.dev/fullchain.pem\n</VirtualHost>') + '</IfModule>\n'
+		const run = () => {
+			writeFileSync(path.join(work, 'src/deploy/apache-capmetro.conf'), TEMPLATE)
+			return runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server: 'apache2ctl',
+				env: { CONF_DIR: path.join(work, 'conf'), CM_APACHE_DIR: dir() },
+			})
+		}
+
+		it('counts it current with the rewrite lines and the HTTPS copy in place', () => {
+			place('capmetro.conf', certbotted(render()))
+			place('capmetro-le-ssl.conf', sslCopy(render()))
+			expect(run().out).toMatch(/apache vhost file enabled and matching this checkout/)
+		})
+
+		it('names the HTTPS copy when only it is stale, since the steps cannot reach it', () => {
+			place('capmetro.conf', certbotted(render()))
+			place('capmetro-le-ssl.conf', sslCopy(render().replace('bus.dillo.dev', 'your.domain')))
+			const r = run()
+			const out = r.out
+			expect(out).toMatch(/certbot's HTTPS copy does not/)
+			expect(out).toMatch(/capmetro-le-ssl\.conf/)
+			expect(out, 'the port-80 steps would repeat forever').not.toMatch(/diff -u/)
+			/*
+			 * Pasted as a block, nothing destructive may run unless all of it can: the
+			 * name is looked up first, the chain is gated on NAME and stops on any
+			 * failure before the reload, and there is a way back. A `<placeholder>`
+			 * is a shell redirect that fails on its own line while the rm around it
+			 * runs anyway.
+			 */
+			expect(out, 'a pasteable <placeholder>').not.toMatch(/--cert-name </)
+			const lookup = out.search(/certbot certificates/)
+			const rm = out.search(/sudo rm -f /)
+			expect(lookup).toBeGreaterThan(-1)
+			expect(lookup, 'the name is looked up after the file is gone').toBeLessThan(rm)
+			expect(out.search(/sudo cp -a \$S \$B/), 'no backup before the removal').toBeLessThan(rm)
+			expect(out).toMatch(/\[ -n "\$NAME" \] && sudo cp -a/)
+			expect(out).toMatch(/--cert-name "\$NAME" && sudo apache2ctl configtest/)
+			expect(out, 'no way back if certbot fails').toMatch(/sudo cp -a \$B \$S/)
+			/* And the summary says the same thing, not the four-step list. */
+			expect(out).toMatch(/1\. bring the HTTPS copy printed above into line/)
+			expect(out).toMatch(/2\. check the BOARD/)
+			expect(out).not.toMatch(/install the vhost printed above/)
+		})
+
+		it('tells an apache box the HTTPS copy needs the same change when the steps print', () => {
+			place('capmetro.conf', certbotted(render().replace('bus.dillo.dev', 'your.domain')))
+			place('capmetro-le-ssl.conf', sslCopy(render()))
+			const r = run()
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).toMatch(/HTTPS is served from .*capmetro-le-ssl\.conf, which these steps do not touch/)
+		})
 	})
 
 	/*

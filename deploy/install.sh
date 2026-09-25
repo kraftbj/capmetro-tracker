@@ -23,7 +23,16 @@ BRANCH="trunk"
 SRC_DIR="/srv/capmetro/src"
 WEBROOT="/var/www/capmetro"
 STATE_DIR="/var/lib/capmetro"
-CONF_DIR="/etc/capmetro"
+CONF_DIR="${CONF_DIR:-/etc/capmetro}"
+# CONF_DIR, CM_NGINX_DIR and CM_APACHE_DIR are overridable so the suite can point this at
+# a scratch tree. Said out loud when set, as units.sh does for its own overrides: `sudo -E`
+# or an exported variable in a root shell would otherwise send the config and the drift
+# records somewhere other than /etc without a word.
+for _v in CONF_DIR CM_NGINX_DIR CM_APACHE_DIR; do
+  if [ -n "${!_v:-}" ] && { [ "$_v" != CONF_DIR ] || [ "$CONF_DIR" != /etc/capmetro ]; }; then
+    printf '!! %s is set to %s (a test override)\n' "$_v" "${!_v}" >&2
+  fi
+done
 RUN_USER="capmetro"
 INTERVAL_S=60
 
@@ -43,6 +52,7 @@ Options:
                       cloning. Use this when the repo is private and the box
                       has no GitHub credentials: rsync the tree up first.
   --dry-run           print what would happen, change nothing
+  --show-vhost        print the vhost install steps even when nothing changed
 EOF
 }
 
@@ -72,10 +82,12 @@ need_val() {
 }
 
 DRY_RUN=0
+SHOW_VHOST=0
 SRC_FROM=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --domain)   need_val "$1" "${2-}"; DOMAIN="$2"; shift 2 ;;
+    --show-vhost) SHOW_VHOST=1; shift ;;
     --repo)     need_val "$1" "${2-}"; REPO="$2"; shift 2 ;;
     --branch)   need_val "$1" "${2-}"; BRANCH="$2"; shift 2 ;;
     --webroot)  need_val "$1" "${2-}"; WEBROOT="$2"; shift 2 ;;
@@ -508,90 +520,236 @@ if [ -z "$DOMAIN" ]; then
      Everything else above this line is already done and does not repeat. The vhost
      drift fingerprint is deliberately not written either, so a later vhost change
      still gets announced rather than landing silently."
-elif command -v nginx >/dev/null 2>&1; then
-  CERTBOT_PLUGIN=--nginx; VHOST_PRINTED=1
-  cat <<EOF
-   nginx found. Install the vhost:
+elif command -v nginx >/dev/null 2>&1 || command -v apache2ctl >/dev/null 2>&1 \
+     || command -v httpd >/dev/null 2>&1; then
+  if command -v nginx >/dev/null 2>&1; then
+    CERTBOT_PLUGIN=--nginx
+    VHOST_SERVER=nginx
+    VHOST_CONF=nginx-capmetro.conf
+    VHOST_DIR="${CM_NGINX_DIR:-/etc/nginx}"
+    VHOST_AT="$VHOST_DIR/sites-available/capmetro"
+    VHOST_ON="$VHOST_DIR/sites-enabled/capmetro"
+    VHOST_ENABLE="sudo ln -sf $VHOST_AT $VHOST_ON"
+    VHOST_RELOAD="sudo nginx -t && sudo systemctl reload nginx"
+  else
+    CERTBOT_PLUGIN=--apache
+    VHOST_SERVER=apache
+    VHOST_CONF=apache-capmetro.conf
+    VHOST_DIR="${CM_APACHE_DIR:-/etc/apache2}"
+    VHOST_AT="$VHOST_DIR/sites-available/capmetro.conf"
+    VHOST_ON="$VHOST_DIR/sites-enabled/capmetro.conf"
+    VHOST_ENABLE="sudo a2enmod headers expires && sudo a2ensite capmetro"
+    VHOST_RELOAD="sudo apache2ctl configtest && sudo systemctl reload apache2"
+  fi
+  VHOST_PRINTED=1
+
+  #
+  # NOTHING TO DO IS ONE LINE. This section used to print its full install steps, and
+  # a page of reasons with them, on every run -- including every run update.sh sends
+  # an operator here for, to fix a UNIT drift that has nothing to do with the vhost.
+  #
+  # "Nothing to do" is decided by what is INSTALLED, never by the drift record. The
+  # record fingerprints the committed vhosts as of the last install.sh, and it is
+  # written whether or not the operator then ran the printed steps -- so a record
+  # that matches says nothing about /etc, and trusting it would turn one skipped
+  # checklist into "nothing to do" on every run after.
+  #
+  # Instead the committed vhost is rendered with THIS run's --domain and --webroot,
+  # and its lines must appear IN ORDER in the file the web server actually loads:
+  # the sites-enabled entry, read through its symlink, since a stale plain-file copy
+  # there is what nginx serves whatever sites-available holds. Membership alone was
+  # not enough: 4ef16f4 repeated eighteen add_header lines into the location blocks,
+  # and every one of them was already somewhere in the file. In order, with
+  # repeats, catches that, a reordered block, a vhost never installed, a 0-byte one,
+  # placeholders left in, a wrong server_name (the 2026-09-21 outage), and a changed
+  # --domain or --webroot.
+  #
+  # Lines in the installed file that are not in the committed one are allowed
+  # between them, because certbot inserts its own. `listen` and `<VirtualHost` lines
+  # are skipped on the committed side, because certbot moves and rewrites them (the
+  # port-80 listen goes to a redirect block in certbot's own spacing, and apache's
+  # HTTPS copy opens with *:443). Comments and blank lines carry no configuration.
+  #
+  # Apache serves HTTPS from the separate capmetro-le-ssl.conf certbot writes, so
+  # when that exists it has to match as well, or a change would land on port 80
+  # only.
+  #
+  # The one thing this cannot see is a committed change that only DELETES a line,
+  # since an extra line in the installed file is exactly what certbot's own
+  # additions look like. update.sh's drift notice still announces that change.
+  #
+  # And it reads files, not the running server: a copy that landed without a reload
+  # passes. The one line says "file", and the summary still ends at the health check.
+  vhost_matches() {
+    local file="$1" line i=0
+    local -a want=()
+    [ -s "$file" ] || return 1
+    # `|| [ -n "$line" ]` keeps a last line that has no newline after it.
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in ''|'#'*|listen*|Listen*|'<VirtualHost'*) continue ;; esac
+      want+=("$line")
+    done <<< "$VHOST_WANT"
+    [ "${#want[@]}" -gt 0 ] || return 1
+    while IFS= read -r line || [ -n "$line" ]; do
+      [ "$i" -lt "${#want[@]}" ] || break
+      line="${line#"${line%%[![:space:]]*}"}"
+      line="${line%"${line##*[![:space:]]}"}"
+      [ "$line" = "${want[$i]}" ] && i=$((i + 1))
+    done < "$file"
+    [ "$i" -eq "${#want[@]}" ]
+  }
+  # 0 = current; 1 = the steps are needed; 2 = only apache's HTTPS copy is stale,
+  # which the steps cannot fix (they only write the port-80 file).
+  vhost_state() {
+    # Rendered into a variable and checked, not substituted into a loop's input: a
+    # failed substitution there feeds the loop nothing, and a loop over nothing finds
+    # nothing missing -- "nothing to do" from a template that could not be read.
+    VHOST_WANT=$(sed -e "s/@DOMAIN@/$DOMAIN/g" -e "s#@WEBROOT@#$WEBROOT#g" \
+      -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$SRC_DIR/deploy/$VHOST_CONF") || return 1
+    vhost_matches "$VHOST_ON" || return 1
+    #
+    # And the drift record, but only as a veto. It cannot say the vhost IS installed
+    # (see above), but when it says THIS server's committed vhost has changed since
+    # the last install.sh here, that is a change this file check may not see -- one
+    # that only deletes a line looks exactly like an installed file with certbot's
+    # extra lines. So the steps print, on the same run update.sh's notice sends the
+    # operator here for.
+    #
+    # Once, not for ever. Every run that prints the steps rewrites the record below,
+    # as it always has, so the NEXT run goes back to the file check alone. Holding the
+    # record back until the change is applied would need a way to say "applied" that
+    # this script does not have, and without one the veto would fire on every run
+    # after the change was correctly installed. The one run is the one that matters:
+    # it is the run the deploy that carried the change sends the operator to.
+    #
+    # Only this server's file: the record covers both vhosts, and an apache-only
+    # change is nothing an nginx box needs to act on. No record, or no way to read
+    # one, is not a veto: the file check stands on its own.
+    if command -v cm_vhost_drift >/dev/null 2>&1 && command -v cm_vhost_stamp_path >/dev/null 2>&1; then
+      local rc=0 drifted
+      drifted=$(cm_vhost_drift "$SRC_DIR/deploy" "$(cm_vhost_stamp_path "$CONF_DIR")" 2>/dev/null) || rc=$?
+      if [ "$rc" = "$CM_DRIFT_FOUND" ] && printf '%s\n' "$drifted" | grep -qxF -- "$VHOST_CONF"; then
+        return 1
+      fi
+    fi
+    if [ "$VHOST_SERVER" = apache ] && [ -e "$VHOST_SSL_ON" ]; then
+      vhost_matches "$VHOST_SSL_ON" || return 2
+    fi
+    return 0
+  }
+  #
+  # Whether TLS is evidently in place: certbot's lines in the nginx file, or its HTTPS
+  # copy on apache. A matching vhost without it is a first install before certbot, or
+  # a copy that took the 443 block out and was never followed by step 3 -- and either
+  # way the certificate step must not drop out of the summary with the vhost steps.
+  vhost_tls() {
+    if [ "$VHOST_SERVER" = apache ]; then [ -e "$VHOST_SSL_ON" ]
+    else grep -q 'ssl_certificate' "$VHOST_ON" 2>/dev/null
+    fi
+  }
+  VHOST_SSL_ON="$VHOST_DIR/sites-enabled/capmetro-le-ssl.conf"
+  VHOST_CURRENT=0
+  VHOST_STATE=1
+  if [ "$SHOW_VHOST" = 0 ]; then vhost_state && VHOST_STATE=0 || VHOST_STATE=$?; fi
+  VHOST_TLS=0
+  if vhost_tls; then VHOST_TLS=1; fi
+
+  if [ "$VHOST_STATE" = 0 ]; then
+    VHOST_CURRENT=1
+    printf '   %s vhost file enabled and matching this checkout; nothing to install.\n' "$VHOST_SERVER"
+    if [ "$VHOST_TLS" = 0 ]; then
+      printf '   It has no TLS yet, so the certificate step below still applies.\n'
+    fi
+    printf '   (Board not answering? --show-vhost prints the install steps.)\n'
+  elif [ "$VHOST_STATE" = 2 ]; then
+    #
+    # Only certbot's HTTPS copy is behind. The four steps cannot reach it -- they write
+    # capmetro.conf -- and `certbot install` reuses an existing SSL vhost rather than
+    # rebuilding it, so repeating them would print this forever. Either edit the copy,
+    # or move it aside and let certbot write it again from the now-current port-80 file.
+    # The .bak does not end in .conf, so a2ensite cannot enable it.
+    #
+    # Pasted as a block, so nothing destructive may run unless everything after it
+    # can: NAME is set by hand first and the chain stops on an empty NAME or any
+    # failure, before the reload. A `<placeholder>` in a pasted command is a shell
+    # redirect that fails on its own line while the lines around it -- the rm, the
+    # reload -- run anyway. The file removed is the one apache loads, through the
+    # sites-enabled entry, which a2dissite would refuse to touch if it were a plain
+    # file rather than a link.
+    VHOST_SSL_AT=$(readlink -f "$VHOST_SSL_ON" 2>/dev/null) || VHOST_SSL_AT="$VHOST_SSL_ON"
+    cat <<EOF
+   apache: capmetro.conf matches this checkout, but certbot's HTTPS copy does not:
+     $VHOST_SSL_AT
+   Edit it to match (keep its SSL lines), or set it aside and let certbot write it again.
+   Look up the certificate name, then set NAME to it and run the rest:
+     sudo certbot certificates | grep -iE 'Certificate Name|Domains'
+     NAME=   # the Certificate Name listed above
+     S=$VHOST_SSL_AT; B=\$S.\$(date +%Y%m%d-%H%M%S).bak
+     [ -n "\$NAME" ] && sudo cp -a \$S \$B && sudo rm -f $VHOST_SSL_ON \$S \\
+       && sudo certbot install --apache --cert-name "\$NAME" && $VHOST_RELOAD
+   If certbot fails, put the copy back:
+     sudo cp -a \$B \$S && sudo ln -sf \$S $VHOST_SSL_ON && $VHOST_RELOAD
+     curl -sf https://$DOMAIN/api/health.json
+EOF
+  else
+    #
+    # The steps, kept short on screen. The reasons live here instead:
+    #
+    # 1. DIFF FIRST. certbot rewrites the INSTALLED file to add the 443 server and the
+    #    http->https redirect, so on a TLS box it is not the committed one, and copying
+    #    over it deletes the TLS block. The certificate survives, unreferenced, and the
+    #    board leaves HTTPS.
+    #
+    # 2. BACK UP, THEN A GUARDED COPY. The copy is the one irreversible step, and the
+    #    command meant to undo it (step 3) is the one least likely to work, so the
+    #    backup comes first on the same chain. A .bak is inert: nginx includes
+    #    sites-enabled, and a2ensite will not enable a name that does not end in .conf.
+    #    The guard refuses an empty file ('>' truncates before sed runs, so a failed
+    #    sed leaves 0 bytes) and one with @PLACEHOLDERS@ left in it. nginx -t passes
+    #    both, and the host falls through to default_server.
+    #
+    # 3. PUT THE TLS BLOCK BACK, LOOKING THE NAME UP. certbot names a lineage after the
+    #    FIRST -d, so a certificate covering the apex and this host is named for the
+    #    apex, a wildcard for the first usable name, and a re-issue leaves
+    #    <domain>-0001. --cert-name exits 1 on any name not exactly right, after the
+    #    copy has already removed the block. An empty list means certbot did not issue
+    #    this certificate (acme.sh, Caddy, a commercial CA) and cannot restore it, so
+    #    the .bak is the way back. On a first install there is no certificate and no
+    #    443 block to lose, so the step is skipped and certbot is run fresh instead.
+    #
+    # 4. CHECK THE BOARD, NOT THE CONFIG. A green nginx -t is not evidence: it passed
+    #    through every failure above.
+    #
+    # On apache, HTTPS is served from certbot's separate copy, which these steps never
+    # write. A change the steps make to capmetro.conf has to be made there too, and a
+    # change that only DELETES a line is one the next run cannot see in that copy.
+    VHOST_SSL_NOTE=""
+    if [ "$VHOST_SERVER" = apache ] && [ -e "$VHOST_SSL_ON" ]; then
+      VHOST_SSL_NOTE=$'\n'"      HTTPS is served from $VHOST_SSL_ON, which these steps do not touch:"$'\n'"      make the same change there, keeping its SSL lines."
+    fi
+    cat <<EOF
+   $VHOST_SERVER vhost to install (not installed here, or not matching this checkout):
+   1. Render it and read the diff. certbot edited the installed copy, so do not copy blind:
      sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
-       $SRC_DIR/deploy/nginx-capmetro.conf > /tmp/capmetro-vhost.new
-     sudo diff -u /etc/nginx/sites-available/capmetro /tmp/capmetro-vhost.new
-
-   READ THAT DIFF BEFORE THE NEXT LINE. certbot --nginx rewrites the INSTALLED
-   file to add the 443 server and the http->https redirect, so on a TLS box it is
-   not the committed one and copying over the top deletes the TLS block. The
-   certificate survives; nothing references it, and the board leaves HTTPS.
-
-   The copy is guarded on purpose. '>' truncates before sed runs, so a sed that
-   fails leaves a 0-byte file -- and an empty vhost adds no directives, so
-   nginx -t passes and the host falls through to default_server. The guard also
-   refuses a file with @PLACEHOLDERS@ still in it, which nginx likewise accepts.
-   Both are silent, and both look exactly like a clean deploy.
-
-   Back the installed file up FIRST, on the same chain, because the copy is the one
-   irreversible step here and the command meant to undo it is the one least likely
-   to work. A .bak in sites-available is inert: nginx includes sites-enabled.
-
-     B=/etc/nginx/sites-available/capmetro
+       $SRC_DIR/deploy/$VHOST_CONF > /tmp/capmetro-vhost.new
+     sudo diff -u $VHOST_AT /tmp/capmetro-vhost.new
+   2. Back up, copy (refuses an empty or unfilled file), reload:
+     B=$VHOST_AT
      [ -f \$B ] && sudo cp -a \$B \$B.\$(date +%Y%m%d-%H%M%S).bak
      [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
        && sudo cp /tmp/capmetro-vhost.new \$B
-     sudo ln -sf /etc/nginx/sites-available/capmetro /etc/nginx/sites-enabled/capmetro
-     sudo nginx -t && sudo systemctl reload nginx
-
-   Now put back the 443 block the copy just deleted. Do NOT assume the lineage is
-   named after the domain -- read it. certbot names the lineage after the FIRST -d,
-   so a certificate covering the apex and this host together is named for the apex;
-   a wildcard is named for the first usable name; and a re-issue leaves
-   $DOMAIN-0001. On any of those, --cert-name $DOMAIN exits 1, and it does so with
-   the vhost already live and the TLS block already gone.
+     $VHOST_ENABLE
+     $VHOST_RELOAD
+   3. Put TLS back, using the certificate name certbot lists (often not the domain).
+      If the list is empty and this host has never had HTTPS, it is a first install:
+      skip this step. If it had HTTPS, an empty list means restore the .bak instead.
      sudo certbot certificates | grep -iE 'Certificate Name|Domains'
-     sudo certbot install --nginx --cert-name <the name printed above>
-     sudo nginx -t && sudo systemctl reload nginx
-
-   If that list comes back EMPTY, certbot did not issue this certificate -- acme.sh,
-   Caddy and a commercial cert all leave it nothing to find -- so no --cert-name
-   will work. Restore the .bak; that is what it is for.
-
-   On a FIRST install skip the restore entirely: there is no certificate yet, so
-   --cert-name exits 1, and there was no 443 block to lose. Get the certificate
-   from step 2 of the summary below instead.
-
-   Then check the board, not the config: a green nginx -t is not evidence.
+     NAME=   # the Certificate Name listed above
+     [ -n "\$NAME" ] && sudo certbot install $CERTBOT_PLUGIN --cert-name "\$NAME" && $VHOST_RELOAD$VHOST_SSL_NOTE
+   4. Check the board, not the config:
      curl -sf https://$DOMAIN/api/health.json
 EOF
-elif command -v apache2ctl >/dev/null 2>&1 || command -v httpd >/dev/null 2>&1; then
-  CERTBOT_PLUGIN=--apache; VHOST_PRINTED=1
-  cat <<EOF
-   apache found. Install the vhost:
-     sed -e 's/@DOMAIN@/$DOMAIN/g' -e 's#@WEBROOT@#$WEBROOT#g' \\
-       $SRC_DIR/deploy/apache-capmetro.conf > /tmp/capmetro-vhost.new
-     sudo diff -u /etc/apache2/sites-available/capmetro.conf /tmp/capmetro-vhost.new
-
-   READ THAT DIFF BEFORE THE NEXT LINE, for the reason the nginx branch gives:
-   certbot owns the TLS virtual host in the installed file.
-
-     B=/etc/apache2/sites-available/capmetro.conf
-     [ -f \$B ] && sudo cp -a \$B \$B.\$(date +%Y%m%d-%H%M%S).bak
-     [ -s /tmp/capmetro-vhost.new ] && ! grep -q '@[A-Z_]*@' /tmp/capmetro-vhost.new \\
-       && sudo cp /tmp/capmetro-vhost.new \$B
-     sudo a2enmod headers expires && sudo a2ensite capmetro
-     sudo apache2ctl configtest && sudo systemctl reload apache2
-
-   The backup comes first for the reason the nginx branch gives at length: the copy
-   is the one irreversible step, and the command meant to undo it is the one least
-   likely to work. The .bak does not end in .conf, so a2ensite cannot enable it.
-
-   Then put back the TLS virtual host, reading the name rather than assuming it.
-   --cert-name exits 1 on a name that is not exactly right, and certbot names the
-   lineage after the first -d, so an apex or wildcard certificate is not named for
-   this host. An EMPTY list means certbot did not issue this certificate and cannot
-   restore it, so use the .bak. Skip the restore on a first install entirely.
-     sudo certbot certificates | grep -iE 'Certificate Name|Domains'
-     sudo certbot install --apache --cert-name <the name printed above>
-     sudo apache2ctl configtest && sudo systemctl reload apache2
-
-     curl -sf https://$DOMAIN/api/health.json
-EOF
+  fi
 else
   warn "no nginx or apache found. The files are in $WEBROOT; point any static server at it."
 fi
@@ -680,25 +838,44 @@ if [ -z "$DOMAIN" ]; then
   printf '  1. re-run with --domain to get the vhost and certificate commands\n'
   printf '  2. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
 else
-  # Same reason step 2 branches: with no web server detected, nothing was printed
-  # above, so "install the vhost printed above" names output that does not exist.
-  if [ -n "$CERTBOT_PLUGIN" ]; then
-    printf '  1. install the vhost printed above, reading the diff, and reload the web server\n'
+  if [ "${VHOST_CURRENT:-0}" = 1 ] && [ "${VHOST_TLS:-0}" = 1 ]; then
+    # Nothing to install and TLS in place, so the list is what is left.
+    printf '  1. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+    printf '  2. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+  elif [ "${VHOST_CURRENT:-0}" = 1 ]; then
+    # The vhost is in, TLS is not: a first install before certbot, or a copy that took
+    # the 443 block out. certbot's own list says which.
+    printf '  1. add TLS: if `sudo certbot certificates` lists this host, run this with\n'
+    printf '     NAME replaced by the Certificate Name it lists:\n'
+    printf '       sudo certbot install %s --cert-name NAME\n' "$CERTBOT_PLUGIN"
+    printf '     otherwise: sudo certbot %s -d %s\n' "$CERTBOT_PLUGIN" "$DOMAIN"
+    printf '  2. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+    printf '  3. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
+  elif [ "${VHOST_STATE:-1}" = 2 ]; then
+    printf '  1. bring the HTTPS copy printed above into line, and reload\n'
+    printf '  2. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+    printf '  3. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
   else
-    printf '  1. install nginx or apache, then re-run this to get the vhost commands\n'
+    # Same reason step 2 branches: with no web server detected, nothing was printed
+    # above, so "install the vhost printed above" names output that does not exist.
+    if [ -n "$CERTBOT_PLUGIN" ]; then
+      printf '  1. install the vhost printed above, reading the diff, and reload the web server\n'
+    else
+      printf '  1. install nginx or apache, then re-run this to get the vhost commands\n'
+    fi
+    if [ -n "$CERTBOT_PLUGIN" ]; then
+      printf '  2. get a certificate:  sudo certbot %s -d %s\n' "$CERTBOT_PLUGIN" "$DOMAIN"
+    else
+      printf '  2. get a certificate:  install nginx or apache first, then run certbot\n'
+    fi
+    # Branched for the same reason as 1 and 2: with no web server there is nothing
+    # listening, so this curl cannot answer and its failure would say nothing about
+    # whether the install worked.
+    if [ -n "$CERTBOT_PLUGIN" ]; then
+      printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
+    else
+      printf '  3. check the BOARD once a web server is serving %s\n' "$WEBROOT"
+    fi
+    printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
   fi
-  if [ -n "$CERTBOT_PLUGIN" ]; then
-    printf '  2. get a certificate:  sudo certbot %s -d %s\n' "$CERTBOT_PLUGIN" "$DOMAIN"
-  else
-    printf '  2. get a certificate:  install nginx or apache first, then run certbot\n'
-  fi
-  # Branched for the same reason as 1 and 2: with no web server there is nothing
-  # listening, so this curl cannot answer and its failure would say nothing about
-  # whether the install worked.
-  if [ -n "$CERTBOT_PLUGIN" ]; then
-    printf '  3. check the BOARD:    curl -sf https://%s/api/health.json | head -c 200\n' "$DOMAIN"
-  else
-    printf '  3. check the BOARD once a web server is serving %s\n' "$WEBROOT"
-  fi
-  printf '  4. update later:       %s/deploy/update.sh   (as root)\n' "$SRC_DIR"
 fi

@@ -152,6 +152,19 @@ Expectations:
   stdout and therefore to the journal. A box with no record — every box installed
   before this — stays silent, except on the one deploy whose own pulled range
   changed a vhost, which is the case that would otherwise land unannounced.
+  `install.sh` prints one line for the vhost when the enabled file (and apache's
+  `-le-ssl.conf` HTTPS copy, if certbot wrote one) carries the committed vhost's lines
+  IN ORDER, rendered with this run's `--domain` and `--webroot`; certbot's inserted
+  lines are allowed between them, and `listen`/`<VirtualHost` lines are skipped
+  because certbot rewrites them. Otherwise it prints a short checklist, and
+  `--show-vhost` forces it. It decides from `/etc`, not from the drift record, which
+  is written whether or not the steps were run; the record can only veto (a change
+  to this server's vhost since the last install prints the steps, on the one run
+  after it -- that run restamps the record, as every printed run does -- which is
+  what catches a change that only deletes a line). A matching vhost with no TLS keeps the certificate step, and an
+  apache box whose only stale file is certbot's HTTPS copy is told how to fix that
+  file. It reads files, not the running server. The reasons behind each step live
+  in the script's comments, not its output.
   **Pass `--domain` when you run `install.sh` for a vhost.** Without it the script
   now refuses to print the install commands at all, and that refusal is the fix for
   an outage on 2026-09-21: it used to substitute the literal string `your.domain`
