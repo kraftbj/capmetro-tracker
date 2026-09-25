@@ -1379,7 +1379,7 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
 			})
 		}
-		const quiet = new RegExp(`${ name } vhost installed, enabled and matching this checkout; nothing to do`)
+		const quiet = new RegExp(`${ name } vhost file enabled and matching this checkout; nothing to install`)
 
 		it('says so in one line, and the summary drops to checking the board', () => {
 			install()
@@ -1442,6 +1442,41 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 			expect(r.out).toMatch(/diff -u/)
 		})
 
+		it('prints the steps when this run is for a different webroot', () => {
+			install()
+			expect(run([ '--webroot', path.join(work, 'elsewhere') ]).out).toMatch(/diff -u/)
+		})
+
+		/*
+		 * 4ef16f4 repeated add_header lines into blocks that already had them. Every
+		 * line was somewhere in the old file, so a membership check called the old
+		 * install current. Order and repeats are what change there.
+		 */
+		it.each([
+			[ 'repeats a line that is already elsewhere in the file',
+				TEMPLATE.replace('}\n', '    location / {\n        root @WEBROOT@;\n    }\n}\n'),
+				(t) => t.replace('}\n', '    location / {\n    }\n}\n') ],
+			[ 'reorders two lines',
+				TEMPLATE.replace('    server_name @DOMAIN@;\n    root @WEBROOT@;\n', '    root @WEBROOT@;\n    server_name @DOMAIN@;\n'),
+				(t) => t ],
+		])('prints the steps when the committed vhost %s', (_why, committed, installedFrom) => {
+			install(installedFrom(render()))
+			writeFileSync(path.join(work, 'src/deploy', conf), committed)
+			const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server,
+				env: { CONF_DIR: path.join(work, 'conf'), [ dirVar ]: dir() },
+			})
+			expect(r.out).toMatch(/diff -u/)
+			expect(r.out).not.toMatch(quiet)
+		})
+
+		it('reads the enabled file, which is what the server loads', () => {
+			/* A stale plain-file copy in sites-enabled, a current one in sites-available. */
+			install()
+			writeFileSync(path.join(dir(), 'sites-enabled', file), render('your.domain'))
+			expect(run().out).toMatch(/diff -u/)
+		})
+
 		it('prints the steps when this run is for a different domain', () => {
 			install()
 			expect(run([], 'buses.dillo.dev').out).toMatch(/diff -u/)
@@ -1467,12 +1502,60 @@ bash "${ INSTALL }" --dry-run --src "${ work }/src" --webroot "${ work }/webroot
 		})
 	})
 
-	it('says when a test override is pointing it away from /etc', () => {
+	it.each([ 'CM_NGINX_DIR', 'CM_APACHE_DIR', 'CONF_DIR' ])('says when %s is pointing it away from /etc', (v) => {
 		const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
 			server: 'nginx',
-			env: { CM_NGINX_DIR: path.join(work, 'nginx') },
+			env: { [ v ]: path.join(work, 'elsewhere') },
 		})
-		expect(r.out).toMatch(/CM_NGINX_DIR is set to .* \(a test override\)/)
+		expect(r.out).toMatch(new RegExp(`${ v } is set to .* \\(a test override\\)`))
+	})
+
+	it('says nothing when CONF_DIR is set to its own default', () => {
+		const r = runInstall([ '--domain', 'bus.dillo.dev' ], {
+			server: 'nginx',
+			env: { CONF_DIR: '/etc/capmetro' },
+		})
+		expect(r.out).not.toMatch(/CONF_DIR is set to/)
+	})
+
+	/*
+	 * Apache with certbot: certbot adds Rewrite lines to the port-80 file and serves
+	 * HTTPS from a copy it writes beside it, capmetro-le-ssl.conf, opening *:443.
+	 */
+	describe('an apache box certbot has been at', () => {
+		const dir = () => path.join(work, 'apache')
+		const TEMPLATE = '<VirtualHost *:80>\n    ServerName @DOMAIN@\n    DocumentRoot @WEBROOT@\n</VirtualHost>\n'
+		const render = (t = TEMPLATE) =>
+			t.replace('@DOMAIN@', 'bus.dillo.dev').replace('@WEBROOT@', path.join(work, 'webroot'))
+		const place = (name, body) => {
+			for (const d of [ 'sites-available', 'sites-enabled' ]) {
+				mkdirSync(path.join(dir(), d), { recursive: true })
+				writeFileSync(path.join(dir(), d, name), body)
+			}
+		}
+		const certbotted = (body) => body.replace('</VirtualHost>',
+			'RewriteEngine on\nRewriteCond %{SERVER_NAME} =bus.dillo.dev\nRewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]\n</VirtualHost>')
+		const sslCopy = (body) => '<IfModule mod_ssl.c>\n' + body.replace('*:80', '*:443')
+			.replace('</VirtualHost>', 'SSLCertificateFile /etc/letsencrypt/live/bus.dillo.dev/fullchain.pem\n</VirtualHost>') + '</IfModule>\n'
+		const run = () => {
+			writeFileSync(path.join(work, 'src/deploy/apache-capmetro.conf'), TEMPLATE)
+			return runInstall([ '--domain', 'bus.dillo.dev' ], {
+				server: 'apache2ctl',
+				env: { CONF_DIR: path.join(work, 'conf'), CM_APACHE_DIR: dir() },
+			})
+		}
+
+		it('counts it current with the rewrite lines and the HTTPS copy in place', () => {
+			place('capmetro.conf', certbotted(render()))
+			place('capmetro-le-ssl.conf', sslCopy(render()))
+			expect(run().out).toMatch(/apache vhost file enabled and matching this checkout/)
+		})
+
+		it('prints the steps when only the HTTPS copy is stale', () => {
+			place('capmetro.conf', certbotted(render()))
+			place('capmetro-le-ssl.conf', sslCopy(render().replace('bus.dillo.dev', 'your.domain')))
+			expect(run().out).toMatch(/diff -u/)
+		})
 	})
 
 	/*

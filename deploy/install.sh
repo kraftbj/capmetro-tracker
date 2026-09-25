@@ -552,43 +552,68 @@ elif command -v nginx >/dev/null 2>&1 || command -v apache2ctl >/dev/null 2>&1 \
   # record fingerprints the committed vhosts as of the last install.sh, and it is
   # written whether or not the operator then ran the printed steps -- so a record
   # that matches says nothing about /etc, and trusting it would turn one skipped
-  # checklist into "nothing to do" on every run after. Instead the committed vhost is
-  # rendered with THIS run's --domain and --webroot, and every line of it must be in
-  # the installed file, with the site enabled. That catches a vhost never installed,
-  # a 0-byte one, placeholders left in, a wrong server_name (the 2026-09-21 outage), a
-  # changed --domain or --webroot, and a committed change that was printed and never
-  # applied.
+  # checklist into "nothing to do" on every run after.
   #
-  # Lines certbot adds do not count against it: the check only asks that the
-  # committed lines are present, not that nothing else is. `listen` lines are skipped
-  # because certbot moves them -- it takes `listen 80` out of the server block into a
-  # redirect block of its own -- and comments are skipped because they carry no
-  # configuration. Whitespace is trimmed on both sides.
+  # Instead the committed vhost is rendered with THIS run's --domain and --webroot,
+  # and its lines must appear IN ORDER in the file the web server actually loads:
+  # the sites-enabled entry, read through its symlink, since a stale plain-file copy
+  # there is what nginx serves whatever sites-available holds. Membership alone was
+  # not enough: 4ef16f4 repeated eighteen add_header lines into the location blocks,
+  # and every one of them was already somewhere in the file. In order, with
+  # repeats, catches that, a reordered block, a vhost never installed, a 0-byte one,
+  # placeholders left in, a wrong server_name (the 2026-09-21 outage), and a changed
+  # --domain or --webroot.
   #
-  # Anything short of every line present prints the steps, and so does --show-vhost.
+  # Lines in the installed file that are not in the committed one are allowed
+  # between them, because certbot inserts its own. `listen` and `<VirtualHost` lines
+  # are skipped on the committed side, because certbot moves and rewrites them (the
+  # port-80 listen goes to a redirect block in certbot's own spacing, and apache's
+  # HTTPS copy opens with *:443). Comments and blank lines carry no configuration.
+  #
+  # Apache serves HTTPS from the separate capmetro-le-ssl.conf certbot writes, so
+  # when that exists it has to match as well, or a change would land on port 80
+  # only.
+  #
+  # The one thing this cannot see is a committed change that only DELETES a line,
+  # since an extra line in the installed file is exactly what certbot's own
+  # additions look like. update.sh's drift notice still announces that change.
+  #
+  # And it reads files, not the running server: a copy that landed without a reload
+  # passes. The one line says "file", and the summary still ends at the health check.
+  vhost_matches() {
+    local file="$1" line i=0
+    local -a want=()
+    [ -s "$file" ] || return 1
+    # `|| [ -n "$line" ]` keeps a last line that has no newline after it.
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in ''|'#'*|listen*|Listen*|'<VirtualHost'*) continue ;; esac
+      want+=("$line")
+    done <<< "$VHOST_WANT"
+    [ "${#want[@]}" -gt 0 ] || return 1
+    while IFS= read -r line || [ -n "$line" ]; do
+      [ "$i" -lt "${#want[@]}" ] || break
+      line="${line#"${line%%[![:space:]]*}"}"
+      line="${line%"${line##*[![:space:]]}"}"
+      [ "$line" = "${want[$i]}" ] && i=$((i + 1))
+    done < "$file"
+    [ "$i" -eq "${#want[@]}" ]
+  }
   vhost_applied() {
-    [ -s "$VHOST_AT" ] && [ -e "$VHOST_ON" ] || return 1
-    local have want line checked=0
-    have=$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$VHOST_AT") || return 1
-    # Rendered into a variable and checked, not substituted into the loop's input: a
+    # Rendered into a variable and checked, not substituted into a loop's input: a
     # failed substitution there feeds the loop nothing, and a loop over nothing finds
     # nothing missing -- "nothing to do" from a template that could not be read.
-    want=$(sed -e "s/@DOMAIN@/$DOMAIN/g" -e "s#@WEBROOT@#$WEBROOT#g" \
+    VHOST_WANT=$(sed -e "s/@DOMAIN@/$DOMAIN/g" -e "s#@WEBROOT@#$WEBROOT#g" \
       -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$SRC_DIR/deploy/$VHOST_CONF") || return 1
-    while IFS= read -r line; do
-      case "$line" in ''|'#'*|listen*|Listen*) continue ;; esac
-      printf '%s\n' "$have" | grep -qxF -- "$line" || return 1
-      checked=$((checked + 1))
-    done <<VHOST_LINES
-$want
-VHOST_LINES
-    [ "$checked" -gt 0 ]
+    vhost_matches "$VHOST_ON" || return 1
+    if [ "$VHOST_SERVER" = apache ] && [ -e "$VHOST_DIR/sites-enabled/capmetro-le-ssl.conf" ]; then
+      vhost_matches "$VHOST_DIR/sites-enabled/capmetro-le-ssl.conf" || return 1
+    fi
   }
   VHOST_CURRENT=0
   if [ "$SHOW_VHOST" = 0 ] && vhost_applied; then VHOST_CURRENT=1; fi
 
   if [ "$VHOST_CURRENT" = 1 ]; then
-    printf '   %s vhost installed, enabled and matching this checkout; nothing to do.\n' "$VHOST_SERVER"
+    printf '   %s vhost file enabled and matching this checkout; nothing to install.\n' "$VHOST_SERVER"
     printf '   (Board not answering? --show-vhost prints the install steps.)\n'
   else
     #
