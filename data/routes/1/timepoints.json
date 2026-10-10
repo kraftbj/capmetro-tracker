@@ -80,8 +80,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.38857,
-									"lon": -97.68337,
+									"lat": 30.390037,
+									"lon": -97.682758,
 									"stop_id": "4698",
 									"stop_name": "Lamar/Little Oak",
 									"stop_sequence": 8
@@ -760,8 +760,8 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.205395,
-									"lon": -97.774493,
+									"lat": 30.205242,
+									"lon": -97.774527,
 									"stop_id": "6525",
 									"stop_name": "Stassney NB Rapid",
 									"stop_sequence": 7
@@ -1406,8 +1406,8 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.205395,
-									"lon": -97.774493,
+									"lat": 30.205242,
+									"lon": -97.774527,
 									"stop_id": "6525",
 									"stop_name": "Stassney NB Rapid",
 									"stop_sequence": 7
@@ -2006,7 +2006,7 @@
 			"timepoint_count": 11
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "1",
 	"schema": 1
 }

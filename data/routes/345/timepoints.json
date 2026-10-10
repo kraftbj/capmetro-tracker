@@ -13,7 +13,7 @@
 				"345-0-bb285b5f": {
 					"direction_id": 0,
 					"pattern_id": "345-0-bb285b5f",
-					"representative_trip_id": "3004493_13828",
+					"representative_trip_id": "3004493_13420",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -150,7 +150,7 @@
 				"345-1-70cd4382": {
 					"direction_id": 1,
 					"pattern_id": "345-1-70cd4382",
-					"representative_trip_id": "3004529_13726",
+					"representative_trip_id": "3004529_13318",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -275,7 +275,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "345",
 	"schema": 1
 }

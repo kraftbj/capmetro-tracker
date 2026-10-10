@@ -13,7 +13,7 @@
 				"217-0-cb059150": {
 					"direction_id": 0,
 					"pattern_id": "217-0-cb059150",
-					"representative_trip_id": "3013742_4367",
+					"representative_trip_id": "3013742_4361",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -48,7 +48,7 @@
 									"lat": 30.22448,
 									"lon": -97.700685,
 									"stop_id": "836",
-									"stop_name": "Vargas/Riverside",
+									"stop_name": "VARGAS/RIVERSIDE",
 									"stop_sequence": 4
 								},
 								{
@@ -118,7 +118,7 @@
 				"217-1-5bda4d61": {
 					"direction_id": 1,
 					"pattern_id": "217-1-5bda4d61",
-					"representative_trip_id": "3013741_4446",
+					"representative_trip_id": "3013741_4440",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -197,7 +197,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "217",
 	"schema": 1
 }

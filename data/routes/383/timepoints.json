@@ -2,26 +2,33 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "383-0-c8b1883f",
-				"10-172": "383-0-c8b1883f",
-				"11-172": "383-0-c8b1883f",
-				"14-172": "383-0-c8b1883f",
+				"1-172": "383-0-03bffb1b",
+				"14-172": "383-0-507c0db8",
 				"15-172": "383-0-507c0db8",
-				"16-172": "383-0-507c0db8",
-				"3-172": "383-0-40905efd"
+				"2-172": "383-0-c8b1883f",
+				"3-172": "383-0-03bffb1b",
+				"4-172": "383-0-03bffb1b",
+				"5-172": "383-0-c8b1883f",
+				"6-172": "383-0-03bffb1b",
+				"7-172": "383-0-c8b1883f",
+				"8-172": "383-0-03bffb1b"
 			},
-			"baseline_pattern_id": "383-0-c8b1883f",
+			"baseline_pattern_id": "383-0-03bffb1b",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"383-0-40905efd": {
+				"383-0-03bffb1b": {
 					"direction_id": 0,
-					"pattern_id": "383-0-40905efd",
-					"representative_trip_id": "3004903_14409",
+					"pattern_id": "383-0-03bffb1b",
+					"representative_trip_id": "3004899_13724",
 					"service_ids": [
-						"3-172"
+						"1-172",
+						"3-172",
+						"4-172",
+						"6-172",
+						"8-172"
 					],
-					"stop_count": 49,
+					"stop_count": 48,
 					"timepoint_count": 5,
 					"timepoints": [
 						{
@@ -79,19 +86,11 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.374709,
-									"lon": -97.725908,
-									"stop_id": "4753",
-									"stop_name": "Burnet/Research",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 0,
 									"lat": 30.385221,
 									"lon": -97.723575,
 									"stop_id": "6427",
 									"stop_name": "Burnet/Mc Hale",
-									"stop_sequence": 9
+									"stop_sequence": 8
 								},
 								{
 									"direction_id": 0,
@@ -99,7 +98,7 @@
 									"lon": -97.72256,
 									"stop_id": "6456",
 									"stop_name": "Burnet/Bright Verde",
-									"stop_sequence": 10
+									"stop_sequence": 9
 								},
 								{
 									"direction_id": 0,
@@ -107,7 +106,7 @@
 									"lon": -97.722548,
 									"stop_id": "4682",
 									"stop_name": "Braker/Burnet Stadium…",
-									"stop_sequence": 11
+									"stop_sequence": 10
 								},
 								{
 									"direction_id": 0,
@@ -115,7 +114,7 @@
 									"lon": -97.725958,
 									"stop_id": "3014",
 									"stop_name": "Braker/IBM",
-									"stop_sequence": 12
+									"stop_sequence": 11
 								},
 								{
 									"direction_id": 0,
@@ -123,7 +122,7 @@
 									"lon": -97.739283,
 									"stop_id": "5916",
 									"stop_name": "Stonelake/Capital of…",
-									"stop_sequence": 13
+									"stop_sequence": 12
 								},
 								{
 									"direction_id": 0,
@@ -131,7 +130,7 @@
 									"lon": -97.743884,
 									"stop_id": "3016",
 									"stop_name": "Great Hills/Research",
-									"stop_sequence": 14
+									"stop_sequence": 13
 								}
 							],
 							"stop_id": "5225",
@@ -150,7 +149,7 @@
 									"lon": -97.749877,
 									"stop_id": "3804",
 									"stop_name": "Jollyville/Great Hills",
-									"stop_sequence": 16
+									"stop_sequence": 15
 								},
 								{
 									"direction_id": 0,
@@ -158,7 +157,7 @@
 									"lon": -97.748014,
 									"stop_id": "3806",
 									"stop_name": "Braker/Jollyville",
-									"stop_sequence": 17
+									"stop_sequence": 16
 								},
 								{
 									"direction_id": 0,
@@ -166,7 +165,7 @@
 									"lon": -97.745247,
 									"stop_id": "4688",
 									"stop_name": "Research/Hamilton",
-									"stop_sequence": 18
+									"stop_sequence": 17
 								},
 								{
 									"direction_id": 0,
@@ -174,7 +173,7 @@
 									"lon": -97.744959,
 									"stop_id": "5290",
 									"stop_name": "Research/Seton Center",
-									"stop_sequence": 19
+									"stop_sequence": 18
 								},
 								{
 									"direction_id": 0,
@@ -182,7 +181,7 @@
 									"lon": -97.744632,
 									"stop_id": "3809",
 									"stop_name": "Research/Balcones Woods",
-									"stop_sequence": 20
+									"stop_sequence": 19
 								},
 								{
 									"direction_id": 0,
@@ -190,7 +189,7 @@
 									"lon": -97.745139,
 									"stop_id": "3810",
 									"stop_name": "Research/Windriver Apts",
-									"stop_sequence": 21
+									"stop_sequence": 20
 								},
 								{
 									"direction_id": 0,
@@ -198,7 +197,7 @@
 									"lon": -97.746152,
 									"stop_id": "3811",
 									"stop_name": "Research/Duval",
-									"stop_sequence": 22
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 0,
@@ -206,7 +205,7 @@
 									"lon": -97.75164,
 									"stop_id": "5432",
 									"stop_name": "Research/Riata Trace",
-									"stop_sequence": 23
+									"stop_sequence": 22
 								},
 								{
 									"direction_id": 0,
@@ -214,13 +213,13 @@
 									"lon": -97.75387,
 									"stop_id": "3812",
 									"stop_name": "Research/Riata Apts",
-									"stop_sequence": 24
+									"stop_sequence": 23
 								}
 							],
 							"stop_id": "2726",
 							"stop_name": "Great Hills/Research",
 							"stop_name_full": "9828 Great Hills/Research",
-							"stop_sequence": 15
+							"stop_sequence": 14
 						},
 						{
 							"direction_id": 0,
@@ -233,7 +232,7 @@
 									"lon": -97.75164,
 									"stop_id": "5432",
 									"stop_name": "Research/Riata Trace",
-									"stop_sequence": 26
+									"stop_sequence": 25
 								},
 								{
 									"direction_id": 0,
@@ -241,7 +240,7 @@
 									"lon": -97.75387,
 									"stop_id": "3812",
 									"stop_name": "Research/Riata Apts",
-									"stop_sequence": 27
+									"stop_sequence": 26
 								},
 								{
 									"direction_id": 0,
@@ -249,7 +248,7 @@
 									"lon": -97.76044,
 									"stop_id": "3813",
 									"stop_name": "Research/Oak Knoll",
-									"stop_sequence": 28
+									"stop_sequence": 27
 								},
 								{
 									"direction_id": 0,
@@ -257,7 +256,7 @@
 									"lon": -97.76536,
 									"stop_id": "4690",
 									"stop_name": "Research/Technology",
-									"stop_sequence": 29
+									"stop_sequence": 28
 								},
 								{
 									"direction_id": 0,
@@ -265,7 +264,7 @@
 									"lon": -97.768725,
 									"stop_id": "5671",
 									"stop_name": "Research/Mc Neil",
-									"stop_sequence": 30
+									"stop_sequence": 29
 								},
 								{
 									"direction_id": 0,
@@ -273,7 +272,7 @@
 									"lon": -97.777674,
 									"stop_id": "5649",
 									"stop_name": "Pond Springs/Turtle Rock",
-									"stop_sequence": 31
+									"stop_sequence": 30
 								},
 								{
 									"direction_id": 0,
@@ -281,7 +280,7 @@
 									"lon": -97.788219,
 									"stop_id": "5673",
 									"stop_name": "Anderson Mill/US 183",
-									"stop_sequence": 32
+									"stop_sequence": 31
 								},
 								{
 									"direction_id": 0,
@@ -289,7 +288,7 @@
 									"lon": -97.79324,
 									"stop_id": "4952",
 									"stop_name": "Anderson Mill/US 183",
-									"stop_sequence": 33
+									"stop_sequence": 32
 								},
 								{
 									"direction_id": 0,
@@ -297,7 +296,7 @@
 									"lon": -97.803914,
 									"stop_id": "4953",
 									"stop_name": "Millwright/Missel Thrush",
-									"stop_sequence": 34
+									"stop_sequence": 33
 								},
 								{
 									"direction_id": 0,
@@ -305,13 +304,13 @@
 									"lon": -97.802828,
 									"stop_id": "4954",
 									"stop_name": "Millwright/Old Stage…",
-									"stop_sequence": 35
+									"stop_sequence": 34
 								}
 							],
 							"stop_id": "2727",
 							"stop_name": "Pavilion Park and Ride",
 							"stop_name_full": "Pavilion Park and Ride",
-							"stop_sequence": 25
+							"stop_sequence": 24
 						},
 						{
 							"direction_id": 0,
@@ -324,7 +323,7 @@
 									"lon": -97.803597,
 									"stop_id": "4956",
 									"stop_name": "Lake Creek/Millwright",
-									"stop_sequence": 37
+									"stop_sequence": 36
 								},
 								{
 									"direction_id": 0,
@@ -332,7 +331,7 @@
 									"lon": -97.799056,
 									"stop_id": "4957",
 									"stop_name": "Lake Creek/Hickory Stick",
-									"stop_sequence": 38
+									"stop_sequence": 37
 								},
 								{
 									"direction_id": 0,
@@ -340,7 +339,7 @@
 									"lon": -97.79704,
 									"stop_id": "3818",
 									"stop_name": "Lake Creek/Mellow Meadows",
-									"stop_sequence": 39
+									"stop_sequence": 38
 								},
 								{
 									"direction_id": 0,
@@ -348,7 +347,7 @@
 									"lon": -97.791684,
 									"stop_id": "4654",
 									"stop_name": "Lake Creek/US 183",
-									"stop_sequence": 40
+									"stop_sequence": 39
 								},
 								{
 									"direction_id": 0,
@@ -356,7 +355,7 @@
 									"lon": -97.789238,
 									"stop_id": "5785",
 									"stop_name": "Lake Creek/Hymeadow",
-									"stop_sequence": 41
+									"stop_sequence": 40
 								},
 								{
 									"direction_id": 0,
@@ -364,7 +363,7 @@
 									"lon": -97.787873,
 									"stop_id": "4655",
 									"stop_name": "Lake Creek/Pecan Park",
-									"stop_sequence": 42
+									"stop_sequence": 41
 								},
 								{
 									"direction_id": 0,
@@ -372,7 +371,7 @@
 									"lon": -97.795902,
 									"stop_id": "5653",
 									"stop_name": "Lakeline Mall/Lake Creek",
-									"stop_sequence": 43
+									"stop_sequence": 42
 								},
 								{
 									"direction_id": 0,
@@ -380,7 +379,7 @@
 									"lon": -97.801255,
 									"stop_id": "5428",
 									"stop_name": "Lakeline Mall/Pecan Park",
-									"stop_sequence": 44
+									"stop_sequence": 43
 								},
 								{
 									"direction_id": 0,
@@ -388,7 +387,7 @@
 									"lon": -97.802246,
 									"stop_id": "5222",
 									"stop_name": "Pecan Park/Lakeline Mall",
-									"stop_sequence": 45
+									"stop_sequence": 44
 								},
 								{
 									"direction_id": 0,
@@ -396,7 +395,7 @@
 									"lon": -97.804675,
 									"stop_id": "5881",
 									"stop_name": "Lakeline/US 183",
-									"stop_sequence": 46
+									"stop_sequence": 45
 								},
 								{
 									"direction_id": 0,
@@ -404,7 +403,7 @@
 									"lon": -97.800186,
 									"stop_id": "5654",
 									"stop_name": "Lakeline/US 183",
-									"stop_sequence": 47
+									"stop_sequence": 46
 								},
 								{
 									"direction_id": 0,
@@ -412,13 +411,13 @@
 									"lon": -97.79749,
 									"stop_id": "5805",
 									"stop_name": "Lakeline/North Lake Creek",
-									"stop_sequence": 48
+									"stop_sequence": 47
 								}
 							],
 							"stop_id": "4955",
 							"stop_name": "Millwright/Wendts Way",
 							"stop_name_full": "12221 Millwright/Wendts Way",
-							"stop_sequence": 36
+							"stop_sequence": 35
 						},
 						{
 							"direction_id": 0,
@@ -428,17 +427,17 @@
 							"stop_id": "5229",
 							"stop_name": "Lakeline Station Bay H",
 							"stop_name_full": "Lakeline Station Bay H",
-							"stop_sequence": 49
+							"stop_sequence": 48
 						}
 					]
 				},
 				"383-0-507c0db8": {
 					"direction_id": 0,
 					"pattern_id": "383-0-507c0db8",
-					"representative_trip_id": "3004935_14491",
+					"representative_trip_id": "3004935_14028",
 					"service_ids": [
-						"15-172",
-						"16-172"
+						"14-172",
+						"15-172"
 					],
 					"stop_count": 26,
 					"timepoint_count": 4,
@@ -667,12 +666,11 @@
 				"383-0-c8b1883f": {
 					"direction_id": 0,
 					"pattern_id": "383-0-c8b1883f",
-					"representative_trip_id": "3004899_14303",
+					"representative_trip_id": "3004899_13730",
 					"service_ids": [
-						"1-172",
-						"10-172",
-						"11-172",
-						"14-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 50,
 					"timepoint_count": 6,
@@ -1097,8 +1095,8 @@
 					]
 				}
 			},
-			"stop_count": 50,
-			"timepoint_count": 6
+			"stop_count": 48,
+			"timepoint_count": 5
 		},
 		{
 			"baseline_by_service": {
@@ -1115,7 +1113,7 @@
 				"383-1-4c0c7ff4": {
 					"direction_id": 1,
 					"pattern_id": "383-1-4c0c7ff4",
-					"representative_trip_id": "3004980_14617",
+					"representative_trip_id": "3004980_14154",
 					"service_ids": [
 						"15-172",
 						"16-172"
@@ -1307,7 +1305,7 @@
 				"383-1-77f3ad7f": {
 					"direction_id": 1,
 					"pattern_id": "383-1-77f3ad7f",
-					"representative_trip_id": "3004943_14499",
+					"representative_trip_id": "3004943_14036",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -1676,7 +1674,7 @@
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "383",
 	"schema": 1
 }

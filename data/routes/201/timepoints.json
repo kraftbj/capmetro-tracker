@@ -18,7 +18,7 @@
 				"201-0-3418dcc8": {
 					"direction_id": 0,
 					"pattern_id": "201-0-3418dcc8",
-					"representative_trip_id": "2999808_4115",
+					"representative_trip_id": "2999808_4111",
 					"service_ids": [
 						"1-172",
 						"3-172",
@@ -105,7 +105,7 @@
 				"201-0-7ff107df": {
 					"direction_id": 0,
 					"pattern_id": "201-0-7ff107df",
-					"representative_trip_id": "2999808_4117",
+					"representative_trip_id": "2999808_4109",
 					"service_ids": [
 						"2-172",
 						"5-172",
@@ -213,7 +213,7 @@
 				"201-1-08681e6f": {
 					"direction_id": 1,
 					"pattern_id": "201-1-08681e6f",
-					"representative_trip_id": "2999839_4037",
+					"representative_trip_id": "2999839_4031",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -346,7 +346,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "201",
 	"schema": 1
 }

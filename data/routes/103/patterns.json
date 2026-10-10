@@ -2,109 +2,35 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "103-0-40fc50b4",
+				"1-172": "103-0-5d6f9d7d",
 				"2-172": "103-0-5d6f9d7d",
-				"3-172": "103-0-40fc50b4",
-				"4-172": "103-0-40fc50b4"
+				"3-172": "103-0-5d6f9d7d",
+				"4-172": "103-0-5d6f9d7d"
 			},
-			"baseline_pattern_id": "103-0-40fc50b4",
+			"baseline_pattern_id": "103-0-5d6f9d7d",
 			"baseline_pattern_ids": [
-				"103-0-40fc50b4",
 				"103-0-5d6f9d7d"
 			],
-			"baseline_stable": false,
+			"baseline_stable": true,
 			"direction_id": 0,
-			"pattern_count": 2,
+			"pattern_count": 1,
 			"patterns": [
 				{
 					"deltas": {
-						"103-0-40fc50b4": {
-							"adds": [],
-							"skips": []
-						},
 						"103-0-5d6f9d7d": {
 							"adds": [],
-							"skips": [
-								{
-									"stop_id": "1178",
-									"stop_name": "San Jacinto/24th"
-								}
-							]
+							"skips": []
 						}
 					},
 					"direction_id": 0,
 					"is_baseline": true,
 					"is_baseline_for_services": [
 						"1-172",
+						"2-172",
 						"3-172",
 						"4-172"
 					],
 					"is_special": false,
-					"pattern_id": "103-0-40fc50b4",
-					"stop_count": 27,
-					"stop_ids": [
-						"1180",
-						"916",
-						"919",
-						"6499",
-						"5937",
-						"5938",
-						"5499",
-						"2321",
-						"2650",
-						"734",
-						"742",
-						"743",
-						"744",
-						"745",
-						"3177",
-						"4430",
-						"5478",
-						"2652",
-						"2653",
-						"2654",
-						"2656",
-						"2657",
-						"2660",
-						"2661",
-						"5750",
-						"2663",
-						"4412"
-					],
-					"trip_ids": [
-						"2998492_1462",
-						"2998492_1463",
-						"2998492_1464"
-					],
-					"trips_by_service": {
-						"1-172": 1,
-						"3-172": 1,
-						"4-172": 1
-					},
-					"trips_in_pattern": 3
-				},
-				{
-					"deltas": {
-						"103-0-40fc50b4": {
-							"adds": [
-								{
-									"stop_id": "1178",
-									"stop_name": "San Jacinto/24th"
-								}
-							],
-							"skips": []
-						},
-						"103-0-5d6f9d7d": {
-							"adds": [],
-							"skips": []
-						}
-					},
-					"direction_id": 0,
-					"is_baseline": false,
-					"is_baseline_for_services": [
-						"2-172"
-					],
-					"is_special": true,
 					"pattern_id": "103-0-5d6f9d7d",
 					"stop_count": 28,
 					"stop_ids": [
@@ -138,12 +64,18 @@
 						"4412"
 					],
 					"trip_ids": [
-						"2998492_1461"
+						"2998492_1461",
+						"2998492_1462",
+						"2998492_1463",
+						"2998492_1464"
 					],
 					"trips_by_service": {
-						"2-172": 1
+						"1-172": 1,
+						"2-172": 1,
+						"3-172": 1,
+						"4-172": 1
 					},
-					"trips_in_pattern": 1
+					"trips_in_pattern": 4
 				}
 			],
 			"trip_count": 4
@@ -234,7 +166,7 @@
 			"trip_count": 8
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "103",
 	"schema": 1
 }

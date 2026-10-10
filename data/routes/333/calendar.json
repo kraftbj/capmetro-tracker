@@ -1,286 +1,34 @@
 {
-	"date_count": 137,
+	"date_count": 95,
 	"dates": {
-		"20260826": {
+		"20261007": {
 			"is_exception_day": true,
 			"service_ids": [
 				"1-172"
 			]
 		},
-		"20260827": {
+		"20261008": {
 			"is_exception_day": true,
 			"service_ids": [
 				"3-172"
 			]
 		},
-		"20260828": {
+		"20261009": {
 			"is_exception_day": true,
 			"service_ids": [
 				"4-172"
 			]
 		},
-		"20260829": {
+		"20261010": {
 			"is_exception_day": true,
 			"service_ids": [
 				"6-172"
 			]
 		},
-		"20260830": {
+		"20261011": {
 			"is_exception_day": true,
 			"service_ids": [
 				"8-172"
-			]
-		},
-		"20260831": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260901": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260902": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260903": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260904": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260905": {
-			"is_exception_day": false,
-			"service_ids": [
-				"5-172"
-			]
-		},
-		"20260906": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
-			]
-		},
-		"20260907": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
-			]
-		},
-		"20260908": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260909": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260910": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260911": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260912": {
-			"is_exception_day": false,
-			"service_ids": [
-				"5-172"
-			]
-		},
-		"20260913": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
-			]
-		},
-		"20260914": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260915": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260916": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260917": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260918": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260919": {
-			"is_exception_day": false,
-			"service_ids": [
-				"5-172"
-			]
-		},
-		"20260920": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
-			]
-		},
-		"20260921": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260922": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260923": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260924": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260925": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260926": {
-			"is_exception_day": false,
-			"service_ids": [
-				"5-172"
-			]
-		},
-		"20260927": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
-			]
-		},
-		"20260928": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260929": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20260930": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261001": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261002": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261003": {
-			"is_exception_day": false,
-			"service_ids": [
-				"5-172"
-			]
-		},
-		"20261004": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
-			]
-		},
-		"20261005": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261006": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261007": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261008": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261009": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261010": {
-			"is_exception_day": false,
-			"service_ids": [
-				"5-172"
-			]
-		},
-		"20261011": {
-			"is_exception_day": false,
-			"service_ids": [
-				"7-172"
 			]
 		},
 		"20261012": {
@@ -825,13 +573,13 @@
 		}
 	},
 	"exception_dates": [
-		"20260826",
-		"20260827",
-		"20260828",
-		"20260829",
-		"20260830"
+		"20261007",
+		"20261008",
+		"20261009",
+		"20261010",
+		"20261011"
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "333",
 	"schema": 1,
 	"service_ids": [

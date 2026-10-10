@@ -2,230 +2,22 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "837-0-3f1d5f45",
-				"2-172": "837-0-4ddb3e8e",
-				"3-172": "837-0-3f1d5f45",
-				"4-172": "837-0-3f1d5f45",
-				"5-172": "837-0-4ddb3e8e",
-				"6-172": "837-0-3f1d5f45",
-				"7-172": "837-0-4ddb3e8e",
-				"8-172": "837-0-3f1d5f45"
+				"10-172": "837-0-4ddb3e8e",
+				"11-172": "837-0-4ddb3e8e",
+				"9-172": "837-0-4ddb3e8e"
 			},
-			"baseline_pattern_id": "837-0-3f1d5f45",
-			"baseline_stable": false,
+			"baseline_pattern_id": "837-0-4ddb3e8e",
+			"baseline_stable": true,
 			"direction_id": 0,
 			"ladders": {
-				"837-0-3f1d5f45": {
-					"direction_id": 0,
-					"pattern_id": "837-0-3f1d5f45",
-					"representative_trip_id": "3012106_24592",
-					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
-						"6-172",
-						"8-172"
-					],
-					"stop_count": 22,
-					"timepoint_count": 4,
-					"timepoints": [
-						{
-							"direction_id": 0,
-							"lat": 30.294247,
-							"lon": -97.625006,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.297971,
-									"lon": -97.64216,
-									"stop_id": "2282",
-									"stop_name": "Colony Park SB",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.300569,
-									"lon": -97.648626,
-									"stop_id": "5644",
-									"stop_name": "Johnny Morris SB",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.308573,
-									"lon": -97.652374,
-									"stop_id": "1614",
-									"stop_name": "Purple Sage SB",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.314638,
-									"lon": -97.655825,
-									"stop_id": "1616",
-									"stop_name": "LBJ High School SB",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.317947,
-									"lon": -97.659681,
-									"stop_id": "1618",
-									"stop_name": "Delco Center SB",
-									"stop_sequence": 6
-								}
-							],
-							"stop_id": "6551",
-							"stop_name": "Expo Center Bay D",
-							"stop_name_full": "Expo Center Bay D",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.31337,
-							"lon": -97.665007,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.3085,
-									"lon": -97.671213,
-									"stop_id": "1622",
-									"stop_name": "University Hills SB",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.304383,
-									"lon": -97.681613,
-									"stop_id": "1627",
-									"stop_name": "Manor at Rogge SB",
-									"stop_sequence": 9
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.298358,
-									"lon": -97.687017,
-									"stop_id": "1631",
-									"stop_name": "51st/Manor SB",
-									"stop_sequence": 10
-								}
-							],
-							"stop_id": "6494",
-							"stop_name": "Springdale Center SB",
-							"stop_name_full": "Springdale Center SB (Manor/Susquehanna)",
-							"stop_sequence": 7
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.302693,
-							"lon": -97.699868,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.296149,
-									"lon": -97.700385,
-									"stop_id": "6293",
-									"stop_name": "Simond SB",
-									"stop_sequence": 12
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.290214,
-									"lon": -97.699019,
-									"stop_id": "6291",
-									"stop_name": "Mueller Tower Station SB",
-									"stop_sequence": 13
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.286266,
-									"lon": -97.707029,
-									"stop_id": "6497",
-									"stop_name": "Manor WB",
-									"stop_sequence": 14
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.285663,
-									"lon": -97.710921,
-									"stop_id": "1639",
-									"stop_name": "Alexander SB",
-									"stop_sequence": 15
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.284554,
-									"lon": -97.717984,
-									"stop_id": "1642",
-									"stop_name": "Cherrywood SB",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.285506,
-									"lon": -97.733782,
-									"stop_id": "1179",
-									"stop_name": "UT Stadium SB",
-									"stop_sequence": 17
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.277723,
-									"lon": -97.736643,
-									"stop_id": "916",
-									"stop_name": "Medical School SB",
-									"stop_sequence": 18
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.271368,
-									"lon": -97.739026,
-									"stop_id": "6499",
-									"stop_name": "Capitol/Waterloo SB",
-									"stop_sequence": 19
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.268964,
-									"lon": -97.739881,
-									"stop_id": "6501",
-									"stop_name": "8th Street SB",
-									"stop_sequence": 20
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.266258,
-									"lon": -97.740904,
-									"stop_id": "6502",
-									"stop_name": "Brush Square SB",
-									"stop_sequence": 21
-								}
-							],
-							"stop_id": "5926",
-							"stop_name": "Barbara Jordan SB",
-							"stop_name_full": "Barbara Jordan SB (Berkman/Barbara Jordan)",
-							"stop_sequence": 11
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.268054,
-							"lon": -97.74679,
-							"minor_stops": [],
-							"stop_id": "2112",
-							"stop_name": "5th/Guadalupe",
-							"stop_name_full": "5th/Guadalupe (Republic Square)",
-							"stop_sequence": 22
-						}
-					]
-				},
 				"837-0-4ddb3e8e": {
 					"direction_id": 0,
 					"pattern_id": "837-0-4ddb3e8e",
-					"representative_trip_id": "3012106_24576",
+					"representative_trip_id": "3012106_24551",
 					"service_ids": [
-						"2-172",
-						"5-172",
-						"7-172"
+						"10-172",
+						"11-172",
+						"9-172"
 					],
 					"stop_count": 23,
 					"timepoint_count": 5,
@@ -431,8 +223,8 @@
 					]
 				}
 			},
-			"stop_count": 22,
-			"timepoint_count": 4
+			"stop_count": 23,
+			"timepoint_count": 5
 		},
 		{
 			"baseline_by_service": {
@@ -447,7 +239,7 @@
 				"837-1-836a592f": {
 					"direction_id": 1,
 					"pattern_id": "837-1-836a592f",
-					"representative_trip_id": "3012203_24356",
+					"representative_trip_id": "3012203_24331",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -669,7 +461,7 @@
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "837",
 	"schema": 1
 }

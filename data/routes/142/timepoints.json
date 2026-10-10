@@ -14,7 +14,7 @@
 				"142-0-53064afc": {
 					"direction_id": 0,
 					"pattern_id": "142-0-53064afc",
-					"representative_trip_id": "2998646_1502",
+					"representative_trip_id": "2998646_1496",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -354,7 +354,7 @@
 				"142-1-e6e7208f": {
 					"direction_id": 1,
 					"pattern_id": "142-1-e6e7208f",
-					"representative_trip_id": "2998648_1509",
+					"representative_trip_id": "2998648_1503",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -459,8 +459,8 @@
 								}
 							],
 							"stop_id": "3900",
-							"stop_name": "Amhearst/Duval",
-							"stop_name_full": "12001 Amhearst/Duval",
+							"stop_name": "Amherst/Duval",
+							"stop_name_full": "12001 Amherst/Duval",
 							"stop_sequence": 1
 						},
 						{
@@ -558,8 +558,8 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.365154,
-									"lon": -97.701513,
+									"lat": 30.365114,
+									"lon": -97.701426,
 									"stop_id": "2582",
 									"stop_name": "Rundberg/Collinfield",
 									"stop_sequence": 25
@@ -689,7 +689,7 @@
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "142",
 	"schema": 1
 }

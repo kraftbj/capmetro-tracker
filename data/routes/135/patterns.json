@@ -54,32 +54,19 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "135-1-ec8762e8",
-				"2-172": "135-1-15008966",
-				"3-172": "135-1-ec8762e8",
-				"4-172": "135-1-ec8762e8"
+				"9-172": "135-1-15008966"
 			},
-			"baseline_pattern_id": "135-1-ec8762e8",
+			"baseline_pattern_id": "135-1-15008966",
 			"baseline_pattern_ids": [
-				"135-1-15008966",
-				"135-1-ec8762e8"
+				"135-1-15008966"
 			],
-			"baseline_stable": false,
+			"baseline_stable": true,
 			"direction_id": 1,
-			"pattern_count": 2,
+			"pattern_count": 1,
 			"patterns": [
 				{
 					"deltas": {
 						"135-1-15008966": {
-							"adds": [],
-							"skips": [
-								{
-									"stop_id": "3298",
-									"stop_name": "Airport/12th"
-								}
-							]
-						},
-						"135-1-ec8762e8": {
 							"adds": [],
 							"skips": []
 						}
@@ -87,60 +74,9 @@
 					"direction_id": 1,
 					"is_baseline": true,
 					"is_baseline_for_services": [
-						"1-172",
-						"3-172",
-						"4-172"
+						"9-172"
 					],
 					"is_special": false,
-					"pattern_id": "135-1-ec8762e8",
-					"stop_count": 8,
-					"stop_ids": [
-						"5274",
-						"4671",
-						"3291",
-						"3295",
-						"3296",
-						"3299",
-						"3300",
-						"1349"
-					],
-					"trip_ids": [
-						"2998578_1493",
-						"2998578_1497",
-						"2998578_1499",
-						"2998579_1494",
-						"2998579_1498",
-						"2998579_1500"
-					],
-					"trips_by_service": {
-						"1-172": 2,
-						"3-172": 2,
-						"4-172": 2
-					},
-					"trips_in_pattern": 6
-				},
-				{
-					"deltas": {
-						"135-1-15008966": {
-							"adds": [],
-							"skips": []
-						},
-						"135-1-ec8762e8": {
-							"adds": [
-								{
-									"stop_id": "3298",
-									"stop_name": "Airport/12th"
-								}
-							],
-							"skips": []
-						}
-					},
-					"direction_id": 1,
-					"is_baseline": false,
-					"is_baseline_for_services": [
-						"2-172"
-					],
-					"is_special": true,
 					"pattern_id": "135-1-15008966",
 					"stop_count": 9,
 					"stop_ids": [
@@ -155,19 +91,19 @@
 						"1349"
 					],
 					"trip_ids": [
-						"2998578_1495",
-						"2998579_1496"
+						"2998578_1493",
+						"2998579_1494"
 					],
 					"trips_by_service": {
-						"2-172": 2
+						"9-172": 2
 					},
 					"trips_in_pattern": 2
 				}
 			],
-			"trip_count": 8
+			"trip_count": 2
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "135",
 	"schema": 1
 }

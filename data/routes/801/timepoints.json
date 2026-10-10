@@ -13,7 +13,7 @@
 				"801-0-ac0e59c0": {
 					"direction_id": 0,
 					"pattern_id": "801-0-ac0e59c0",
-					"representative_trip_id": "3011189_23274",
+					"representative_trip_id": "3011189_23041",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -56,8 +56,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.205395,
-									"lon": -97.774493,
+									"lat": 30.205242,
+									"lon": -97.774527,
 									"stop_id": "6525",
 									"stop_name": "Stassney NB Rapid",
 									"stop_sequence": 5
@@ -313,7 +313,7 @@
 				"801-1-4bb65e3d": {
 					"direction_id": 1,
 					"pattern_id": "801-1-4bb65e3d",
-					"representative_trip_id": "3011285_23495",
+					"representative_trip_id": "3011285_23242",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -609,7 +609,7 @@
 			"timepoint_count": 11
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "801",
 	"schema": 1
 }

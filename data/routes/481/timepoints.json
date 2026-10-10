@@ -16,7 +16,7 @@
 				"481-0-57cf4571": {
 					"direction_id": 0,
 					"pattern_id": "481-0-57cf4571",
-					"representative_trip_id": "3005814_15881",
+					"representative_trip_id": "3005814_15219",
 					"service_ids": [
 						"2-172",
 						"5-172"
@@ -330,8 +330,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.365154,
-									"lon": -97.701513,
+									"lat": 30.365114,
+									"lon": -97.701426,
 									"stop_id": "2582",
 									"stop_name": "Rundberg/Collinfield",
 									"stop_sequence": 39
@@ -365,7 +365,7 @@
 				"481-0-eceaa6eb": {
 					"direction_id": 0,
 					"pattern_id": "481-0-eceaa6eb",
-					"representative_trip_id": "3005814_15884",
+					"representative_trip_id": "3005814_15216",
 					"service_ids": [
 						"1-172",
 						"3-172",
@@ -673,8 +673,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.365154,
-									"lon": -97.701513,
+									"lat": 30.365114,
+									"lon": -97.701426,
 									"stop_id": "2582",
 									"stop_name": "Rundberg/Collinfield",
 									"stop_sequence": 38
@@ -725,7 +725,7 @@
 				"481-1-a7e78b25": {
 					"direction_id": 1,
 					"pattern_id": "481-1-a7e78b25",
-					"representative_trip_id": "3005823_15936",
+					"representative_trip_id": "3005823_15271",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -1011,7 +1011,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "481",
 	"schema": 1
 }

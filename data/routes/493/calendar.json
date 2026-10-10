@@ -1,120 +1,90 @@
 {
-	"date_count": 18,
+	"date_count": 13,
 	"dates": {
-		"20260831": {
-			"is_exception_day": false,
-			"service_ids": [
-				"21-172"
-			]
-		},
-		"20260914": {
-			"is_exception_day": false,
-			"service_ids": [
-				"21-172"
-			]
-		},
-		"20260921": {
-			"is_exception_day": false,
-			"service_ids": [
-				"21-172"
-			]
-		},
-		"20260928": {
-			"is_exception_day": false,
-			"service_ids": [
-				"21-172"
-			]
-		},
-		"20261005": {
-			"is_exception_day": false,
-			"service_ids": [
-				"21-172"
-			]
-		},
 		"20261012": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261019": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261026": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261102": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261109": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261116": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261123": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261130": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261207": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261214": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261221": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20261228": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		},
 		"20270104": {
 			"is_exception_day": false,
 			"service_ids": [
-				"21-172"
+				"20-172"
 			]
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "493",
 	"schema": 1,
 	"service_ids": [
-		"21-172"
+		"20-172"
 	]
 }

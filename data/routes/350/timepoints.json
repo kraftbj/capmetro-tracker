@@ -13,7 +13,7 @@
 				"350-0-c935ba64": {
 					"direction_id": 0,
 					"pattern_id": "350-0-c935ba64",
-					"representative_trip_id": "3004697_13930",
+					"representative_trip_id": "3004697_13522",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -246,10 +246,10 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.312952,
-									"lon": -97.715184,
+									"lat": 30.312422,
+									"lon": -97.715229,
 									"stop_id": "1794",
-									"stop_name": "Airport/52nd",
+									"stop_name": "AIRPORT/51st",
 									"stop_sequence": 28
 								},
 								{
@@ -356,361 +356,22 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "350-1-69f62270",
-				"2-172": "350-1-ae4f0649",
-				"3-172": "350-1-69f62270",
-				"4-172": "350-1-69f62270",
-				"5-172": "350-1-ae4f0649",
-				"6-172": "350-1-69f62270",
-				"7-172": "350-1-ae4f0649",
-				"8-172": "350-1-69f62270"
+				"10-172": "350-1-ae4f0649",
+				"11-172": "350-1-ae4f0649",
+				"9-172": "350-1-ae4f0649"
 			},
-			"baseline_pattern_id": "350-1-69f62270",
-			"baseline_stable": false,
+			"baseline_pattern_id": "350-1-ae4f0649",
+			"baseline_stable": true,
 			"direction_id": 1,
 			"ladders": {
-				"350-1-69f62270": {
-					"direction_id": 1,
-					"pattern_id": "350-1-69f62270",
-					"representative_trip_id": "3004732_14031",
-					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
-						"6-172",
-						"8-172"
-					],
-					"stop_count": 38,
-					"timepoint_count": 5,
-					"timepoints": [
-						{
-							"direction_id": 1,
-							"lat": 30.350167,
-							"lon": -97.712099,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.346044,
-									"lon": -97.713966,
-									"stop_id": "471",
-									"stop_name": "Lamar/Stobaugh",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.343739,
-									"lon": -97.715301,
-									"stop_id": "472",
-									"stop_name": "Lamar/Morrow",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.34127,
-									"lon": -97.71682,
-									"stop_id": "1296",
-									"stop_name": "Lamar/Sugaree",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.336206,
-									"lon": -97.718248,
-									"stop_id": "2877",
-									"stop_name": "Airport/Lamar",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.333535,
-									"lon": -97.716863,
-									"stop_id": "5510",
-									"stop_name": "Airport/Guadalupe",
-									"stop_sequence": 6
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.328339,
-									"lon": -97.716081,
-									"stop_id": "5603",
-									"stop_name": "Airport Blvd",
-									"stop_sequence": 7
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.323416,
-									"lon": -97.71554,
-									"stop_id": "6526",
-									"stop_name": "Airport at Clayton SB",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.321647,
-									"lon": -97.71395,
-									"stop_id": "5625",
-									"stop_name": "Airport/Koenig",
-									"stop_sequence": 9
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.316608,
-									"lon": -97.713996,
-									"stop_id": "5372",
-									"stop_name": "Airport/55th",
-									"stop_sequence": 10
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.314679,
-									"lon": -97.714927,
-									"stop_id": "5415",
-									"stop_name": "Airport/53rd",
-									"stop_sequence": 11
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.311873,
-									"lon": -97.715492,
-									"stop_id": "5684",
-									"stop_name": "Airport/51st",
-									"stop_sequence": 12
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.305103,
-									"lon": -97.716029,
-									"stop_id": "3290",
-									"stop_name": "Airport/46th",
-									"stop_sequence": 13
-								}
-							],
-							"stop_id": "5226",
-							"stop_name": "North Lamar Bay 2",
-							"stop_name_full": "North Lamar Bay 2",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.299909,
-							"lon": -97.712142,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.297973,
-									"lon": -97.709321,
-									"stop_id": "5796",
-									"stop_name": "Airport/Wilshire",
-									"stop_sequence": 15
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.291604,
-									"lon": -97.707379,
-									"stop_id": "6531",
-									"stop_name": "Airport/Antone",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.288136,
-									"lon": -97.707262,
-									"stop_id": "3293",
-									"stop_name": "Airport/38th Half",
-									"stop_sequence": 17
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.285561,
-									"lon": -97.706075,
-									"stop_id": "3295",
-									"stop_name": "Airport/Manor",
-									"stop_sequence": 18
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.282694,
-									"lon": -97.704222,
-									"stop_id": "3296",
-									"stop_name": "Airport/Martin Luther…",
-									"stop_sequence": 19
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.279033,
-									"lon": -97.701939,
-									"stop_id": "3297",
-									"stop_name": "Airport/14th Half",
-									"stop_sequence": 20
-								}
-							],
-							"stop_id": "3291",
-							"stop_name": "Airport/Crestwood",
-							"stop_name_full": "4328 Airport/Crestwood",
-							"stop_sequence": 14
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.27252,
-							"lon": -97.69775,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.26833,
-									"lon": -97.69643,
-									"stop_id": "3300",
-									"stop_name": "Airport/Goodwin",
-									"stop_sequence": 22
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.264908,
-									"lon": -97.695452,
-									"stop_id": "5100",
-									"stop_name": "Airport/Springdale",
-									"stop_sequence": 23
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.25936,
-									"lon": -97.69377,
-									"stop_id": "3302",
-									"stop_name": "Airport/Shady Lane",
-									"stop_sequence": 24
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.25446,
-									"lon": -97.6928,
-									"stop_id": "3303",
-									"stop_name": "Airport/Glissman",
-									"stop_sequence": 25
-								}
-							],
-							"stop_id": "3299",
-							"stop_name": "Airport/Oak Springs",
-							"stop_name_full": "1144 Airport/Oak Springs",
-							"stop_sequence": 21
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.251947,
-							"lon": -97.69846,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.242008,
-									"lon": -97.692486,
-									"stop_id": "3304",
-									"stop_name": "Montopolis/Del Monte",
-									"stop_sequence": 27
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.238732,
-									"lon": -97.694736,
-									"stop_id": "3306",
-									"stop_name": "Montopolis/Walker",
-									"stop_sequence": 28
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.237009,
-									"lon": -97.695757,
-									"stop_id": "5749",
-									"stop_name": "Montopolis/Ponca",
-									"stop_sequence": 29
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.235454,
-									"lon": -97.696831,
-									"stop_id": "3308",
-									"stop_name": "Montopolis/Felix",
-									"stop_sequence": 30
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.232434,
-									"lon": -97.698769,
-									"stop_id": "834",
-									"stop_name": "Montopolis/Larch",
-									"stop_sequence": 31
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229409,
-									"lon": -97.700695,
-									"stop_id": "3310",
-									"stop_name": "Montopolis/Marigold",
-									"stop_sequence": 32
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.22735,
-									"lon": -97.702007,
-									"stop_id": "5191",
-									"stop_name": "Montopolis/Caddie",
-									"stop_sequence": 33
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.225821,
-									"lon": -97.702985,
-									"stop_id": "3311",
-									"stop_name": "Montopolis/Kasper",
-									"stop_sequence": 34
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.226586,
-									"lon": -97.706711,
-									"stop_id": "951",
-									"stop_name": "Riverside/Clubview",
-									"stop_sequence": 35
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.230394,
-									"lon": -97.70616,
-									"stop_id": "5043",
-									"stop_name": "Grove/Fairway",
-									"stop_sequence": 36
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.235008,
-									"lon": -97.704179,
-									"stop_id": "953",
-									"stop_name": "Grove",
-									"stop_sequence": 37
-								}
-							],
-							"stop_id": "6242",
-							"stop_name": "Shady/5th",
-							"stop_name_full": "408 Shady/5th",
-							"stop_sequence": 26
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.23618,
-							"lon": -97.703723,
-							"minor_stops": [],
-							"stop_id": "6439",
-							"stop_name": "ACC Riverside @ Grove",
-							"stop_name_full": "ACC Riverside  @ Grove",
-							"stop_sequence": 38
-						}
-					]
-				},
 				"350-1-ae4f0649": {
 					"direction_id": 1,
 					"pattern_id": "350-1-ae4f0649",
-					"representative_trip_id": "3004732_14035",
+					"representative_trip_id": "3004732_13623",
 					"service_ids": [
-						"2-172",
-						"5-172",
-						"7-172"
+						"10-172",
+						"11-172",
+						"9-172"
 					],
 					"stop_count": 39,
 					"timepoint_count": 5,
@@ -786,8 +447,8 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.316608,
-									"lon": -97.713996,
+									"lat": 30.316604,
+									"lon": -97.713974,
 									"stop_id": "5372",
 									"stop_name": "Airport/55th",
 									"stop_sequence": 10
@@ -1044,11 +705,11 @@
 					]
 				}
 			},
-			"stop_count": 38,
+			"stop_count": 39,
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "350",
 	"schema": 1
 }

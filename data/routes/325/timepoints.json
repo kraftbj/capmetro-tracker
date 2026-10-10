@@ -13,7 +13,7 @@
 				"325-0-87cf18ed": {
 					"direction_id": 0,
 					"pattern_id": "325-0-87cf18ed",
-					"representative_trip_id": "3003294_11127",
+					"representative_trip_id": "3003294_11033",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -211,8 +211,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.365154,
-									"lon": -97.701513,
+									"lat": 30.365114,
+									"lon": -97.701426,
 									"stop_id": "2582",
 									"stop_name": "Rundberg/Collinfield",
 									"stop_sequence": 24
@@ -284,29 +284,29 @@
 						},
 						{
 							"direction_id": 0,
-							"lat": 30.352431,
-							"lon": -97.678907,
+							"lat": 30.352394,
+							"lon": -97.678846,
 							"minor_stops": [
 								{
 									"direction_id": 0,
-									"lat": 30.351084,
-									"lon": -97.676723,
+									"lat": 30.351101,
+									"lon": -97.676743,
 									"stop_id": "3135",
 									"stop_name": "Rundberg/Cameron",
 									"stop_sequence": 33
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.345722,
-									"lon": -97.677709,
+									"lat": 30.345588,
+									"lon": -97.67769,
 									"stop_id": "3136",
 									"stop_name": "Cameron/Ferguson",
 									"stop_sequence": 34
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.343921,
-									"lon": -97.678615,
+									"lat": 30.343779,
+									"lon": -97.678665,
 									"stop_id": "4557",
 									"stop_name": "Cameron/Cross Park",
 									"stop_sequence": 35
@@ -330,7 +330,7 @@
 							],
 							"stop_id": "3134",
 							"stop_name": "Rundberg/Aberdeen",
-							"stop_name_full": "1401 Rundberg/Aberdeen",
+							"stop_name_full": "1345 Rundberg/Aberdeen",
 							"stop_sequence": 32
 						},
 						{
@@ -362,7 +362,7 @@
 				"325-1-8c724ba5": {
 					"direction_id": 1,
 					"pattern_id": "325-1-8c724ba5",
-					"representative_trip_id": "3003358_10993",
+					"representative_trip_id": "3003358_10899",
 					"service_ids": [
 						"10-172",
 						"11-172",
@@ -424,8 +424,8 @@
 						},
 						{
 							"direction_id": 1,
-							"lat": 30.35278,
-							"lon": -97.679102,
+							"lat": 30.352812,
+							"lon": -97.679167,
 							"minor_stops": [
 								{
 									"direction_id": 1,
@@ -723,7 +723,7 @@
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "325",
 	"schema": 1
 }

@@ -18,7 +18,7 @@
 				"18-0-f6d404e0": {
 					"direction_id": 0,
 					"pattern_id": "18-0-f6d404e0",
-					"representative_trip_id": "2998856_1565",
+					"representative_trip_id": "2998856_1559",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -229,8 +229,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.285183,
-									"lon": -97.681314,
+									"lat": 30.285434,
+									"lon": -97.681841,
 									"stop_id": "5636",
 									"stop_name": "Heflin/Springdale",
 									"stop_sequence": 25
@@ -385,7 +385,7 @@
 				"18-1-aa2c54dd": {
 					"direction_id": 1,
 					"pattern_id": "18-1-aa2c54dd",
-					"representative_trip_id": "2998893_1849",
+					"representative_trip_id": "2998893_1848",
 					"service_ids": [
 						"1-172",
 						"3-172",
@@ -500,8 +500,8 @@
 						},
 						{
 							"direction_id": 1,
-							"lat": 30.285871,
-							"lon": -97.683018,
+							"lat": 30.285863,
+							"lon": -97.683155,
 							"minor_stops": [
 								{
 									"direction_id": 1,
@@ -529,8 +529,8 @@
 								}
 							],
 							"stop_id": "898",
-							"stop_name": "Martin Luther King/…",
-							"stop_name_full": "4600 Martin Luther King/Springdale",
+							"stop_name": "MARTIN LUTHER KING/…",
+							"stop_name_full": "4850 MARTIN LUTHER KING/SPRINGDALE",
 							"stop_sequence": 13
 						},
 						{
@@ -738,7 +738,7 @@
 				"18-1-e226978a": {
 					"direction_id": 1,
 					"pattern_id": "18-1-e226978a",
-					"representative_trip_id": "2998893_1854",
+					"representative_trip_id": "2998893_1843",
 					"service_ids": [
 						"2-172",
 						"5-172",
@@ -859,8 +859,8 @@
 						},
 						{
 							"direction_id": 1,
-							"lat": 30.285871,
-							"lon": -97.683018,
+							"lat": 30.285863,
+							"lon": -97.683155,
 							"minor_stops": [
 								{
 									"direction_id": 1,
@@ -888,8 +888,8 @@
 								}
 							],
 							"stop_id": "898",
-							"stop_name": "Martin Luther King/…",
-							"stop_name_full": "4600 Martin Luther King/Springdale",
+							"stop_name": "MARTIN LUTHER KING/…",
+							"stop_name_full": "4850 MARTIN LUTHER KING/SPRINGDALE",
 							"stop_sequence": 14
 						},
 						{
@@ -1099,7 +1099,7 @@
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "18",
 	"schema": 1
 }

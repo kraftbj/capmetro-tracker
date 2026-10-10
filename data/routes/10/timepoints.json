@@ -19,7 +19,7 @@
 				"10-0-a68e05de": {
 					"direction_id": 0,
 					"pattern_id": "10-0-a68e05de",
-					"representative_trip_id": "2998304_1414",
+					"representative_trip_id": "2998304_1408",
 					"service_ids": [
 						"1-172",
 						"3-172",
@@ -128,8 +128,8 @@
 							"minor_stops": [
 								{
 									"direction_id": 0,
-									"lat": 30.309342,
-									"lon": -97.695539,
+									"lat": 30.309388,
+									"lon": -97.695533,
 									"stop_id": "1319",
 									"stop_name": "Berkman/Cloverleaf",
 									"stop_sequence": 13
@@ -380,8 +380,8 @@
 						},
 						{
 							"direction_id": 0,
-							"lat": 30.239928,
-							"lon": -97.761138,
+							"lat": 30.239923,
+							"lon": -97.76112,
 							"minor_stops": [
 								{
 									"direction_id": 0,
@@ -393,8 +393,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.232131,
-									"lon": -97.766035,
+									"lat": 30.232244,
+									"lon": -97.765949,
 									"stop_id": "1667",
 									"stop_name": "S 1st/Cardinal",
 									"stop_sequence": 45
@@ -417,10 +417,10 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.225333,
-									"lon": -97.770328,
+									"lat": 30.224071,
+									"lon": -97.771105,
 									"stop_id": "1671",
-									"stop_name": "S 1st/Ben White",
+									"stop_name": "S 1ST/Radam",
 									"stop_sequence": 48
 								},
 								{
@@ -449,8 +449,8 @@
 								}
 							],
 							"stop_id": "1664",
-							"stop_name": "S 1st/Herndon",
-							"stop_name_full": "2522 S 1st/Herndon",
+							"stop_name": "S 1ST/HERNDON",
+							"stop_name_full": "2522 S 1ST/HERNDON",
 							"stop_sequence": 43
 						},
 						{
@@ -591,7 +591,7 @@
 				"10-0-cf87109e": {
 					"direction_id": 0,
 					"pattern_id": "10-0-cf87109e",
-					"representative_trip_id": "2998304_1409",
+					"representative_trip_id": "2998304_1395",
 					"service_ids": [
 						"12-172",
 						"13-172",
@@ -699,8 +699,8 @@
 							"minor_stops": [
 								{
 									"direction_id": 0,
-									"lat": 30.309342,
-									"lon": -97.695539,
+									"lat": 30.309388,
+									"lon": -97.695533,
 									"stop_id": "1319",
 									"stop_name": "Berkman/Cloverleaf",
 									"stop_sequence": 13
@@ -967,8 +967,8 @@
 						},
 						{
 							"direction_id": 0,
-							"lat": 30.239928,
-							"lon": -97.761138,
+							"lat": 30.239923,
+							"lon": -97.76112,
 							"minor_stops": [
 								{
 									"direction_id": 0,
@@ -980,8 +980,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.232131,
-									"lon": -97.766035,
+									"lat": 30.232244,
+									"lon": -97.765949,
 									"stop_id": "1667",
 									"stop_name": "S 1st/Cardinal",
 									"stop_sequence": 47
@@ -1004,10 +1004,10 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.225333,
-									"lon": -97.770328,
+									"lat": 30.224071,
+									"lon": -97.771105,
 									"stop_id": "1671",
-									"stop_name": "S 1st/Ben White",
+									"stop_name": "S 1ST/Radam",
 									"stop_sequence": 50
 								},
 								{
@@ -1036,8 +1036,8 @@
 								}
 							],
 							"stop_id": "1664",
-							"stop_name": "S 1st/Herndon",
-							"stop_name_full": "2522 S 1st/Herndon",
+							"stop_name": "S 1ST/HERNDON",
+							"stop_name_full": "2522 S 1ST/HERNDON",
 							"stop_sequence": 45
 						},
 						{
@@ -1383,18 +1383,18 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.223688,
-									"lon": -97.771174,
+									"lat": 30.224641,
+									"lon": -97.770563,
 									"stop_id": "1550",
-									"stop_name": "S 1st/Radam",
+									"stop_name": "S 1ST/RADAM",
 									"stop_sequence": 21
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.22722,
-									"lon": -97.768914,
+									"lat": 30.227214,
+									"lon": -97.768898,
 									"stop_id": "1553",
-									"stop_name": "S 1st/Ben White",
+									"stop_name": "S 1ST/Ben White",
 									"stop_sequence": 22
 								},
 								{
@@ -1407,10 +1407,10 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.232198,
-									"lon": -97.765807,
+									"lat": 30.232173,
+									"lon": -97.765812,
 									"stop_id": "1556",
-									"stop_name": "S 1st/Lightsey",
+									"stop_name": "S 1ST/Lightsey",
 									"stop_sequence": 24
 								},
 								{
@@ -1824,7 +1824,7 @@
 			"timepoint_count": 7
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "10",
 	"schema": 1
 }

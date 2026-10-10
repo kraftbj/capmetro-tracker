@@ -16,7 +16,7 @@
 				"486-0-2fef6cb9": {
 					"direction_id": 0,
 					"pattern_id": "486-0-2fef6cb9",
-					"representative_trip_id": "3005972_16246",
+					"representative_trip_id": "3005972_15581",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -251,8 +251,8 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.187471,
-									"lon": -97.762532,
+									"lat": 30.187678,
+									"lon": -97.763246,
 									"stop_id": "4348",
 									"stop_name": "William Cannon/Elm Creek",
 									"stop_sequence": 29
@@ -319,7 +319,7 @@
 				"486-1-78edb074": {
 					"direction_id": 1,
 					"pattern_id": "486-1-78edb074",
-					"representative_trip_id": "3005979_16204",
+					"representative_trip_id": "3005979_15539",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -583,7 +583,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "260826_0956",
+	"feed_version": "261007_1345",
 	"route_id": "486",
 	"schema": 1
 }
