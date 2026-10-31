@@ -2,9 +2,9 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "320-0-b1f885ea",
-				"11-172": "320-0-b1f885ea",
-				"9-172": "320-0-b1f885ea"
+				"1-172": "320-0-b1f885ea",
+				"2-172": "320-0-b1f885ea",
+				"3-172": "320-0-b1f885ea"
 			},
 			"baseline_pattern_id": "320-0-b1f885ea",
 			"baseline_stable": true,
@@ -13,11 +13,11 @@
 				"320-0-b1f885ea": {
 					"direction_id": 0,
 					"pattern_id": "320-0-b1f885ea",
-					"representative_trip_id": "3002621_9618",
+					"representative_trip_id": "3002621_9433",
 					"service_ids": [
-						"10-172",
-						"11-172",
-						"9-172"
+						"1-172",
+						"2-172",
+						"3-172"
 					],
 					"stop_count": 27,
 					"timepoint_count": 3,
@@ -254,14 +254,14 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "320-1-c130eaa0",
-				"2-172": "320-1-e490d6ef",
-				"3-172": "320-1-c130eaa0",
-				"4-172": "320-1-c130eaa0",
-				"5-172": "320-1-e490d6ef",
+				"10-172": "320-1-e490d6ef",
+				"11-172": "320-1-c130eaa0",
+				"4-172": "320-1-e490d6ef",
+				"5-172": "320-1-c130eaa0",
 				"6-172": "320-1-c130eaa0",
-				"7-172": "320-1-e490d6ef",
-				"8-172": "320-1-c130eaa0"
+				"7-172": "320-1-c130eaa0",
+				"8-172": "320-1-e490d6ef",
+				"9-172": "320-1-c130eaa0"
 			},
 			"baseline_pattern_id": "320-1-c130eaa0",
 			"baseline_stable": false,
@@ -270,13 +270,13 @@
 				"320-1-c130eaa0": {
 					"direction_id": 1,
 					"pattern_id": "320-1-c130eaa0",
-					"representative_trip_id": "3002658_9725",
+					"representative_trip_id": "3002658_9540",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"11-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"9-172"
 					],
 					"stop_count": 24,
 					"timepoint_count": 3,
@@ -486,11 +486,11 @@
 				"320-1-e490d6ef": {
 					"direction_id": 1,
 					"pattern_id": "320-1-e490d6ef",
-					"representative_trip_id": "3002658_9728",
+					"representative_trip_id": "3002658_9543",
 					"service_ids": [
-						"2-172",
-						"5-172",
-						"7-172"
+						"10-172",
+						"4-172",
+						"8-172"
 					],
 					"stop_count": 25,
 					"timepoint_count": 3,
@@ -710,7 +710,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261028_1416",
 	"route_id": "320",
 	"schema": 1
 }

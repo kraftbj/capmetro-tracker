@@ -1,24 +1,6 @@
 {
-	"date_count": 13,
+	"date_count": 10,
 	"dates": {
-		"20261012": {
-			"is_exception_day": false,
-			"service_ids": [
-				"20-172"
-			]
-		},
-		"20261019": {
-			"is_exception_day": false,
-			"service_ids": [
-				"20-172"
-			]
-		},
-		"20261026": {
-			"is_exception_day": false,
-			"service_ids": [
-				"20-172"
-			]
-		},
 		"20261102": {
 			"is_exception_day": false,
 			"service_ids": [
@@ -81,7 +63,7 @@
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "261007_1345",
+	"feed_version": "261028_1416",
 	"route_id": "493",
 	"schema": 1,
 	"service_ids": [

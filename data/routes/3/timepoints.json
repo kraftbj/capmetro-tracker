@@ -2,29 +2,29 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "3-0-8637e718",
-				"2-172": "3-0-ddd5f7f5",
-				"3-172": "3-0-8637e718",
-				"4-172": "3-0-8637e718",
-				"5-172": "3-0-ddd5f7f5",
-				"6-172": "3-0-8637e718",
-				"7-172": "3-0-ddd5f7f5",
-				"8-172": "3-0-8637e718"
+				"10-172": "3-0-ddd5f7f5",
+				"11-172": "3-0-a81133fa",
+				"4-172": "3-0-ddd5f7f5",
+				"5-172": "3-0-a81133fa",
+				"6-172": "3-0-a81133fa",
+				"7-172": "3-0-a81133fa",
+				"8-172": "3-0-ddd5f7f5",
+				"9-172": "3-0-a81133fa"
 			},
-			"baseline_pattern_id": "3-0-8637e718",
+			"baseline_pattern_id": "3-0-a81133fa",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"3-0-8637e718": {
+				"3-0-a81133fa": {
 					"direction_id": 0,
-					"pattern_id": "3-0-8637e718",
-					"representative_trip_id": "3000787_5750",
+					"pattern_id": "3-0-a81133fa",
+					"representative_trip_id": "3000787_5800",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"11-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"9-172"
 					],
 					"stop_count": 94,
 					"timepoint_count": 10,
@@ -194,19 +194,11 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.340324,
-									"lon": -97.739058,
-									"stop_id": "4578",
-									"stop_name": "Burnet/Twin Oaks",
-									"stop_sequence": 21
-								},
-								{
-									"direction_id": 0,
 									"lat": 30.338309,
 									"lon": -97.739372,
 									"stop_id": "5733",
 									"stop_name": "Burnet/White Horse",
-									"stop_sequence": 22
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 0,
@@ -214,7 +206,7 @@
 									"lon": -97.740096,
 									"stop_id": "4204",
 									"stop_name": "Allandale Station",
-									"stop_sequence": 23
+									"stop_sequence": 22
 								},
 								{
 									"direction_id": 0,
@@ -222,7 +214,7 @@
 									"lon": -97.739833,
 									"stop_id": "5964",
 									"stop_name": "Burnet/Lawnmont",
-									"stop_sequence": 24
+									"stop_sequence": 23
 								},
 								{
 									"direction_id": 0,
@@ -230,7 +222,7 @@
 									"lon": -97.739681,
 									"stop_id": "684",
 									"stop_name": "North Loop Station",
-									"stop_sequence": 25
+									"stop_sequence": 24
 								},
 								{
 									"direction_id": 0,
@@ -238,7 +230,7 @@
 									"lon": -97.739436,
 									"stop_id": "685",
 									"stop_name": "Burnet/Hancock",
-									"stop_sequence": 26
+									"stop_sequence": 25
 								},
 								{
 									"direction_id": 0,
@@ -246,7 +238,7 @@
 									"lon": -97.739313,
 									"stop_id": "686",
 									"stop_name": "Burnet/W. 49th",
-									"stop_sequence": 27
+									"stop_sequence": 26
 								},
 								{
 									"direction_id": 0,
@@ -254,7 +246,7 @@
 									"lon": -97.739952,
 									"stop_id": "687",
 									"stop_name": "Burnet/W. 47th",
-									"stop_sequence": 28
+									"stop_sequence": 27
 								},
 								{
 									"direction_id": 0,
@@ -262,7 +254,7 @@
 									"lon": -97.741621,
 									"stop_id": "688",
 									"stop_name": "Burnet/W. 45th",
-									"stop_sequence": 29
+									"stop_sequence": 28
 								},
 								{
 									"direction_id": 0,
@@ -270,7 +262,7 @@
 									"lon": -97.742371,
 									"stop_id": "689",
 									"stop_name": "Medical Parkway/43rd",
-									"stop_sequence": 30
+									"stop_sequence": 29
 								},
 								{
 									"direction_id": 0,
@@ -278,7 +270,7 @@
 									"lon": -97.742667,
 									"stop_id": "690",
 									"stop_name": "Medical Parkway/42nd",
-									"stop_sequence": 31
+									"stop_sequence": 30
 								},
 								{
 									"direction_id": 0,
@@ -286,7 +278,7 @@
 									"lon": -97.742745,
 									"stop_id": "691",
 									"stop_name": "Medical Pkwy/W. 40th",
-									"stop_sequence": 32
+									"stop_sequence": 31
 								},
 								{
 									"direction_id": 0,
@@ -294,7 +286,7 @@
 									"lon": -97.743506,
 									"stop_id": "5977",
 									"stop_name": "Medical/39th",
-									"stop_sequence": 33
+									"stop_sequence": 32
 								}
 							],
 							"stop_id": "5849",
@@ -313,7 +305,7 @@
 									"lon": -97.741594,
 									"stop_id": "5349",
 									"stop_name": "West 38th Station",
-									"stop_sequence": 35
+									"stop_sequence": 34
 								},
 								{
 									"direction_id": 0,
@@ -321,7 +313,7 @@
 									"lon": -97.739461,
 									"stop_id": "5352",
 									"stop_name": "38th/Ronson",
-									"stop_sequence": 36
+									"stop_sequence": 35
 								},
 								{
 									"direction_id": 0,
@@ -329,7 +321,7 @@
 									"lon": -97.738974,
 									"stop_id": "489",
 									"stop_name": "Guadalupe/Maiden",
-									"stop_sequence": 37
+									"stop_sequence": 36
 								},
 								{
 									"direction_id": 0,
@@ -337,7 +329,7 @@
 									"lon": -97.739714,
 									"stop_id": "490",
 									"stop_name": "Guadalupe/34th Street",
-									"stop_sequence": 38
+									"stop_sequence": 37
 								},
 								{
 									"direction_id": 0,
@@ -345,7 +337,7 @@
 									"lon": -97.741261,
 									"stop_id": "5357",
 									"stop_name": "31st Street Station",
-									"stop_sequence": 39
+									"stop_sequence": 38
 								},
 								{
 									"direction_id": 0,
@@ -353,7 +345,7 @@
 									"lon": -97.742804,
 									"stop_id": "2003",
 									"stop_name": "Guadalupe/29th",
-									"stop_sequence": 40
+									"stop_sequence": 39
 								},
 								{
 									"direction_id": 0,
@@ -361,7 +353,7 @@
 									"lon": -97.741316,
 									"stop_id": "494",
 									"stop_name": "Guadalupe/27th Street",
-									"stop_sequence": 41
+									"stop_sequence": 40
 								},
 								{
 									"direction_id": 0,
@@ -369,7 +361,7 @@
 									"lon": -97.741379,
 									"stop_id": "5863",
 									"stop_name": "UT Dean Keeton Station",
-									"stop_sequence": 42
+									"stop_sequence": 41
 								},
 								{
 									"direction_id": 0,
@@ -377,7 +369,7 @@
 									"lon": -97.741771,
 									"stop_id": "497",
 									"stop_name": "UT West Mall Station",
-									"stop_sequence": 43
+									"stop_sequence": 42
 								},
 								{
 									"direction_id": 0,
@@ -385,7 +377,7 @@
 									"lon": -97.742081,
 									"stop_id": "498",
 									"stop_name": "Guadalupe/W. 21st Street",
-									"stop_sequence": 44
+									"stop_sequence": 43
 								},
 								{
 									"direction_id": 0,
@@ -393,13 +385,13 @@
 									"lon": -97.742708,
 									"stop_id": "501",
 									"stop_name": "Guadalupe/16th Street",
-									"stop_sequence": 45
+									"stop_sequence": 44
 								}
 							],
 							"stop_id": "1999",
 							"stop_name": "38th/Medical Parkway",
 							"stop_name_full": "38th/Medical Parkway",
-							"stop_sequence": 34
+							"stop_sequence": 33
 						},
 						{
 							"direction_id": 0,
@@ -412,7 +404,7 @@
 									"lon": -97.745655,
 									"stop_id": "2611",
 									"stop_name": "Austin History Center…",
-									"stop_sequence": 47
+									"stop_sequence": 46
 								},
 								{
 									"direction_id": 0,
@@ -420,7 +412,7 @@
 									"lon": -97.746857,
 									"stop_id": "5867",
 									"stop_name": "Republic Square Station",
-									"stop_sequence": 48
+									"stop_sequence": 47
 								},
 								{
 									"direction_id": 0,
@@ -428,7 +420,7 @@
 									"lon": -97.752406,
 									"stop_id": "716",
 									"stop_name": "Cesar Chavez/West",
-									"stop_sequence": 49
+									"stop_sequence": 48
 								},
 								{
 									"direction_id": 0,
@@ -436,7 +428,7 @@
 									"lon": -97.756576,
 									"stop_id": "717",
 									"stop_name": "B R Reynolds/Lamar",
-									"stop_sequence": 50
+									"stop_sequence": 49
 								},
 								{
 									"direction_id": 0,
@@ -444,13 +436,13 @@
 									"lon": -97.757876,
 									"stop_id": "2322",
 									"stop_name": "Lamar/Toomey",
-									"stop_sequence": 51
+									"stop_sequence": 50
 								}
 							],
 							"stop_id": "2738",
 							"stop_name": "Capitol Station",
 							"stop_name_full": "Capitol Station (SB)",
-							"stop_sequence": 46
+							"stop_sequence": 45
 						},
 						{
 							"direction_id": 0,
@@ -463,7 +455,7 @@
 									"lon": -97.761433,
 									"stop_id": "5635",
 									"stop_name": "Lamar/Treadwell",
-									"stop_sequence": 53
+									"stop_sequence": 52
 								},
 								{
 									"direction_id": 0,
@@ -471,7 +463,7 @@
 									"lon": -97.762566,
 									"stop_id": "2324",
 									"stop_name": "Lamar Square Station",
-									"stop_sequence": 54
+									"stop_sequence": 53
 								},
 								{
 									"direction_id": 0,
@@ -479,7 +471,7 @@
 									"lon": -97.764114,
 									"stop_id": "722",
 									"stop_name": "Lamar/Collier/SB",
-									"stop_sequence": 55
+									"stop_sequence": 54
 								},
 								{
 									"direction_id": 0,
@@ -487,7 +479,7 @@
 									"lon": -97.767901,
 									"stop_id": "2326",
 									"stop_name": "Lamar/Hether",
-									"stop_sequence": 56
+									"stop_sequence": 55
 								},
 								{
 									"direction_id": 0,
@@ -495,7 +487,7 @@
 									"lon": -97.771756,
 									"stop_id": "2328",
 									"stop_name": "Oltorf West Station",
-									"stop_sequence": 57
+									"stop_sequence": 56
 								},
 								{
 									"direction_id": 0,
@@ -503,7 +495,7 @@
 									"lon": -97.776176,
 									"stop_id": "2255",
 									"stop_name": "Lamar/Goodrich",
-									"stop_sequence": 58
+									"stop_sequence": 57
 								},
 								{
 									"direction_id": 0,
@@ -511,13 +503,13 @@
 									"lon": -97.777874,
 									"stop_id": "5879",
 									"stop_name": "Bluebonnet Station",
-									"stop_sequence": 59
+									"stop_sequence": 58
 								}
 							],
 							"stop_id": "4070",
 							"stop_name": "Barton Springs Station",
 							"stop_name_full": "Barton Springs Station (SB)",
-							"stop_sequence": 52
+							"stop_sequence": 51
 						},
 						{
 							"direction_id": 0,
@@ -530,7 +522,7 @@
 									"lon": -97.782242,
 									"stop_id": "729",
 									"stop_name": "Menchaca/Glen Allen",
-									"stop_sequence": 61
+									"stop_sequence": 60
 								},
 								{
 									"direction_id": 0,
@@ -538,7 +530,7 @@
 									"lon": -97.783568,
 									"stop_id": "730",
 									"stop_name": "Menchaca/Larchmont",
-									"stop_sequence": 62
+									"stop_sequence": 61
 								},
 								{
 									"direction_id": 0,
@@ -546,7 +538,7 @@
 									"lon": -97.784979,
 									"stop_id": "2650",
 									"stop_name": "Menchaca/Valley View",
-									"stop_sequence": 63
+									"stop_sequence": 62
 								},
 								{
 									"direction_id": 0,
@@ -554,7 +546,7 @@
 									"lon": -97.785765,
 									"stop_id": "732",
 									"stop_name": "Menchaca/Prather",
-									"stop_sequence": 64
+									"stop_sequence": 63
 								},
 								{
 									"direction_id": 0,
@@ -562,7 +554,7 @@
 									"lon": -97.788112,
 									"stop_id": "733",
 									"stop_name": "Menchaca/Ben White",
-									"stop_sequence": 65
+									"stop_sequence": 64
 								},
 								{
 									"direction_id": 0,
@@ -570,7 +562,7 @@
 									"lon": -97.78938,
 									"stop_id": "734",
 									"stop_name": "Menchaca/Redd",
-									"stop_sequence": 66
+									"stop_sequence": 65
 								},
 								{
 									"direction_id": 0,
@@ -578,7 +570,7 @@
 									"lon": -97.790916,
 									"stop_id": "735",
 									"stop_name": "Menchaca/Forest Hill",
-									"stop_sequence": 67
+									"stop_sequence": 66
 								},
 								{
 									"direction_id": 0,
@@ -586,7 +578,7 @@
 									"lon": -97.792347,
 									"stop_id": "736",
 									"stop_name": "Menchaca/Frontier",
-									"stop_sequence": 68
+									"stop_sequence": 67
 								},
 								{
 									"direction_id": 0,
@@ -594,7 +586,7 @@
 									"lon": -97.794067,
 									"stop_id": "737",
 									"stop_name": "Menchaca/Jones",
-									"stop_sequence": 69
+									"stop_sequence": 68
 								},
 								{
 									"direction_id": 0,
@@ -602,7 +594,7 @@
 									"lon": -97.794929,
 									"stop_id": "5048",
 									"stop_name": "Menchaca/Fair Oaks",
-									"stop_sequence": 70
+									"stop_sequence": 69
 								},
 								{
 									"direction_id": 0,
@@ -610,7 +602,7 @@
 									"lon": -97.796093,
 									"stop_id": "739",
 									"stop_name": "Menchaca/Inverness",
-									"stop_sequence": 71
+									"stop_sequence": 70
 								},
 								{
 									"direction_id": 0,
@@ -618,13 +610,13 @@
 									"lon": -97.797163,
 									"stop_id": "740",
 									"stop_name": "Menchaca/Stassney",
-									"stop_sequence": 72
+									"stop_sequence": 71
 								}
 							],
 							"stop_id": "728",
 							"stop_name": "Menchaca/Lightsey",
 							"stop_name_full": "2806 Menchaca/Lightsey",
-							"stop_sequence": 60
+							"stop_sequence": 59
 						},
 						{
 							"direction_id": 0,
@@ -637,7 +629,7 @@
 									"lon": -97.803629,
 									"stop_id": "743",
 									"stop_name": "Menchaca/Berkett",
-									"stop_sequence": 74
+									"stop_sequence": 73
 								},
 								{
 									"direction_id": 0,
@@ -645,7 +637,7 @@
 									"lon": -97.804711,
 									"stop_id": "744",
 									"stop_name": "Menchaca/Berkeley",
-									"stop_sequence": 75
+									"stop_sequence": 74
 								},
 								{
 									"direction_id": 0,
@@ -653,7 +645,7 @@
 									"lon": -97.80593,
 									"stop_id": "745",
 									"stop_name": "Menchaca/Miles",
-									"stop_sequence": 76
+									"stop_sequence": 75
 								},
 								{
 									"direction_id": 0,
@@ -661,7 +653,7 @@
 									"lon": -97.807163,
 									"stop_id": "746",
 									"stop_name": "Menchaca/William Cannon…",
-									"stop_sequence": 77
+									"stop_sequence": 76
 								},
 								{
 									"direction_id": 0,
@@ -669,7 +661,7 @@
 									"lon": -97.808351,
 									"stop_id": "3772",
 									"stop_name": "Menchaca/Matthews",
-									"stop_sequence": 78
+									"stop_sequence": 77
 								},
 								{
 									"direction_id": 0,
@@ -677,7 +669,7 @@
 									"lon": -97.80986,
 									"stop_id": "3773",
 									"stop_name": "Menchaca/Lear",
-									"stop_sequence": 79
+									"stop_sequence": 78
 								},
 								{
 									"direction_id": 0,
@@ -685,7 +677,7 @@
 									"lon": -97.811433,
 									"stop_id": "3774",
 									"stop_name": "Menchaca/Beauregard",
-									"stop_sequence": 80
+									"stop_sequence": 79
 								},
 								{
 									"direction_id": 0,
@@ -693,7 +685,7 @@
 									"lon": -97.813363,
 									"stop_id": "3775",
 									"stop_name": "Menchaca/Shiloh",
-									"stop_sequence": 81
+									"stop_sequence": 80
 								},
 								{
 									"direction_id": 0,
@@ -701,7 +693,7 @@
 									"lon": -97.815012,
 									"stop_id": "5472",
 									"stop_name": "Menchaca/Keepsake",
-									"stop_sequence": 82
+									"stop_sequence": 81
 								},
 								{
 									"direction_id": 0,
@@ -709,7 +701,7 @@
 									"lon": -97.816843,
 									"stop_id": "4414",
 									"stop_name": "Menchaca/Davis",
-									"stop_sequence": 83
+									"stop_sequence": 82
 								},
 								{
 									"direction_id": 0,
@@ -717,13 +709,13 @@
 									"lon": -97.820578,
 									"stop_id": "3776",
 									"stop_name": "Menchaca/Sedgemoor",
-									"stop_sequence": 84
+									"stop_sequence": 83
 								}
 							],
 							"stop_id": "742",
 							"stop_name": "Menchaca/Whitestone",
 							"stop_name_full": "5720 Menchaca/Whitestone",
-							"stop_sequence": 73
+							"stop_sequence": 72
 						},
 						{
 							"direction_id": 0,
@@ -736,7 +728,7 @@
 									"lon": -97.822771,
 									"stop_id": "4411",
 									"stop_name": "Slaughter/Menchaca",
-									"stop_sequence": 86
+									"stop_sequence": 85
 								},
 								{
 									"direction_id": 0,
@@ -744,7 +736,7 @@
 									"lon": -97.816422,
 									"stop_id": "2974",
 									"stop_name": "Slaughter/Bilbrook",
-									"stop_sequence": 87
+									"stop_sequence": 86
 								},
 								{
 									"direction_id": 0,
@@ -752,7 +744,7 @@
 									"lon": -97.81402,
 									"stop_id": "2975",
 									"stop_name": "Slaughter/David Moore",
-									"stop_sequence": 88
+									"stop_sequence": 87
 								},
 								{
 									"direction_id": 0,
@@ -760,7 +752,7 @@
 									"lon": -97.808881,
 									"stop_id": "2976",
 									"stop_name": "Slaughter/United Kingdom",
-									"stop_sequence": 89
+									"stop_sequence": 88
 								},
 								{
 									"direction_id": 0,
@@ -768,7 +760,7 @@
 									"lon": -97.805545,
 									"stop_id": "3767",
 									"stop_name": "Slaughter/Palace",
-									"stop_sequence": 90
+									"stop_sequence": 89
 								},
 								{
 									"direction_id": 0,
@@ -776,7 +768,7 @@
 									"lon": -97.798989,
 									"stop_id": "5999",
 									"stop_name": "Slaughter/1st",
-									"stop_sequence": 91
+									"stop_sequence": 90
 								},
 								{
 									"direction_id": 0,
@@ -784,7 +776,7 @@
 									"lon": -97.795672,
 									"stop_id": "5380",
 									"stop_name": "Slaughter/Francia",
-									"stop_sequence": 92
+									"stop_sequence": 91
 								},
 								{
 									"direction_id": 0,
@@ -792,13 +784,21 @@
 									"lon": -97.792824,
 									"stop_id": "5623",
 									"stop_name": "Slaughter/Alice Mae",
+									"stop_sequence": 92
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
 									"stop_sequence": 93
 								}
 							],
 							"stop_id": "3753",
 							"stop_name": "Menchaca/Monarch",
 							"stop_name_full": "9510 Menchaca/Monarch",
-							"stop_sequence": 85
+							"stop_sequence": 84
 						},
 						{
 							"direction_id": 0,
@@ -815,11 +815,11 @@
 				"3-0-ddd5f7f5": {
 					"direction_id": 0,
 					"pattern_id": "3-0-ddd5f7f5",
-					"representative_trip_id": "3000787_5760",
+					"representative_trip_id": "3000787_5790",
 					"service_ids": [
-						"2-172",
-						"5-172",
-						"7-172"
+						"10-172",
+						"4-172",
+						"8-172"
 					],
 					"stop_count": 95,
 					"timepoint_count": 10,
@@ -1621,31 +1621,31 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "3-1-4e119ce0",
-				"2-172": "3-1-af6eaa3d",
-				"3-172": "3-1-4e119ce0",
-				"4-172": "3-1-4e119ce0",
-				"5-172": "3-1-af6eaa3d",
-				"6-172": "3-1-4e119ce0",
-				"7-172": "3-1-af6eaa3d",
-				"8-172": "3-1-4e119ce0"
+				"10-172": "3-1-af6eaa3d",
+				"11-172": "3-1-8d3837f3",
+				"4-172": "3-1-af6eaa3d",
+				"5-172": "3-1-8d3837f3",
+				"6-172": "3-1-8d3837f3",
+				"7-172": "3-1-8d3837f3",
+				"8-172": "3-1-af6eaa3d",
+				"9-172": "3-1-8d3837f3"
 			},
-			"baseline_pattern_id": "3-1-4e119ce0",
+			"baseline_pattern_id": "3-1-8d3837f3",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
-				"3-1-4e119ce0": {
+				"3-1-8d3837f3": {
 					"direction_id": 1,
-					"pattern_id": "3-1-4e119ce0",
-					"representative_trip_id": "3000823_5578",
+					"pattern_id": "3-1-8d3837f3",
+					"representative_trip_id": "3000823_5618",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"11-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"9-172"
 					],
-					"stop_count": 91,
+					"stop_count": 92,
 					"timepoint_count": 9,
 					"timepoints": [
 						{
@@ -2032,6 +2032,14 @@
 									"stop_id": "591",
 									"stop_name": "Capitol Station",
 									"stop_sequence": 47
+								},
+								{
+									"direction_id": 1,
+									"lat": 30.277383,
+									"lon": -97.741894,
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th",
+									"stop_sequence": 48
 								}
 							],
 							"stop_id": "781",
@@ -2050,7 +2058,7 @@
 									"lon": -97.74162,
 									"stop_id": "1042",
 									"stop_name": "Guadalupe/West Mall UT",
-									"stop_sequence": 49
+									"stop_sequence": 50
 								},
 								{
 									"direction_id": 1,
@@ -2058,7 +2066,7 @@
 									"lon": -97.74125,
 									"stop_id": "5864",
 									"stop_name": "UT Dean Keeton Station",
-									"stop_sequence": 50
+									"stop_sequence": 51
 								},
 								{
 									"direction_id": 1,
@@ -2066,7 +2074,7 @@
 									"lon": -97.741584,
 									"stop_id": "5353",
 									"stop_name": "Guadalupe/27th",
-									"stop_sequence": 51
+									"stop_sequence": 52
 								},
 								{
 									"direction_id": 1,
@@ -2074,7 +2082,7 @@
 									"lon": -97.742432,
 									"stop_id": "5634",
 									"stop_name": "Guadalupe/29th",
-									"stop_sequence": 52
+									"stop_sequence": 53
 								},
 								{
 									"direction_id": 1,
@@ -2082,7 +2090,7 @@
 									"lon": -97.741167,
 									"stop_id": "603",
 									"stop_name": "31st Street Rapid Station",
-									"stop_sequence": 53
+									"stop_sequence": 54
 								},
 								{
 									"direction_id": 1,
@@ -2090,7 +2098,7 @@
 									"lon": -97.739282,
 									"stop_id": "604",
 									"stop_name": "Guadalupe/34th",
-									"stop_sequence": 54
+									"stop_sequence": 55
 								},
 								{
 									"direction_id": 1,
@@ -2098,7 +2106,7 @@
 									"lon": -97.739012,
 									"stop_id": "5350",
 									"stop_name": "38th/Guadalupe",
-									"stop_sequence": 55
+									"stop_sequence": 56
 								},
 								{
 									"direction_id": 1,
@@ -2106,13 +2114,13 @@
 									"lon": -97.741778,
 									"stop_id": "5351",
 									"stop_name": "West 38th Station",
-									"stop_sequence": 56
+									"stop_sequence": 57
 								}
 							],
 							"stop_id": "5940",
 							"stop_name": "Lavaca/17th",
 							"stop_name_full": "1609 Lavaca/17th (Midblock)",
-							"stop_sequence": 48
+							"stop_sequence": 49
 						},
 						{
 							"direction_id": 1,
@@ -2125,7 +2133,7 @@
 									"lon": -97.742786,
 									"stop_id": "4128",
 									"stop_name": "Medical/39th Half",
-									"stop_sequence": 58
+									"stop_sequence": 59
 								},
 								{
 									"direction_id": 1,
@@ -2133,7 +2141,7 @@
 									"lon": -97.742576,
 									"stop_id": "811",
 									"stop_name": "Medical Pkwy/41st",
-									"stop_sequence": 59
+									"stop_sequence": 60
 								},
 								{
 									"direction_id": 1,
@@ -2141,7 +2149,7 @@
 									"lon": -97.742464,
 									"stop_id": "4129",
 									"stop_name": "Medical/42nd",
-									"stop_sequence": 60
+									"stop_sequence": 61
 								},
 								{
 									"direction_id": 1,
@@ -2149,7 +2157,7 @@
 									"lon": -97.741916,
 									"stop_id": "813",
 									"stop_name": "Medical Pkwy/44th",
-									"stop_sequence": 61
+									"stop_sequence": 62
 								},
 								{
 									"direction_id": 1,
@@ -2157,7 +2165,7 @@
 									"lon": -97.741032,
 									"stop_id": "814",
 									"stop_name": "Burnet/45th",
-									"stop_sequence": 62
+									"stop_sequence": 63
 								},
 								{
 									"direction_id": 1,
@@ -2165,7 +2173,7 @@
 									"lon": -97.740022,
 									"stop_id": "4202",
 									"stop_name": "Burnet/47th",
-									"stop_sequence": 63
+									"stop_sequence": 64
 								},
 								{
 									"direction_id": 1,
@@ -2173,7 +2181,7 @@
 									"lon": -97.739145,
 									"stop_id": "815",
 									"stop_name": "Burnet/49th",
-									"stop_sequence": 64
+									"stop_sequence": 65
 								},
 								{
 									"direction_id": 1,
@@ -2181,7 +2189,7 @@
 									"lon": -97.739242,
 									"stop_id": "816",
 									"stop_name": "Burnet/Hancock",
-									"stop_sequence": 65
+									"stop_sequence": 66
 								},
 								{
 									"direction_id": 1,
@@ -2189,7 +2197,7 @@
 									"lon": -97.739566,
 									"stop_id": "817",
 									"stop_name": "North Loop Station",
-									"stop_sequence": 66
+									"stop_sequence": 67
 								},
 								{
 									"direction_id": 1,
@@ -2197,7 +2205,7 @@
 									"lon": -97.739876,
 									"stop_id": "820",
 									"stop_name": "Burnet/Adams",
-									"stop_sequence": 67
+									"stop_sequence": 68
 								},
 								{
 									"direction_id": 1,
@@ -2205,7 +2213,7 @@
 									"lon": -97.7398,
 									"stop_id": "822",
 									"stop_name": "Allandale Station",
-									"stop_sequence": 68
+									"stop_sequence": 69
 								},
 								{
 									"direction_id": 1,
@@ -2213,7 +2221,7 @@
 									"lon": -97.739163,
 									"stop_id": "6486",
 									"stop_name": "Burnet/White Horse/NB",
-									"stop_sequence": 69
+									"stop_sequence": 70
 								},
 								{
 									"direction_id": 1,
@@ -2221,7 +2229,7 @@
 									"lon": -97.7389,
 									"stop_id": "824",
 									"stop_name": "Burnet/Whitehorse",
-									"stop_sequence": 70
+									"stop_sequence": 71
 								},
 								{
 									"direction_id": 1,
@@ -2229,7 +2237,7 @@
 									"lon": -97.73755,
 									"stop_id": "826",
 									"stop_name": "Justin Station",
-									"stop_sequence": 71
+									"stop_sequence": 72
 								},
 								{
 									"direction_id": 1,
@@ -2237,7 +2245,7 @@
 									"lon": -97.73545,
 									"stop_id": "827",
 									"stop_name": "Burnet/Greenlawn Pkwy",
-									"stop_sequence": 72
+									"stop_sequence": 73
 								},
 								{
 									"direction_id": 1,
@@ -2245,13 +2253,13 @@
 									"lon": -97.73424,
 									"stop_id": "828",
 									"stop_name": "Burnet/Richcreek",
-									"stop_sequence": 73
+									"stop_sequence": 74
 								}
 							],
 							"stop_id": "809",
 							"stop_name": "38th/Medical Pkwy",
 							"stop_name_full": "38th/Medical Pkwy",
-							"stop_sequence": 57
+							"stop_sequence": 58
 						},
 						{
 							"direction_id": 1,
@@ -2264,7 +2272,7 @@
 									"lon": -97.730093,
 									"stop_id": "5746",
 									"stop_name": "Burnet/Ashdale",
-									"stop_sequence": 75
+									"stop_sequence": 76
 								},
 								{
 									"direction_id": 1,
@@ -2272,7 +2280,7 @@
 									"lon": -97.729588,
 									"stop_id": "3063",
 									"stop_name": "Burnet/Teakwood",
-									"stop_sequence": 76
+									"stop_sequence": 77
 								},
 								{
 									"direction_id": 1,
@@ -2280,7 +2288,7 @@
 									"lon": -97.728784,
 									"stop_id": "4570",
 									"stop_name": "Ohlen Station",
-									"stop_sequence": 77
+									"stop_sequence": 78
 								},
 								{
 									"direction_id": 1,
@@ -2288,7 +2296,7 @@
 									"lon": -97.727715,
 									"stop_id": "4571",
 									"stop_name": "Burnet/Colfax",
-									"stop_sequence": 78
+									"stop_sequence": 79
 								},
 								{
 									"direction_id": 1,
@@ -2296,7 +2304,7 @@
 									"lon": -97.726817,
 									"stop_id": "4572",
 									"stop_name": "Crossroads Station",
-									"stop_sequence": 79
+									"stop_sequence": 80
 								},
 								{
 									"direction_id": 1,
@@ -2304,7 +2312,7 @@
 									"lon": -97.723575,
 									"stop_id": "6427",
 									"stop_name": "Burnet/Mc Hale",
-									"stop_sequence": 80
+									"stop_sequence": 81
 								},
 								{
 									"direction_id": 1,
@@ -2312,7 +2320,7 @@
 									"lon": -97.72256,
 									"stop_id": "6456",
 									"stop_name": "Burnet/Bright Verde",
-									"stop_sequence": 81
+									"stop_sequence": 82
 								},
 								{
 									"direction_id": 1,
@@ -2320,7 +2328,7 @@
 									"lon": -97.722548,
 									"stop_id": "4682",
 									"stop_name": "Braker/Burnet Stadium…",
-									"stop_sequence": 82
+									"stop_sequence": 83
 								},
 								{
 									"direction_id": 1,
@@ -2328,7 +2336,7 @@
 									"lon": -97.725958,
 									"stop_id": "3014",
 									"stop_name": "Braker/IBM",
-									"stop_sequence": 83
+									"stop_sequence": 84
 								},
 								{
 									"direction_id": 1,
@@ -2336,7 +2344,7 @@
 									"lon": -97.731553,
 									"stop_id": "4895",
 									"stop_name": "Braker/Mopac NE Corner",
-									"stop_sequence": 84
+									"stop_sequence": 85
 								},
 								{
 									"direction_id": 1,
@@ -2344,7 +2352,7 @@
 									"lon": -97.736066,
 									"stop_id": "5755",
 									"stop_name": "Braker/Mopac",
-									"stop_sequence": 85
+									"stop_sequence": 86
 								},
 								{
 									"direction_id": 1,
@@ -2352,7 +2360,7 @@
 									"lon": -97.73955,
 									"stop_id": "6472",
 									"stop_name": "Braker/Stonelake",
-									"stop_sequence": 86
+									"stop_sequence": 87
 								},
 								{
 									"direction_id": 1,
@@ -2360,7 +2368,7 @@
 									"lon": -97.742281,
 									"stop_id": "4763",
 									"stop_name": "Braker/Seton Center",
-									"stop_sequence": 87
+									"stop_sequence": 88
 								},
 								{
 									"direction_id": 1,
@@ -2368,7 +2376,7 @@
 									"lon": -97.74724,
 									"stop_id": "3834",
 									"stop_name": "Braker/Research NW Corner",
-									"stop_sequence": 88
+									"stop_sequence": 89
 								},
 								{
 									"direction_id": 1,
@@ -2376,7 +2384,7 @@
 									"lon": -97.750138,
 									"stop_id": "6093",
 									"stop_name": "Jollyville/Great Hills",
-									"stop_sequence": 89
+									"stop_sequence": 90
 								},
 								{
 									"direction_id": 1,
@@ -2384,13 +2392,13 @@
 									"lon": -97.74835,
 									"stop_id": "2732",
 									"stop_name": "Great Hills/Jollyville",
-									"stop_sequence": 90
+									"stop_sequence": 91
 								}
 							],
 							"stop_id": "829",
 							"stop_name": "Northcross Station",
 							"stop_name_full": "Northcross Station (NB)",
-							"stop_sequence": 74
+							"stop_sequence": 75
 						},
 						{
 							"direction_id": 1,
@@ -2400,18 +2408,18 @@
 							"stop_id": "3837",
 							"stop_name": "Great Hills/Research",
 							"stop_name_full": "10051 Great Hills/Research (Target)",
-							"stop_sequence": 91
+							"stop_sequence": 92
 						}
 					]
 				},
 				"3-1-af6eaa3d": {
 					"direction_id": 1,
 					"pattern_id": "3-1-af6eaa3d",
-					"representative_trip_id": "3000823_5584",
+					"representative_trip_id": "3000823_5624",
 					"service_ids": [
-						"2-172",
-						"5-172",
-						"7-172"
+						"10-172",
+						"4-172",
+						"8-172"
 					],
 					"stop_count": 94,
 					"timepoint_count": 10,
@@ -3200,11 +3208,11 @@
 					]
 				}
 			},
-			"stop_count": 91,
+			"stop_count": 92,
 			"timepoint_count": 9
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261028_1416",
 	"route_id": "3",
 	"schema": 1
 }

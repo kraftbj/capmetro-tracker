@@ -2,34 +2,131 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "642-0-febdb503",
+				"11-172": "642-0-febdb503",
+				"23-172": "642-0-febdb503",
 				"24-172": "642-0-febdb503",
 				"25-172": "642-0-febdb503",
 				"26-172": "642-0-febdb503",
 				"27-172": "642-0-febdb503",
-				"28-172": "642-0-febdb503",
-				"3-172": "642-0-febdb503",
-				"4-172": "642-0-febdb503",
-				"8-172": "642-0-febdb503"
+				"5-172": "642-0-3d397bb7",
+				"6-172": "642-0-3d397bb7",
+				"7-172": "642-0-3d397bb7"
 			},
 			"baseline_pattern_id": "642-0-febdb503",
-			"baseline_stable": true,
+			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
+				"642-0-3d397bb7": {
+					"direction_id": 0,
+					"pattern_id": "642-0-3d397bb7",
+					"representative_trip_id": "3007817_18224",
+					"service_ids": [
+						"5-172",
+						"6-172",
+						"7-172"
+					],
+					"stop_count": 10,
+					"timepoint_count": 2,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.289536,
+							"lon": -97.737134,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.289717,
+									"lon": -97.738797,
+									"stop_id": "5024",
+									"stop_name": "Dean Keeton/University",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.292003,
+									"lon": -97.740219,
+									"stop_id": "4096",
+									"stop_name": "27th/Whitis",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.291657,
+									"lon": -97.742835,
+									"stop_id": "5373",
+									"stop_name": "Nueces/27th",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.290696,
+									"lon": -97.744249,
+									"stop_id": "4122",
+									"stop_name": "26th/Rio Grande",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.29086,
+									"lon": -97.746437,
+									"stop_id": "4123",
+									"stop_name": "26th/Pearl",
+									"stop_sequence": 6
+								}
+							],
+							"stop_id": "2079",
+							"stop_name": "Dean Keeton/Speedway NE…",
+							"stop_name_full": "Dean Keeton/Speedway NE Corner",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.29005,
+							"lon": -97.747693,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.285872,
+									"lon": -97.748124,
+									"stop_id": "4979",
+									"stop_name": "San Gabriel/22nd Half",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.285285,
+									"lon": -97.746666,
+									"stop_id": "4120",
+									"stop_name": "22nd/Pearl",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.283384,
+									"lon": -97.742081,
+									"stop_id": "498",
+									"stop_name": "Guadalupe/W. 21st Street",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "4121",
+							"stop_name": "San Gabriel/25 1/2",
+							"stop_name_full": "San Gabriel/25 1/2",
+							"stop_sequence": 7
+						}
+					]
+				},
 				"642-0-febdb503": {
 					"direction_id": 0,
 					"pattern_id": "642-0-febdb503",
-					"representative_trip_id": "3007817_18083",
+					"representative_trip_id": "3007817_18221",
 					"service_ids": [
-						"1-172",
+						"11-172",
+						"23-172",
 						"24-172",
 						"25-172",
 						"26-172",
-						"27-172",
-						"28-172",
-						"3-172",
-						"4-172",
-						"8-172"
+						"27-172"
 					],
 					"stop_count": 14,
 					"timepoint_count": 3,
@@ -161,7 +258,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261028_1416",
 	"route_id": "642",
 	"schema": 1
 }

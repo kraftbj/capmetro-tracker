@@ -11,7 +11,7 @@
 				"493-0-5c33c45a": {
 					"direction_id": 0,
 					"pattern_id": "493-0-5c33c45a",
-					"representative_trip_id": "3006252_15677",
+					"representative_trip_id": "3006252_15868",
 					"service_ids": [
 						"20-172"
 					],
@@ -118,7 +118,7 @@
 				"493-1-273c404e": {
 					"direction_id": 1,
 					"pattern_id": "493-1-273c404e",
-					"representative_trip_id": "3006258_15671",
+					"representative_trip_id": "3006258_15862",
 					"service_ids": [
 						"20-172"
 					],
@@ -215,7 +215,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261028_1416",
 	"route_id": "493",
 	"schema": 1
 }

@@ -2,21 +2,18 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "990-0-d19a5e5d",
-				"2-172": "990-0-cf7e3024",
-				"3-172": "990-0-d19a5e5d",
-				"4-172": "990-0-d19a5e5d"
+				"1-172": "990-0-cf7e3024"
 			},
-			"baseline_pattern_id": "990-0-d19a5e5d",
-			"baseline_stable": false,
+			"baseline_pattern_id": "990-0-cf7e3024",
+			"baseline_stable": true,
 			"direction_id": 0,
 			"ladders": {
 				"990-0-cf7e3024": {
 					"direction_id": 0,
 					"pattern_id": "990-0-cf7e3024",
-					"representative_trip_id": "3013457_24819",
+					"representative_trip_id": "3013457_26747",
 					"service_ids": [
-						"2-172"
+						"1-172"
 					],
 					"stop_count": 14,
 					"timepoint_count": 6,
@@ -148,146 +145,14 @@
 							"stop_sequence": 14
 						}
 					]
-				},
-				"990-0-d19a5e5d": {
-					"direction_id": 0,
-					"pattern_id": "990-0-d19a5e5d",
-					"representative_trip_id": "3013457_24817",
-					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172"
-					],
-					"stop_count": 13,
-					"timepoint_count": 6,
-					"timepoints": [
-						{
-							"direction_id": 0,
-							"lat": 30.265792,
-							"lon": -97.746213,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.268613,
-									"lon": -97.745114,
-									"stop_id": "2605",
-									"stop_name": "Lavaca/6th",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.271378,
-									"lon": -97.744115,
-									"stop_id": "4007",
-									"stop_name": "Lavaca/9th",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.274408,
-									"lon": -97.742995,
-									"stop_id": "590",
-									"stop_name": "Lavaca/12th",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.278834,
-									"lon": -97.741358,
-									"stop_id": "5940",
-									"stop_name": "Lavaca/17th",
-									"stop_sequence": 5
-								}
-							],
-							"stop_id": "5944",
-							"stop_name": "Lavaca/3rd",
-							"stop_name_full": "Lavaca/3rd",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.285754,
-							"lon": -97.74162,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.29024,
-									"lon": -97.74125,
-									"stop_id": "5864",
-									"stop_name": "UT Dean Keeton Station",
-									"stop_sequence": 7
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.302541,
-									"lon": -97.738161,
-									"stop_id": "605",
-									"stop_name": "Guadalupe/38th",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.314796,
-									"lon": -97.732266,
-									"stop_id": "610",
-									"stop_name": "Triangle Station",
-									"stop_sequence": 9
-								}
-							],
-							"stop_id": "1042",
-							"stop_name": "Guadalupe/West Mall UT",
-							"stop_name_full": "2231 Guadalupe/West Mall UT",
-							"stop_sequence": 6
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.323488,
-							"lon": -97.724021,
-							"minor_stops": [],
-							"stop_id": "2427",
-							"stop_name": "Koenig/Guadalupe SW…",
-							"stop_name_full": "Koenig/Guadalupe SW Corner",
-							"stop_sequence": 10
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.339694,
-							"lon": -97.559124,
-							"minor_stops": [],
-							"stop_id": "5776",
-							"stop_name": "W Carrie Manor/Lexington",
-							"stop_name_full": "201 W Carrie Manor/Lexington",
-							"stop_sequence": 11
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.357315,
-							"lon": -97.382054,
-							"minor_stops": [],
-							"stop_id": "5696",
-							"stop_name": "SH 95/Main",
-							"stop_name_full": "SH 95/Main",
-							"stop_sequence": 12
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.34649,
-							"lon": -97.371679,
-							"minor_stops": [],
-							"stop_id": "5777",
-							"stop_name": "Central/Avenue C",
-							"stop_name_full": "Central/Avenue C",
-							"stop_sequence": 13
-						}
-					]
 				}
 			},
-			"stop_count": 13,
+			"stop_count": 14,
 			"timepoint_count": 6
 		},
 		{
 			"baseline_by_service": {
-				"9-172": "990-1-212ff67b"
+				"1-172": "990-1-212ff67b"
 			},
 			"baseline_pattern_id": "990-1-212ff67b",
 			"baseline_stable": true,
@@ -296,9 +161,9 @@
 				"990-1-212ff67b": {
 					"direction_id": 1,
 					"pattern_id": "990-1-212ff67b",
-					"representative_trip_id": "3013460_24829",
+					"representative_trip_id": "3013460_26750",
 					"service_ids": [
-						"9-172"
+						"1-172"
 					],
 					"stop_count": 11,
 					"timepoint_count": 6,
@@ -412,7 +277,7 @@
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261028_1416",
 	"route_id": "990",
 	"schema": 1
 }
