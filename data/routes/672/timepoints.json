@@ -2,53 +2,26 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"23-172": "672-0-f819e459",
-				"24-172": "672-0-f819e459",
-				"26-172": "672-0-f819e459",
+				"25-172": "672-0-f819e459",
 				"27-172": "672-0-f819e459",
+				"28-172": "672-0-f819e459",
 				"29-172": "672-0-f819e459",
-				"5-172": "672-0-798e88b6",
-				"6-172": "672-0-798e88b6",
-				"7-172": "672-0-798e88b6"
+				"30-172": "672-0-f819e459"
 			},
-			"baseline_pattern_id": "672-0-798e88b6",
-			"baseline_stable": false,
+			"baseline_pattern_id": "672-0-f819e459",
+			"baseline_stable": true,
 			"direction_id": 0,
 			"ladders": {
-				"672-0-798e88b6": {
-					"direction_id": 0,
-					"pattern_id": "672-0-798e88b6",
-					"representative_trip_id": "3009974_20792",
-					"service_ids": [
-						"5-172",
-						"6-172",
-						"7-172"
-					],
-					"stop_count": 1,
-					"timepoint_count": 1,
-					"timepoints": [
-						{
-							"direction_id": 0,
-							"lat": 30.240939,
-							"lon": -97.724233,
-							"minor_stops": [],
-							"stop_id": "6082",
-							"stop_name": "Elmont/Town Lake",
-							"stop_name_full": "2219 Elmont/Town Lake",
-							"stop_sequence": 1
-						}
-					]
-				},
 				"672-0-f819e459": {
 					"direction_id": 0,
 					"pattern_id": "672-0-f819e459",
-					"representative_trip_id": "3009898_20988",
+					"representative_trip_id": "3009898_20598",
 					"service_ids": [
-						"23-172",
-						"24-172",
-						"26-172",
+						"25-172",
 						"27-172",
-						"29-172"
+						"28-172",
+						"29-172",
+						"30-172"
 					],
 					"stop_count": 2,
 					"timepoint_count": 2,
@@ -76,34 +49,31 @@
 					]
 				}
 			},
-			"stop_count": 1,
-			"timepoint_count": 1
+			"stop_count": 2,
+			"timepoint_count": 2
 		},
 		{
 			"baseline_by_service": {
-				"23-172": "672-1-3f1014d3",
-				"24-172": "672-1-3f1014d3",
-				"26-172": "672-1-3f1014d3",
+				"25-172": "672-1-3f1014d3",
 				"27-172": "672-1-3f1014d3",
+				"28-172": "672-1-3f1014d3",
 				"29-172": "672-1-3f1014d3",
-				"5-172": "672-1-4e89a98b",
-				"6-172": "672-1-4e89a98b",
-				"7-172": "672-1-4e89a98b"
+				"30-172": "672-1-3f1014d3"
 			},
-			"baseline_pattern_id": "672-1-4e89a98b",
-			"baseline_stable": false,
+			"baseline_pattern_id": "672-1-3f1014d3",
+			"baseline_stable": true,
 			"direction_id": 1,
 			"ladders": {
 				"672-1-3f1014d3": {
 					"direction_id": 1,
 					"pattern_id": "672-1-3f1014d3",
-					"representative_trip_id": "3010018_20725",
+					"representative_trip_id": "3010018_20467",
 					"service_ids": [
-						"23-172",
-						"24-172",
-						"26-172",
+						"25-172",
 						"27-172",
-						"29-172"
+						"28-172",
+						"29-172",
+						"30-172"
 					],
 					"stop_count": 10,
 					"timepoint_count": 3,
@@ -197,89 +167,13 @@
 							"stop_sequence": 10
 						}
 					]
-				},
-				"672-1-4e89a98b": {
-					"direction_id": 1,
-					"pattern_id": "672-1-4e89a98b",
-					"representative_trip_id": "3010095_20518",
-					"service_ids": [
-						"5-172",
-						"6-172",
-						"7-172"
-					],
-					"stop_count": 7,
-					"timepoint_count": 2,
-					"timepoints": [
-						{
-							"direction_id": 1,
-							"lat": 30.240939,
-							"lon": -97.724233,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.239806,
-									"lon": -97.718797,
-									"stop_id": "4284",
-									"stop_name": "Elmont NB",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.242205,
-									"lon": -97.717284,
-									"stop_id": "1364",
-									"stop_name": "Roy G Guerrero NB",
-									"stop_sequence": 3
-								}
-							],
-							"stop_id": "6082",
-							"stop_name": "Elmont/Town Lake",
-							"stop_name_full": "2219 Elmont/Town Lake",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.257443,
-							"lon": -97.710596,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.280356,
-									"lon": -97.718217,
-									"stop_id": "5492",
-									"stop_name": "Martin Luther King/Coleto",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.279307,
-									"lon": -97.73295,
-									"stop_id": "2761",
-									"stop_name": "Martin Luther King/Red…",
-									"stop_sequence": 6
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.279666,
-									"lon": -97.734311,
-									"stop_id": "4586",
-									"stop_name": "Martin Luther King/…",
-									"stop_sequence": 7
-								}
-							],
-							"stop_id": "1368",
-							"stop_name": "Pleasant Valley/5th",
-							"stop_name_full": "501 Pleasant Valley/5th",
-							"stop_sequence": 4
-						}
-					]
 				}
 			},
-			"stop_count": 7,
-			"timepoint_count": 2
+			"stop_count": 10,
+			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261028_1416",
+	"feed_version": "261007_1345",
 	"route_id": "672",
 	"schema": 1
 }

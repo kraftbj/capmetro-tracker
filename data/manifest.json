@@ -1,47 +1,47 @@
 {
-	"built_at": 1793214960,
+	"built_at": 1791398700,
 	"counts": {
-		"block_chains": 2099,
+		"block_chains": 1934,
 		"block_negative_layovers": 0,
-		"block_successor_pairs": 26826,
-		"exception_dates": 8,
+		"block_successor_pairs": 24995,
+		"exception_dates": 9,
 		"routes": 70,
-		"service_dates": 74,
-		"service_ids": 29,
-		"stop_times": 869230,
-		"stops": 2350,
-		"trips": 26751,
+		"service_dates": 95,
+		"service_ids": 30,
+		"stop_times": 839775,
+		"stops": 2346,
+		"trips": 24830,
 		"trips_without_block_id": 0
 	},
 	"feed_end_date": "20270109",
-	"feed_start_date": "20261028",
-	"feed_version": "261028_1416",
+	"feed_start_date": "20261007",
+	"feed_version": "261007_1345",
 	"generator": "build/build.mjs",
 	"routes": [
 		{
 			"block_count": 15,
-			"bytes": 562466,
+			"bytes": 570326,
 			"dir": "1",
-			"direction_flip_count": 335,
+			"direction_flip_count": 359,
 			"directions": [
 				{
 					"headsign": "1 William Cannon SB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 77,
+					"pattern_count": 1,
+					"stop_count": 78,
 					"timepoint_count": 11,
-					"trip_count": 292
+					"trip_count": 108
 				},
 				{
 					"headsign": "1 Tech Ridge Park & Ride NB",
 					"id": 1,
-					"pattern_count": 1,
-					"stop_count": 76,
+					"pattern_count": 2,
+					"stop_count": 75,
 					"timepoint_count": 11,
-					"trip_count": 109
+					"trip_count": 294
 				}
 			],
-			"gzip": 93761,
+			"gzip": 96405,
 			"long_name": "1-North Lamar/South Congress",
 			"route_color": "004A97",
 			"route_id": "1",
@@ -61,51 +61,51 @@
 				"9-172"
 			],
 			"short_name": "1",
-			"stop_time_count": 30876,
-			"trip_count": 401
+			"stop_time_count": 30583,
+			"trip_count": 402
 		},
 		{
 			"block_count": 25,
-			"bytes": 1346739,
+			"bytes": 1370407,
 			"dir": "10",
 			"direction_flip_count": 937,
 			"directions": [
 				{
 					"headsign": "10 Southpark Meadows SB",
 					"id": 0,
-					"pattern_count": 4,
-					"stop_count": 65,
+					"pattern_count": 2,
+					"stop_count": 67,
 					"timepoint_count": 7,
 					"trip_count": 526
 				},
 				{
 					"headsign": "10 Norwood Transit Center NB",
 					"id": 1,
-					"pattern_count": 2,
+					"pattern_count": 1,
 					"stop_count": 72,
 					"timepoint_count": 7,
 					"trip_count": 524
 				}
 			],
-			"gzip": 211113,
+			"gzip": 210855,
 			"long_name": "10-South 1st/Red River",
 			"route_color": "004A97",
 			"route_id": "10",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
+				"1-172",
 				"12-172",
 				"13-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "10",
-			"stop_time_count": 72193,
+			"stop_time_count": 73618,
 			"trip_count": 1050
 		},
 		{
@@ -131,17 +131,17 @@
 					"trip_count": 8
 				}
 			],
-			"gzip": 1328,
+			"gzip": 1326,
 			"long_name": "103-Manchaca Flyer",
 			"route_color": "555555",
 			"route_id": "103",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172"
 			],
 			"short_name": "103",
 			"stop_time_count": 344,
@@ -149,17 +149,17 @@
 		},
 		{
 			"block_count": 2,
-			"bytes": 3565,
+			"bytes": 7652,
 			"dir": "105",
 			"direction_flip_count": 0,
 			"directions": [
 				{
 					"headsign": "105 Downtown/University of Texas NB",
 					"id": 0,
-					"pattern_count": 1,
-					"stop_count": 33,
+					"pattern_count": 2,
+					"stop_count": 32,
 					"timepoint_count": 5,
-					"trip_count": 2
+					"trip_count": 8
 				},
 				{
 					"headsign": "105 Westgate SB",
@@ -170,18 +170,22 @@
 					"trip_count": 2
 				}
 			],
-			"gzip": 1282,
+			"gzip": 1576,
 			"long_name": "105-South 5th Flyer",
 			"route_color": "555555",
 			"route_id": "105",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"9-172"
 			],
 			"short_name": "105",
-			"stop_time_count": 140,
-			"trip_count": 4
+			"stop_time_count": 332,
+			"trip_count": 10
 		},
 		{
 			"block_count": 3,
@@ -206,17 +210,17 @@
 					"trip_count": 8
 				}
 			],
-			"gzip": 1253,
+			"gzip": 1245,
 			"long_name": "111-South Mopac Flyer",
 			"route_color": "555555",
 			"route_id": "111",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172"
 			],
 			"short_name": "111",
 			"stop_time_count": 344,
@@ -252,7 +256,7 @@
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "135",
 			"stop_time_count": 40,
@@ -281,17 +285,17 @@
 					"trip_count": 8
 				}
 			],
-			"gzip": 2027,
+			"gzip": 2023,
 			"long_name": "142-Metric Flyer",
 			"route_color": "555555",
 			"route_id": "142",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172"
 			],
 			"short_name": "142",
 			"stop_time_count": 600,
@@ -320,14 +324,14 @@
 					"trip_count": 12
 				}
 			],
-			"gzip": 797,
+			"gzip": 798,
 			"long_name": "152-Round Rock Tech Ridge Limited",
 			"route_color": "555555",
 			"route_id": "152",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "152",
 			"stop_time_count": 60,
@@ -356,17 +360,17 @@
 					"trip_count": 12
 				}
 			],
-			"gzip": 1430,
+			"gzip": 1425,
 			"long_name": "171-Oak Hill Flyer",
 			"route_color": "555555",
 			"route_id": "171",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172"
 			],
 			"short_name": "171",
 			"stop_time_count": 372,
@@ -374,14 +378,14 @@
 		},
 		{
 			"block_count": 5,
-			"bytes": 427177,
+			"bytes": 446933,
 			"dir": "18",
 			"direction_flip_count": 526,
 			"directions": [
 				{
 					"headsign": "18 Expo Center EB",
 					"id": 0,
-					"pattern_count": 3,
+					"pattern_count": 1,
 					"stop_count": 39,
 					"timepoint_count": 6,
 					"trip_count": 284
@@ -389,35 +393,35 @@
 				{
 					"headsign": "18 Lake Austin WB",
 					"id": 1,
-					"pattern_count": 3,
-					"stop_count": 36,
+					"pattern_count": 2,
+					"stop_count": 40,
 					"timepoint_count": 6,
 					"trip_count": 282
 				}
 			],
-			"gzip": 60884,
+			"gzip": 57016,
 			"long_name": "18-Martin Luther King",
 			"route_color": "004A97",
 			"route_id": "18",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "18",
-			"stop_time_count": 21199,
+			"stop_time_count": 22460,
 			"trip_count": 566
 		},
 		{
 			"block_count": 8,
-			"bytes": 513145,
+			"bytes": 509802,
 			"dir": "2",
 			"direction_flip_count": 0,
 			"directions": [
@@ -425,7 +429,7 @@
 					"headsign": "2 Eastside Bus Plaza KB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 31,
+					"stop_count": 30,
 					"timepoint_count": 4,
 					"trip_count": 374
 				},
@@ -438,29 +442,29 @@
 					"trip_count": 376
 				}
 			],
-			"gzip": 62829,
+			"gzip": 62985,
 			"long_name": "2- Rosewood/Cesar Chavez",
 			"route_color": "004A97",
 			"route_id": "2",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "2",
-			"stop_time_count": 24640,
+			"stop_time_count": 24393,
 			"trip_count": 750
 		},
 		{
 			"block_count": 15,
-			"bytes": 741561,
+			"bytes": 736043,
 			"dir": "20",
 			"direction_flip_count": 1088,
 			"directions": [
@@ -468,7 +472,7 @@
 					"headsign": "20 University of Texas NB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 27,
+					"stop_count": 26,
 					"timepoint_count": 4,
 					"trip_count": 568
 				},
@@ -481,59 +485,62 @@
 					"trip_count": 588
 				}
 			],
-			"gzip": 92047,
+			"gzip": 91494,
 			"long_name": "20-Riverside",
 			"route_color": "004A97",
 			"route_id": "20",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
+				"1-172",
 				"12-172",
 				"13-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "20",
-			"stop_time_count": 34852,
+			"stop_time_count": 34515,
 			"trip_count": 1156
 		},
 		{
 			"block_count": 2,
-			"bytes": 136764,
+			"bytes": 94579,
 			"dir": "201",
-			"direction_flip_count": 420,
+			"direction_flip_count": 290,
 			"directions": [
 				{
 					"headsign": "201 Southpark Meadows SB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 3,
-					"timepoint_count": 2,
+					"stop_count": 8,
+					"timepoint_count": 3,
 					"trip_count": 218
 				},
 				{
 					"headsign": "201 William Cannon NB",
 					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 13,
-					"timepoint_count": 1,
-					"trip_count": 218
+					"pattern_count": 1,
+					"stop_count": 14,
+					"timepoint_count": 2,
+					"trip_count": 78
 				}
 			],
-			"gzip": 13909,
+			"gzip": 9528,
 			"long_name": "201-Southpark Meadows",
 			"route_color": "004A97",
 			"route_id": "201",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
 				"10-172",
 				"11-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
@@ -542,8 +549,8 @@
 				"9-172"
 			],
 			"short_name": "201",
-			"stop_time_count": 4034,
-			"trip_count": 436
+			"stop_time_count": 2914,
+			"trip_count": 296
 		},
 		{
 			"block_count": 2,
@@ -568,14 +575,14 @@
 					"trip_count": 18
 				}
 			],
-			"gzip": 2725,
+			"gzip": 2727,
 			"long_name": "214-Northwest Feeder",
 			"route_color": "004A97",
 			"route_id": "214",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "214",
 			"stop_time_count": 491,
@@ -583,7 +590,7 @@
 		},
 		{
 			"block_count": 1,
-			"bytes": 44753,
+			"bytes": 44861,
 			"dir": "217",
 			"direction_flip_count": 155,
 			"directions": [
@@ -604,16 +611,16 @@
 					"trip_count": 79
 				}
 			],
-			"gzip": 4743,
+			"gzip": 4755,
 			"long_name": "217-Montopolis Feeder",
 			"route_color": "004A97",
 			"route_id": "217",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "217",
 			"stop_time_count": 1264,
@@ -621,9 +628,9 @@
 		},
 		{
 			"block_count": 2,
-			"bytes": 40494,
+			"bytes": 81160,
 			"dir": "228",
-			"direction_flip_count": 90,
+			"direction_flip_count": 175,
 			"directions": [
 				{
 					"headsign": "228 Shady LVA Clinicane EB",
@@ -636,13 +643,13 @@
 				{
 					"headsign": "228 Pleasant Valley WB",
 					"id": 1,
-					"pattern_count": 1,
-					"stop_count": 18,
+					"pattern_count": 2,
+					"stop_count": 17,
 					"timepoint_count": 3,
-					"trip_count": 47
+					"trip_count": 140
 				}
 			],
-			"gzip": 6639,
+			"gzip": 9696,
 			"long_name": "228-VA Clinic",
 			"route_color": "004A97",
 			"route_id": "228",
@@ -650,15 +657,21 @@
 			"route_type": 3,
 			"service_ids": [
 				"1-172",
-				"2-172"
+				"10-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"5-172",
+				"6-172",
+				"9-172"
 			],
 			"short_name": "228",
-			"stop_time_count": 1551,
-			"trip_count": 94
+			"stop_time_count": 3132,
+			"trip_count": 187
 		},
 		{
 			"block_count": 1,
-			"bytes": 28127,
+			"bytes": 28187,
 			"dir": "233",
 			"direction_flip_count": 97,
 			"directions": [
@@ -679,16 +692,16 @@
 					"trip_count": 50
 				}
 			],
-			"gzip": 3723,
+			"gzip": 3709,
 			"long_name": "233-Decker/Daffan Ln",
 			"route_color": "004A97",
 			"route_id": "233",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "233",
 			"stop_time_count": 750,
@@ -696,7 +709,7 @@
 		},
 		{
 			"block_count": 6,
-			"bytes": 73655,
+			"bytes": 73785,
 			"dir": "243",
 			"direction_flip_count": 123,
 			"directions": [
@@ -717,16 +730,16 @@
 					"trip_count": 98
 				}
 			],
-			"gzip": 8522,
+			"gzip": 8529,
 			"long_name": "243-Wells Branch",
 			"route_color": "004A97",
 			"route_id": "243",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "243",
 			"stop_time_count": 2607,
@@ -734,7 +747,7 @@
 		},
 		{
 			"block_count": 5,
-			"bytes": 200839,
+			"bytes": 200755,
 			"dir": "271",
 			"direction_flip_count": 430,
 			"directions": [
@@ -755,21 +768,21 @@
 					"trip_count": 220
 				}
 			],
-			"gzip": 23236,
+			"gzip": 23178,
 			"long_name": "271-Del Valle",
 			"route_color": "004A97",
 			"route_id": "271",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "271",
 			"stop_time_count": 8175,
@@ -777,7 +790,7 @@
 		},
 		{
 			"block_count": 15,
-			"bytes": 956185,
+			"bytes": 953010,
 			"dir": "3",
 			"direction_flip_count": 492,
 			"directions": [
@@ -793,58 +806,145 @@
 					"headsign": "3 Arboretum NB",
 					"id": 1,
 					"pattern_count": 2,
-					"stop_count": 92,
+					"stop_count": 91,
 					"timepoint_count": 9,
 					"trip_count": 284
 				}
 			],
-			"gzip": 150792,
+			"gzip": 144955,
 			"long_name": "3-Burnet/Manchaca",
 			"route_color": "004A97",
 			"route_id": "3",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "3",
-			"stop_time_count": 52762,
+			"stop_time_count": 52583,
 			"trip_count": 564
 		},
 		{
 			"block_count": 12,
-			"bytes": 449834,
+			"bytes": 581495,
 			"dir": "30",
-			"direction_flip_count": 285,
+			"direction_flip_count": 422,
 			"directions": [
 				{
 					"headsign": "30 NORTHCROSS NB",
 					"id": 0,
-					"pattern_count": 3,
-					"stop_count": 77,
-					"timepoint_count": 9,
+					"pattern_count": 2,
+					"stop_count": 62,
+					"timepoint_count": 8,
 					"trip_count": 240
 				},
 				{
 					"headsign": "30 Westgate Transit Center SB",
 					"id": 1,
-					"pattern_count": 1,
-					"stop_count": 72,
-					"timepoint_count": 10,
-					"trip_count": 86
+					"pattern_count": 2,
+					"stop_count": 58,
+					"timepoint_count": 8,
+					"trip_count": 234
 				}
 			],
-			"gzip": 77021,
+			"gzip": 89166,
 			"long_name": "30-Barton Creek/Bull Creek",
 			"route_color": "004A97",
 			"route_id": "30",
+			"route_text_color": "FFFFFF",
+			"route_type": 3,
+			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"5-172",
+				"6-172",
+				"7-172",
+				"8-172"
+			],
+			"short_name": "30",
+			"stop_time_count": 31064,
+			"trip_count": 474
+		},
+		{
+			"block_count": 24,
+			"bytes": 1334352,
+			"dir": "300",
+			"direction_flip_count": 951,
+			"directions": [
+				{
+					"headsign": "300 Westgate Transit Center SB",
+					"id": 0,
+					"pattern_count": 4,
+					"stop_count": 66,
+					"timepoint_count": 7,
+					"trip_count": 533
+				},
+				{
+					"headsign": "300 Crestview Station NB",
+					"id": 1,
+					"pattern_count": 6,
+					"stop_count": 68,
+					"timepoint_count": 8,
+					"trip_count": 533
+				}
+			],
+			"gzip": 207371,
+			"long_name": "300-Springdale/Oltorf",
+			"route_color": "004A97",
+			"route_id": "300",
+			"route_text_color": "FFFFFF",
+			"route_type": 3,
+			"service_ids": [
+				"1-172",
+				"12-172",
+				"13-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"5-172",
+				"6-172",
+				"8-172"
+			],
+			"short_name": "300",
+			"stop_time_count": 71118,
+			"trip_count": 1066
+		},
+		{
+			"block_count": 3,
+			"bytes": 195481,
+			"dir": "310",
+			"direction_flip_count": 357,
+			"directions": [
+				{
+					"headsign": "310 ACC Riverside EB",
+					"id": 0,
+					"pattern_count": 2,
+					"stop_count": 22,
+					"timepoint_count": 3,
+					"trip_count": 268
+				},
+				{
+					"headsign": "310 S. Congress Transit Center WB",
+					"id": 1,
+					"pattern_count": 1,
+					"stop_count": 22,
+					"timepoint_count": 3,
+					"trip_count": 103
+				}
+			],
+			"gzip": 26907,
+			"long_name": "310-Parker/Wickersham",
+			"route_color": "004A97",
+			"route_id": "310",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
@@ -860,143 +960,57 @@
 				"8-172",
 				"9-172"
 			],
-			"short_name": "30",
-			"stop_time_count": 24706,
-			"trip_count": 326
-		},
-		{
-			"block_count": 24,
-			"bytes": 1355821,
-			"dir": "300",
-			"direction_flip_count": 951,
-			"directions": [
-				{
-					"headsign": "300 Westgate Transit Center SB",
-					"id": 0,
-					"pattern_count": 4,
-					"stop_count": 68,
-					"timepoint_count": 8,
-					"trip_count": 533
-				},
-				{
-					"headsign": "300 Crestview Station NB",
-					"id": 1,
-					"pattern_count": 4,
-					"stop_count": 67,
-					"timepoint_count": 8,
-					"trip_count": 533
-				}
-			],
-			"gzip": 205858,
-			"long_name": "300-Springdale/Oltorf",
-			"route_color": "004A97",
-			"route_id": "300",
-			"route_text_color": "FFFFFF",
-			"route_type": 3,
-			"service_ids": [
-				"11-172",
-				"12-172",
-				"13-172",
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
-			],
-			"short_name": "300",
-			"stop_time_count": 72411,
-			"trip_count": 1066
-		},
-		{
-			"block_count": 3,
-			"bytes": 282608,
-			"dir": "310",
-			"direction_flip_count": 522,
-			"directions": [
-				{
-					"headsign": "310 ACC Riverside EB",
-					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 21,
-					"timepoint_count": 3,
-					"trip_count": 268
-				},
-				{
-					"headsign": "310 S. Congress Transit Center WB",
-					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 21,
-					"timepoint_count": 3,
-					"trip_count": 278
-				}
-			],
-			"gzip": 35082,
-			"long_name": "310-Parker/Wickersham",
-			"route_color": "004A97",
-			"route_id": "310",
-			"route_text_color": "FFFFFF",
-			"route_type": 3,
-			"service_ids": [
-				"10-172",
-				"11-172",
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
-			],
 			"short_name": "310",
-			"stop_time_count": 11965,
-			"trip_count": 546
+			"stop_time_count": 8459,
+			"trip_count": 371
 		},
 		{
 			"block_count": 12,
-			"bytes": 510726,
+			"bytes": 699726,
 			"dir": "311",
-			"direction_flip_count": 641,
+			"direction_flip_count": 878,
 			"directions": [
 				{
 					"headsign": "311 Westgate Transit Center WB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 37,
-					"timepoint_count": 6,
-					"trip_count": 370
+					"stop_count": 35,
+					"timepoint_count": 4,
+					"trip_count": 466
 				},
 				{
 					"headsign": "311 ACC RIVERSIDE EB",
 					"id": 1,
-					"pattern_count": 3,
-					"stop_count": 38,
+					"pattern_count": 2,
+					"stop_count": 37,
 					"timepoint_count": 6,
-					"trip_count": 310
+					"trip_count": 466
 				}
 			],
-			"gzip": 75714,
+			"gzip": 95501,
 			"long_name": "311-Stassney",
 			"route_color": "004A97",
 			"route_id": "311",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
+				"12-172",
 				"13-172",
-				"14-172",
-				"15-172",
 				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
-				"7-172"
+				"8-172"
 			],
 			"short_name": "311",
-			"stop_time_count": 24901,
-			"trip_count": 680
+			"stop_time_count": 34138,
+			"trip_count": 932
 		},
 		{
 			"block_count": 15,
-			"bytes": 93003,
+			"bytes": 93134,
 			"dir": "315",
 			"direction_flip_count": 159,
 			"directions": [
@@ -1017,16 +1031,16 @@
 					"trip_count": 100
 				}
 			],
-			"gzip": 15110,
+			"gzip": 15121,
 			"long_name": "315-Ben White",
 			"route_color": "004A97",
 			"route_id": "315",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "315",
 			"stop_time_count": 3734,
@@ -1034,15 +1048,15 @@
 		},
 		{
 			"block_count": 4,
-			"bytes": 449848,
+			"bytes": 450311,
 			"dir": "318",
 			"direction_flip_count": 520,
 			"directions": [
 				{
 					"headsign": "318 Thaxton EB",
 					"id": 0,
-					"pattern_count": 3,
-					"stop_count": 42,
+					"pattern_count": 2,
+					"stop_count": 41,
 					"timepoint_count": 5,
 					"trip_count": 276
 				},
@@ -1055,29 +1069,29 @@
 					"trip_count": 276
 				}
 			],
-			"gzip": 62719,
+			"gzip": 57554,
 			"long_name": "318-Westgate/Slaughter",
 			"route_color": "004A97",
 			"route_id": "318",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "318",
-			"stop_time_count": 22509,
+			"stop_time_count": 22560,
 			"trip_count": 552
 		},
 		{
 			"block_count": 4,
-			"bytes": 223964,
+			"bytes": 223977,
 			"dir": "320",
 			"direction_flip_count": 386,
 			"directions": [
@@ -1098,7 +1112,7 @@
 					"trip_count": 288
 				}
 			],
-			"gzip": 26192,
+			"gzip": 26228,
 			"long_name": "320-Manor Road",
 			"route_color": "004A97",
 			"route_id": "320",
@@ -1123,74 +1137,31 @@
 		},
 		{
 			"block_count": 2,
-			"bytes": 290407,
+			"bytes": 206955,
 			"dir": "322",
-			"direction_flip_count": 484,
+			"direction_flip_count": 330,
 			"directions": [
 				{
 					"headsign": "322 RBJ Center SB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 26,
-					"timepoint_count": 2,
+					"stop_count": 27,
+					"timepoint_count": 3,
 					"trip_count": 252
 				},
 				{
 					"headsign": "322 Hancock Center NB",
 					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 24,
+					"pattern_count": 1,
+					"stop_count": 28,
 					"timepoint_count": 3,
-					"trip_count": 248
+					"trip_count": 94
 				}
 			],
-			"gzip": 40146,
+			"gzip": 30467,
 			"long_name": "322-Chicon/Cherrywood",
 			"route_color": "004A97",
 			"route_id": "322",
-			"route_text_color": "FFFFFF",
-			"route_type": 3,
-			"service_ids": [
-				"10-172",
-				"11-172",
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
-			],
-			"short_name": "322",
-			"stop_time_count": 13166,
-			"trip_count": 500
-		},
-		{
-			"block_count": 4,
-			"bytes": 252476,
-			"dir": "324",
-			"direction_flip_count": 343,
-			"directions": [
-				{
-					"headsign": "324 Highland EB",
-					"id": 0,
-					"pattern_count": 1,
-					"stop_count": 33,
-					"timepoint_count": 4,
-					"trip_count": 99
-				},
-				{
-					"headsign": "324 Northcross WB",
-					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 32,
-					"timepoint_count": 4,
-					"trip_count": 272
-				}
-			],
-			"gzip": 37081,
-			"long_name": "324-Georgian/Ohlen",
-			"route_color": "004A97",
-			"route_id": "324",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
@@ -1206,13 +1177,56 @@
 				"8-172",
 				"9-172"
 			],
+			"short_name": "322",
+			"stop_time_count": 9532,
+			"trip_count": 346
+		},
+		{
+			"block_count": 4,
+			"bytes": 361709,
+			"dir": "324",
+			"direction_flip_count": 512,
+			"directions": [
+				{
+					"headsign": "324 Highland EB",
+					"id": 0,
+					"pattern_count": 2,
+					"stop_count": 32,
+					"timepoint_count": 4,
+					"trip_count": 268
+				},
+				{
+					"headsign": "324 Northcross WB",
+					"id": 1,
+					"pattern_count": 2,
+					"stop_count": 31,
+					"timepoint_count": 4,
+					"trip_count": 272
+				}
+			],
+			"gzip": 49079,
+			"long_name": "324-Georgian/Ohlen",
+			"route_color": "004A97",
+			"route_id": "324",
+			"route_text_color": "FFFFFF",
+			"route_type": 3,
+			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"5-172",
+				"6-172",
+				"7-172",
+				"8-172"
+			],
 			"short_name": "324",
-			"stop_time_count": 12071,
-			"trip_count": 371
+			"stop_time_count": 17307,
+			"trip_count": 540
 		},
 		{
 			"block_count": 12,
-			"bytes": 215261,
+			"bytes": 215401,
 			"dir": "325",
 			"direction_flip_count": 250,
 			"directions": [
@@ -1233,16 +1247,16 @@
 					"trip_count": 134
 				}
 			],
-			"gzip": 41163,
+			"gzip": 41160,
 			"long_name": "325-Metric/Rundberg",
 			"route_color": "004A97",
 			"route_id": "325",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "325",
 			"stop_time_count": 10586,
@@ -1250,15 +1264,15 @@
 		},
 		{
 			"block_count": 14,
-			"bytes": 668444,
+			"bytes": 664068,
 			"dir": "333",
 			"direction_flip_count": 634,
 			"directions": [
 				{
 					"headsign": "333 Brush Country WB",
 					"id": 0,
-					"pattern_count": 4,
-					"stop_count": 35,
+					"pattern_count": 6,
+					"stop_count": 34,
 					"timepoint_count": 6,
 					"trip_count": 400
 				},
@@ -1271,24 +1285,24 @@
 					"trip_count": 408
 				}
 			],
-			"gzip": 85366,
+			"gzip": 89256,
 			"long_name": "333-William Cannon",
 			"route_color": "004A97",
 			"route_id": "333",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "333",
-			"stop_time_count": 33783,
+			"stop_time_count": 33518,
 			"trip_count": 808
 		},
 		{
@@ -1314,7 +1328,7 @@
 					"trip_count": 105
 				}
 			],
-			"gzip": 28423,
+			"gzip": 28456,
 			"long_name": "335 35th/38th",
 			"route_color": "004A97",
 			"route_id": "335",
@@ -1339,15 +1353,15 @@
 		},
 		{
 			"block_count": 12,
-			"bytes": 677780,
+			"bytes": 663121,
 			"dir": "337",
 			"direction_flip_count": 704,
 			"directions": [
 				{
 					"headsign": "337 Mopac WB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 45,
+					"pattern_count": 1,
+					"stop_count": 43,
 					"timepoint_count": 6,
 					"trip_count": 388
 				},
@@ -1360,29 +1374,29 @@
 					"trip_count": 370
 				}
 			],
-			"gzip": 83436,
+			"gzip": 81433,
 			"long_name": "337-Koenig/Colony Park",
 			"route_color": "004A97",
 			"route_id": "337",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "337",
-			"stop_time_count": 35106,
+			"stop_time_count": 34199,
 			"trip_count": 758
 		},
 		{
 			"block_count": 3,
-			"bytes": 99186,
+			"bytes": 99311,
 			"dir": "339",
 			"direction_flip_count": 179,
 			"directions": [
@@ -1403,16 +1417,16 @@
 					"trip_count": 93
 				}
 			],
-			"gzip": 19509,
+			"gzip": 19506,
 			"long_name": "339-Tuscany",
 			"route_color": "004A97",
 			"route_id": "339",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "339",
 			"stop_time_count": 4330,
@@ -1420,7 +1434,7 @@
 		},
 		{
 			"block_count": 1,
-			"bytes": 74708,
+			"bytes": 74840,
 			"dir": "345",
 			"direction_flip_count": 201,
 			"directions": [
@@ -1441,16 +1455,16 @@
 					"trip_count": 102
 				}
 			],
-			"gzip": 7220,
+			"gzip": 7216,
 			"long_name": "345-45th",
 			"route_color": "004A97",
 			"route_id": "345",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "345",
 			"stop_time_count": 2652,
@@ -1458,7 +1472,7 @@
 		},
 		{
 			"block_count": 4,
-			"bytes": 160294,
+			"bytes": 160426,
 			"dir": "350",
 			"direction_flip_count": 190,
 			"directions": [
@@ -1479,16 +1493,16 @@
 					"trip_count": 101
 				}
 			],
-			"gzip": 30273,
+			"gzip": 30265,
 			"long_name": "350-Airport Blvd",
 			"route_color": "004A97",
 			"route_id": "350",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172",
-				"2-172",
-				"3-172"
+				"10-172",
+				"11-172",
+				"9-172"
 			],
 			"short_name": "350",
 			"stop_time_count": 7878,
@@ -1496,9 +1510,9 @@
 		},
 		{
 			"block_count": 13,
-			"bytes": 372897,
+			"bytes": 380286,
 			"dir": "383",
-			"direction_flip_count": 390,
+			"direction_flip_count": 402,
 			"directions": [
 				{
 					"headsign": "383 Lakeline Station NB",
@@ -1506,7 +1520,7 @@
 					"pattern_count": 4,
 					"stop_count": 48,
 					"timepoint_count": 5,
-					"trip_count": 298
+					"trip_count": 312
 				},
 				{
 					"headsign": "383 North Lamar Transit Center SB",
@@ -1517,7 +1531,7 @@
 					"trip_count": 128
 				}
 			],
-			"gzip": 59937,
+			"gzip": 61033,
 			"long_name": "383-Research",
 			"route_color": "004A97",
 			"route_id": "383",
@@ -1527,6 +1541,8 @@
 				"1-172",
 				"10-172",
 				"11-172",
+				"14-172",
+				"15-172",
 				"16-172",
 				"2-172",
 				"3-172",
@@ -1538,33 +1554,33 @@
 				"9-172"
 			],
 			"short_name": "383",
-			"stop_time_count": 18880,
-			"trip_count": 426
+			"stop_time_count": 19232,
+			"trip_count": 440
 		},
 		{
 			"block_count": 6,
-			"bytes": 290889,
+			"bytes": 112887,
 			"dir": "392",
-			"direction_flip_count": 316,
+			"direction_flip_count": 126,
 			"directions": [
 				{
 					"headsign": "392 Tech Ridge Park & Ride EB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 25,
+					"pattern_count": 1,
+					"stop_count": 26,
 					"timepoint_count": 4,
-					"trip_count": 262
+					"trip_count": 99
 				},
 				{
 					"headsign": "392 Kramer Station WB",
 					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 23,
-					"timepoint_count": 3,
-					"trip_count": 258
+					"pattern_count": 1,
+					"stop_count": 25,
+					"timepoint_count": 4,
+					"trip_count": 97
 				}
 			],
-			"gzip": 37847,
+			"gzip": 19925,
 			"long_name": "392-Braker",
 			"route_color": "004A97",
 			"route_id": "392",
@@ -1573,20 +1589,15 @@
 			"service_ids": [
 				"10-172",
 				"11-172",
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
 				"9-172"
 			],
 			"short_name": "392",
-			"stop_time_count": 12777,
-			"trip_count": 520
+			"stop_time_count": 4999,
+			"trip_count": 196
 		},
 		{
 			"block_count": 10,
-			"bytes": 393079,
+			"bytes": 392939,
 			"dir": "4",
 			"direction_flip_count": 732,
 			"directions": [
@@ -1607,21 +1618,21 @@
 					"trip_count": 390
 				}
 			],
-			"gzip": 47395,
+			"gzip": 47222,
 			"long_name": "4-7th Street",
 			"route_color": "004A97",
 			"route_id": "4",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "4",
 			"stop_time_count": 17434,
@@ -1650,14 +1661,14 @@
 					"trip_count": 24
 				}
 			],
-			"gzip": 1590,
+			"gzip": 1589,
 			"long_name": "465-MLK/University of Texas",
 			"route_color": "004A97",
 			"route_id": "465",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "465",
 			"stop_time_count": 216,
@@ -1665,46 +1676,43 @@
 		},
 		{
 			"block_count": 2,
-			"bytes": 32028,
+			"bytes": 8780,
 			"dir": "466",
 			"direction_flip_count": 0,
 			"directions": [
 				{
 					"headsign": "466 Kramer Station KB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 8,
-					"timepoint_count": 3,
-					"trip_count": 108
+					"pattern_count": 1,
+					"stop_count": 10,
+					"timepoint_count": 4,
+					"trip_count": 27
 				}
 			],
-			"gzip": 3072,
+			"gzip": 1573,
 			"long_name": "466-Kramer/Domain",
 			"route_color": "004A97",
 			"route_id": "466",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"9-172"
 			],
 			"short_name": "466",
-			"stop_time_count": 918,
-			"trip_count": 108
+			"stop_time_count": 270,
+			"trip_count": 27
 		},
 		{
 			"block_count": 6,
-			"bytes": 80556,
+			"bytes": 79980,
 			"dir": "481",
 			"direction_flip_count": 90,
 			"directions": [
 				{
 					"headsign": "481 Rundberg NB",
 					"id": 0,
-					"pattern_count": 1,
-					"stop_count": 41,
+					"pattern_count": 2,
+					"stop_count": 40,
 					"timepoint_count": 3,
 					"trip_count": 54
 				},
@@ -1717,27 +1725,27 @@
 					"trip_count": 54
 				}
 			],
-			"gzip": 9094,
+			"gzip": 9144,
 			"long_name": "481-Night Owl North Lamar",
 			"route_color": "004A97",
 			"route_id": "481",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"6-172"
 			],
 			"short_name": "481",
-			"stop_time_count": 3942,
+			"stop_time_count": 3906,
 			"trip_count": 108
 		},
 		{
 			"block_count": 6,
-			"bytes": 51288,
+			"bytes": 50812,
 			"dir": "483",
 			"direction_flip_count": 66,
 			"directions": [
@@ -1745,8 +1753,8 @@
 					"headsign": "483 Riverside SB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 25,
-					"timepoint_count": 4,
+					"stop_count": 24,
+					"timepoint_count": 3,
 					"trip_count": 42
 				},
 				{
@@ -1758,22 +1766,22 @@
 					"trip_count": 42
 				}
 			],
-			"gzip": 4759,
+			"gzip": 4697,
 			"long_name": "483-Night Owl Riverside",
 			"route_color": "004A97",
 			"route_id": "483",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"6-172"
 			],
 			"short_name": "483",
-			"stop_time_count": 2352,
+			"stop_time_count": 2324,
 			"trip_count": 84
 		},
 		{
@@ -1799,19 +1807,19 @@
 					"trip_count": 30
 				}
 			],
-			"gzip": 2413,
+			"gzip": 2362,
 			"long_name": "484-Night Owl South Lamar",
 			"route_color": "004A97",
 			"route_id": "484",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"6-172"
 			],
 			"short_name": "484",
 			"stop_time_count": 1260,
@@ -1840,19 +1848,19 @@
 					"trip_count": 36
 				}
 			],
-			"gzip": 5699,
+			"gzip": 5638,
 			"long_name": "485-Night Owl 7th Street/Cameron",
 			"route_color": "004A97",
 			"route_id": "485",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"6-172"
 			],
 			"short_name": "485",
 			"stop_time_count": 2928,
@@ -1860,15 +1868,15 @@
 		},
 		{
 			"block_count": 4,
-			"bytes": 55793,
+			"bytes": 56213,
 			"dir": "486",
 			"direction_flip_count": 72,
 			"directions": [
 				{
 					"headsign": "486 Nuckols Crossing SB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 32,
+					"pattern_count": 1,
+					"stop_count": 33,
 					"timepoint_count": 2,
 					"trip_count": 42
 				},
@@ -1881,22 +1889,22 @@
 					"trip_count": 42
 				}
 			],
-			"gzip": 5308,
+			"gzip": 5013,
 			"long_name": "486-Night Owl South Congress",
 			"route_color": "004A97",
 			"route_id": "486",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"6-172"
 			],
 			"short_name": "486",
-			"stop_time_count": 2618,
+			"stop_time_count": 2646,
 			"trip_count": 84
 		},
 		{
@@ -1922,7 +1930,7 @@
 					"trip_count": 9
 				}
 			],
-			"gzip": 811,
+			"gzip": 813,
 			"long_name": "490-HEB Shuttle",
 			"route_color": "004A97",
 			"route_id": "490",
@@ -1938,7 +1946,7 @@
 		},
 		{
 			"block_count": 2,
-			"bytes": 4963,
+			"bytes": 4977,
 			"dir": "491",
 			"direction_flip_count": 12,
 			"directions": [
@@ -1959,14 +1967,14 @@
 					"trip_count": 7
 				}
 			],
-			"gzip": 1045,
+			"gzip": 1043,
 			"long_name": "491-Allandale",
 			"route_color": "004A97",
 			"route_id": "491",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"2-172"
+				"10-172"
 			],
 			"short_name": "491",
 			"stop_time_count": 154,
@@ -2031,7 +2039,7 @@
 					"trip_count": 6
 				}
 			],
-			"gzip": 871,
+			"gzip": 872,
 			"long_name": "493-Eastview",
 			"route_color": "004A97",
 			"route_id": "493",
@@ -2046,7 +2054,7 @@
 		},
 		{
 			"block_count": 11,
-			"bytes": 633875,
+			"bytes": 630789,
 			"dir": "5",
 			"direction_flip_count": 504,
 			"directions": [
@@ -2061,30 +2069,30 @@
 				{
 					"headsign": "5 Northcross WB",
 					"id": 1,
-					"pattern_count": 1,
-					"stop_count": 60,
+					"pattern_count": 2,
+					"stop_count": 59,
 					"timepoint_count": 8,
 					"trip_count": 276
 				}
 			],
-			"gzip": 88394,
+			"gzip": 87907,
 			"long_name": "5-Woodrow/Lamar",
 			"route_color": "004A97",
 			"route_id": "5",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "5",
-			"stop_time_count": 33920,
+			"stop_time_count": 33746,
 			"trip_count": 556
 		},
 		{
@@ -2110,14 +2118,14 @@
 					"trip_count": 12
 				}
 			],
-			"gzip": 3057,
+			"gzip": 3063,
 			"long_name": "50-Round Rock Techridge",
 			"route_color": "004A97",
 			"route_id": "50",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "50",
 			"stop_time_count": 576,
@@ -2125,9 +2133,9 @@
 		},
 		{
 			"block_count": 38,
-			"bytes": 58007,
+			"bytes": 74882,
 			"dir": "550",
-			"direction_flip_count": 144,
+			"direction_flip_count": 189,
 			"directions": [
 				{
 					"headsign": "550 Downtown Station SB",
@@ -2135,7 +2143,7 @@
 					"pattern_count": 4,
 					"stop_count": 10,
 					"timepoint_count": 10,
-					"trip_count": 89
+					"trip_count": 115
 				},
 				{
 					"headsign": "550 Leander Station NB",
@@ -2143,36 +2151,38 @@
 					"pattern_count": 5,
 					"stop_count": 10,
 					"timepoint_count": 10,
-					"trip_count": 97
+					"trip_count": 124
 				}
 			],
-			"gzip": 6604,
+			"gzip": 7504,
 			"long_name": "550-Metro Rail Red Line",
 			"route_color": "E2231A",
 			"route_id": "550",
 			"route_text_color": "FFFFFF",
 			"route_type": 0,
 			"service_ids": [
+				"10-172",
+				"15-172",
 				"19-172",
 				"21-172",
 				"22-172",
-				"5-172",
+				"23-172",
 				"8-172"
 			],
 			"short_name": "550",
-			"stop_time_count": 1761,
-			"trip_count": 186
+			"stop_time_count": 2290,
+			"trip_count": 239
 		},
 		{
 			"block_count": 10,
-			"bytes": 352706,
+			"bytes": 356228,
 			"dir": "640",
 			"direction_flip_count": 943,
 			"directions": [
 				{
 					"headsign": "640 Forty Acres-OB OB",
 					"id": 0,
-					"pattern_count": 4,
+					"pattern_count": 3,
 					"stop_count": 6,
 					"timepoint_count": 2,
 					"trip_count": 970
@@ -2186,61 +2196,61 @@
 					"trip_count": 481
 				}
 			],
-			"gzip": 25866,
+			"gzip": 26089,
 			"long_name": "640-Forty Acres",
 			"route_color": "004A97",
 			"route_id": "640",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
-				"23-172",
+				"1-172",
 				"24-172",
 				"25-172",
 				"26-172",
 				"27-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"28-172",
+				"3-172",
+				"4-172",
+				"8-172"
 			],
 			"short_name": "640",
-			"stop_time_count": 6887,
+			"stop_time_count": 7142,
 			"trip_count": 1451
 		},
 		{
 			"block_count": 12,
-			"bytes": 157639,
+			"bytes": 170827,
 			"dir": "642",
 			"direction_flip_count": 0,
 			"directions": [
 				{
 					"headsign": "642 West Campus KB",
 					"id": 0,
-					"pattern_count": 2,
+					"pattern_count": 1,
 					"stop_count": 14,
 					"timepoint_count": 3,
 					"trip_count": 453
 				}
 			],
-			"gzip": 19158,
+			"gzip": 18630,
 			"long_name": "642-West Campus/UT",
 			"route_color": "004A97",
 			"route_id": "642",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
-				"23-172",
+				"1-172",
 				"24-172",
 				"25-172",
 				"26-172",
 				"27-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"28-172",
+				"3-172",
+				"4-172",
+				"8-172"
 			],
 			"short_name": "642",
-			"stop_time_count": 5490,
+			"stop_time_count": 6342,
 			"trip_count": 453
 		},
 		{
@@ -2266,18 +2276,18 @@
 					"trip_count": 233
 				}
 			],
-			"gzip": 23087,
+			"gzip": 23089,
 			"long_name": "656-Intramural Fields/UT",
 			"route_color": "004A97",
 			"route_id": "656",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"24-172",
-				"26-172",
+				"25-172",
 				"27-172",
 				"28-172",
-				"29-172"
+				"29-172",
+				"30-172"
 			],
 			"short_name": "656",
 			"stop_time_count": 5315,
@@ -2306,18 +2316,18 @@
 					"trip_count": 187
 				}
 			],
-			"gzip": 8217,
+			"gzip": 8216,
 			"long_name": "661-Far West/UT",
 			"route_color": "004A97",
 			"route_id": "661",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"24-172",
-				"26-172",
+				"25-172",
 				"27-172",
 				"28-172",
-				"29-172"
+				"29-172",
+				"30-172"
 			],
 			"short_name": "661",
 			"stop_time_count": 1509,
@@ -2325,9 +2335,9 @@
 		},
 		{
 			"block_count": 11,
-			"bytes": 176934,
+			"bytes": 243564,
 			"dir": "663",
-			"direction_flip_count": 513,
+			"direction_flip_count": 681,
 			"directions": [
 				{
 					"headsign": "663 Lake Austin OB",
@@ -2340,170 +2350,166 @@
 				{
 					"headsign": "663 UT Campus IB",
 					"id": 1,
-					"pattern_count": 1,
+					"pattern_count": 2,
 					"stop_count": 15,
 					"timepoint_count": 2,
-					"trip_count": 184
+					"trip_count": 358
 				}
 			],
-			"gzip": 21110,
+			"gzip": 25527,
 			"long_name": "663-Lake Austin/UT",
 			"route_color": "004A97",
 			"route_id": "663",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
-				"23-172",
+				"1-172",
 				"24-172",
 				"25-172",
 				"26-172",
 				"27-172",
 				"28-172",
-				"29-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"3-172",
+				"4-172",
+				"8-172"
 			],
 			"short_name": "663",
-			"stop_time_count": 5864,
-			"trip_count": 528
+			"stop_time_count": 8300,
+			"trip_count": 702
 		},
 		{
 			"block_count": 12,
-			"bytes": 188278,
+			"bytes": 148177,
 			"dir": "670",
-			"direction_flip_count": 589,
+			"direction_flip_count": 445,
 			"directions": [
 				{
 					"headsign": "670 Crossing Place OB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 8,
+					"pattern_count": 1,
+					"stop_count": 9,
 					"timepoint_count": 2,
-					"trip_count": 301
+					"trip_count": 145
 				},
 				{
 					"headsign": "670 UT Campus IB",
 					"id": 1,
-					"pattern_count": 3,
-					"stop_count": 8,
-					"timepoint_count": 1,
+					"pattern_count": 2,
+					"stop_count": 10,
+					"timepoint_count": 2,
 					"trip_count": 312
 				}
 			],
-			"gzip": 19934,
+			"gzip": 17186,
 			"long_name": "670-North Riverside",
 			"route_color": "004A97",
 			"route_id": "670",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
-				"23-172",
+				"1-172",
 				"24-172",
 				"25-172",
 				"26-172",
 				"27-172",
+				"28-172",
 				"29-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"3-172",
+				"30-172",
+				"4-172",
+				"8-172"
 			],
 			"short_name": "670",
-			"stop_time_count": 5655,
-			"trip_count": 613
+			"stop_time_count": 4719,
+			"trip_count": 457
 		},
 		{
 			"block_count": 8,
-			"bytes": 128696,
+			"bytes": 67424,
 			"dir": "672",
-			"direction_flip_count": 512,
+			"direction_flip_count": 251,
 			"directions": [
 				{
 					"headsign": "672 Lakeshore OB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 1,
-					"timepoint_count": 1,
-					"trip_count": 261
+					"pattern_count": 1,
+					"stop_count": 2,
+					"timepoint_count": 2,
+					"trip_count": 129
 				},
 				{
 					"headsign": "672 UT Campus IB",
 					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 7,
-					"timepoint_count": 2,
-					"trip_count": 271
+					"pattern_count": 1,
+					"stop_count": 10,
+					"timepoint_count": 3,
+					"trip_count": 133
 				}
 			],
-			"gzip": 11316,
+			"gzip": 8280,
 			"long_name": "672-Lakeshore",
 			"route_color": "004A97",
 			"route_id": "672",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"23-172",
-				"24-172",
-				"26-172",
+				"25-172",
 				"27-172",
+				"28-172",
 				"29-172",
-				"5-172",
-				"6-172",
-				"7-172"
+				"30-172"
 			],
 			"short_name": "672",
-			"stop_time_count": 2686,
-			"trip_count": 532
+			"stop_time_count": 1588,
+			"trip_count": 262
 		},
 		{
 			"block_count": 20,
-			"bytes": 1199080,
+			"bytes": 1256370,
 			"dir": "7",
 			"direction_flip_count": 946,
 			"directions": [
 				{
 					"headsign": "7 William Cannon SB",
 					"id": 0,
-					"pattern_count": 6,
-					"stop_count": 58,
-					"timepoint_count": 6,
+					"pattern_count": 4,
+					"stop_count": 66,
+					"timepoint_count": 8,
 					"trip_count": 529
 				},
 				{
 					"headsign": "7 Crestview Station NB",
 					"id": 1,
-					"pattern_count": 5,
-					"stop_count": 54,
-					"timepoint_count": 8,
+					"pattern_count": 4,
+					"stop_count": 59,
+					"timepoint_count": 9,
 					"trip_count": 529
 				}
 			],
-			"gzip": 197922,
+			"gzip": 198204,
 			"long_name": "7-Duval / Dove Springs",
 			"route_color": "004A97",
 			"route_id": "7",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"11-172",
+				"1-172",
 				"12-172",
 				"13-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
-				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "7",
-			"stop_time_count": 63680,
+			"stop_time_count": 67205,
 			"trip_count": 1058
 		},
 		{
 			"block_count": 21,
-			"bytes": 630780,
+			"bytes": 623004,
 			"dir": "800",
 			"direction_flip_count": 1164,
 			"directions": [
@@ -2511,7 +2517,7 @@
 					"headsign": "800 Mueller NB",
 					"id": 0,
 					"pattern_count": 2,
-					"stop_count": 20,
+					"stop_count": 19,
 					"timepoint_count": 5,
 					"trip_count": 642
 				},
@@ -2520,54 +2526,54 @@
 					"id": 1,
 					"pattern_count": 2,
 					"stop_count": 21,
-					"timepoint_count": 6,
+					"timepoint_count": 5,
 					"trip_count": 640
 				}
 			],
-			"gzip": 69569,
+			"gzip": 69495,
 			"long_name": "800 PLEASANT VALLEY",
 			"route_color": "555555",
 			"route_id": "800",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"10-172",
-				"11-172",
+				"1-172",
+				"2-172",
+				"3-172",
 				"4-172",
 				"5-172",
 				"6-172",
 				"7-172",
-				"8-172",
-				"9-172"
+				"8-172"
 			],
 			"short_name": "800",
-			"stop_time_count": 26948,
+			"stop_time_count": 26529,
 			"trip_count": 1282
 		},
 		{
 			"block_count": 31,
-			"bytes": 845008,
+			"bytes": 303021,
 			"dir": "801",
-			"direction_flip_count": 1128,
+			"direction_flip_count": 402,
 			"directions": [
 				{
 					"headsign": "801 Tech Ridge Park & Ride NB",
 					"id": 0,
-					"pattern_count": 2,
-					"stop_count": 29,
+					"pattern_count": 1,
+					"stop_count": 30,
 					"timepoint_count": 11,
-					"trip_count": 652
+					"trip_count": 230
 				},
 				{
 					"headsign": "801 Southpark Meadows SB",
 					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 30,
-					"timepoint_count": 10,
-					"trip_count": 658
+					"pattern_count": 1,
+					"stop_count": 31,
+					"timepoint_count": 11,
+					"trip_count": 232
 				}
 			],
-			"gzip": 101770,
+			"gzip": 54739,
 			"long_name": "801-N Lamar S Congress",
 			"route_color": "555555",
 			"route_id": "801",
@@ -2576,27 +2582,22 @@
 			"service_ids": [
 				"10-172",
 				"11-172",
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
 				"9-172"
 			],
 			"short_name": "801",
-			"stop_time_count": 39115,
-			"trip_count": 1310
+			"stop_time_count": 14092,
+			"trip_count": 462
 		},
 		{
 			"block_count": 20,
-			"bytes": 516659,
+			"bytes": 517892,
 			"dir": "803",
 			"direction_flip_count": 782,
 			"directions": [
 				{
 					"headsign": "803 Domain NB",
 					"id": 0,
-					"pattern_count": 3,
+					"pattern_count": 2,
 					"stop_count": 27,
 					"timepoint_count": 8,
 					"trip_count": 642
@@ -2610,7 +2611,7 @@
 					"trip_count": 227
 				}
 			],
-			"gzip": 69910,
+			"gzip": 68917,
 			"long_name": "803-Burnet/S Lamar",
 			"route_color": "555555",
 			"route_id": "803",
@@ -2630,50 +2631,46 @@
 				"9-172"
 			],
 			"short_name": "803",
-			"stop_time_count": 23841,
+			"stop_time_count": 23918,
 			"trip_count": 869
 		},
 		{
 			"block_count": 17,
-			"bytes": 589208,
+			"bytes": 234308,
 			"dir": "837",
-			"direction_flip_count": 1058,
+			"direction_flip_count": 405,
 			"directions": [
 				{
 					"headsign": "837 Downtown SB",
 					"id": 0,
-					"pattern_count": 3,
-					"stop_count": 21,
+					"pattern_count": 1,
+					"stop_count": 23,
 					"timepoint_count": 5,
-					"trip_count": 574
+					"trip_count": 219
 				},
 				{
 					"headsign": "837 Expo Center NB",
 					"id": 1,
-					"pattern_count": 2,
-					"stop_count": 22,
+					"pattern_count": 1,
+					"stop_count": 24,
 					"timepoint_count": 5,
-					"trip_count": 575
+					"trip_count": 220
 				}
 			],
-			"gzip": 66417,
+			"gzip": 39121,
 			"long_name": "837-EXPO CENTER",
 			"route_color": "555555",
 			"route_id": "837",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"3-172",
-				"4-172",
-				"5-172",
-				"6-172",
-				"7-172",
-				"8-172",
+				"10-172",
+				"11-172",
 				"9-172"
 			],
 			"short_name": "837",
-			"stop_time_count": 25591,
-			"trip_count": 1149
+			"stop_time_count": 10317,
+			"trip_count": 439
 		},
 		{
 			"block_count": 4,
@@ -2698,14 +2695,14 @@
 					"trip_count": 2
 				}
 			],
-			"gzip": 603,
+			"gzip": 605,
 			"long_name": "935-Tech Ridge Express",
 			"route_color": "E2231A",
 			"route_id": "935",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "935",
 			"stop_time_count": 42,
@@ -2713,17 +2710,17 @@
 		},
 		{
 			"block_count": 2,
-			"bytes": 1034,
+			"bytes": 2072,
 			"dir": "980",
 			"direction_flip_count": 0,
 			"directions": [
 				{
 					"headsign": "980 Downtown/University of Texas SB",
 					"id": 0,
-					"pattern_count": 1,
-					"stop_count": 12,
+					"pattern_count": 2,
+					"stop_count": 11,
 					"timepoint_count": 4,
-					"trip_count": 1
+					"trip_count": 4
 				},
 				{
 					"headsign": "980 New Life Park & Ride/Roundrock NB",
@@ -2734,22 +2731,26 @@
 					"trip_count": 1
 				}
 			],
-			"gzip": 545,
+			"gzip": 614,
 			"long_name": "980-North Mopac Express",
 			"route_color": "E2231A",
 			"route_id": "980",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"9-172"
 			],
 			"short_name": "980",
-			"stop_time_count": 23,
-			"trip_count": 2
+			"stop_time_count": 56,
+			"trip_count": 5
 		},
 		{
 			"block_count": 6,
-			"bytes": 4224,
+			"bytes": 9924,
 			"dir": "982",
 			"direction_flip_count": 0,
 			"directions": [
@@ -2764,24 +2765,28 @@
 				{
 					"headsign": "982 Pavillion Park & Ride NB",
 					"id": 1,
-					"pattern_count": 1,
-					"stop_count": 14,
+					"pattern_count": 2,
+					"stop_count": 13,
 					"timepoint_count": 5,
-					"trip_count": 5
+					"trip_count": 20
 				}
 			],
-			"gzip": 1060,
+			"gzip": 1411,
 			"long_name": "982-Pavilion Express",
 			"route_color": "E2231A",
 			"route_id": "982",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"9-172"
 			],
 			"short_name": "982",
-			"stop_time_count": 135,
-			"trip_count": 10
+			"stop_time_count": 330,
+			"trip_count": 25
 		},
 		{
 			"block_count": 9,
@@ -2806,14 +2811,14 @@
 					"trip_count": 7
 				}
 			],
-			"gzip": 1056,
+			"gzip": 1054,
 			"long_name": "985-Leander/Lakeline Direct",
 			"route_color": "E2231A",
 			"route_id": "985",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"9-172"
 			],
 			"short_name": "985",
 			"stop_time_count": 130,
@@ -2821,17 +2826,17 @@
 		},
 		{
 			"block_count": 4,
-			"bytes": 2529,
+			"bytes": 5780,
 			"dir": "990",
 			"direction_flip_count": 0,
 			"directions": [
 				{
 					"headsign": "990 Manor/Elgin EB",
 					"id": 0,
-					"pattern_count": 1,
-					"stop_count": 14,
+					"pattern_count": 2,
+					"stop_count": 13,
 					"timepoint_count": 6,
-					"trip_count": 3
+					"trip_count": 12
 				},
 				{
 					"headsign": "990 Downtown/University of Texas WB",
@@ -2842,27 +2847,24 @@
 					"trip_count": 3
 				}
 			],
-			"gzip": 811,
+			"gzip": 1021,
 			"long_name": "990-Manor/Elgin Express",
 			"route_color": "E2231A",
 			"route_id": "990",
 			"route_text_color": "FFFFFF",
 			"route_type": 3,
 			"service_ids": [
-				"1-172"
+				"1-172",
+				"2-172",
+				"3-172",
+				"4-172",
+				"9-172"
 			],
 			"short_name": "990",
-			"stop_time_count": 75,
-			"trip_count": 6
+			"stop_time_count": 192,
+			"trip_count": 15
 		}
 	],
 	"schema": 1,
-	"warnings": [
-		"route 322: direction 1 baseline 322-1-22a0a4c4: starts on a non-timepoint stop; promoting it",
-		"route 392: direction 0 baseline 392-0-4ec6b422: starts on a non-timepoint stop; promoting it",
-		"route 466: direction 0 baseline 466-0-e5c57b79: starts on a non-timepoint stop; promoting it",
-		"route 642: direction 0 baseline 642-0-3d397bb7: starts on a non-timepoint stop; promoting it",
-		"route 670: direction 0 baseline 670-0-c10937db: starts on a non-timepoint stop; promoting it",
-		"route 801: direction 0 baseline 801-0-82fd97c1: starts on a non-timepoint stop; promoting it"
-	]
+	"warnings": []
 }

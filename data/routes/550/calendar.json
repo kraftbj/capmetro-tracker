@@ -1,11 +1,125 @@
 {
-	"date_count": 59,
+	"date_count": 79,
 	"dates": {
+		"20261007": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261008": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261009": {
+			"is_exception_day": false,
+			"service_ids": [
+				"19-172"
+			]
+		},
+		"20261010": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261011": {
+			"is_exception_day": true,
+			"service_ids": [
+				"8-172"
+			]
+		},
+		"20261012": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261013": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261014": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261015": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261016": {
+			"is_exception_day": false,
+			"service_ids": [
+				"19-172"
+			]
+		},
+		"20261017": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261019": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261020": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261021": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261022": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261023": {
+			"is_exception_day": false,
+			"service_ids": [
+				"19-172"
+			]
+		},
+		"20261024": {
+			"is_exception_day": false,
+			"service_ids": [
+				"10-172"
+			]
+		},
+		"20261026": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
+		"20261027": {
+			"is_exception_day": false,
+			"service_ids": [
+				"21-172"
+			]
+		},
 		"20261028": {
 			"is_exception_day": true,
 			"service_ids": [
-				"21-172",
-				"5-172"
+				"15-172",
+				"21-172"
 			]
 		},
 		"20261029": {
@@ -18,6 +132,13 @@
 			"is_exception_day": false,
 			"service_ids": [
 				"19-172"
+			]
+		},
+		"20261031": {
+			"is_exception_day": true,
+			"service_ids": [
+				"10-172",
+				"22-172"
 			]
 		},
 		"20261102": {
@@ -53,7 +174,7 @@
 		"20261107": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261109": {
@@ -89,7 +210,7 @@
 		"20261114": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261116": {
@@ -125,7 +246,7 @@
 		"20261121": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261123": {
@@ -149,7 +270,7 @@
 		"20261128": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261130": {
@@ -185,7 +306,7 @@
 		"20261205": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261207": {
@@ -221,7 +342,7 @@
 		"20261212": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261214": {
@@ -257,7 +378,7 @@
 		"20261219": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261221": {
@@ -287,7 +408,7 @@
 		"20261226": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20261228": {
@@ -311,13 +432,13 @@
 		"20261231": {
 			"is_exception_day": true,
 			"service_ids": [
-				"22-172"
+				"23-172"
 			]
 		},
 		"20270102": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		},
 		"20270104": {
@@ -353,22 +474,26 @@
 		"20270109": {
 			"is_exception_day": false,
 			"service_ids": [
-				"8-172"
+				"10-172"
 			]
 		}
 	},
 	"exception_dates": [
+		"20261011",
 		"20261028",
+		"20261031",
 		"20261231"
 	],
-	"feed_version": "261028_1416",
+	"feed_version": "261007_1345",
 	"route_id": "550",
 	"schema": 1,
 	"service_ids": [
+		"10-172",
+		"15-172",
 		"19-172",
 		"21-172",
 		"22-172",
-		"5-172",
+		"23-172",
 		"8-172"
 	]
 }

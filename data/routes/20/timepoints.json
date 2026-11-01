@@ -2,29 +2,29 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"11-172": "20-0-813d29b1",
+				"1-172": "20-0-3b7cb060",
 				"12-172": "20-0-2b313699",
 				"13-172": "20-0-2b313699",
-				"4-172": "20-0-2b313699",
-				"5-172": "20-0-813d29b1",
-				"6-172": "20-0-813d29b1",
-				"7-172": "20-0-813d29b1",
-				"8-172": "20-0-2b313699",
-				"9-172": "20-0-813d29b1"
+				"2-172": "20-0-2b313699",
+				"3-172": "20-0-3b7cb060",
+				"4-172": "20-0-3b7cb060",
+				"5-172": "20-0-2b313699",
+				"6-172": "20-0-3b7cb060",
+				"8-172": "20-0-3b7cb060"
 			},
-			"baseline_pattern_id": "20-0-813d29b1",
+			"baseline_pattern_id": "20-0-3b7cb060",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
 				"20-0-2b313699": {
 					"direction_id": 0,
 					"pattern_id": "20-0-2b313699",
-					"representative_trip_id": "2999339_2868",
+					"representative_trip_id": "2999339_2875",
 					"service_ids": [
 						"12-172",
 						"13-172",
-						"4-172",
-						"8-172"
+						"2-172",
+						"5-172"
 					],
 					"stop_count": 29,
 					"timepoint_count": 4,
@@ -274,18 +274,18 @@
 						}
 					]
 				},
-				"20-0-813d29b1": {
+				"20-0-3b7cb060": {
 					"direction_id": 0,
-					"pattern_id": "20-0-813d29b1",
-					"representative_trip_id": "2999339_2877",
+					"pattern_id": "20-0-3b7cb060",
+					"representative_trip_id": "2999339_2884",
 					"service_ids": [
-						"11-172",
-						"5-172",
+						"1-172",
+						"3-172",
+						"4-172",
 						"6-172",
-						"7-172",
-						"9-172"
+						"8-172"
 					],
-					"stop_count": 27,
+					"stop_count": 26,
 					"timepoint_count": 4,
 					"timepoints": [
 						{
@@ -469,19 +469,11 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.277383,
-									"lon": -97.741894,
-									"stop_id": "593",
-									"stop_name": "Lavaca/15th",
-									"stop_sequence": 23
-								},
-								{
-									"direction_id": 0,
 									"lat": 30.278834,
 									"lon": -97.741358,
 									"stop_id": "5940",
 									"stop_name": "Lavaca/17th",
-									"stop_sequence": 24
+									"stop_sequence": 23
 								},
 								{
 									"direction_id": 0,
@@ -489,7 +481,7 @@
 									"lon": -97.74162,
 									"stop_id": "1042",
 									"stop_name": "Guadalupe/West Mall UT",
-									"stop_sequence": 25
+									"stop_sequence": 24
 								},
 								{
 									"direction_id": 0,
@@ -497,7 +489,7 @@
 									"lon": -97.739302,
 									"stop_id": "3512",
 									"stop_name": "Dean Keeton/University",
-									"stop_sequence": 26
+									"stop_sequence": 25
 								}
 							],
 							"stop_id": "1249",
@@ -513,25 +505,25 @@
 							"stop_id": "3955",
 							"stop_name": "Dean Keeton/Speedway",
 							"stop_name_full": "Dean Keeton/Speedway",
-							"stop_sequence": 27
+							"stop_sequence": 26
 						}
 					]
 				}
 			},
-			"stop_count": 27,
+			"stop_count": 26,
 			"timepoint_count": 4
 		},
 		{
 			"baseline_by_service": {
-				"11-172": "20-1-ef0fe322",
+				"1-172": "20-1-ef0fe322",
 				"12-172": "20-1-66506782",
 				"13-172": "20-1-66506782",
-				"4-172": "20-1-66506782",
-				"5-172": "20-1-ef0fe322",
+				"2-172": "20-1-66506782",
+				"3-172": "20-1-ef0fe322",
+				"4-172": "20-1-ef0fe322",
+				"5-172": "20-1-66506782",
 				"6-172": "20-1-ef0fe322",
-				"7-172": "20-1-ef0fe322",
-				"8-172": "20-1-66506782",
-				"9-172": "20-1-ef0fe322"
+				"8-172": "20-1-ef0fe322"
 			},
 			"baseline_pattern_id": "20-1-ef0fe322",
 			"baseline_stable": false,
@@ -540,12 +532,12 @@
 				"20-1-66506782": {
 					"direction_id": 1,
 					"pattern_id": "20-1-66506782",
-					"representative_trip_id": "2999410_3436",
+					"representative_trip_id": "2999410_3452",
 					"service_ids": [
 						"12-172",
 						"13-172",
-						"4-172",
-						"8-172"
+						"2-172",
+						"5-172"
 					],
 					"stop_count": 33,
 					"timepoint_count": 5,
@@ -833,13 +825,13 @@
 				"20-1-ef0fe322": {
 					"direction_id": 1,
 					"pattern_id": "20-1-ef0fe322",
-					"representative_trip_id": "2999410_3445",
+					"representative_trip_id": "2999410_3443",
 					"service_ids": [
-						"11-172",
-						"5-172",
+						"1-172",
+						"3-172",
+						"4-172",
 						"6-172",
-						"7-172",
-						"9-172"
+						"8-172"
 					],
 					"stop_count": 32,
 					"timepoint_count": 5,
@@ -1121,7 +1113,7 @@
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "261028_1416",
+	"feed_version": "261007_1345",
 	"route_id": "20",
 	"schema": 1
 }

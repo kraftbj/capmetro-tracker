@@ -2,7 +2,7 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "982-0-65cc2b56"
+				"9-172": "982-0-65cc2b56"
 			},
 			"baseline_pattern_id": "982-0-65cc2b56",
 			"baseline_pattern_ids": [
@@ -22,7 +22,7 @@
 					"direction_id": 0,
 					"is_baseline": true,
 					"is_baseline_for_services": [
-						"1-172"
+						"9-172"
 					],
 					"is_special": false,
 					"pattern_id": "982-0-65cc2b56",
@@ -43,14 +43,14 @@
 						"6275"
 					],
 					"trip_ids": [
-						"3013317_26729",
-						"3013318_26730",
-						"3013319_26731",
-						"3013320_26732",
-						"3013321_26733"
+						"3013317_24799",
+						"3013318_24800",
+						"3013319_24801",
+						"3013320_24802",
+						"3013321_24803"
 					],
 					"trips_by_service": {
-						"1-172": 5
+						"9-172": 5
 					},
 					"trips_in_pattern": 5
 				}
@@ -59,29 +59,107 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "982-1-9624eedc"
+				"1-172": "982-1-3ed75872",
+				"2-172": "982-1-9624eedc",
+				"3-172": "982-1-3ed75872",
+				"4-172": "982-1-3ed75872"
 			},
-			"baseline_pattern_id": "982-1-9624eedc",
+			"baseline_pattern_id": "982-1-3ed75872",
 			"baseline_pattern_ids": [
+				"982-1-3ed75872",
 				"982-1-9624eedc"
 			],
-			"baseline_stable": true,
+			"baseline_stable": false,
 			"direction_id": 1,
-			"pattern_count": 1,
+			"pattern_count": 2,
 			"patterns": [
 				{
 					"deltas": {
+						"982-1-3ed75872": {
+							"adds": [],
+							"skips": []
+						},
+						"982-1-9624eedc": {
+							"adds": [],
+							"skips": [
+								{
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th"
+								}
+							]
+						}
+					},
+					"direction_id": 1,
+					"is_baseline": true,
+					"is_baseline_for_services": [
+						"1-172",
+						"3-172",
+						"4-172"
+					],
+					"is_special": false,
+					"pattern_id": "982-1-3ed75872",
+					"stop_count": 13,
+					"stop_ids": [
+						"6275",
+						"2605",
+						"4007",
+						"590",
+						"5940",
+						"1042",
+						"5864",
+						"809",
+						"2088",
+						"2726",
+						"5237",
+						"4658",
+						"2727"
+					],
+					"trip_ids": [
+						"3013322_24782",
+						"3013322_24785",
+						"3013322_24788",
+						"3013323_24784",
+						"3013323_24787",
+						"3013323_24790",
+						"3013324_24791",
+						"3013324_24795",
+						"3013324_24797",
+						"3013325_24783",
+						"3013325_24786",
+						"3013325_24789",
+						"3013326_24792",
+						"3013326_24796",
+						"3013326_24798"
+					],
+					"trips_by_service": {
+						"1-172": 5,
+						"3-172": 5,
+						"4-172": 5
+					},
+					"trips_in_pattern": 15
+				},
+				{
+					"deltas": {
+						"982-1-3ed75872": {
+							"adds": [
+								{
+									"stop_id": "593",
+									"stop_name": "Lavaca/15th"
+								}
+							],
+							"skips": []
+						},
 						"982-1-9624eedc": {
 							"adds": [],
 							"skips": []
 						}
 					},
 					"direction_id": 1,
-					"is_baseline": true,
+					"is_baseline": false,
 					"is_baseline_for_services": [
-						"1-172"
+						"2-172"
 					],
-					"is_special": false,
+					"is_special": true,
 					"pattern_id": "982-1-9624eedc",
 					"stop_count": 14,
 					"stop_ids": [
@@ -101,22 +179,22 @@
 						"2727"
 					],
 					"trip_ids": [
-						"3013322_26724",
-						"3013323_26726",
-						"3013324_26727",
-						"3013325_26725",
-						"3013326_26728"
+						"3013322_24779",
+						"3013323_24781",
+						"3013324_24793",
+						"3013325_24780",
+						"3013326_24794"
 					],
 					"trips_by_service": {
-						"1-172": 5
+						"2-172": 5
 					},
 					"trips_in_pattern": 5
 				}
 			],
-			"trip_count": 5
+			"trip_count": 20
 		}
 	],
-	"feed_version": "261028_1416",
+	"feed_version": "261007_1345",
 	"route_id": "982",
 	"schema": 1
 }

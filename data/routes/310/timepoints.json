@@ -2,27 +2,27 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "310-0-1de63f48",
-				"11-172": "310-0-50994456",
-				"4-172": "310-0-1de63f48",
-				"5-172": "310-0-50994456",
-				"6-172": "310-0-50994456",
-				"7-172": "310-0-50994456",
-				"8-172": "310-0-1de63f48",
-				"9-172": "310-0-50994456"
+				"1-172": "310-0-ab4d3c42",
+				"2-172": "310-0-1de63f48",
+				"3-172": "310-0-ab4d3c42",
+				"4-172": "310-0-ab4d3c42",
+				"5-172": "310-0-1de63f48",
+				"6-172": "310-0-ab4d3c42",
+				"7-172": "310-0-1de63f48",
+				"8-172": "310-0-ab4d3c42"
 			},
-			"baseline_pattern_id": "310-0-50994456",
+			"baseline_pattern_id": "310-0-ab4d3c42",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
 				"310-0-1de63f48": {
 					"direction_id": 0,
 					"pattern_id": "310-0-1de63f48",
-					"representative_trip_id": "3001617_7453",
+					"representative_trip_id": "3001617_7561",
 					"service_ids": [
-						"10-172",
-						"4-172",
-						"8-172"
+						"2-172",
+						"5-172",
+						"7-172"
 					],
 					"stop_count": 25,
 					"timepoint_count": 3,
@@ -237,18 +237,18 @@
 						}
 					]
 				},
-				"310-0-50994456": {
+				"310-0-ab4d3c42": {
 					"direction_id": 0,
-					"pattern_id": "310-0-50994456",
-					"representative_trip_id": "3001617_7456",
+					"pattern_id": "310-0-ab4d3c42",
+					"representative_trip_id": "3001617_7564",
 					"service_ids": [
-						"11-172",
-						"5-172",
+						"1-172",
+						"3-172",
+						"4-172",
 						"6-172",
-						"7-172",
-						"9-172"
+						"8-172"
 					],
-					"stop_count": 21,
+					"stop_count": 22,
 					"timepoint_count": 3,
 					"timepoints": [
 						{
@@ -290,11 +290,19 @@
 								},
 								{
 									"direction_id": 0,
+									"lat": 30.219456,
+									"lon": -97.743789,
+									"stop_id": "1235",
+									"stop_name": "Woodward/Parker",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
 									"lat": 30.220006,
 									"lon": -97.742966,
 									"stop_id": "5456",
 									"stop_name": "Mabel Davis Park",
-									"stop_sequence": 6
+									"stop_sequence": 7
 								},
 								{
 									"direction_id": 0,
@@ -302,7 +310,7 @@
 									"lon": -97.7421,
 									"stop_id": "4324",
 									"stop_name": "Parker/Timber Ridge",
-									"stop_sequence": 7
+									"stop_sequence": 8
 								},
 								{
 									"direction_id": 0,
@@ -310,7 +318,7 @@
 									"lon": -97.742158,
 									"stop_id": "1237",
 									"stop_name": "Parker/Wickshire",
-									"stop_sequence": 8
+									"stop_sequence": 9
 								},
 								{
 									"direction_id": 0,
@@ -318,7 +326,7 @@
 									"lon": -97.733322,
 									"stop_id": "6511",
 									"stop_name": "Oltorf at Burton NB",
-									"stop_sequence": 9
+									"stop_sequence": 10
 								},
 								{
 									"direction_id": 0,
@@ -326,7 +334,7 @@
 									"lon": -97.731856,
 									"stop_id": "4296",
 									"stop_name": "Oltorf/Willow Creek",
-									"stop_sequence": 10
+									"stop_sequence": 11
 								},
 								{
 									"direction_id": 0,
@@ -334,7 +342,7 @@
 									"lon": -97.728071,
 									"stop_id": "2271",
 									"stop_name": "Oltorf/Pleasant Valley",
-									"stop_sequence": 11
+									"stop_sequence": 12
 								},
 								{
 									"direction_id": 0,
@@ -342,7 +350,7 @@
 									"lon": -97.72626,
 									"stop_id": "1008",
 									"stop_name": "Oltorf/Huntwick",
-									"stop_sequence": 12
+									"stop_sequence": 13
 								}
 							],
 							"stop_id": "5544",
@@ -361,7 +369,7 @@
 									"lon": -97.721847,
 									"stop_id": "1010",
 									"stop_name": "Wickersham/Cromwell",
-									"stop_sequence": 14
+									"stop_sequence": 15
 								},
 								{
 									"direction_id": 0,
@@ -369,7 +377,7 @@
 									"lon": -97.721353,
 									"stop_id": "1011",
 									"stop_name": "Wickersham/Sheringham",
-									"stop_sequence": 15
+									"stop_sequence": 16
 								},
 								{
 									"direction_id": 0,
@@ -377,7 +385,7 @@
 									"lon": -97.719875,
 									"stop_id": "5774",
 									"stop_name": "Riverside/Wickersham",
-									"stop_sequence": 16
+									"stop_sequence": 17
 								},
 								{
 									"direction_id": 0,
@@ -385,7 +393,7 @@
 									"lon": -97.717041,
 									"stop_id": "1013",
 									"stop_name": "Riverside/Kirksey",
-									"stop_sequence": 17
+									"stop_sequence": 18
 								},
 								{
 									"direction_id": 0,
@@ -393,7 +401,7 @@
 									"lon": -97.712324,
 									"stop_id": "1015",
 									"stop_name": "Riverside/Faro",
-									"stop_sequence": 18
+									"stop_sequence": 19
 								},
 								{
 									"direction_id": 0,
@@ -401,7 +409,7 @@
 									"lon": -97.70616,
 									"stop_id": "5043",
 									"stop_name": "Grove/Fairway",
-									"stop_sequence": 19
+									"stop_sequence": 20
 								},
 								{
 									"direction_id": 0,
@@ -409,13 +417,13 @@
 									"lon": -97.704179,
 									"stop_id": "953",
 									"stop_name": "Grove",
-									"stop_sequence": 20
+									"stop_sequence": 21
 								}
 							],
 							"stop_id": "1009",
 							"stop_name": "Wickersham/Oltorf",
 							"stop_name_full": "2401 Wickersham/Oltorf",
-							"stop_sequence": 13
+							"stop_sequence": 14
 						},
 						{
 							"direction_id": 0,
@@ -425,37 +433,32 @@
 							"stop_id": "6439",
 							"stop_name": "ACC Riverside @ Grove",
 							"stop_name_full": "ACC Riverside  @ Grove",
-							"stop_sequence": 21
+							"stop_sequence": 22
 						}
 					]
 				}
 			},
-			"stop_count": 21,
+			"stop_count": 22,
 			"timepoint_count": 3
 		},
 		{
 			"baseline_by_service": {
 				"10-172": "310-1-21ad09eb",
-				"11-172": "310-1-485bba12",
-				"4-172": "310-1-21ad09eb",
-				"5-172": "310-1-485bba12",
-				"6-172": "310-1-485bba12",
-				"7-172": "310-1-485bba12",
-				"8-172": "310-1-21ad09eb",
-				"9-172": "310-1-485bba12"
+				"11-172": "310-1-21ad09eb",
+				"9-172": "310-1-21ad09eb"
 			},
-			"baseline_pattern_id": "310-1-485bba12",
-			"baseline_stable": false,
+			"baseline_pattern_id": "310-1-21ad09eb",
+			"baseline_stable": true,
 			"direction_id": 1,
 			"ladders": {
 				"310-1-21ad09eb": {
 					"direction_id": 1,
 					"pattern_id": "310-1-21ad09eb",
-					"representative_trip_id": "3001652_7724",
+					"representative_trip_id": "3001652_7829",
 					"service_ids": [
 						"10-172",
-						"4-172",
-						"8-172"
+						"11-172",
+						"9-172"
 					],
 					"stop_count": 22,
 					"timepoint_count": 3,
@@ -606,18 +609,18 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.220142,
-									"lon": -97.743051,
+									"lat": 30.219261,
+									"lon": -97.743912,
 									"stop_id": "2169",
-									"stop_name": "Parker/Woodward NE Corner",
+									"stop_name": "Woodward/Parker SW Corner",
 									"stop_sequence": 19
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.217983,
-									"lon": -97.743972,
+									"lat": 30.217147,
+									"lon": -97.744042,
 									"stop_id": "1199",
-									"stop_name": "WOODWARD/BEN WHITE",
+									"stop_name": "Woodward/Ben White NW…",
 									"stop_sequence": 20
 								},
 								{
@@ -645,205 +648,13 @@
 							"stop_sequence": 22
 						}
 					]
-				},
-				"310-1-485bba12": {
-					"direction_id": 1,
-					"pattern_id": "310-1-485bba12",
-					"representative_trip_id": "3001652_7721",
-					"service_ids": [
-						"11-172",
-						"5-172",
-						"6-172",
-						"7-172",
-						"9-172"
-					],
-					"stop_count": 21,
-					"timepoint_count": 3,
-					"timepoints": [
-						{
-							"direction_id": 1,
-							"lat": 30.23618,
-							"lon": -97.703723,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.229539,
-									"lon": -97.706558,
-									"stop_id": "1017",
-									"stop_name": "Ruiz Library",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.2273,
-									"lon": -97.708137,
-									"stop_id": "5728",
-									"stop_name": "Riverside/Grove",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229833,
-									"lon": -97.712898,
-									"stop_id": "1018",
-									"stop_name": "Riverside/Faro",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.231928,
-									"lon": -97.717861,
-									"stop_id": "1021",
-									"stop_name": "Riverside/Crossing Place",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.231526,
-									"lon": -97.720884,
-									"stop_id": "1022",
-									"stop_name": "Wickersham/Riverside",
-									"stop_sequence": 6
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229914,
-									"lon": -97.721493,
-									"stop_id": "1023",
-									"stop_name": "Wickersham/Sheringham",
-									"stop_sequence": 7
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.227534,
-									"lon": -97.721731,
-									"stop_id": "1024",
-									"stop_name": "Wickersham/Cromwell",
-									"stop_sequence": 8
-								}
-							],
-							"stop_id": "6439",
-							"stop_name": "ACC Riverside @ Grove",
-							"stop_name_full": "ACC Riverside  @ Grove",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.226083,
-							"lon": -97.723784,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.226807,
-									"lon": -97.726139,
-									"stop_id": "5788",
-									"stop_name": "Oltorf/Huntwick",
-									"stop_sequence": 10
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.227843,
-									"lon": -97.728279,
-									"stop_id": "1356",
-									"stop_name": "Oltorf East SB",
-									"stop_sequence": 11
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.228981,
-									"lon": -97.729647,
-									"stop_id": "2238",
-									"stop_name": "Oltorf/Pleasant Valley",
-									"stop_sequence": 12
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.23021,
-									"lon": -97.731749,
-									"stop_id": "1358",
-									"stop_name": "Oltorf/Willow Creek",
-									"stop_sequence": 13
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.231874,
-									"lon": -97.737285,
-									"stop_id": "1193",
-									"stop_name": "Parker/Oltorf",
-									"stop_sequence": 14
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229929,
-									"lon": -97.738557,
-									"stop_id": "1194",
-									"stop_name": "Parker/Braxton",
-									"stop_sequence": 15
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.227504,
-									"lon": -97.740505,
-									"stop_id": "1195",
-									"stop_name": "Parker/Royal Hill",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.224895,
-									"lon": -97.742138,
-									"stop_id": "4325",
-									"stop_name": "Parker/Timber Ridge",
-									"stop_sequence": 17
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.22216,
-									"lon": -97.742228,
-									"stop_id": "4323",
-									"stop_name": "Parker/Timber Ridge",
-									"stop_sequence": 18
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.217983,
-									"lon": -97.743972,
-									"stop_id": "1199",
-									"stop_name": "WOODWARD/BEN WHITE",
-									"stop_sequence": 19
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.218991,
-									"lon": -97.755293,
-									"stop_id": "5240",
-									"stop_name": "Ben White",
-									"stop_sequence": 20
-								}
-							],
-							"stop_id": "1025",
-							"stop_name": "Wickersham/Oltorf",
-							"stop_name_full": "2440 Wickersham/Oltorf",
-							"stop_sequence": 9
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.222917,
-							"lon": -97.766932,
-							"minor_stops": [],
-							"stop_id": "5544",
-							"stop_name": "South Congress Bay B",
-							"stop_name_full": "South Congress Bay B",
-							"stop_sequence": 21
-						}
-					]
 				}
 			},
-			"stop_count": 21,
+			"stop_count": 22,
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261028_1416",
+	"feed_version": "261007_1345",
 	"route_id": "310",
 	"schema": 1
 }
