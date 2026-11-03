@@ -2,29 +2,29 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "311-0-56ad85c7",
-				"12-172": "311-0-07d160ee",
-				"13-172": "311-0-07d160ee",
+				"10-172": "311-0-07d160ee",
+				"11-172": "311-0-07d160ee",
 				"2-172": "311-0-07d160ee",
-				"3-172": "311-0-56ad85c7",
-				"4-172": "311-0-56ad85c7",
-				"5-172": "311-0-07d160ee",
-				"6-172": "311-0-56ad85c7",
-				"8-172": "311-0-56ad85c7"
+				"4-172": "311-0-07d160ee",
+				"5-172": "311-0-33174468",
+				"6-172": "311-0-33174468",
+				"7-172": "311-0-33174468",
+				"8-172": "311-0-33174468",
+				"9-172": "311-0-33174468"
 			},
-			"baseline_pattern_id": "311-0-56ad85c7",
+			"baseline_pattern_id": "311-0-33174468",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
 				"311-0-07d160ee": {
 					"direction_id": 0,
 					"pattern_id": "311-0-07d160ee",
-					"representative_trip_id": "3001955_8638",
+					"representative_trip_id": "3001955_8885",
 					"service_ids": [
-						"12-172",
-						"13-172",
+						"10-172",
+						"11-172",
 						"2-172",
-						"5-172"
+						"4-172"
 					],
 					"stop_count": 37,
 					"timepoint_count": 6,
@@ -344,19 +344,19 @@
 						}
 					]
 				},
-				"311-0-56ad85c7": {
+				"311-0-33174468": {
 					"direction_id": 0,
-					"pattern_id": "311-0-56ad85c7",
-					"representative_trip_id": "3001955_8644",
+					"pattern_id": "311-0-33174468",
+					"representative_trip_id": "3014332_8532",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
-					"stop_count": 35,
-					"timepoint_count": 4,
+					"stop_count": 36,
+					"timepoint_count": 5,
 					"timepoints": [
 						{
 							"direction_id": 0,
@@ -442,14 +442,25 @@
 									"stop_id": "5831",
 									"stop_name": "Stassney/Nuckols",
 									"stop_sequence": 11
-								},
+								}
+							],
+							"stop_id": "6439",
+							"stop_name": "ACC Riverside @ Grove",
+							"stop_name_full": "ACC Riverside  @ Grove",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.194088,
+							"lon": -97.744476,
+							"minor_stops": [
 								{
 									"direction_id": 0,
 									"lat": 30.193919,
 									"lon": -97.747016,
 									"stop_id": "1223",
 									"stop_name": "Stassney/Chaparral",
-									"stop_sequence": 12
+									"stop_sequence": 13
 								},
 								{
 									"direction_id": 0,
@@ -457,7 +468,7 @@
 									"lon": -97.750685,
 									"stop_id": "1224",
 									"stop_name": "Stassney/Palo Blanco",
-									"stop_sequence": 13
+									"stop_sequence": 14
 								},
 								{
 									"direction_id": 0,
@@ -465,7 +476,7 @@
 									"lon": -97.75552,
 									"stop_id": "2489",
 									"stop_name": "Stassney/Spoke",
-									"stop_sequence": 14
+									"stop_sequence": 15
 								},
 								{
 									"direction_id": 0,
@@ -473,7 +484,7 @@
 									"lon": -97.757865,
 									"stop_id": "2490",
 									"stop_name": "Stassney/Ponciana",
-									"stop_sequence": 15
+									"stop_sequence": 16
 								},
 								{
 									"direction_id": 0,
@@ -481,7 +492,7 @@
 									"lon": -97.761644,
 									"stop_id": "2491",
 									"stop_name": "Stassney/IH 35",
-									"stop_sequence": 16
+									"stop_sequence": 17
 								},
 								{
 									"direction_id": 0,
@@ -489,7 +500,7 @@
 									"lon": -97.766394,
 									"stop_id": "4362",
 									"stop_name": "Stassney/IH 35",
-									"stop_sequence": 17
+									"stop_sequence": 18
 								},
 								{
 									"direction_id": 0,
@@ -497,13 +508,13 @@
 									"lon": -97.770825,
 									"stop_id": "4364",
 									"stop_name": "Stassney/Mira",
-									"stop_sequence": 18
+									"stop_sequence": 19
 								}
 							],
-							"stop_id": "6439",
-							"stop_name": "ACC Riverside @ Grove",
-							"stop_name_full": "ACC Riverside  @ Grove",
-							"stop_sequence": 1
+							"stop_id": "5828",
+							"stop_name": "Stassney/Pleasant Valley",
+							"stop_name_full": "4604 Stassney/Pleasant Valley",
+							"stop_sequence": 12
 						},
 						{
 							"direction_id": 0,
@@ -516,7 +527,7 @@
 									"lon": -97.77859,
 									"stop_id": "3100",
 									"stop_name": "Stassney/Hummingbird",
-									"stop_sequence": 20
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 0,
@@ -524,7 +535,7 @@
 									"lon": -97.782366,
 									"stop_id": "4277",
 									"stop_name": "Stassney/1st",
-									"stop_sequence": 21
+									"stop_sequence": 22
 								},
 								{
 									"direction_id": 0,
@@ -532,7 +543,7 @@
 									"lon": -97.786836,
 									"stop_id": "3102",
 									"stop_name": "Stassney/Emerald Forest",
-									"stop_sequence": 22
+									"stop_sequence": 23
 								},
 								{
 									"direction_id": 0,
@@ -540,7 +551,7 @@
 									"lon": -97.790956,
 									"stop_id": "3103",
 									"stop_name": "Stassney/Radam",
-									"stop_sequence": 23
+									"stop_sequence": 24
 								},
 								{
 									"direction_id": 0,
@@ -548,7 +559,7 @@
 									"lon": -97.794515,
 									"stop_id": "4278",
 									"stop_name": "Stassney/Rose Hill",
-									"stop_sequence": 24
+									"stop_sequence": 25
 								},
 								{
 									"direction_id": 0,
@@ -556,13 +567,13 @@
 									"lon": -97.796432,
 									"stop_id": "4226",
 									"stop_name": "Stassney/Menchaca",
-									"stop_sequence": 25
+									"stop_sequence": 26
 								}
 							],
 							"stop_id": "4275",
 							"stop_name": "Stassney/Congress",
 							"stop_name_full": "118 Stassney/Congress",
-							"stop_sequence": 19
+							"stop_sequence": 20
 						},
 						{
 							"direction_id": 0,
@@ -575,7 +586,7 @@
 									"lon": -97.799908,
 									"stop_id": "3105",
 									"stop_name": "Stassney/Cork Path",
-									"stop_sequence": 27
+									"stop_sequence": 28
 								},
 								{
 									"direction_id": 0,
@@ -583,7 +594,7 @@
 									"lon": -97.803096,
 									"stop_id": "3106",
 									"stop_name": "Stassney/Fernview",
-									"stop_sequence": 28
+									"stop_sequence": 29
 								},
 								{
 									"direction_id": 0,
@@ -591,7 +602,7 @@
 									"lon": -97.806938,
 									"stop_id": "5741",
 									"stop_name": "Stassney/West Gate",
-									"stop_sequence": 29
+									"stop_sequence": 30
 								},
 								{
 									"direction_id": 0,
@@ -599,7 +610,7 @@
 									"lon": -97.805563,
 									"stop_id": "3107",
 									"stop_name": "West Gate/Indio",
-									"stop_sequence": 30
+									"stop_sequence": 31
 								},
 								{
 									"direction_id": 0,
@@ -607,7 +618,7 @@
 									"lon": -97.803848,
 									"stop_id": "2367",
 									"stop_name": "West Gate/Jones",
-									"stop_sequence": 31
+									"stop_sequence": 32
 								},
 								{
 									"direction_id": 0,
@@ -615,7 +626,7 @@
 									"lon": -97.798807,
 									"stop_id": "4218",
 									"stop_name": "Western Trails/Sagebrush",
-									"stop_sequence": 32
+									"stop_sequence": 33
 								},
 								{
 									"direction_id": 0,
@@ -623,7 +634,7 @@
 									"lon": -97.796366,
 									"stop_id": "1754",
 									"stop_name": "Western Trails/Roundup",
-									"stop_sequence": 33
+									"stop_sequence": 34
 								},
 								{
 									"direction_id": 0,
@@ -631,13 +642,13 @@
 									"lon": -97.792022,
 									"stop_id": "2216",
 									"stop_name": "Pack Saddle Pass/Ben…",
-									"stop_sequence": 34
+									"stop_sequence": 35
 								}
 							],
 							"stop_id": "4224",
 							"stop_name": "Stassney/Menchaca",
 							"stop_name_full": "2000 Stassney/Menchaca",
-							"stop_sequence": 26
+							"stop_sequence": 27
 						},
 						{
 							"direction_id": 0,
@@ -647,368 +658,34 @@
 							"stop_id": "6375",
 							"stop_name": "Westgate Transit Center…",
 							"stop_name_full": "Westgate Transit Center - C",
-							"stop_sequence": 35
+							"stop_sequence": 36
 						}
 					]
 				}
 			},
-			"stop_count": 35,
-			"timepoint_count": 4
+			"stop_count": 36,
+			"timepoint_count": 5
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "311-1-430b3498",
-				"12-172": "311-1-f98161c1",
-				"13-172": "311-1-f98161c1",
-				"2-172": "311-1-f98161c1",
-				"3-172": "311-1-430b3498",
-				"4-172": "311-1-430b3498",
-				"5-172": "311-1-f98161c1",
-				"6-172": "311-1-430b3498",
-				"8-172": "311-1-430b3498"
+				"1-172": "311-1-f98161c1",
+				"10-172": "311-1-f98161c1",
+				"11-172": "311-1-f98161c1",
+				"2-172": "311-1-f98161c1"
 			},
-			"baseline_pattern_id": "311-1-430b3498",
-			"baseline_stable": false,
+			"baseline_pattern_id": "311-1-f98161c1",
+			"baseline_stable": true,
 			"direction_id": 1,
 			"ladders": {
-				"311-1-430b3498": {
-					"direction_id": 1,
-					"pattern_id": "311-1-430b3498",
-					"representative_trip_id": "3002004_8173",
-					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
-						"6-172",
-						"8-172"
-					],
-					"stop_count": 37,
-					"timepoint_count": 6,
-					"timepoints": [
-						{
-							"direction_id": 1,
-							"lat": 30.231153,
-							"lon": -97.791129,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.231055,
-									"lon": -97.792199,
-									"stop_id": "4231",
-									"stop_name": "Pack Saddle Pass/Ben…",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.230411,
-									"lon": -97.793637,
-									"stop_id": "1746",
-									"stop_name": "Western Trails/Pack…",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229929,
-									"lon": -97.796179,
-									"stop_id": "1747",
-									"stop_name": "Western Trails/Roundup",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229619,
-									"lon": -97.798883,
-									"stop_id": "1748",
-									"stop_name": "WESTERN TRAILS/Sagebrush",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.229104,
-									"lon": -97.8005,
-									"stop_id": "4219",
-									"stop_name": "Western Trails/Sagebrush",
-									"stop_sequence": 6
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.227305,
-									"lon": -97.802541,
-									"stop_id": "2337",
-									"stop_name": "West Gate/Choctaw Trail",
-									"stop_sequence": 7
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.225819,
-									"lon": -97.803849,
-									"stop_id": "2338",
-									"stop_name": "West Gate/Jones",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.223145,
-									"lon": -97.805582,
-									"stop_id": "2339",
-									"stop_name": "West Gate/Indio",
-									"stop_sequence": 9
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.218687,
-									"lon": -97.805931,
-									"stop_id": "4223",
-									"stop_name": "Stassney/Westgate",
-									"stop_sequence": 10
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.21814,
-									"lon": -97.80326,
-									"stop_id": "3109",
-									"stop_name": "Stassney/Fernview",
-									"stop_sequence": 11
-								}
-							],
-							"stop_id": "6375",
-							"stop_name": "Westgate Transit Center…",
-							"stop_name_full": "Westgate Transit Center - C",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.216159,
-							"lon": -97.799017,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.214594,
-									"lon": -97.79633,
-									"stop_id": "4225",
-									"stop_name": "Stassney/Menchaca",
-									"stop_sequence": 13
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.213644,
-									"lon": -97.794264,
-									"stop_id": "3112",
-									"stop_name": "Stassney/Rose Hill",
-									"stop_sequence": 14
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.212061,
-									"lon": -97.790959,
-									"stop_id": "3113",
-									"stop_name": "Stassney/Radam",
-									"stop_sequence": 15
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.210625,
-									"lon": -97.787259,
-									"stop_id": "3114",
-									"stop_name": "Stassney/Emerald Forest",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.209059,
-									"lon": -97.784284,
-									"stop_id": "5487",
-									"stop_name": "Stassney/Nancy",
-									"stop_sequence": 17
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.208097,
-									"lon": -97.781018,
-									"stop_id": "4393",
-									"stop_name": "Stassney/1st",
-									"stop_sequence": 18
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.207058,
-									"lon": -97.778967,
-									"stop_id": "3116",
-									"stop_name": "W Stassney/Hummingbird",
-									"stop_sequence": 19
-								}
-							],
-							"stop_id": "3110",
-							"stop_name": "Stassney /Mencheca",
-							"stop_name_full": "2035 Stassney /Mencheca (Ns)",
-							"stop_sequence": 12
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.204956,
-							"lon": -97.775147,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.202767,
-									"lon": -97.771769,
-									"stop_id": "4365",
-									"stop_name": "Stassney/Congress",
-									"stop_sequence": 21
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.200052,
-									"lon": -97.766668,
-									"stop_id": "4363",
-									"stop_name": "Stassney/Mira",
-									"stop_sequence": 22
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.197199,
-									"lon": -97.761558,
-									"stop_id": "4331",
-									"stop_name": "Stassney/IH 35",
-									"stop_sequence": 23
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.195032,
-									"lon": -97.758297,
-									"stop_id": "2497",
-									"stop_name": "Stassney/Ponciana",
-									"stop_sequence": 24
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.193336,
-									"lon": -97.753967,
-									"stop_id": "5713",
-									"stop_name": "Stassney/Dove",
-									"stop_sequence": 25
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.193724,
-									"lon": -97.747107,
-									"stop_id": "4335",
-									"stop_name": "Stassney/Chaparral",
-									"stop_sequence": 26
-								}
-							],
-							"stop_id": "4276",
-							"stop_name": "Stassney/Congress",
-							"stop_name_full": "119 Stassney/Congress",
-							"stop_sequence": 20
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.19389,
-							"lon": -97.743863,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.192738,
-									"lon": -97.738231,
-									"stop_id": "5829",
-									"stop_name": "Stassney/Nuckols",
-									"stop_sequence": 28
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.191093,
-									"lon": -97.731222,
-									"stop_id": "5832",
-									"stop_name": "Stassney/Teri",
-									"stop_sequence": 29
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.202497,
-									"lon": -97.719435,
-									"stop_id": "6468",
-									"stop_name": "Stassney/TX Dot Way NB",
-									"stop_sequence": 30
-								}
-							],
-							"stop_id": "5826",
-							"stop_name": "Stassney/Pleasant Valley",
-							"stop_name_full": "4701 Stassney/Pleasant Valley",
-							"stop_sequence": 27
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.205063,
-							"lon": -97.716751,
-							"minor_stops": [
-								{
-									"direction_id": 1,
-									"lat": 30.210443,
-									"lon": -97.71331,
-									"stop_id": "5835",
-									"stop_name": "Montopolis/Ben White",
-									"stop_sequence": 32
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.215817,
-									"lon": -97.70926,
-									"stop_id": "4310",
-									"stop_name": "Montopolis/Oltorf",
-									"stop_sequence": 33
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.220579,
-									"lon": -97.707057,
-									"stop_id": "2279",
-									"stop_name": "Grove/Montopolis",
-									"stop_sequence": 34
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.230394,
-									"lon": -97.70616,
-									"stop_id": "5043",
-									"stop_name": "Grove/Fairway",
-									"stop_sequence": 35
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.235008,
-									"lon": -97.704179,
-									"stop_id": "953",
-									"stop_name": "Grove",
-									"stop_sequence": 36
-								}
-							],
-							"stop_id": "5833",
-							"stop_name": "Montopolis/Burleson",
-							"stop_name_full": "3712 Montopolis/Burleson",
-							"stop_sequence": 31
-						},
-						{
-							"direction_id": 1,
-							"lat": 30.23618,
-							"lon": -97.703723,
-							"minor_stops": [],
-							"stop_id": "6439",
-							"stop_name": "ACC Riverside @ Grove",
-							"stop_name_full": "ACC Riverside  @ Grove",
-							"stop_sequence": 37
-						}
-					]
-				},
 				"311-1-f98161c1": {
 					"direction_id": 1,
 					"pattern_id": "311-1-f98161c1",
-					"representative_trip_id": "3002004_8165",
+					"representative_trip_id": "3002004_8395",
 					"service_ids": [
-						"12-172",
-						"13-172",
-						"2-172",
-						"5-172"
+						"1-172",
+						"10-172",
+						"11-172",
+						"2-172"
 					],
 					"stop_count": 38,
 					"timepoint_count": 6,
@@ -1337,11 +1014,11 @@
 					]
 				}
 			},
-			"stop_count": 37,
+			"stop_count": 38,
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "311",
 	"schema": 1
 }

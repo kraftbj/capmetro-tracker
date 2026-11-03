@@ -2,14 +2,14 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "4-0-9d3a5dfb",
 				"2-172": "4-0-b8001e33",
-				"3-172": "4-0-9d3a5dfb",
-				"4-172": "4-0-9d3a5dfb",
-				"5-172": "4-0-b8001e33",
+				"3-172": "4-0-b8001e33",
+				"4-172": "4-0-b8001e33",
+				"5-172": "4-0-9d3a5dfb",
 				"6-172": "4-0-9d3a5dfb",
-				"7-172": "4-0-b8001e33",
-				"8-172": "4-0-9d3a5dfb"
+				"7-172": "4-0-9d3a5dfb",
+				"8-172": "4-0-9d3a5dfb",
+				"9-172": "4-0-9d3a5dfb"
 			},
 			"baseline_pattern_id": "4-0-9d3a5dfb",
 			"baseline_stable": false,
@@ -18,13 +18,13 @@
 				"4-0-9d3a5dfb": {
 					"direction_id": 0,
 					"pattern_id": "4-0-9d3a5dfb",
-					"representative_trip_id": "3005585_15063",
+					"representative_trip_id": "3014689_15701",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 17,
 					"timepoint_count": 3,
@@ -178,11 +178,11 @@
 				"4-0-b8001e33": {
 					"direction_id": 0,
 					"pattern_id": "4-0-b8001e33",
-					"representative_trip_id": "3005585_15061",
+					"representative_trip_id": "3005585_16086",
 					"service_ids": [
 						"2-172",
-						"5-172",
-						"7-172"
+						"3-172",
+						"4-172"
 					],
 					"stop_count": 19,
 					"timepoint_count": 3,
@@ -355,14 +355,14 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "4-1-24ebb662",
 				"2-172": "4-1-24ebb662",
 				"3-172": "4-1-24ebb662",
 				"4-172": "4-1-24ebb662",
 				"5-172": "4-1-24ebb662",
 				"6-172": "4-1-24ebb662",
 				"7-172": "4-1-24ebb662",
-				"8-172": "4-1-24ebb662"
+				"8-172": "4-1-24ebb662",
+				"9-172": "4-1-24ebb662"
 			},
 			"baseline_pattern_id": "4-1-24ebb662",
 			"baseline_stable": true,
@@ -371,16 +371,16 @@
 				"4-1-24ebb662": {
 					"direction_id": 1,
 					"pattern_id": "4-1-24ebb662",
-					"representative_trip_id": "3005622_14610",
+					"representative_trip_id": "3005622_15613",
 					"service_ids": [
-						"1-172",
 						"2-172",
 						"3-172",
 						"4-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172"
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 27,
 					"timepoint_count": 3,
@@ -440,8 +440,8 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.268054,
-									"lon": -97.74679,
+									"lat": 30.268138,
+									"lon": -97.746742,
 									"stop_id": "2112",
 									"stop_name": "5th/Guadalupe",
 									"stop_sequence": 8
@@ -616,7 +616,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "4",
 	"schema": 1
 }

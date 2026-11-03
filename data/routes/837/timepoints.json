@@ -2,9 +2,9 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "837-0-4ddb3e8e",
-				"11-172": "837-0-4ddb3e8e",
-				"9-172": "837-0-4ddb3e8e"
+				"1-172": "837-0-4ddb3e8e",
+				"2-172": "837-0-4ddb3e8e",
+				"3-172": "837-0-4ddb3e8e"
 			},
 			"baseline_pattern_id": "837-0-4ddb3e8e",
 			"baseline_stable": true,
@@ -13,11 +13,11 @@
 				"837-0-4ddb3e8e": {
 					"direction_id": 0,
 					"pattern_id": "837-0-4ddb3e8e",
-					"representative_trip_id": "3012106_24551",
+					"representative_trip_id": "3012106_27470",
 					"service_ids": [
-						"10-172",
-						"11-172",
-						"9-172"
+						"1-172",
+						"2-172",
+						"3-172"
 					],
 					"stop_count": 23,
 					"timepoint_count": 5,
@@ -212,8 +212,8 @@
 						},
 						{
 							"direction_id": 0,
-							"lat": 30.268054,
-							"lon": -97.74679,
+							"lat": 30.268138,
+							"lon": -97.746742,
 							"minor_stops": [],
 							"stop_id": "2112",
 							"stop_name": "5th/Guadalupe",
@@ -228,9 +228,9 @@
 		},
 		{
 			"baseline_by_service": {
-				"10-172": "837-1-836a592f",
-				"11-172": "837-1-836a592f",
-				"9-172": "837-1-836a592f"
+				"1-172": "837-1-836a592f",
+				"2-172": "837-1-836a592f",
+				"3-172": "837-1-836a592f"
 			},
 			"baseline_pattern_id": "837-1-836a592f",
 			"baseline_stable": true,
@@ -239,19 +239,19 @@
 				"837-1-836a592f": {
 					"direction_id": 1,
 					"pattern_id": "837-1-836a592f",
-					"representative_trip_id": "3012203_24331",
+					"representative_trip_id": "3012203_27250",
 					"service_ids": [
-						"10-172",
-						"11-172",
-						"9-172"
+						"1-172",
+						"2-172",
+						"3-172"
 					],
 					"stop_count": 24,
 					"timepoint_count": 5,
 					"timepoints": [
 						{
 							"direction_id": 1,
-							"lat": 30.268054,
-							"lon": -97.74679,
+							"lat": 30.268138,
+							"lon": -97.746742,
 							"minor_stops": [
 								{
 									"direction_id": 1,
@@ -461,7 +461,7 @@
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "837",
 	"schema": 1
 }

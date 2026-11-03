@@ -2,12 +2,13 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "485-0-1ee8526e",
 				"2-172": "485-0-1ee8526e",
-				"3-172": "485-0-1ee8526e",
 				"4-172": "485-0-1ee8526e",
 				"5-172": "485-0-1ee8526e",
-				"6-172": "485-0-1ee8526e"
+				"6-172": "485-0-1ee8526e",
+				"7-172": "485-0-1ee8526e",
+				"8-172": "485-0-1ee8526e",
+				"9-172": "485-0-1ee8526e"
 			},
 			"baseline_pattern_id": "485-0-1ee8526e",
 			"baseline_stable": true,
@@ -16,14 +17,15 @@
 				"485-0-1ee8526e": {
 					"direction_id": 0,
 					"pattern_id": "485-0-1ee8526e",
-					"representative_trip_id": "3005902_15467",
+					"representative_trip_id": "3005902_16629",
 					"service_ids": [
-						"1-172",
 						"2-172",
-						"3-172",
 						"4-172",
 						"5-172",
-						"6-172"
+						"6-172",
+						"7-172",
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 44,
 					"timepoint_count": 4,
@@ -399,12 +401,13 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "485-1-276b22d2",
 				"2-172": "485-1-cde6c99f",
-				"3-172": "485-1-276b22d2",
-				"4-172": "485-1-276b22d2",
-				"5-172": "485-1-cde6c99f",
-				"6-172": "485-1-276b22d2"
+				"4-172": "485-1-cde6c99f",
+				"5-172": "485-1-276b22d2",
+				"6-172": "485-1-276b22d2",
+				"7-172": "485-1-276b22d2",
+				"8-172": "485-1-276b22d2",
+				"9-172": "485-1-276b22d2"
 			},
 			"baseline_pattern_id": "485-1-276b22d2",
 			"baseline_stable": false,
@@ -413,12 +416,13 @@
 				"485-1-276b22d2": {
 					"direction_id": 1,
 					"pattern_id": "485-1-276b22d2",
-					"representative_trip_id": "3005908_15503",
+					"representative_trip_id": "3005908_16674",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
-						"6-172"
+						"5-172",
+						"6-172",
+						"7-172",
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 37,
 					"timepoint_count": 4,
@@ -735,10 +739,10 @@
 				"485-1-cde6c99f": {
 					"direction_id": 1,
 					"pattern_id": "485-1-cde6c99f",
-					"representative_trip_id": "3005908_15506",
+					"representative_trip_id": "3005908_16671",
 					"service_ids": [
 						"2-172",
-						"5-172"
+						"4-172"
 					],
 					"stop_count": 38,
 					"timepoint_count": 4,
@@ -1065,7 +1069,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "485",
 	"schema": 1
 }

@@ -2,9 +2,9 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "315-0-48e29cef",
-				"11-172": "315-0-48e29cef",
-				"9-172": "315-0-48e29cef"
+				"1-172": "315-0-48e29cef",
+				"2-172": "315-0-48e29cef",
+				"3-172": "315-0-48e29cef"
 			},
 			"baseline_pattern_id": "315-0-48e29cef",
 			"baseline_stable": true,
@@ -13,11 +13,11 @@
 				"315-0-48e29cef": {
 					"direction_id": 0,
 					"pattern_id": "315-0-48e29cef",
-					"representative_trip_id": "3002215_8865",
+					"representative_trip_id": "3002215_9016",
 					"service_ids": [
-						"10-172",
-						"11-172",
-						"9-172"
+						"1-172",
+						"2-172",
+						"3-172"
 					],
 					"stop_count": 17,
 					"timepoint_count": 4,
@@ -177,9 +177,9 @@
 		},
 		{
 			"baseline_by_service": {
-				"10-172": "315-1-e81e43e9",
-				"11-172": "315-1-e81e43e9",
-				"9-172": "315-1-e81e43e9"
+				"1-172": "315-1-e81e43e9",
+				"2-172": "315-1-e81e43e9",
+				"3-172": "315-1-e81e43e9"
 			},
 			"baseline_pattern_id": "315-1-e81e43e9",
 			"baseline_stable": true,
@@ -188,11 +188,11 @@
 				"315-1-e81e43e9": {
 					"direction_id": 1,
 					"pattern_id": "315-1-e81e43e9",
-					"representative_trip_id": "3002251_8971",
+					"representative_trip_id": "3002251_9122",
 					"service_ids": [
-						"10-172",
-						"11-172",
-						"9-172"
+						"1-172",
+						"2-172",
+						"3-172"
 					],
 					"stop_count": 20,
 					"timepoint_count": 4,
@@ -375,7 +375,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "315",
 	"schema": 1
 }

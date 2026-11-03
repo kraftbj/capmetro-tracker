@@ -2,14 +2,14 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "18-0-f6d404e0",
 				"2-172": "18-0-f6d404e0",
 				"3-172": "18-0-f6d404e0",
 				"4-172": "18-0-f6d404e0",
 				"5-172": "18-0-f6d404e0",
 				"6-172": "18-0-f6d404e0",
 				"7-172": "18-0-f6d404e0",
-				"8-172": "18-0-f6d404e0"
+				"8-172": "18-0-f6d404e0",
+				"9-172": "18-0-f6d404e0"
 			},
 			"baseline_pattern_id": "18-0-f6d404e0",
 			"baseline_stable": true,
@@ -18,16 +18,16 @@
 				"18-0-f6d404e0": {
 					"direction_id": 0,
 					"pattern_id": "18-0-f6d404e0",
-					"representative_trip_id": "2998856_1559",
+					"representative_trip_id": "2998856_1619",
 					"service_ids": [
-						"1-172",
 						"2-172",
 						"3-172",
 						"4-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172"
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 39,
 					"timepoint_count": 6,
@@ -369,31 +369,31 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "18-1-aa2c54dd",
 				"2-172": "18-1-e226978a",
-				"3-172": "18-1-aa2c54dd",
-				"4-172": "18-1-aa2c54dd",
-				"5-172": "18-1-e226978a",
-				"6-172": "18-1-aa2c54dd",
-				"7-172": "18-1-e226978a",
-				"8-172": "18-1-aa2c54dd"
+				"3-172": "18-1-e226978a",
+				"4-172": "18-1-e226978a",
+				"5-172": "18-1-e1d1667b",
+				"6-172": "18-1-e1d1667b",
+				"7-172": "18-1-e1d1667b",
+				"8-172": "18-1-e1d1667b",
+				"9-172": "18-1-e1d1667b"
 			},
-			"baseline_pattern_id": "18-1-aa2c54dd",
+			"baseline_pattern_id": "18-1-e1d1667b",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
-				"18-1-aa2c54dd": {
+				"18-1-e1d1667b": {
 					"direction_id": 1,
-					"pattern_id": "18-1-aa2c54dd",
-					"representative_trip_id": "2998893_1848",
+					"pattern_id": "18-1-e1d1667b",
+					"representative_trip_id": "2998893_1919",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
-					"stop_count": 40,
+					"stop_count": 39,
 					"timepoint_count": 6,
 					"timepoints": [
 						{
@@ -617,14 +617,6 @@
 									"stop_id": "5992",
 									"stop_name": "Martin Luther King Jr/…",
 									"stop_sequence": 27
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.278962,
-									"lon": -97.742708,
-									"stop_id": "501",
-									"stop_name": "Guadalupe/16th Street",
-									"stop_sequence": 28
 								}
 							],
 							"stop_id": "4196",
@@ -643,7 +635,7 @@
 									"lon": -97.758934,
 									"stop_id": "1511",
 									"stop_name": "Enfield/Pease",
-									"stop_sequence": 30
+									"stop_sequence": 29
 								},
 								{
 									"direction_id": 1,
@@ -651,7 +643,7 @@
 									"lon": -97.761717,
 									"stop_id": "1513",
 									"stop_name": "Enfield/Hartford",
-									"stop_sequence": 31
+									"stop_sequence": 30
 								},
 								{
 									"direction_id": 1,
@@ -659,7 +651,7 @@
 									"lon": -97.766813,
 									"stop_id": "4157",
 									"stop_name": "Enfield/Meriden",
-									"stop_sequence": 32
+									"stop_sequence": 31
 								},
 								{
 									"direction_id": 1,
@@ -667,7 +659,7 @@
 									"lon": -97.772388,
 									"stop_id": "1517",
 									"stop_name": "Enfield/Norwalk",
-									"stop_sequence": 33
+									"stop_sequence": 32
 								},
 								{
 									"direction_id": 1,
@@ -675,7 +667,7 @@
 									"lon": -97.775684,
 									"stop_id": "1519",
 									"stop_name": "Enfield/Hopi",
-									"stop_sequence": 34
+									"stop_sequence": 33
 								},
 								{
 									"direction_id": 1,
@@ -683,7 +675,7 @@
 									"lon": -97.779805,
 									"stop_id": "5754",
 									"stop_name": "Enfield/Robinhood",
-									"stop_sequence": 35
+									"stop_sequence": 34
 								},
 								{
 									"direction_id": 1,
@@ -691,7 +683,7 @@
 									"lon": -97.783853,
 									"stop_id": "5740",
 									"stop_name": "Lake Austin/Enfield",
-									"stop_sequence": 36
+									"stop_sequence": 35
 								},
 								{
 									"direction_id": 1,
@@ -699,7 +691,7 @@
 									"lon": -97.780899,
 									"stop_id": "5723",
 									"stop_name": "Lake Austin/Lufkin",
-									"stop_sequence": 37
+									"stop_sequence": 36
 								},
 								{
 									"direction_id": 1,
@@ -707,7 +699,7 @@
 									"lon": -97.777864,
 									"stop_id": "4986",
 									"stop_name": "Lake Austin/Jasper",
-									"stop_sequence": 38
+									"stop_sequence": 37
 								},
 								{
 									"direction_id": 1,
@@ -715,13 +707,13 @@
 									"lon": -97.776052,
 									"stop_id": "4161",
 									"stop_name": "Exposition/8th",
-									"stop_sequence": 39
+									"stop_sequence": 38
 								}
 							],
 							"stop_id": "243",
 							"stop_name": "Rio Grande/15th",
 							"stop_name_full": "Rio Grande/15th",
-							"stop_sequence": 29
+							"stop_sequence": 28
 						},
 						{
 							"direction_id": 1,
@@ -731,18 +723,18 @@
 							"stop_id": "1983",
 							"stop_name": "Exposition/10th",
 							"stop_name_full": "Exposition/10th",
-							"stop_sequence": 40
+							"stop_sequence": 39
 						}
 					]
 				},
 				"18-1-e226978a": {
 					"direction_id": 1,
 					"pattern_id": "18-1-e226978a",
-					"representative_trip_id": "2998893_1843",
+					"representative_trip_id": "2998893_1909",
 					"service_ids": [
 						"2-172",
-						"5-172",
-						"7-172"
+						"3-172",
+						"4-172"
 					],
 					"stop_count": 41,
 					"timepoint_count": 6,
@@ -1095,11 +1087,11 @@
 					]
 				}
 			},
-			"stop_count": 40,
+			"stop_count": 39,
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "18",
 	"schema": 1
 }

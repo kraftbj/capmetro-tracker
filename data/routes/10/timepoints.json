@@ -2,15 +2,15 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "10-0-a68e05de",
-				"12-172": "10-0-cf87109e",
-				"13-172": "10-0-cf87109e",
+				"10-172": "10-0-cf87109e",
+				"11-172": "10-0-cf87109e",
 				"2-172": "10-0-cf87109e",
-				"3-172": "10-0-a68e05de",
-				"4-172": "10-0-a68e05de",
-				"5-172": "10-0-cf87109e",
+				"4-172": "10-0-cf87109e",
+				"5-172": "10-0-a68e05de",
 				"6-172": "10-0-a68e05de",
-				"8-172": "10-0-a68e05de"
+				"7-172": "10-0-a68e05de",
+				"8-172": "10-0-a68e05de",
+				"9-172": "10-0-a68e05de"
 			},
 			"baseline_pattern_id": "10-0-a68e05de",
 			"baseline_stable": false,
@@ -19,13 +19,13 @@
 				"10-0-a68e05de": {
 					"direction_id": 0,
 					"pattern_id": "10-0-a68e05de",
-					"representative_trip_id": "2998304_1408",
+					"representative_trip_id": "3014944_0953",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 67,
 					"timepoint_count": 7,
@@ -591,12 +591,12 @@
 				"10-0-cf87109e": {
 					"direction_id": 0,
 					"pattern_id": "10-0-cf87109e",
-					"representative_trip_id": "2998304_1395",
+					"representative_trip_id": "2998304_1435",
 					"service_ids": [
-						"12-172",
-						"13-172",
+						"10-172",
+						"11-172",
 						"2-172",
-						"5-172"
+						"4-172"
 					],
 					"stop_count": 70,
 					"timepoint_count": 7,
@@ -1189,15 +1189,15 @@
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "10-1-cbafc13c",
-				"12-172": "10-1-cbafc13c",
-				"13-172": "10-1-cbafc13c",
+				"10-172": "10-1-cbafc13c",
+				"11-172": "10-1-cbafc13c",
 				"2-172": "10-1-cbafc13c",
-				"3-172": "10-1-cbafc13c",
 				"4-172": "10-1-cbafc13c",
 				"5-172": "10-1-cbafc13c",
 				"6-172": "10-1-cbafc13c",
-				"8-172": "10-1-cbafc13c"
+				"7-172": "10-1-cbafc13c",
+				"8-172": "10-1-cbafc13c",
+				"9-172": "10-1-cbafc13c"
 			},
 			"baseline_pattern_id": "10-1-cbafc13c",
 			"baseline_stable": true,
@@ -1206,17 +1206,17 @@
 				"10-1-cbafc13c": {
 					"direction_id": 1,
 					"pattern_id": "10-1-cbafc13c",
-					"representative_trip_id": "2998398_0883",
+					"representative_trip_id": "2998398_0901",
 					"service_ids": [
-						"1-172",
-						"12-172",
-						"13-172",
+						"10-172",
+						"11-172",
 						"2-172",
-						"3-172",
 						"4-172",
 						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 72,
 					"timepoint_count": 7,
@@ -1824,7 +1824,7 @@
 			"timepoint_count": 7
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "10",
 	"schema": 1
 }

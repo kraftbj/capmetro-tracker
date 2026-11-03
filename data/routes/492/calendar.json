@@ -1,78 +1,54 @@
 {
-	"date_count": 11,
+	"date_count": 7,
 	"dates": {
-		"20261009": {
-			"is_exception_day": false,
-			"service_ids": [
-				"19-172"
-			]
-		},
-		"20261016": {
-			"is_exception_day": false,
-			"service_ids": [
-				"19-172"
-			]
-		},
-		"20261023": {
-			"is_exception_day": false,
-			"service_ids": [
-				"19-172"
-			]
-		},
-		"20261030": {
-			"is_exception_day": false,
-			"service_ids": [
-				"19-172"
-			]
-		},
 		"20261106": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		},
 		"20261113": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		},
 		"20261120": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		},
 		"20261204": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		},
 		"20261211": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		},
 		"20261218": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		},
 		"20270108": {
 			"is_exception_day": false,
 			"service_ids": [
-				"19-172"
+				"16-172"
 			]
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "492",
 	"schema": 1,
 	"service_ids": [
-		"19-172"
+		"16-172"
 	]
 }

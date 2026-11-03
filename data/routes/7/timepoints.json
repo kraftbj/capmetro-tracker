@@ -2,29 +2,580 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "7-0-a5c60355",
-				"12-172": "7-0-97865032",
-				"13-172": "7-0-97865032",
+				"10-172": "7-0-97865032",
+				"11-172": "7-0-97865032",
 				"2-172": "7-0-97865032",
-				"3-172": "7-0-a5c60355",
-				"4-172": "7-0-a5c60355",
-				"5-172": "7-0-97865032",
-				"6-172": "7-0-a5c60355",
-				"8-172": "7-0-a5c60355"
+				"4-172": "7-0-97865032",
+				"5-172": "7-0-31eec442",
+				"6-172": "7-0-31eec442",
+				"7-172": "7-0-31eec442",
+				"8-172": "7-0-31eec442",
+				"9-172": "7-0-31eec442"
 			},
-			"baseline_pattern_id": "7-0-a5c60355",
+			"baseline_pattern_id": "7-0-31eec442",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
+				"7-0-31eec442": {
+					"direction_id": 0,
+					"pattern_id": "7-0-31eec442",
+					"representative_trip_id": "3014813_22984",
+					"service_ids": [
+						"5-172",
+						"6-172",
+						"7-172",
+						"8-172",
+						"9-172"
+					],
+					"stop_count": 64,
+					"timepoint_count": 8,
+					"timepoints": [
+						{
+							"direction_id": 0,
+							"lat": 30.338721,
+							"lon": -97.719548,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.336206,
+									"lon": -97.718248,
+									"stop_id": "2877",
+									"stop_name": "Airport/Lamar",
+									"stop_sequence": 2
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.333535,
+									"lon": -97.716863,
+									"stop_id": "5510",
+									"stop_name": "Airport/Guadalupe",
+									"stop_sequence": 3
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.328339,
+									"lon": -97.716081,
+									"stop_id": "5603",
+									"stop_name": "Airport Blvd",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.323416,
+									"lon": -97.71554,
+									"stop_id": "6526",
+									"stop_name": "Airport at Clayton SB",
+									"stop_sequence": 5
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.321647,
+									"lon": -97.71395,
+									"stop_id": "5625",
+									"stop_name": "Airport/Koenig",
+									"stop_sequence": 6
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.321167,
+									"lon": -97.718996,
+									"stop_id": "1164",
+									"stop_name": "Avenue F/56th",
+									"stop_sequence": 7
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.316511,
+									"lon": -97.718524,
+									"stop_id": "6248",
+									"stop_name": "Duval/53rd",
+									"stop_sequence": 8
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.314362,
+									"lon": -97.719922,
+									"stop_id": "1168",
+									"stop_name": "Duval/51st",
+									"stop_sequence": 9
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.310968,
+									"lon": -97.722129,
+									"stop_id": "1169",
+									"stop_name": "Duval/48th",
+									"stop_sequence": 10
+								}
+							],
+							"stop_id": "5604",
+							"stop_name": "Crestview Station Bus…",
+							"stop_name_full": "Crestview Station Bus Stop",
+							"stop_sequence": 1
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.307337,
+							"lon": -97.724462,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.298182,
+									"lon": -97.730215,
+									"stop_id": "4152",
+									"stop_name": "Duval/38th",
+									"stop_sequence": 12
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.295649,
+									"lon": -97.731832,
+									"stop_id": "1174",
+									"stop_name": "Duval/33rd",
+									"stop_sequence": 13
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.294603,
+									"lon": -97.732495,
+									"stop_id": "1175",
+									"stop_name": "Duval/32nd",
+									"stop_sequence": 14
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.291876,
+									"lon": -97.734222,
+									"stop_id": "1176",
+									"stop_name": "Duval/30th",
+									"stop_sequence": 15
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.289599,
+									"lon": -97.734686,
+									"stop_id": "1177",
+									"stop_name": "San Jacinto/Dean Keeton…",
+									"stop_sequence": 16
+								}
+							],
+							"stop_id": "4150",
+							"stop_name": "Duval/45th",
+							"stop_name_full": "4510 Duval/45th",
+							"stop_sequence": 11
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.285506,
+							"lon": -97.733782,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.283014,
+									"lon": -97.7341,
+									"stop_id": "1180",
+									"stop_name": "SAN JACINTO/21ST",
+									"stop_sequence": 18
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.277723,
+									"lon": -97.736643,
+									"stop_id": "916",
+									"stop_name": "Medical School SB",
+									"stop_sequence": 19
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.275451,
+									"lon": -97.737526,
+									"stop_id": "919",
+									"stop_name": "San Jacinto/14th",
+									"stop_sequence": 20
+								}
+							],
+							"stop_id": "1179",
+							"stop_name": "UT Stadium SB",
+							"stop_name_full": "UT Stadium SB (San Jacinto/23rd)",
+							"stop_sequence": 17
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.271368,
+							"lon": -97.739026,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.269914,
+									"lon": -97.741869,
+									"stop_id": "5937",
+									"stop_name": "8th/Congress",
+									"stop_sequence": 22
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.270613,
+									"lon": -97.744215,
+									"stop_id": "5938",
+									"stop_name": "8th/Lavaca",
+									"stop_sequence": 23
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.267331,
+									"lon": -97.747037,
+									"stop_id": "2613",
+									"stop_name": "Guadalupe/4th",
+									"stop_sequence": 24
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.258767,
+									"lon": -97.7487,
+									"stop_id": "2763",
+									"stop_name": "Vic Mathias/Auditorium…",
+									"stop_sequence": 25
+								}
+							],
+							"stop_id": "6499",
+							"stop_name": "Capitol/Waterloo SB",
+							"stop_name_full": "Capitol/Waterloo SB (San Jacinto/10th)",
+							"stop_sequence": 21
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.256196,
+							"lon": -97.746021,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.254846,
+									"lon": -97.744793,
+									"stop_id": "3847",
+									"stop_name": "Riverside/Congress",
+									"stop_sequence": 27
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.25359,
+									"lon": -97.743972,
+									"stop_id": "5023",
+									"stop_name": "Riverside/Newning",
+									"stop_sequence": 28
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.250734,
+									"lon": -97.74061,
+									"stop_id": "1186",
+									"stop_name": "Riverside/Alameda",
+									"stop_sequence": 29
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.249589,
+									"lon": -97.738348,
+									"stop_id": "1187",
+									"stop_name": "East Riverside/Travis…",
+									"stop_sequence": 30
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.245976,
+									"lon": -97.731836,
+									"stop_id": "999",
+									"stop_name": "Riverside/Summit",
+									"stop_sequence": 31
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.242658,
+									"lon": -97.729061,
+									"stop_id": "5554",
+									"stop_name": "Riverside/Parker",
+									"stop_sequence": 32
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.240341,
+									"lon": -97.727308,
+									"stop_id": "1002",
+									"stop_name": "Riverside/Burton",
+									"stop_sequence": 33
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.236152,
+									"lon": -97.728459,
+									"stop_id": "1190",
+									"stop_name": "Burton/Woodland",
+									"stop_sequence": 34
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.233861,
+									"lon": -97.731812,
+									"stop_id": "1191",
+									"stop_name": "Burton/Mariposa",
+									"stop_sequence": 35
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231271,
+									"lon": -97.733733,
+									"stop_id": "3535",
+									"stop_name": "Burton/Oltorf",
+									"stop_sequence": 36
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.231874,
+									"lon": -97.737285,
+									"stop_id": "1193",
+									"stop_name": "Parker/Oltorf",
+									"stop_sequence": 37
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.229929,
+									"lon": -97.738557,
+									"stop_id": "1194",
+									"stop_name": "Parker/Braxton",
+									"stop_sequence": 38
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.227504,
+									"lon": -97.740505,
+									"stop_id": "1195",
+									"stop_name": "Parker/Royal Hill",
+									"stop_sequence": 39
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.224895,
+									"lon": -97.742138,
+									"stop_id": "4325",
+									"stop_name": "Parker/Timber Ridge",
+									"stop_sequence": 40
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.22216,
+									"lon": -97.742228,
+									"stop_id": "4323",
+									"stop_name": "Parker/Timber Ridge",
+									"stop_sequence": 41
+								}
+							],
+							"stop_id": "3846",
+							"stop_name": "Riverside/Congress FS",
+							"stop_name_full": "Riverside/Congress FS",
+							"stop_sequence": 26
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.220142,
+							"lon": -97.743051,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.217983,
+									"lon": -97.743972,
+									"stop_id": "1199",
+									"stop_name": "WOODWARD/BEN WHITE",
+									"stop_sequence": 43
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.214641,
+									"lon": -97.744698,
+									"stop_id": "4318",
+									"stop_name": "Woodward/Ben White SW…",
+									"stop_sequence": 44
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.213561,
+									"lon": -97.745855,
+									"stop_id": "4317",
+									"stop_name": "Freidrich/Woodward",
+									"stop_sequence": 45
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.212493,
+									"lon": -97.748209,
+									"stop_id": "1202",
+									"stop_name": "Freidrich/Directors",
+									"stop_sequence": 46
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.211274,
+									"lon": -97.748981,
+									"stop_id": "5917",
+									"stop_name": "Freidrich/St Elmo",
+									"stop_sequence": 47
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.208183,
+									"lon": -97.750908,
+									"stop_id": "1203",
+									"stop_name": "Freidrich/St Elmo",
+									"stop_sequence": 48
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.204578,
+									"lon": -97.753199,
+									"stop_id": "5712",
+									"stop_name": "Freidrich/Teri",
+									"stop_sequence": 49
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.201932,
+									"lon": -97.75218,
+									"stop_id": "1204",
+									"stop_name": "Teri/Merritt",
+									"stop_sequence": 50
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.198303,
+									"lon": -97.746902,
+									"stop_id": "6312",
+									"stop_name": "Teri/Palo Blanco",
+									"stop_sequence": 51
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.197005,
+									"lon": -97.744449,
+									"stop_id": "6311",
+									"stop_name": "Teri/Pleasant Valley",
+									"stop_sequence": 52
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.193748,
+									"lon": -97.744772,
+									"stop_id": "1212",
+									"stop_name": "Dove Springs SB",
+									"stop_sequence": 53
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.188889,
+									"lon": -97.745545,
+									"stop_id": "1213",
+									"stop_name": "Village Square SB",
+									"stop_sequence": 54
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.185358,
+									"lon": -97.745648,
+									"stop_id": "1214",
+									"stop_name": "Pleasant Valley/Dove…",
+									"stop_sequence": 55
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.182114,
+									"lon": -97.746097,
+									"stop_id": "1215",
+									"stop_name": "Pleasant Valley/Creek…",
+									"stop_sequence": 56
+								}
+							],
+							"stop_id": "2169",
+							"stop_name": "Parker/Woodward NE Corner",
+							"stop_name_full": "Parker/Woodward NE Corner",
+							"stop_sequence": 42
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.180326,
+							"lon": -97.748355,
+							"minor_stops": [
+								{
+									"direction_id": 0,
+									"lat": 30.181192,
+									"lon": -97.75051,
+									"stop_id": "4353",
+									"stop_name": "William Cannon/Meadow…",
+									"stop_sequence": 58
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.184074,
+									"lon": -97.754703,
+									"stop_id": "4352",
+									"stop_name": "William Cannon/Rockridge",
+									"stop_sequence": 59
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.186616,
+									"lon": -97.758981,
+									"stop_id": "4350",
+									"stop_name": "William Cannon/Stoneleigh",
+									"stop_sequence": 60
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.18828,
+									"lon": -97.764296,
+									"stop_id": "5757",
+									"stop_name": "William Cannon/Elm Creek",
+									"stop_sequence": 61
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.189202,
+									"lon": -97.767485,
+									"stop_id": "4345",
+									"stop_name": "William Cannon/Bluff…",
+									"stop_sequence": 62
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.192738,
+									"lon": -97.765327,
+									"stop_id": "553",
+									"stop_name": "Nelms/Bluff Springs",
+									"stop_sequence": 63
+								}
+							],
+							"stop_id": "5383",
+							"stop_name": "William Cannon/Pleasant…",
+							"stop_name_full": "5100 William Cannon/Pleasant Valley",
+							"stop_sequence": 57
+						},
+						{
+							"direction_id": 0,
+							"lat": 30.189947,
+							"lon": -97.767587,
+							"minor_stops": [],
+							"stop_id": "5377",
+							"stop_name": "Bluff Springs/William…",
+							"stop_name_full": "6502 Bluff Springs/William Cannon",
+							"stop_sequence": 64
+						}
+					]
+				},
 				"7-0-97865032": {
 					"direction_id": 0,
 					"pattern_id": "7-0-97865032",
-					"representative_trip_id": "3010496_21579",
+					"representative_trip_id": "3010496_23398",
 					"service_ids": [
-						"12-172",
-						"13-172",
+						"10-172",
+						"11-172",
 						"2-172",
-						"5-172"
+						"4-172"
 					],
 					"stop_count": 67,
 					"timepoint_count": 8,
@@ -398,15 +949,15 @@
 						},
 						{
 							"direction_id": 0,
-							"lat": 30.219261,
-							"lon": -97.743912,
+							"lat": 30.220142,
+							"lon": -97.743051,
 							"minor_stops": [
 								{
 									"direction_id": 0,
-									"lat": 30.217147,
-									"lon": -97.744042,
+									"lat": 30.217983,
+									"lon": -97.743972,
 									"stop_id": "1199",
-									"stop_name": "Woodward/Ben White NW…",
+									"stop_name": "WOODWARD/BEN WHITE",
 									"stop_sequence": 46
 								},
 								{
@@ -515,8 +1066,8 @@
 								}
 							],
 							"stop_id": "2169",
-							"stop_name": "Woodward/Parker SW Corner",
-							"stop_name_full": "Woodward/Parker SW Corner",
+							"stop_name": "Parker/Woodward NE Corner",
+							"stop_name_full": "Parker/Woodward NE Corner",
 							"stop_sequence": 45
 						},
 						{
@@ -589,603 +1140,36 @@
 							"stop_sequence": 67
 						}
 					]
-				},
-				"7-0-a5c60355": {
-					"direction_id": 0,
-					"pattern_id": "7-0-a5c60355",
-					"representative_trip_id": "3010496_21592",
-					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
-						"6-172",
-						"8-172"
-					],
-					"stop_count": 66,
-					"timepoint_count": 8,
-					"timepoints": [
-						{
-							"direction_id": 0,
-							"lat": 30.338721,
-							"lon": -97.719548,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.336206,
-									"lon": -97.718248,
-									"stop_id": "2877",
-									"stop_name": "Airport/Lamar",
-									"stop_sequence": 2
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.333535,
-									"lon": -97.716863,
-									"stop_id": "5510",
-									"stop_name": "Airport/Guadalupe",
-									"stop_sequence": 3
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.328339,
-									"lon": -97.716081,
-									"stop_id": "5603",
-									"stop_name": "Airport Blvd",
-									"stop_sequence": 4
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.323416,
-									"lon": -97.71554,
-									"stop_id": "6526",
-									"stop_name": "Airport at Clayton SB",
-									"stop_sequence": 5
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.321647,
-									"lon": -97.71395,
-									"stop_id": "5625",
-									"stop_name": "Airport/Koenig",
-									"stop_sequence": 6
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.321167,
-									"lon": -97.718996,
-									"stop_id": "1164",
-									"stop_name": "Avenue F/56th",
-									"stop_sequence": 7
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.316511,
-									"lon": -97.718524,
-									"stop_id": "6248",
-									"stop_name": "Duval/53rd",
-									"stop_sequence": 8
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.314362,
-									"lon": -97.719922,
-									"stop_id": "1168",
-									"stop_name": "Duval/51st",
-									"stop_sequence": 9
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.310968,
-									"lon": -97.722129,
-									"stop_id": "1169",
-									"stop_name": "Duval/48th",
-									"stop_sequence": 10
-								}
-							],
-							"stop_id": "5604",
-							"stop_name": "Crestview Station Bus…",
-							"stop_name_full": "Crestview Station Bus Stop",
-							"stop_sequence": 1
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.307337,
-							"lon": -97.724462,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.30438,
-									"lon": -97.726357,
-									"stop_id": "1171",
-									"stop_name": "Duval/43rd",
-									"stop_sequence": 12
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.301674,
-									"lon": -97.728038,
-									"stop_id": "1172",
-									"stop_name": "Duval/41st",
-									"stop_sequence": 13
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.298182,
-									"lon": -97.730215,
-									"stop_id": "4152",
-									"stop_name": "Duval/38th",
-									"stop_sequence": 14
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.295649,
-									"lon": -97.731832,
-									"stop_id": "1174",
-									"stop_name": "Duval/33rd",
-									"stop_sequence": 15
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.294603,
-									"lon": -97.732495,
-									"stop_id": "1175",
-									"stop_name": "Duval/32nd",
-									"stop_sequence": 16
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.291876,
-									"lon": -97.734222,
-									"stop_id": "1176",
-									"stop_name": "Duval/30th",
-									"stop_sequence": 17
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.289599,
-									"lon": -97.734686,
-									"stop_id": "1177",
-									"stop_name": "San Jacinto/Dean Keeton…",
-									"stop_sequence": 18
-								}
-							],
-							"stop_id": "4150",
-							"stop_name": "Duval/45th",
-							"stop_name_full": "4510 Duval/45th",
-							"stop_sequence": 11
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.285506,
-							"lon": -97.733782,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.283014,
-									"lon": -97.7341,
-									"stop_id": "1180",
-									"stop_name": "SAN JACINTO/21ST",
-									"stop_sequence": 20
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.277723,
-									"lon": -97.736643,
-									"stop_id": "916",
-									"stop_name": "Medical School SB",
-									"stop_sequence": 21
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.275451,
-									"lon": -97.737526,
-									"stop_id": "919",
-									"stop_name": "San Jacinto/14th",
-									"stop_sequence": 22
-								}
-							],
-							"stop_id": "1179",
-							"stop_name": "UT Stadium SB",
-							"stop_name_full": "UT Stadium SB (San Jacinto/23rd)",
-							"stop_sequence": 19
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.271368,
-							"lon": -97.739026,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.269914,
-									"lon": -97.741869,
-									"stop_id": "5937",
-									"stop_name": "8th/Congress",
-									"stop_sequence": 24
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.270613,
-									"lon": -97.744215,
-									"stop_id": "5938",
-									"stop_name": "8th/Lavaca",
-									"stop_sequence": 25
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.267331,
-									"lon": -97.747037,
-									"stop_id": "2613",
-									"stop_name": "Guadalupe/4th",
-									"stop_sequence": 26
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.258767,
-									"lon": -97.7487,
-									"stop_id": "2763",
-									"stop_name": "Vic Mathias/Auditorium…",
-									"stop_sequence": 27
-								}
-							],
-							"stop_id": "6499",
-							"stop_name": "Capitol/Waterloo SB",
-							"stop_name_full": "Capitol/Waterloo SB (San Jacinto/10th)",
-							"stop_sequence": 23
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.256196,
-							"lon": -97.746021,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.254846,
-									"lon": -97.744793,
-									"stop_id": "3847",
-									"stop_name": "Riverside/Congress",
-									"stop_sequence": 29
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.25359,
-									"lon": -97.743972,
-									"stop_id": "5023",
-									"stop_name": "Riverside/Newning",
-									"stop_sequence": 30
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.250734,
-									"lon": -97.74061,
-									"stop_id": "1186",
-									"stop_name": "Riverside/Alameda",
-									"stop_sequence": 31
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.249589,
-									"lon": -97.738348,
-									"stop_id": "1187",
-									"stop_name": "East Riverside/Travis…",
-									"stop_sequence": 32
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.245976,
-									"lon": -97.731836,
-									"stop_id": "999",
-									"stop_name": "Riverside/Summit",
-									"stop_sequence": 33
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.242658,
-									"lon": -97.729061,
-									"stop_id": "5554",
-									"stop_name": "Riverside/Parker",
-									"stop_sequence": 34
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.240341,
-									"lon": -97.727308,
-									"stop_id": "1002",
-									"stop_name": "Riverside/Burton",
-									"stop_sequence": 35
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.236152,
-									"lon": -97.728459,
-									"stop_id": "1190",
-									"stop_name": "Burton/Woodland",
-									"stop_sequence": 36
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.233861,
-									"lon": -97.731812,
-									"stop_id": "1191",
-									"stop_name": "Burton/Mariposa",
-									"stop_sequence": 37
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.231271,
-									"lon": -97.733733,
-									"stop_id": "3535",
-									"stop_name": "Burton/Oltorf",
-									"stop_sequence": 38
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.231874,
-									"lon": -97.737285,
-									"stop_id": "1193",
-									"stop_name": "Parker/Oltorf",
-									"stop_sequence": 39
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.229929,
-									"lon": -97.738557,
-									"stop_id": "1194",
-									"stop_name": "Parker/Braxton",
-									"stop_sequence": 40
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.227504,
-									"lon": -97.740505,
-									"stop_id": "1195",
-									"stop_name": "Parker/Royal Hill",
-									"stop_sequence": 41
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.224895,
-									"lon": -97.742138,
-									"stop_id": "4325",
-									"stop_name": "Parker/Timber Ridge",
-									"stop_sequence": 42
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.22216,
-									"lon": -97.742228,
-									"stop_id": "4323",
-									"stop_name": "Parker/Timber Ridge",
-									"stop_sequence": 43
-								}
-							],
-							"stop_id": "3846",
-							"stop_name": "Riverside/Congress FS",
-							"stop_name_full": "Riverside/Congress FS",
-							"stop_sequence": 28
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.219261,
-							"lon": -97.743912,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.217147,
-									"lon": -97.744042,
-									"stop_id": "1199",
-									"stop_name": "Woodward/Ben White NW…",
-									"stop_sequence": 45
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.214641,
-									"lon": -97.744698,
-									"stop_id": "4318",
-									"stop_name": "Woodward/Ben White SW…",
-									"stop_sequence": 46
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.213561,
-									"lon": -97.745855,
-									"stop_id": "4317",
-									"stop_name": "Freidrich/Woodward",
-									"stop_sequence": 47
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.212493,
-									"lon": -97.748209,
-									"stop_id": "1202",
-									"stop_name": "Freidrich/Directors",
-									"stop_sequence": 48
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.211274,
-									"lon": -97.748981,
-									"stop_id": "5917",
-									"stop_name": "Freidrich/St Elmo",
-									"stop_sequence": 49
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.208183,
-									"lon": -97.750908,
-									"stop_id": "1203",
-									"stop_name": "Freidrich/St Elmo",
-									"stop_sequence": 50
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.204578,
-									"lon": -97.753199,
-									"stop_id": "5712",
-									"stop_name": "Freidrich/Teri",
-									"stop_sequence": 51
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.201932,
-									"lon": -97.75218,
-									"stop_id": "1204",
-									"stop_name": "Teri/Merritt",
-									"stop_sequence": 52
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.198303,
-									"lon": -97.746902,
-									"stop_id": "6312",
-									"stop_name": "Teri/Palo Blanco",
-									"stop_sequence": 53
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.197005,
-									"lon": -97.744449,
-									"stop_id": "6311",
-									"stop_name": "Teri/Pleasant Valley",
-									"stop_sequence": 54
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.193748,
-									"lon": -97.744772,
-									"stop_id": "1212",
-									"stop_name": "Dove Springs SB",
-									"stop_sequence": 55
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.188889,
-									"lon": -97.745545,
-									"stop_id": "1213",
-									"stop_name": "Village Square SB",
-									"stop_sequence": 56
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.185358,
-									"lon": -97.745648,
-									"stop_id": "1214",
-									"stop_name": "Pleasant Valley/Dove…",
-									"stop_sequence": 57
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.182114,
-									"lon": -97.746097,
-									"stop_id": "1215",
-									"stop_name": "Pleasant Valley/Creek…",
-									"stop_sequence": 58
-								}
-							],
-							"stop_id": "2169",
-							"stop_name": "Woodward/Parker SW Corner",
-							"stop_name_full": "Woodward/Parker SW Corner",
-							"stop_sequence": 44
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.180326,
-							"lon": -97.748355,
-							"minor_stops": [
-								{
-									"direction_id": 0,
-									"lat": 30.181192,
-									"lon": -97.75051,
-									"stop_id": "4353",
-									"stop_name": "William Cannon/Meadow…",
-									"stop_sequence": 60
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.184074,
-									"lon": -97.754703,
-									"stop_id": "4352",
-									"stop_name": "William Cannon/Rockridge",
-									"stop_sequence": 61
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.186616,
-									"lon": -97.758981,
-									"stop_id": "4350",
-									"stop_name": "William Cannon/Stoneleigh",
-									"stop_sequence": 62
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.18828,
-									"lon": -97.764296,
-									"stop_id": "5757",
-									"stop_name": "William Cannon/Elm Creek",
-									"stop_sequence": 63
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.189202,
-									"lon": -97.767485,
-									"stop_id": "4345",
-									"stop_name": "William Cannon/Bluff…",
-									"stop_sequence": 64
-								},
-								{
-									"direction_id": 0,
-									"lat": 30.192738,
-									"lon": -97.765327,
-									"stop_id": "553",
-									"stop_name": "Nelms/Bluff Springs",
-									"stop_sequence": 65
-								}
-							],
-							"stop_id": "5383",
-							"stop_name": "William Cannon/Pleasant…",
-							"stop_name_full": "5100 William Cannon/Pleasant Valley",
-							"stop_sequence": 59
-						},
-						{
-							"direction_id": 0,
-							"lat": 30.189947,
-							"lon": -97.767587,
-							"minor_stops": [],
-							"stop_id": "5377",
-							"stop_name": "Bluff Springs/William…",
-							"stop_name_full": "6502 Bluff Springs/William Cannon",
-							"stop_sequence": 66
-						}
-					]
 				}
 			},
-			"stop_count": 66,
+			"stop_count": 64,
 			"timepoint_count": 8
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "7-1-23094bc7",
-				"12-172": "7-1-14e913e8",
-				"13-172": "7-1-14e913e8",
+				"10-172": "7-1-14e913e8",
+				"11-172": "7-1-14e913e8",
 				"2-172": "7-1-14e913e8",
-				"3-172": "7-1-23094bc7",
-				"4-172": "7-1-23094bc7",
-				"5-172": "7-1-14e913e8",
-				"6-172": "7-1-23094bc7",
-				"8-172": "7-1-23094bc7"
+				"4-172": "7-1-14e913e8",
+				"5-172": "7-1-c3e6c7e1",
+				"6-172": "7-1-c3e6c7e1",
+				"7-172": "7-1-c3e6c7e1",
+				"8-172": "7-1-c3e6c7e1",
+				"9-172": "7-1-c3e6c7e1"
 			},
-			"baseline_pattern_id": "7-1-23094bc7",
+			"baseline_pattern_id": "7-1-c3e6c7e1",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
 				"7-1-14e913e8": {
 					"direction_id": 1,
 					"pattern_id": "7-1-14e913e8",
-					"representative_trip_id": "3010588_21127",
+					"representative_trip_id": "3010588_22895",
 					"service_ids": [
-						"12-172",
-						"13-172",
+						"10-172",
+						"11-172",
 						"2-172",
-						"5-172"
+						"4-172"
 					],
 					"stop_count": 63,
 					"timepoint_count": 9,
@@ -1722,18 +1706,18 @@
 						}
 					]
 				},
-				"7-1-23094bc7": {
+				"7-1-c3e6c7e1": {
 					"direction_id": 1,
-					"pattern_id": "7-1-23094bc7",
-					"representative_trip_id": "3010588_21140",
+					"pattern_id": "7-1-c3e6c7e1",
+					"representative_trip_id": "3014882_22407",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
-					"stop_count": 59,
+					"stop_count": 58,
 					"timepoint_count": 9,
 					"timepoints": [
 						{
@@ -1887,14 +1871,6 @@
 									"stop_id": "5663",
 									"stop_name": "Woodward/Ben White",
 									"stop_sequence": 19
-								},
-								{
-									"direction_id": 1,
-									"lat": 30.219456,
-									"lon": -97.743789,
-									"stop_id": "1235",
-									"stop_name": "Woodward/Parker",
-									"stop_sequence": 20
 								}
 							],
 							"stop_id": "4948",
@@ -1913,7 +1889,7 @@
 									"lon": -97.7421,
 									"stop_id": "4324",
 									"stop_name": "Parker/Timber Ridge",
-									"stop_sequence": 22
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 1,
@@ -1921,7 +1897,7 @@
 									"lon": -97.742158,
 									"stop_id": "1237",
 									"stop_name": "Parker/Wickshire",
-									"stop_sequence": 23
+									"stop_sequence": 22
 								},
 								{
 									"direction_id": 1,
@@ -1929,7 +1905,7 @@
 									"lon": -97.73355,
 									"stop_id": "1359",
 									"stop_name": "Burton/Oltorf",
-									"stop_sequence": 24
+									"stop_sequence": 23
 								},
 								{
 									"direction_id": 1,
@@ -1937,7 +1913,7 @@
 									"lon": -97.731309,
 									"stop_id": "1243",
 									"stop_name": "Burton/Valley Hill Cir.",
-									"stop_sequence": 25
+									"stop_sequence": 24
 								},
 								{
 									"direction_id": 1,
@@ -1945,7 +1921,7 @@
 									"lon": -97.72851,
 									"stop_id": "1244",
 									"stop_name": "Burton/Woodland",
-									"stop_sequence": 26
+									"stop_sequence": 25
 								},
 								{
 									"direction_id": 1,
@@ -1953,7 +1929,7 @@
 									"lon": -97.727578,
 									"stop_id": "1361",
 									"stop_name": "Burton/Riverside",
-									"stop_sequence": 27
+									"stop_sequence": 26
 								},
 								{
 									"direction_id": 1,
@@ -1961,7 +1937,7 @@
 									"lon": -97.727591,
 									"stop_id": "1032",
 									"stop_name": "Riverside/Town Creek",
-									"stop_sequence": 28
+									"stop_sequence": 27
 								},
 								{
 									"direction_id": 1,
@@ -1969,7 +1945,7 @@
 									"lon": -97.729475,
 									"stop_id": "6443",
 									"stop_name": "Riverside/Shore District",
-									"stop_sequence": 29
+									"stop_sequence": 28
 								},
 								{
 									"direction_id": 1,
@@ -1977,7 +1953,7 @@
 									"lon": -97.738594,
 									"stop_id": "1246",
 									"stop_name": "East Riverside/Travis…",
-									"stop_sequence": 30
+									"stop_sequence": 29
 								},
 								{
 									"direction_id": 1,
@@ -1985,13 +1961,13 @@
 									"lon": -97.742945,
 									"stop_id": "4024",
 									"stop_name": "Riverside/Newning",
-									"stop_sequence": 31
+									"stop_sequence": 30
 								}
 							],
 							"stop_id": "5456",
 							"stop_name": "Mabel Davis Park",
 							"stop_name_full": "Mabel Davis Park",
-							"stop_sequence": 21
+							"stop_sequence": 20
 						},
 						{
 							"direction_id": 1,
@@ -2004,7 +1980,7 @@
 									"lon": -97.748994,
 									"stop_id": "2767",
 									"stop_name": "Vic Mathias/Auditorium…",
-									"stop_sequence": 33
+									"stop_sequence": 32
 								},
 								{
 									"direction_id": 1,
@@ -2012,7 +1988,7 @@
 									"lon": -97.745863,
 									"stop_id": "2643",
 									"stop_name": "Lavaca/4th",
-									"stop_sequence": 34
+									"stop_sequence": 33
 								},
 								{
 									"direction_id": 1,
@@ -2020,13 +1996,13 @@
 									"lon": -97.743548,
 									"stop_id": "6314",
 									"stop_name": "7th/Colorado",
-									"stop_sequence": 35
+									"stop_sequence": 34
 								}
 							],
 							"stop_id": "1249",
 							"stop_name": "Riverside/Congress",
 							"stop_name_full": "150 Riverside/Congress",
-							"stop_sequence": 32
+							"stop_sequence": 31
 						},
 						{
 							"direction_id": 1,
@@ -2039,7 +2015,7 @@
 									"lon": -97.737436,
 									"stop_id": "6500",
 									"stop_name": "Capitol/Waterloo NB",
-									"stop_sequence": 37
+									"stop_sequence": 36
 								},
 								{
 									"direction_id": 1,
@@ -2047,7 +2023,7 @@
 									"lon": -97.735397,
 									"stop_id": "866",
 									"stop_name": "Medical School NB",
-									"stop_sequence": 38
+									"stop_sequence": 37
 								},
 								{
 									"direction_id": 1,
@@ -2055,7 +2031,7 @@
 									"lon": -97.73391,
 									"stop_id": "1253",
 									"stop_name": "San Jacinto/21st",
-									"stop_sequence": 39
+									"stop_sequence": 38
 								},
 								{
 									"direction_id": 1,
@@ -2063,13 +2039,13 @@
 									"lon": -97.733531,
 									"stop_id": "3491",
 									"stop_name": "UT Stadium NB",
-									"stop_sequence": 40
+									"stop_sequence": 39
 								}
 							],
 							"stop_id": "6315",
 							"stop_name": "8th Street NB",
 							"stop_name_full": "8th Street NB (Trinity/8th)",
-							"stop_sequence": 36
+							"stop_sequence": 35
 						},
 						{
 							"direction_id": 1,
@@ -2082,7 +2058,7 @@
 									"lon": -97.733917,
 									"stop_id": "1257",
 									"stop_name": "Duval/Bellevue",
-									"stop_sequence": 42
+									"stop_sequence": 41
 								},
 								{
 									"direction_id": 1,
@@ -2090,7 +2066,7 @@
 									"lon": -97.733108,
 									"stop_id": "1258",
 									"stop_name": "Duval/32nd",
-									"stop_sequence": 43
+									"stop_sequence": 42
 								},
 								{
 									"direction_id": 1,
@@ -2098,7 +2074,7 @@
 									"lon": -97.73149,
 									"stop_id": "1259",
 									"stop_name": "Duval/Harris",
-									"stop_sequence": 44
+									"stop_sequence": 43
 								},
 								{
 									"direction_id": 1,
@@ -2106,7 +2082,7 @@
 									"lon": -97.729831,
 									"stop_id": "1260",
 									"stop_name": "Duval/38th",
-									"stop_sequence": 45
+									"stop_sequence": 44
 								},
 								{
 									"direction_id": 1,
@@ -2114,7 +2090,7 @@
 									"lon": -97.727604,
 									"stop_id": "1261",
 									"stop_name": "Duval/41st",
-									"stop_sequence": 46
+									"stop_sequence": 45
 								},
 								{
 									"direction_id": 1,
@@ -2122,13 +2098,13 @@
 									"lon": -97.726358,
 									"stop_id": "1262",
 									"stop_name": "Duval/Park",
-									"stop_sequence": 47
+									"stop_sequence": 46
 								}
 							],
 							"stop_id": "1256",
 							"stop_name": "San Jacinto/Dean Keeton",
 							"stop_name_full": "2525 San Jacinto/Dean Keeton",
-							"stop_sequence": 41
+							"stop_sequence": 40
 						},
 						{
 							"direction_id": 1,
@@ -2141,7 +2117,7 @@
 									"lon": -97.723678,
 									"stop_id": "1264",
 									"stop_name": "Duval/45th",
-									"stop_sequence": 49
+									"stop_sequence": 48
 								},
 								{
 									"direction_id": 1,
@@ -2149,7 +2125,7 @@
 									"lon": -97.721789,
 									"stop_id": "1265",
 									"stop_name": "Duval/48th Street",
-									"stop_sequence": 50
+									"stop_sequence": 49
 								},
 								{
 									"direction_id": 1,
@@ -2157,7 +2133,7 @@
 									"lon": -97.719695,
 									"stop_id": "1267",
 									"stop_name": "Duval/Bruning",
-									"stop_sequence": 51
+									"stop_sequence": 50
 								},
 								{
 									"direction_id": 1,
@@ -2165,7 +2141,7 @@
 									"lon": -97.71852,
 									"stop_id": "5494",
 									"stop_name": "Duval/53rd",
-									"stop_sequence": 52
+									"stop_sequence": 51
 								},
 								{
 									"direction_id": 1,
@@ -2173,7 +2149,7 @@
 									"lon": -97.71873,
 									"stop_id": "1271",
 									"stop_name": "Avenue F/Koenig",
-									"stop_sequence": 53
+									"stop_sequence": 52
 								},
 								{
 									"direction_id": 1,
@@ -2181,7 +2157,7 @@
 									"lon": -97.714031,
 									"stop_id": "1797",
 									"stop_name": "AIRPORT/KOENIG",
-									"stop_sequence": 54
+									"stop_sequence": 53
 								},
 								{
 									"direction_id": 1,
@@ -2189,13 +2165,13 @@
 									"lon": -97.715657,
 									"stop_id": "6527",
 									"stop_name": "Airport at Clayton NB",
-									"stop_sequence": 55
+									"stop_sequence": 54
 								}
 							],
 							"stop_id": "1263",
 							"stop_name": "Duval/45th",
 							"stop_name_full": "4433 Duval/45th",
-							"stop_sequence": 48
+							"stop_sequence": 47
 						},
 						{
 							"direction_id": 1,
@@ -2208,7 +2184,7 @@
 									"lon": -97.717039,
 									"stop_id": "1273",
 									"stop_name": "Airport Blvd/Guadalupe",
-									"stop_sequence": 57
+									"stop_sequence": 56
 								},
 								{
 									"direction_id": 1,
@@ -2216,13 +2192,13 @@
 									"lon": -97.717896,
 									"stop_id": "5509",
 									"stop_name": "Airport/Kenniston",
-									"stop_sequence": 58
+									"stop_sequence": 57
 								}
 							],
 							"stop_id": "5602",
 							"stop_name": "Airport Blvd",
 							"stop_name_full": "6413 Airport Blvd (Highland Mall)",
-							"stop_sequence": 56
+							"stop_sequence": 55
 						},
 						{
 							"direction_id": 1,
@@ -2232,16 +2208,16 @@
 							"stop_id": "5604",
 							"stop_name": "Crestview Station Bus…",
 							"stop_name_full": "Crestview Station Bus Stop",
-							"stop_sequence": 59
+							"stop_sequence": 58
 						}
 					]
 				}
 			},
-			"stop_count": 59,
+			"stop_count": 58,
 			"timepoint_count": 9
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "7",
 	"schema": 1
 }

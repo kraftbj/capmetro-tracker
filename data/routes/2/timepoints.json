@@ -2,31 +2,31 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "2-0-1c44b549",
 				"2-172": "2-0-ec9e6171",
-				"3-172": "2-0-1c44b549",
-				"4-172": "2-0-1c44b549",
-				"5-172": "2-0-ec9e6171",
-				"6-172": "2-0-1c44b549",
-				"7-172": "2-0-ec9e6171",
-				"8-172": "2-0-1c44b549"
+				"3-172": "2-0-ec9e6171",
+				"4-172": "2-0-ec9e6171",
+				"5-172": "2-0-e2ce9e93",
+				"6-172": "2-0-e2ce9e93",
+				"7-172": "2-0-e2ce9e93",
+				"8-172": "2-0-e2ce9e93",
+				"9-172": "2-0-e2ce9e93"
 			},
-			"baseline_pattern_id": "2-0-1c44b549",
+			"baseline_pattern_id": "2-0-e2ce9e93",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"2-0-1c44b549": {
+				"2-0-e2ce9e93": {
 					"direction_id": 0,
-					"pattern_id": "2-0-1c44b549",
-					"representative_trip_id": "3013463_2505",
+					"pattern_id": "2-0-e2ce9e93",
+					"representative_trip_id": "3013463_2630",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
-					"stop_count": 30,
+					"stop_count": 31,
 					"timepoint_count": 4,
 					"timepoints": [
 						{
@@ -52,11 +52,19 @@
 								},
 								{
 									"direction_id": 0,
+									"lat": 30.273662,
+									"lon": -97.69085,
+									"stop_id": "632",
+									"stop_name": "OAK SPRINGS/SPRINGDALE",
+									"stop_sequence": 4
+								},
+								{
+									"direction_id": 0,
 									"lat": 30.273894,
 									"lon": -97.695063,
 									"stop_id": "5618",
 									"stop_name": "Oak Springs/Gunter",
-									"stop_sequence": 4
+									"stop_sequence": 5
 								},
 								{
 									"direction_id": 0,
@@ -64,7 +72,7 @@
 									"lon": -97.69835,
 									"stop_id": "634",
 									"stop_name": "Oak Springs SB",
-									"stop_sequence": 5
+									"stop_sequence": 6
 								},
 								{
 									"direction_id": 0,
@@ -72,7 +80,7 @@
 									"lon": -97.70225,
 									"stop_id": "5464",
 									"stop_name": "Oak Springs/Webberville",
-									"stop_sequence": 6
+									"stop_sequence": 7
 								},
 								{
 									"direction_id": 0,
@@ -80,7 +88,7 @@
 									"lon": -97.704568,
 									"stop_id": "635",
 									"stop_name": "Oak Springs/Ridgeway",
-									"stop_sequence": 7
+									"stop_sequence": 8
 								},
 								{
 									"direction_id": 0,
@@ -88,7 +96,7 @@
 									"lon": -97.708296,
 									"stop_id": "637",
 									"stop_name": "Rosewood/Bedford",
-									"stop_sequence": 8
+									"stop_sequence": 9
 								}
 							],
 							"stop_id": "6448",
@@ -107,7 +115,7 @@
 									"lon": -97.715,
 									"stop_id": "3728",
 									"stop_name": "Rosewood/Chestnut",
-									"stop_sequence": 10
+									"stop_sequence": 11
 								},
 								{
 									"direction_id": 0,
@@ -115,7 +123,7 @@
 									"lon": -97.719604,
 									"stop_id": "4172",
 									"stop_name": "Rosewood/Chicon",
-									"stop_sequence": 11
+									"stop_sequence": 12
 								},
 								{
 									"direction_id": 0,
@@ -123,7 +131,7 @@
 									"lon": -97.724138,
 									"stop_id": "3730",
 									"stop_name": "Rosewood/Angelina",
-									"stop_sequence": 12
+									"stop_sequence": 13
 								},
 								{
 									"direction_id": 0,
@@ -131,7 +139,7 @@
 									"lon": -97.727634,
 									"stop_id": "3731",
 									"stop_name": "11th/Lydia",
-									"stop_sequence": 13
+									"stop_sequence": 14
 								},
 								{
 									"direction_id": 0,
@@ -139,7 +147,7 @@
 									"lon": -97.731193,
 									"stop_id": "5496",
 									"stop_name": "11th/Branch",
-									"stop_sequence": 14
+									"stop_sequence": 15
 								},
 								{
 									"direction_id": 0,
@@ -147,7 +155,7 @@
 									"lon": -97.734976,
 									"stop_id": "6382",
 									"stop_name": "11th/Red River",
-									"stop_sequence": 15
+									"stop_sequence": 16
 								},
 								{
 									"direction_id": 0,
@@ -155,7 +163,7 @@
 									"lon": -97.739026,
 									"stop_id": "6499",
 									"stop_name": "Capitol/Waterloo SB",
-									"stop_sequence": 16
+									"stop_sequence": 17
 								},
 								{
 									"direction_id": 0,
@@ -163,13 +171,13 @@
 									"lon": -97.741869,
 									"stop_id": "5937",
 									"stop_name": "8th/Congress",
-									"stop_sequence": 17
+									"stop_sequence": 18
 								}
 							],
 							"stop_id": "638",
 							"stop_name": "Rosewood/Hargrave",
 							"stop_name_full": "2370 Rosewood/Hargrave",
-							"stop_sequence": 9
+							"stop_sequence": 10
 						},
 						{
 							"direction_id": 0,
@@ -182,7 +190,7 @@
 									"lon": -97.747037,
 									"stop_id": "2613",
 									"stop_name": "Guadalupe/4th",
-									"stop_sequence": 19
+									"stop_sequence": 20
 								},
 								{
 									"direction_id": 0,
@@ -190,7 +198,7 @@
 									"lon": -97.746366,
 									"stop_id": "1781",
 									"stop_name": "Cesar Chavez/Lavaca",
-									"stop_sequence": 20
+									"stop_sequence": 21
 								},
 								{
 									"direction_id": 0,
@@ -198,7 +206,7 @@
 									"lon": -97.743365,
 									"stop_id": "993",
 									"stop_name": "Cesar Chavez/Brazos",
-									"stop_sequence": 21
+									"stop_sequence": 22
 								},
 								{
 									"direction_id": 0,
@@ -206,7 +214,7 @@
 									"lon": -97.740639,
 									"stop_id": "5633",
 									"stop_name": "Cesar Chavez/Trinity",
-									"stop_sequence": 22
+									"stop_sequence": 23
 								},
 								{
 									"direction_id": 0,
@@ -214,7 +222,7 @@
 									"lon": -97.732856,
 									"stop_id": "2812",
 									"stop_name": "Cesar Chavez/Waller",
-									"stop_sequence": 23
+									"stop_sequence": 24
 								},
 								{
 									"direction_id": 0,
@@ -222,7 +230,7 @@
 									"lon": -97.728156,
 									"stop_id": "1802",
 									"stop_name": "Cesar Chavez/Comal",
-									"stop_sequence": 24
+									"stop_sequence": 25
 								},
 								{
 									"direction_id": 0,
@@ -230,7 +238,7 @@
 									"lon": -97.724082,
 									"stop_id": "6272",
 									"stop_name": "Cesar Chavez/Chicon",
-									"stop_sequence": 25
+									"stop_sequence": 26
 								},
 								{
 									"direction_id": 0,
@@ -238,7 +246,7 @@
 									"lon": -97.720807,
 									"stop_id": "6270",
 									"stop_name": "Cesar Chavez/Robert…",
-									"stop_sequence": 26
+									"stop_sequence": 27
 								},
 								{
 									"direction_id": 0,
@@ -246,7 +254,7 @@
 									"lon": -97.716515,
 									"stop_id": "6268",
 									"stop_name": "Cesar Chavez/Pedernales",
-									"stop_sequence": 27
+									"stop_sequence": 28
 								},
 								{
 									"direction_id": 0,
@@ -254,7 +262,7 @@
 									"lon": -97.713005,
 									"stop_id": "6266",
 									"stop_name": "Cesar Chavez/Pleasant…",
-									"stop_sequence": 28
+									"stop_sequence": 29
 								},
 								{
 									"direction_id": 0,
@@ -262,13 +270,13 @@
 									"lon": -97.703929,
 									"stop_id": "6414",
 									"stop_name": "Springdale/Cesar Chavez",
-									"stop_sequence": 29
+									"stop_sequence": 30
 								}
 							],
 							"stop_id": "5938",
 							"stop_name": "8th/Lavaca",
 							"stop_name_full": "216 8Th/Lavaca",
-							"stop_sequence": 18
+							"stop_sequence": 19
 						},
 						{
 							"direction_id": 0,
@@ -278,18 +286,18 @@
 							"stop_id": "6448",
 							"stop_name": "Eastside Bus Plaza Bay H",
 							"stop_name_full": "5203 Eastside Bus Plaza Bay H",
-							"stop_sequence": 30
+							"stop_sequence": 31
 						}
 					]
 				},
 				"2-0-ec9e6171": {
 					"direction_id": 0,
 					"pattern_id": "2-0-ec9e6171",
-					"representative_trip_id": "3013463_2501",
+					"representative_trip_id": "3013463_2626",
 					"service_ids": [
 						"2-172",
-						"5-172",
-						"7-172"
+						"3-172",
+						"4-172"
 					],
 					"stop_count": 33,
 					"timepoint_count": 4,
@@ -572,19 +580,19 @@
 					]
 				}
 			},
-			"stop_count": 30,
+			"stop_count": 31,
 			"timepoint_count": 4
 		},
 		{
 			"baseline_by_service": {
-				"1-172": "2-1-76ffa30c",
 				"2-172": "2-1-fdd8e79f",
-				"3-172": "2-1-76ffa30c",
-				"4-172": "2-1-76ffa30c",
-				"5-172": "2-1-fdd8e79f",
+				"3-172": "2-1-fdd8e79f",
+				"4-172": "2-1-fdd8e79f",
+				"5-172": "2-1-76ffa30c",
 				"6-172": "2-1-76ffa30c",
-				"7-172": "2-1-fdd8e79f",
-				"8-172": "2-1-76ffa30c"
+				"7-172": "2-1-76ffa30c",
+				"8-172": "2-1-76ffa30c",
+				"9-172": "2-1-76ffa30c"
 			},
 			"baseline_pattern_id": "2-1-76ffa30c",
 			"baseline_stable": false,
@@ -593,13 +601,13 @@
 				"2-1-76ffa30c": {
 					"direction_id": 1,
 					"pattern_id": "2-1-76ffa30c",
-					"representative_trip_id": "3013523_2125",
+					"representative_trip_id": "3013523_2202",
 					"service_ids": [
-						"1-172",
-						"3-172",
-						"4-172",
+						"5-172",
 						"6-172",
-						"8-172"
+						"7-172",
+						"8-172",
+						"9-172"
 					],
 					"stop_count": 33,
 					"timepoint_count": 5,
@@ -887,11 +895,11 @@
 				"2-1-fdd8e79f": {
 					"direction_id": 1,
 					"pattern_id": "2-1-fdd8e79f",
-					"representative_trip_id": "3013523_2129",
+					"representative_trip_id": "3013523_2198",
 					"service_ids": [
 						"2-172",
-						"5-172",
-						"7-172"
+						"3-172",
+						"4-172"
 					],
 					"stop_count": 36,
 					"timepoint_count": 5,
@@ -1205,7 +1213,7 @@
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "261007_1345",
+	"feed_version": "261102_1010",
 	"route_id": "2",
 	"schema": 1
 }
