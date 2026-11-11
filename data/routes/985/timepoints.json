@@ -11,7 +11,7 @@
 				"985-0-a76ee4fa": {
 					"direction_id": 0,
 					"pattern_id": "985-0-a76ee4fa",
-					"representative_trip_id": "3013387_27742",
+					"representative_trip_id": "3013387_26125",
 					"service_ids": [
 						"1-172"
 					],
@@ -141,7 +141,7 @@
 				"985-1-ceaac164": {
 					"direction_id": 1,
 					"pattern_id": "985-1-ceaac164",
-					"representative_trip_id": "3013392_27736",
+					"representative_trip_id": "3013392_26119",
 					"service_ids": [
 						"1-172"
 					],
@@ -245,7 +245,7 @@
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "985",
 	"schema": 1
 }

@@ -2,31 +2,31 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"2-172": "30-0-f641964c",
+				"10-172": "30-0-6efdacd6",
 				"3-172": "30-0-f641964c",
 				"4-172": "30-0-f641964c",
-				"5-172": "30-0-ad58831b",
-				"6-172": "30-0-ad58831b",
-				"7-172": "30-0-ad58831b",
-				"8-172": "30-0-ad58831b",
-				"9-172": "30-0-ad58831b"
+				"5-172": "30-0-6efdacd6",
+				"6-172": "30-0-6efdacd6",
+				"7-172": "30-0-6efdacd6",
+				"8-172": "30-0-6efdacd6",
+				"9-172": "30-0-f641964c"
 			},
-			"baseline_pattern_id": "30-0-ad58831b",
+			"baseline_pattern_id": "30-0-6efdacd6",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"30-0-ad58831b": {
+				"30-0-6efdacd6": {
 					"direction_id": 0,
-					"pattern_id": "30-0-ad58831b",
-					"representative_trip_id": "3000996_6390",
+					"pattern_id": "30-0-6efdacd6",
+					"representative_trip_id": "3000996_5951",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
-					"stop_count": 77,
+					"stop_count": 76,
 					"timepoint_count": 9,
 					"timepoints": [
 						{
@@ -641,19 +641,11 @@
 								},
 								{
 									"direction_id": 0,
-									"lat": 30.354217,
-									"lon": -97.732117,
-									"stop_id": "5849",
-									"stop_name": "Northcross Station",
-									"stop_sequence": 75
-								},
-								{
-									"direction_id": 0,
 									"lat": 30.354986,
 									"lon": -97.73617,
 									"stop_id": "5851",
 									"stop_name": "Northcross/Foster",
-									"stop_sequence": 76
+									"stop_sequence": 75
 								}
 							],
 							"stop_id": "1893",
@@ -669,18 +661,18 @@
 							"stop_id": "5856",
 							"stop_name": "Foster/Northcross",
 							"stop_name_full": "2714 Foster/Northcross",
-							"stop_sequence": 77
+							"stop_sequence": 76
 						}
 					]
 				},
 				"30-0-f641964c": {
 					"direction_id": 0,
 					"pattern_id": "30-0-f641964c",
-					"representative_trip_id": "3000996_6383",
+					"representative_trip_id": "3000996_5937",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 78,
 					"timepoint_count": 9,
@@ -1338,19 +1330,19 @@
 					]
 				}
 			},
-			"stop_count": 77,
+			"stop_count": 76,
 			"timepoint_count": 9
 		},
 		{
 			"baseline_by_service": {
-				"2-172": "30-1-08ffc681",
+				"10-172": "30-1-fc60b6bc",
 				"3-172": "30-1-08ffc681",
 				"4-172": "30-1-08ffc681",
 				"5-172": "30-1-fc60b6bc",
 				"6-172": "30-1-fc60b6bc",
 				"7-172": "30-1-fc60b6bc",
 				"8-172": "30-1-fc60b6bc",
-				"9-172": "30-1-fc60b6bc"
+				"9-172": "30-1-08ffc681"
 			},
 			"baseline_pattern_id": "30-1-fc60b6bc",
 			"baseline_stable": false,
@@ -1359,11 +1351,11 @@
 				"30-1-08ffc681": {
 					"direction_id": 1,
 					"pattern_id": "30-1-08ffc681",
-					"representative_trip_id": "3001028_6631",
+					"representative_trip_id": "3001028_6182",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 72,
 					"timepoint_count": 10,
@@ -1977,13 +1969,13 @@
 				"30-1-fc60b6bc": {
 					"direction_id": 1,
 					"pattern_id": "30-1-fc60b6bc",
-					"representative_trip_id": "3001028_6644",
+					"representative_trip_id": "3001028_6189",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
 					"stop_count": 71,
 					"timepoint_count": 10,
@@ -2591,7 +2583,7 @@
 			"timepoint_count": 10
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "30",
 	"schema": 1
 }

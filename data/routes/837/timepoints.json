@@ -2,18 +2,18 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"1-172": "837-0-4ddb3e8e",
-				"2-172": "837-0-4ddb3e8e",
-				"3-172": "837-0-4ddb3e8e"
+				"1-172": "837-0-8000b18d",
+				"2-172": "837-0-8000b18d",
+				"3-172": "837-0-8000b18d"
 			},
-			"baseline_pattern_id": "837-0-4ddb3e8e",
+			"baseline_pattern_id": "837-0-8000b18d",
 			"baseline_stable": true,
 			"direction_id": 0,
 			"ladders": {
-				"837-0-4ddb3e8e": {
+				"837-0-8000b18d": {
 					"direction_id": 0,
-					"pattern_id": "837-0-4ddb3e8e",
-					"representative_trip_id": "3012106_27470",
+					"pattern_id": "837-0-8000b18d",
+					"representative_trip_id": "3012106_25859",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -24,8 +24,8 @@
 					"timepoints": [
 						{
 							"direction_id": 0,
-							"lat": 30.294247,
-							"lon": -97.625006,
+							"lat": 30.294071,
+							"lon": -97.625113,
 							"minor_stops": [
 								{
 									"direction_id": 0,
@@ -68,9 +68,9 @@
 									"stop_sequence": 6
 								}
 							],
-							"stop_id": "6551",
-							"stop_name": "Expo Center Bay D",
-							"stop_name_full": "Expo Center Bay D",
+							"stop_id": "6552",
+							"stop_name": "Expo Center Bay E",
+							"stop_name_full": "Expo Center Bay E",
 							"stop_sequence": 1
 						},
 						{
@@ -239,7 +239,7 @@
 				"837-1-836a592f": {
 					"direction_id": 1,
 					"pattern_id": "837-1-836a592f",
-					"representative_trip_id": "3012203_27250",
+					"representative_trip_id": "3012203_25639",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -461,7 +461,7 @@
 			"timepoint_count": 5
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "837",
 	"schema": 1
 }

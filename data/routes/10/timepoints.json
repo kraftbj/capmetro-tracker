@@ -2,32 +2,32 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"10-172": "10-0-cf87109e",
+				"10-172": "10-0-21256c03",
 				"11-172": "10-0-cf87109e",
-				"2-172": "10-0-cf87109e",
+				"12-172": "10-0-cf87109e",
 				"4-172": "10-0-cf87109e",
-				"5-172": "10-0-a68e05de",
-				"6-172": "10-0-a68e05de",
-				"7-172": "10-0-a68e05de",
-				"8-172": "10-0-a68e05de",
-				"9-172": "10-0-a68e05de"
+				"5-172": "10-0-21256c03",
+				"6-172": "10-0-21256c03",
+				"7-172": "10-0-21256c03",
+				"8-172": "10-0-21256c03",
+				"9-172": "10-0-cf87109e"
 			},
-			"baseline_pattern_id": "10-0-a68e05de",
+			"baseline_pattern_id": "10-0-21256c03",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"10-0-a68e05de": {
+				"10-0-21256c03": {
 					"direction_id": 0,
-					"pattern_id": "10-0-a68e05de",
-					"representative_trip_id": "3014944_0953",
+					"pattern_id": "10-0-21256c03",
+					"representative_trip_id": "3014513_1268",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
-					"stop_count": 67,
+					"stop_count": 68,
 					"timepoint_count": 7,
 					"timepoints": [
 						{
@@ -569,6 +569,14 @@
 									"stop_id": "5623",
 									"stop_name": "Slaughter/Alice Mae",
 									"stop_sequence": 66
+								},
+								{
+									"direction_id": 0,
+									"lat": 30.166994,
+									"lon": -97.789102,
+									"stop_id": "6322",
+									"stop_name": "Slaughter/Congress",
+									"stop_sequence": 67
 								}
 							],
 							"stop_id": "2623",
@@ -584,19 +592,19 @@
 							"stop_id": "5263",
 							"stop_name": "Turk/Cullen",
 							"stop_name_full": "200 Turk/Cullen",
-							"stop_sequence": 67
+							"stop_sequence": 68
 						}
 					]
 				},
 				"10-0-cf87109e": {
 					"direction_id": 0,
 					"pattern_id": "10-0-cf87109e",
-					"representative_trip_id": "2998304_1435",
+					"representative_trip_id": "2998304_1424",
 					"service_ids": [
-						"10-172",
 						"11-172",
-						"2-172",
-						"4-172"
+						"12-172",
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 70,
 					"timepoint_count": 7,
@@ -1184,14 +1192,14 @@
 					]
 				}
 			},
-			"stop_count": 67,
+			"stop_count": 68,
 			"timepoint_count": 7
 		},
 		{
 			"baseline_by_service": {
 				"10-172": "10-1-cbafc13c",
 				"11-172": "10-1-cbafc13c",
-				"2-172": "10-1-cbafc13c",
+				"12-172": "10-1-cbafc13c",
 				"4-172": "10-1-cbafc13c",
 				"5-172": "10-1-cbafc13c",
 				"6-172": "10-1-cbafc13c",
@@ -1206,11 +1214,11 @@
 				"10-1-cbafc13c": {
 					"direction_id": 1,
 					"pattern_id": "10-1-cbafc13c",
-					"representative_trip_id": "2998398_0901",
+					"representative_trip_id": "2998398_0896",
 					"service_ids": [
 						"10-172",
 						"11-172",
-						"2-172",
+						"12-172",
 						"4-172",
 						"5-172",
 						"6-172",
@@ -1824,7 +1832,7 @@
 			"timepoint_count": 7
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "10",
 	"schema": 1
 }

@@ -11,7 +11,7 @@
 				"935-0-b92b0679": {
 					"direction_id": 0,
 					"pattern_id": "935-0-b92b0679",
-					"representative_trip_id": "3013107_27692",
+					"representative_trip_id": "3013107_26081",
 					"service_ids": [
 						"1-172"
 					],
@@ -131,7 +131,7 @@
 				"935-1-cb29fa45": {
 					"direction_id": 1,
 					"pattern_id": "935-1-cb29fa45",
-					"representative_trip_id": "3013109_27690",
+					"representative_trip_id": "3013109_26079",
 					"service_ids": [
 						"1-172"
 					],
@@ -233,7 +233,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "935",
 	"schema": 1
 }

@@ -1,54 +1,6 @@
 {
-	"date_count": 69,
+	"date_count": 61,
 	"dates": {
-		"20261102": {
-			"is_exception_day": false,
-			"service_ids": [
-				"1-172"
-			]
-		},
-		"20261103": {
-			"is_exception_day": false,
-			"service_ids": [
-				"1-172"
-			]
-		},
-		"20261104": {
-			"is_exception_day": false,
-			"service_ids": [
-				"1-172"
-			]
-		},
-		"20261105": {
-			"is_exception_day": false,
-			"service_ids": [
-				"1-172"
-			]
-		},
-		"20261106": {
-			"is_exception_day": false,
-			"service_ids": [
-				"1-172"
-			]
-		},
-		"20261107": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
-		"20261108": {
-			"is_exception_day": false,
-			"service_ids": [
-				"3-172"
-			]
-		},
-		"20261109": {
-			"is_exception_day": false,
-			"service_ids": [
-				"1-172"
-			]
-		},
 		"20261110": {
 			"is_exception_day": false,
 			"service_ids": [
@@ -417,7 +369,7 @@
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "217",
 	"schema": 1,
 	"service_ids": [

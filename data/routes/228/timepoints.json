@@ -12,7 +12,7 @@
 				"228-0-61b16cac": {
 					"direction_id": 0,
 					"pattern_id": "228-0-61b16cac",
-					"representative_trip_id": "3000222_4905",
+					"representative_trip_id": "3000222_4491",
 					"service_ids": [
 						"1-172",
 						"2-172"
@@ -166,7 +166,7 @@
 				"228-1-be072477": {
 					"direction_id": 1,
 					"pattern_id": "228-1-be072477",
-					"representative_trip_id": "3000245_4952",
+					"representative_trip_id": "3000245_4538",
 					"service_ids": [
 						"1-172",
 						"2-172"
@@ -333,7 +333,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "228",
 	"schema": 1
 }

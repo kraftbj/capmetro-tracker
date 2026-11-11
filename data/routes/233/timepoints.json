@@ -13,7 +13,7 @@
 				"233-0-3bd00c24": {
 					"direction_id": 0,
 					"pattern_id": "233-0-3bd00c24",
-					"representative_trip_id": "3000316_4999",
+					"representative_trip_id": "3000316_4585",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -110,7 +110,7 @@
 				"233-1-0a5f21f5": {
 					"direction_id": 1,
 					"pattern_id": "233-1-0a5f21f5",
-					"representative_trip_id": "3000336_5049",
+					"representative_trip_id": "3000336_4635",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -187,7 +187,7 @@
 			"timepoint_count": 2
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "233",
 	"schema": 1
 }

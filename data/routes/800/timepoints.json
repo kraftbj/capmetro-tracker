@@ -2,14 +2,14 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"2-172": "800-0-e94c9897",
+				"10-172": "800-0-2e3ecc25",
 				"3-172": "800-0-e94c9897",
 				"4-172": "800-0-e94c9897",
 				"5-172": "800-0-2e3ecc25",
 				"6-172": "800-0-2e3ecc25",
 				"7-172": "800-0-2e3ecc25",
 				"8-172": "800-0-2e3ecc25",
-				"9-172": "800-0-2e3ecc25"
+				"9-172": "800-0-e94c9897"
 			},
 			"baseline_pattern_id": "800-0-2e3ecc25",
 			"baseline_stable": false,
@@ -18,13 +18,13 @@
 				"800-0-2e3ecc25": {
 					"direction_id": 0,
 					"pattern_id": "800-0-2e3ecc25",
-					"representative_trip_id": "3010740_23497",
+					"representative_trip_id": "3010740_22505",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
 					"stop_count": 20,
 					"timepoint_count": 5,
@@ -207,11 +207,11 @@
 				"800-0-e94c9897": {
 					"direction_id": 0,
 					"pattern_id": "800-0-e94c9897",
-					"representative_trip_id": "3010740_23478",
+					"representative_trip_id": "3010740_22486",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 22,
 					"timepoint_count": 5,
@@ -413,14 +413,14 @@
 		},
 		{
 			"baseline_by_service": {
-				"2-172": "800-1-ee8d5680",
+				"10-172": "800-1-b0afd231",
 				"3-172": "800-1-ee8d5680",
 				"4-172": "800-1-ee8d5680",
 				"5-172": "800-1-b0afd231",
 				"6-172": "800-1-b0afd231",
 				"7-172": "800-1-b0afd231",
 				"8-172": "800-1-b0afd231",
-				"9-172": "800-1-b0afd231"
+				"9-172": "800-1-ee8d5680"
 			},
 			"baseline_pattern_id": "800-1-b0afd231",
 			"baseline_stable": false,
@@ -429,13 +429,13 @@
 				"800-1-b0afd231": {
 					"direction_id": 1,
 					"pattern_id": "800-1-b0afd231",
-					"representative_trip_id": "3010838_24209",
+					"representative_trip_id": "3010838_23185",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
 					"stop_count": 21,
 					"timepoint_count": 6,
@@ -628,11 +628,11 @@
 				"800-1-ee8d5680": {
 					"direction_id": 1,
 					"pattern_id": "800-1-ee8d5680",
-					"representative_trip_id": "3010838_24191",
+					"representative_trip_id": "3010838_23167",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 22,
 					"timepoint_count": 6,
@@ -835,7 +835,7 @@
 			"timepoint_count": 6
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "800",
 	"schema": 1
 }

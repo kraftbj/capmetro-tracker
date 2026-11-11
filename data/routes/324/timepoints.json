@@ -13,7 +13,7 @@
 				"324-0-901dd74f": {
 					"direction_id": 0,
 					"pattern_id": "324-0-901dd74f",
-					"representative_trip_id": "3003095_10670",
+					"representative_trip_id": "3003095_10381",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -305,31 +305,31 @@
 		},
 		{
 			"baseline_by_service": {
-				"2-172": "324-1-a63e2eea",
+				"10-172": "324-1-1dd613a3",
 				"3-172": "324-1-a63e2eea",
 				"4-172": "324-1-a63e2eea",
-				"5-172": "324-1-45d98dde",
-				"6-172": "324-1-45d98dde",
-				"7-172": "324-1-45d98dde",
-				"8-172": "324-1-45d98dde",
-				"9-172": "324-1-45d98dde"
+				"5-172": "324-1-1dd613a3",
+				"6-172": "324-1-1dd613a3",
+				"7-172": "324-1-1dd613a3",
+				"8-172": "324-1-1dd613a3",
+				"9-172": "324-1-a63e2eea"
 			},
-			"baseline_pattern_id": "324-1-45d98dde",
+			"baseline_pattern_id": "324-1-1dd613a3",
 			"baseline_stable": false,
 			"direction_id": 1,
 			"ladders": {
-				"324-1-45d98dde": {
+				"324-1-1dd613a3": {
 					"direction_id": 1,
-					"pattern_id": "324-1-45d98dde",
-					"representative_trip_id": "3003130_10773",
+					"pattern_id": "324-1-1dd613a3",
+					"representative_trip_id": "3003130_10488",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
-					"stop_count": 32,
+					"stop_count": 31,
 					"timepoint_count": 4,
 					"timepoints": [
 						{
@@ -569,19 +569,11 @@
 								},
 								{
 									"direction_id": 1,
-									"lat": 30.354217,
-									"lon": -97.732117,
-									"stop_id": "5849",
-									"stop_name": "Northcross Station",
-									"stop_sequence": 30
-								},
-								{
-									"direction_id": 1,
 									"lat": 30.354986,
 									"lon": -97.73617,
 									"stop_id": "5851",
 									"stop_name": "Northcross/Foster",
-									"stop_sequence": 31
+									"stop_sequence": 30
 								}
 							],
 							"stop_id": "3033",
@@ -597,18 +589,18 @@
 							"stop_id": "6388",
 							"stop_name": "Foster/Rockwood",
 							"stop_name_full": "2751 Foster/Rockwood",
-							"stop_sequence": 32
+							"stop_sequence": 31
 						}
 					]
 				},
 				"324-1-a63e2eea": {
 					"direction_id": 1,
 					"pattern_id": "324-1-a63e2eea",
-					"representative_trip_id": "3003130_10769",
+					"representative_trip_id": "3003130_10480",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 33,
 					"timepoint_count": 4,
@@ -891,11 +883,11 @@
 					]
 				}
 			},
-			"stop_count": 32,
+			"stop_count": 31,
 			"timepoint_count": 4
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "324",
 	"schema": 1
 }

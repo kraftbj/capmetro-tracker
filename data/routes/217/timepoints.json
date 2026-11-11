@@ -13,7 +13,7 @@
 				"217-0-cb059150": {
 					"direction_id": 0,
 					"pattern_id": "217-0-cb059150",
-					"representative_trip_id": "3013742_4747",
+					"representative_trip_id": "3013742_4333",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -118,7 +118,7 @@
 				"217-1-5bda4d61": {
 					"direction_id": 1,
 					"pattern_id": "217-1-5bda4d61",
-					"representative_trip_id": "3013741_4826",
+					"representative_trip_id": "3013741_4412",
 					"service_ids": [
 						"1-172",
 						"2-172",
@@ -197,7 +197,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "217",
 	"schema": 1
 }

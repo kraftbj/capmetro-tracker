@@ -2,31 +2,31 @@
 	"directions": [
 		{
 			"baseline_by_service": {
-				"2-172": "271-0-a2be12e6",
+				"10-172": "271-0-842e972d",
 				"3-172": "271-0-a2be12e6",
 				"4-172": "271-0-a2be12e6",
-				"5-172": "271-0-916490dd",
-				"6-172": "271-0-916490dd",
-				"7-172": "271-0-916490dd",
-				"8-172": "271-0-916490dd",
-				"9-172": "271-0-916490dd"
+				"5-172": "271-0-842e972d",
+				"6-172": "271-0-842e972d",
+				"7-172": "271-0-842e972d",
+				"8-172": "271-0-842e972d",
+				"9-172": "271-0-a2be12e6"
 			},
-			"baseline_pattern_id": "271-0-916490dd",
+			"baseline_pattern_id": "271-0-842e972d",
 			"baseline_stable": false,
 			"direction_id": 0,
 			"ladders": {
-				"271-0-916490dd": {
+				"271-0-842e972d": {
 					"direction_id": 0,
-					"pattern_id": "271-0-916490dd",
-					"representative_trip_id": "3014260_5559",
+					"pattern_id": "271-0-842e972d",
+					"representative_trip_id": "3000682_5304",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
-					"stop_count": 18,
+					"stop_count": 19,
 					"timepoint_count": 3,
 					"timepoints": [
 						{
@@ -151,11 +151,19 @@
 								},
 								{
 									"direction_id": 0,
+									"lat": 30.224038,
+									"lon": -97.700825,
+									"stop_id": "3249",
+									"stop_name": "Riverside/Vargas",
+									"stop_sequence": 16
+								},
+								{
+									"direction_id": 0,
 									"lat": 30.225204,
 									"lon": -97.703776,
 									"stop_id": "950",
 									"stop_name": "RIVERSIDE/MONTOPOLIS",
-									"stop_sequence": 16
+									"stop_sequence": 17
 								},
 								{
 									"direction_id": 0,
@@ -163,7 +171,7 @@
 									"lon": -97.706711,
 									"stop_id": "951",
 									"stop_name": "Riverside/Clubview",
-									"stop_sequence": 17
+									"stop_sequence": 18
 								}
 							],
 							"stop_id": "3238",
@@ -179,18 +187,18 @@
 							"stop_id": "6569",
 							"stop_name": "Fairway/Grove",
 							"stop_name_full": "Fairway/Grove",
-							"stop_sequence": 18
+							"stop_sequence": 19
 						}
 					]
 				},
 				"271-0-a2be12e6": {
 					"direction_id": 0,
 					"pattern_id": "271-0-a2be12e6",
-					"representative_trip_id": "3000682_5767",
+					"representative_trip_id": "3000682_5302",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 20,
 					"timepoint_count": 3,
@@ -366,19 +374,19 @@
 					]
 				}
 			},
-			"stop_count": 18,
+			"stop_count": 19,
 			"timepoint_count": 3
 		},
 		{
 			"baseline_by_service": {
-				"2-172": "271-1-ad27c6ac",
+				"10-172": "271-1-ac5cbeb1",
 				"3-172": "271-1-ad27c6ac",
 				"4-172": "271-1-ad27c6ac",
 				"5-172": "271-1-ac5cbeb1",
 				"6-172": "271-1-ac5cbeb1",
 				"7-172": "271-1-ac5cbeb1",
 				"8-172": "271-1-ac5cbeb1",
-				"9-172": "271-1-ac5cbeb1"
+				"9-172": "271-1-ad27c6ac"
 			},
 			"baseline_pattern_id": "271-1-ac5cbeb1",
 			"baseline_stable": false,
@@ -387,13 +395,13 @@
 				"271-1-ac5cbeb1": {
 					"direction_id": 1,
 					"pattern_id": "271-1-ac5cbeb1",
-					"representative_trip_id": "3014298_5295",
+					"representative_trip_id": "3000704_5059",
 					"service_ids": [
+						"10-172",
 						"5-172",
 						"6-172",
 						"7-172",
-						"8-172",
-						"9-172"
+						"8-172"
 					],
 					"stop_count": 17,
 					"timepoint_count": 3,
@@ -547,11 +555,11 @@
 				"271-1-ad27c6ac": {
 					"direction_id": 1,
 					"pattern_id": "271-1-ad27c6ac",
-					"representative_trip_id": "3000704_5501",
+					"representative_trip_id": "3000704_5057",
 					"service_ids": [
-						"2-172",
 						"3-172",
-						"4-172"
+						"4-172",
+						"9-172"
 					],
 					"stop_count": 18,
 					"timepoint_count": 3,
@@ -715,7 +723,7 @@
 			"timepoint_count": 3
 		}
 	],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "271",
 	"schema": 1
 }

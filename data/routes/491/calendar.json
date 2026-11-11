@@ -1,12 +1,6 @@
 {
-	"date_count": 10,
+	"date_count": 9,
 	"dates": {
-		"20261107": {
-			"is_exception_day": false,
-			"service_ids": [
-				"2-172"
-			]
-		},
 		"20261114": {
 			"is_exception_day": false,
 			"service_ids": [
@@ -63,7 +57,7 @@
 		}
 	},
 	"exception_dates": [],
-	"feed_version": "261102_1010",
+	"feed_version": "261110_1310",
 	"route_id": "491",
 	"schema": 1,
 	"service_ids": [
